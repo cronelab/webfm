@@ -1,0 +1,15 @@
+{
+  "name": "webfm",
+  "version": "1.0.0",
+  "description": "A web-based functional mapping utility.",
+  "main": "serveme.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Max Collard <collard@jhu.edu>",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "dependencies": {
+    "express": "^4.14.0",
+    "optimist": "^0.6.1"
+  }
+}
