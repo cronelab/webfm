@@ -1,0 +1,143 @@
+﻿<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>WebFM</title>
+
+	<!-- STYLES -->
+    <link rel="stylesheet" type="text/css" href="../css/materialize.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="webfm.css">
+    <link rel="stylesheet" type="text/css" href="../css/normalize.css">
+</head>
+
+<body>
+
+    <!-- ===================================================== -->
+	<!-- Content -->
+
+    <!-- Navbar -->
+
+    <div class="navbar-fixed">
+      <nav class="light-blue darken-4">
+        <div class="nav-wrapper">
+          <!-- <a href="#" class="brand-logo">WebFM</a> -->
+          <ul class="left">
+            <li>
+              <a href="./tasks.html"><i class="material-icons">more</i></a>
+            </li>
+            <li style="width: 50px;">
+              <!-- separator -->
+            </li>
+            <li id="fullscreen-button">
+              <a href="#"><i id="fullscreen-button-icon" class="material-icons">fullscreen</i></a>
+            </li>
+            <li id="zoom-in-button" class="hide-on-small-and-down">
+              <a href="#"><i class="material-icons">zoom_in</i></a>
+            </li>
+            <li id="zoom-out-button" class="hide-on-small-and-down">
+              <a href="#"><i class="material-icons">zoom_out</i></a>
+            </li>
+            <li id="gain-up-button">
+              <a href="#"><i class="material-icons">volume_up</i></a>
+            </li>
+            <li id="gain-down-button">
+              <a href="#"><i class="material-icons">volume_down</i></a>
+            </li>
+          </ul>
+          
+          <a class="brand-logo center hide-on-small-and-down" id="subject-text">[PYXXNXXX]</a>
+
+          <ul class="right">
+            <li id="working-icon">
+              <a><i class="material-icons">refresh</i></a>
+            </li>
+            <li id="transfer-icon">
+              <a><i class="material-icons">settings_ethernet</i></a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </div>
+    <!--
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">WebFM</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="active">
+                <a href="#"><span class="glyphicon glyphicon-list" aria-hidden="true"></span></a>
+            </li>
+            <li>
+                <a href="#"><span class="glyphicon glyphicon-user" aria-hidden="true"></span></a>
+            </li>
+            <li id="zoom-in-button">
+                <a href="#"><span class="glyphicon glyphicon-zoom-in" aria-hidden="true"></span></a>
+            </li>
+            <li id="zoom-out-button">
+                <a href="#"><span class="glyphicon glyphicon-zoom-out" aria-hidden="true"></span></a>
+            </li>
+            <li id="gain-up-button">
+                <a href="#"><span class="glyphicon glyphicon-volume-up" aria-hidden="true"></span></a>
+            </li>
+            <li id="gain-down-button">
+                <a href="#"><span class="glyphicon glyphicon-volume-down" aria-hidden="true"></span></a>
+            </li>
+            <li>
+                <p id="subject-text" class="navbar-text">[PYXXNXXX]</p>
+            </li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li id="working-icon">
+                <a href="#"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></a>
+            </li>
+            <li id="transfer-icon">
+                <a href="#"><span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></a>
+            </li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span> <span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li><a href="#">Action</a></li>
+                <li><a href="#">Another action</a></li>
+                <li><a href="#">Something else here</a></li>
+                <li role="separator" class="divider"></li>
+                <li class="dropdown-header">Nav header</li>
+                <li><a href="#">Separated link</a></li>
+                <li><a href="#">One more separated link</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    -->
+    <div class="row">
+      <div class="col m6 s12 container-horizon">
+          <a id="play-button" class="btn-floating btn waves-effect waves-light light-blue" style="position: fixed; left: 10px; top: 72px; z-index: 200;"><i id="play-button-icon" class="material-icons large">play_arrow</i></a>
+          <div id="fm"></div>
+      </div>
+      <div class="col m6 hide-on-small-and-down container-brain" style="position:fixed; right:0px;">
+          <a class="btn-floating btn-large waves-effect waves-light light-blue" style="position: absolute; right: 10px;"><i class="material-icons">aspect_ratio</i></a>
+          <!--<canvas id="canvas-brain"></canvas>-->
+          <div id="brain"></div>
+      </div>
+    </div>
+
+    <!-- ===================================================== -->
+
+	<!-- require.js entry -->
+	<script data-main="webfm" src="lib/require.js"></script>
+</body>
+
+</html>

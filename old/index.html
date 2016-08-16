@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>WebFM</title>
+    <!-- <link rel="stylesheet" type="text/css" href="timing.css"> -->
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+    <style>
+        /* Sticky footer styles
+        -------------------------------------------------- */
+        html {
+          position: relative;
+          min-height: 100%;
+        }
+        body {
+          padding-top: 50px;
+          /* Margin bottom by footer height */
+          /* margin-bottom: 60px; */
+        }
+        .footer {
+          position: absolute;
+          bottom: 0;
+          width: 100%;
+          /* Set the fixed height of the footer here */
+          height: 60px;
+          background-color: #f5f5f5;
+        }
+
+        /* Custom page CSS
+        -------------------------------------------------- */
+        /* Not required for template or sticky footer method. */
+
+        body > .container {
+          padding: 60px 0 0; /* 60px 15px 0 */
+        }
+        .container .text-muted {
+          margin: 20px 0;
+        }
+
+        .footer > .container {
+          padding-right: 15px;
+          padding-left: 15px;
+        }
+
+        code {
+          font-size: 80%;
+        }
+
+
+
+        #fm {
+            margin-top: 0;    /* padding, 10 */
+            margin-bottom: 10px;
+        }
+        @media (min-width: @screen-sm-min) {
+            #fm {
+                overflow-y: scroll;
+            }
+        }
+
+        /* D3 CSS
+        -------------------------------------------------- */
+        .horizon {
+          border-top: solid 1px rgba(0,0,0,.5);;
+          border-bottom: solid 1px rgba(0,0,0,.5);;
+          overflow: hidden;
+          position: relative;
+        }
+
+        .horizon + .horizon {
+          border-top: none;
+        }
+
+        .horizon canvas {
+          display: block;
+          image-rendering: pixelated;
+        }
+
+        .horizon .title,
+        .horizon .value {
+          top: 0;
+          line-height: 13px;
+          margin: 1px 2px; /* 0 6px */
+          position: absolute;
+          font-family: sans-serif;
+          font-weight: bold;
+          color: #000;
+          /* text-shadow: 0 1px 0 rgba(255,255,255,.5); */
+          white-space: nowrap;
+        }
+
+        .horizon .title {
+          left: 0;
+        }
+
+        .horizon .value {
+          right: 0;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <!-- BCI2K -->
+    <script src="../../bower_components/jquery/dist/jquery.js"></script>
+    <script src="../../bower_components/jdataview/dist/browser/jdataview.js"></script>
+    <script src="../../bci2k.js"></script>
+    <script src="../../system/bci2kconfig.js"></script>
+
+
+    <!-- CONFIG -->
+    <script>
+        var channels = [];
+        var nChannels = 0;
+
+        var generateData = false;
+    </script>
+
+
+    <!-- Bootstrap -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+    <!-- D3 -->
+    <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="https://d3js.org/d3-selection.v0.6.min.js"></script>
+    <script src="https://d3js.org/d3-array.v0.7.min.js"></script>
+    <script src="https://d3js.org/d3-collection.v0.1.min.js"></script>
+    <script src="https://d3js.org/d3-color.v0.4.min.js"></script>
+    <script src="https://d3js.org/d3-format.v0.5.min.js"></script>
+    <script src="https://d3js.org/d3-interpolate.v0.7.min.js"></script>
+    <script src="https://d3js.org/d3-time.v0.2.min.js"></script>
+    <script src="https://d3js.org/d3-time-format.v0.3.min.js"></script>
+    <script src="https://d3js.org/d3-scale.v0.6.min.js"></script>
+    <script src="https://d3js.org/d3-axis.v0.3.min.js"></script>
+    <script src="https://d3js.org/d3-queue.v2.min.js"></script>
+    <script src="https://d3js.org/d3-dispatch.v0.4.min.js"></script>
+    <script src="https://d3js.org/d3-dsv.v0.3.min.js"></script>
+    <script src="https://d3js.org/d3-request.v0.4.min.js"></script>
+    <script src="https://npmcdn.com/d3-horizon-chart/build/d3-horizon-chart.min.js"></script>
+
+
+    <!-- Content -->
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">WebFM</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="active">
+                <a href="#"><span class="glyphicon glyphicon-list" aria-hidden="true"></span></a>
+            </li>
+            <li>
+                <a href="#"><span class="glyphicon glyphicon-user" aria-hidden="true"></span></a>
+            </li>
+            <li>
+                <a href="#" onclick="zoomIn();"><span class="glyphicon glyphicon-zoom-in" aria-hidden="true"></span></a>
+            </li>
+            <li>
+                <a href="#" onclick="zoomOut();"><span class="glyphicon glyphicon-zoom-out" aria-hidden="true"></span></a>
+            </li>
+            <li>
+                <p id="subject-text" class="navbar-text">[PYXXNXXX]</p>
+            </li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li id="working-icon">
+                <a href="#"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></a>
+            </li>
+            <li id="transfer-icon">
+                <a href="#"><span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></a>
+            </li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span> <span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li><a href="#">Action</a></li>
+                <li><a href="#">Another action</a></li>
+                <li><a href="#">Something else here</a></li>
+                <li role="separator" class="divider"></li>
+                <li class="dropdown-header">Nav header</li>
+                <li><a href="#">Separated link</a></li>
+                <li><a href="#">One more separated link</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div id="fm"></div>
+    </div>
+    
+
+    <!-- Application scripts -->
+
+    <script>
+
+        // Box-Muller standard normal samples
+        function randn() {
+            var u = 1 - Math.random();
+            var v = 1 - Math.random();
+
+            return Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+        }
+        // ^ But as a vector
+        function randn_v( n ) {
+            var ret = [];
+            for ( i = 0; i < n; i++ ) {
+                ret[i] = randn();
+            }
+            return ret;
+        }
+
+        function cumsum( arr ) {
+            var ret = [];
+            var cur = 0.0;
+            for ( i = 0; i < arr.length; i++ ) {
+                cur += arr[i];
+                ret[i] = cur;
+            }
+            return ret;
+        }
+
+        function add_v( v1, v2 ) {
+            var ret = [];
+            for ( i = 0; i < Math.min( v1.length, v2.length ); i++ ) {
+                ret[i] = v1[i] + v2[i];
+            }
+            return ret;
+        }
+        function smul_v( k, v ) {
+            var ret = [];
+            for ( i = 0; i < v.length; i++ ) {
+                ret[i] = k * v[i];
+            }
+            return ret;
+        }
+
+        function add_m( m1, m2 ) {
+            var ret = [];
+            for ( i = 0; i < m1.length; i++ ) {
+                ret[i] = [];
+                for ( j = 0; j < m1[i].length; j++ ) {
+                    ret[i][j] = m1[i][j] + m2[i][j];
+                }
+            }
+            return ret;
+        }
+        function smul_m( k, m ) {
+            var ret = [];
+            for ( i = 0; i < m.length; i++ ) {
+                ret[i] = [];
+                for ( j = 0; j < m[i].length; j++ ) {
+                    ret[i][j] = k * m[i][j];
+                }
+            }
+            return ret;
+        }
+
+        function pmul_m( m1, m2 ) {
+            var ret = [];
+            for ( i = 0; i < m1.length; i++ ) {
+                ret[i] = [];
+                for ( j = 0; j < m1[i].length; j++ ) {
+                    ret[i][j] = m1[i][j] * m2[i][j];
+                }
+            }
+            return ret;
+        }
+
+        function linspace( a, b, n ) {
+            var ret = [];
+            var step = (b - a) / (n - 1);
+            for ( i = 0; i < n; i ++ ) {
+                ret[i] =  a + i * step;
+            }
+            return ret;
+        }
+
+        function zeros( r, c ) {
+            var ret = [];
+            for ( i = 0; i < r; i++ ) {
+                ret[i] = [];
+                for ( j = 0; j < c; j++ ) {
+                    ret[i][j] = 0.0;
+                }
+            }
+            return ret;
+        }
+
+        function sin_f( f ) {
+            return function( t ) {
+                return Math.sin( 2 * Math.PI * f * t );
+            };
+        }
+
+
+        // BCI2000 Setup
+
+        var bci = new BCI2K.Connection();
+        bci.connect();
+
+        var bciRunning = false;
+        var dataConnection = null;
+        var subjectName = '';
+        ( function getDataConnection() {
+            if ( bci.connected() && bciRunning ) {
+                console.log( 'BCI Running!' );
+                // DataConnection gives us the trial data via its ondata property
+                dataConnection = new BCI2K.DataConnection();
+                dataConnection.onproperties = onProperties;
+                dataConnection.ondata = onData;
+                // TODO Get the DataConnection port via an execute call
+                dataConnection.connect( window.location.hostname + ':20325' );
+
+                // Get other session info
+                bci.execute( 'Get Parameter SubjectName', function( subjectResult ) {
+                    subjectName = subjectResult.output.trim();
+                    $('#subject-text').text( subjectName );
+                } );
+            }
+            else {
+                console.log( '[DC] BCI not ready ...' );
+                setTimeout( getDataConnection, 500 );
+            }
+        } )();
+
+        ( function checkRunning() {
+            if ( bci.connected() ) {
+                console.log( 'BCI Running??' );
+                // Need to ensure that we're running first before anything goes down.
+                bci.execute( 'Get System State', function( result ) {
+                    console.log( result.output );
+                    if ( result.output.search( 'Running' ) >= 0 ) {
+                        bciRunning = true;
+                    }
+                    else {
+                        console.log( 'BCI not running ...' );
+                        setTimeout( checkRunning, 500 );
+                    }
+                } );
+            }
+            else {
+                console.log( '[RUN] BCI not connected ...' );
+                setTimeout( checkRunning, 500 );
+            }
+        } )();
+
+
+        var nTrials = 0;
+        var hgMean = null;
+        var hgM2 = null;
+        var hgVar = null;
+
+        var rowHeight = 2;
+        var maxRowHeight = 8;
+        var pxPerHeight = 13;
+
+        var showDuration = 0;
+        var hideDelay = 500;
+        var hideDuration = 500;
+
+        function showIcon( iconName ) {
+            $('#' + iconName + '-icon').show( showDuration );
+        }
+        function hideIcon( iconName ) {
+            setTimeout( function() {
+                $('#' + iconName + '-icon').hide( hideDuration );
+            }, hideDelay );
+        }
+
+        function zoomIn() {
+            rowHeight = rowHeight + 1;
+            if ( rowHeight > maxRowHeight )
+                rowHeight = maxRowHeight;
+            updateCharts();
+        }
+        function zoomOut() {
+            rowHeight = rowHeight - 1;
+            if ( rowHeight < 1 )
+                rowHeight = 1;
+            updateCharts();
+        }
+
+        function updateData( newData ) {
+
+            showIcon( 'working' );
+
+            nTrials += 1;
+
+            if ( hgMean == null ) {
+                hgMean = newData;
+                hgM2 = zeros( hgMean.length, hgMean[0].length );
+                hgVar = zeros( hgMean.length, hgMean[0].length );
+                return;
+            }
+
+            // delta = x - mean
+            delta = add_m( newData, smul_m( -1.0, hgMean ) );
+            // mean += delta / n
+            hgMean = add_m( hgMean, smul_m( (1 / nTrials), delta ) );
+            // M2 += delta * (x - mean)
+            hgM2 = add_m( hgM2, pmul_m( delta, add_m( newData, smul_m( -1.0, hgMean ) ) ) );
+            // var = M2 / (n - 1)
+            hgVar = smul_m( (1 / (nTrials - 1)), hgM2 );
+
+            hideIcon( 'working' );
+
+        }
+
+        function updateCharts() {
+
+            var chartData = channels.map( function( c, i ) {
+                return {
+                    'name': c,
+                    'values': hgMean[i]
+                }
+            } );
+
+            var fmWidth = $('#fm').width();
+
+            var enterHorizon = function( d, i ) {
+                d3_horizon_chart.horizonChart()
+                    .title( d.name )
+                    .height( rowHeight * pxPerHeight )
+                    //.step( Math.floor( $('#fm').width() / chartData[0].values.length ) )
+                    .step( fmWidth / chartData[0].values.length )
+                    //.step( 2 )
+                    .extent( [-15.0, 15.0] )
+                    .call( this, d.values, i );
+            }
+
+            // TODO Hella slow!!
+            d3_selection.select( '#fm' ).selectAll( '.horizon' )
+                .remove();
+
+            var update = d3_selection.select( '#fm' ).selectAll( '.horizon' )
+                .data( chartData );
+
+            update.enter()
+                .append( 'div' )
+                .attr( 'class', 'horizon' )
+                .each( enterHorizon );
+
+            update.exit()
+                .remove();
+
+        }
+
+        function onProperties( properties ) {
+
+            showIcon( 'transfer' );
+
+            channels = properties.channels;
+            nChannels = channels.length;
+
+            hideIcon( 'transfer' );
+
+        }
+
+        function onData( data ) {
+
+            showIcon( 'transfer' );
+
+            if ( data.length != nChannels ) {
+                console.log( 'Incorrect number of channels in data!' );
+            }
+            else {
+                updateData( data );
+                updateCharts();
+            }
+
+            hideIcon( 'transfer' );
+
+        }
+
+        // TODO Do this better
+        $('#fm').height( $(window).height() - 70 );
+        window.onresize = function() {
+            $('#fm').height( $(window).height() - 70 );
+        }
+        
+
+        // Generate data
+
+        var gen_nTime = 1 * 500;
+        var gen_trialTime = 2 * 1000; // ms
+
+        function addTrial() {
+
+            console.log( 'Adding trial!' );
+
+            var data = channels.map( function( d ) {
+                var tv = linspace( -1, 3, gen_nTime );
+                var yv = tv.map( sin_f( 0.33 ), tv );
+                return add_v( yv, smul_v( 0.5, randn_v( yv.length ) ) );
+            } );
+
+            onData( data );
+
+            if ( nTrials < 200 )
+                setTimeout( addTrial, gen_trialTime );
+
+        }
+
+        if ( generateData ) {
+            setTimeout( addTrial, 100 );
+        }
+    </script>
+
+</body>
+
+</html>

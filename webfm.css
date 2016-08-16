@@ -1,0 +1,114 @@
+/* webfm - webfm.css
+-- Custom styles */
+
+
+
+
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+  position: relative;
+  min-height: 100%;
+}
+body {
+  /* padding-top: 50px; */
+  /* Margin bottom by footer height */
+  /* margin-bottom: 60px; */
+  margin:0;
+  padding:0; 
+}
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  /* Set the fixed height of the footer here */
+  height: 60px;
+  background-color: #f5f5f5;
+}
+
+/* Custom page CSS
+-------------------------------------------------- */
+/* Not required for template or sticky footer method. */
+
+body > .container {
+  padding: 60px 0 0; /* 60px 15px 0 */
+}
+.container .text-muted {
+  margin: 20px 0;
+}
+
+.container-horizon {
+  /*
+  float: left;
+  width: 75%;
+  clear: both;
+  */
+}
+
+.container-brain {
+  float: right;
+  width: 25%;
+  height: 100%;
+  margin-top: 10px;
+}
+
+.footer > .container {
+  padding-right: 15px;
+  padding-left: 15px;
+}
+
+code {
+  font-size: 80%;
+}
+
+
+
+#fm {
+    margin-top: 0px;    /* padding, 10 */
+    margin-bottom: 10px;
+}
+@media (min-width: @screen-sm-min) {
+    #fm {
+        overflow-y: scroll;
+    }
+}
+
+/* D3 CSS
+-------------------------------------------------- */
+.horizon {
+  border-top: solid 1px rgba(0,0,0,.5);;
+  border-bottom: solid 1px rgba(0,0,0,.5);;
+  overflow: hidden;
+  position: relative;
+}
+
+.horizon + .horizon {
+  border-top: none;
+}
+
+.horizon canvas {
+  display: block;
+  image-rendering: pixelated;
+}
+
+.horizon .title,
+.horizon .value {
+  top: 0;
+  line-height: 13px;
+  margin: 1px 2px; /* 0 6px */
+  position: absolute;
+  font-family: sans-serif;
+  font-weight: bold;
+  color: #000;
+  /* text-shadow: 0 1px 0 rgba(255,255,255,.5); */
+  white-space: nowrap;
+}
+
+.horizon .title {
+  left: 0;
+}
+
+.horizon .value {
+  right: 0;
+}
