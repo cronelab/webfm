@@ -1,2 +1,8 @@
 # webfm
-Web-based functional mapping utility.
+A web-based functional mapping utility.
+
+**Description forthcoming**.
+
+## Data formats
+
+... Forthcoming ...
