@@ -78,7 +78,7 @@ fmonline.OnlineManager.prototype = {
 
             } );
 
-    }
+    },
 
     _waitForRunning: function() {
 
@@ -130,7 +130,7 @@ fmonline.OnlineManager.prototype = {
             setTimeout( checkRunning, manager._checkRunningInterval );
 
         } );
-    }
+    },
 
     _connectToData: function() {
 

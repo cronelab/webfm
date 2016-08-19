@@ -1,0 +1,21 @@
+{
+  "name": "webfm-old",
+  "version": "0.0.0",
+  "description": "Old version of WebFM for compatibility",
+  "main": "serveme.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://itsthefedora@github.com/cronelab/webfm.git"
+  },
+  "author": "Max Collard <collard@jhu.edu>",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "bugs": {
+    "url": "https://github.com/cronelab/webfm/issues"
+  },
+  "dependencies": {
+    "express": "~4.14.0"
+  }
+}
