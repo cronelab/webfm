@@ -10,6 +10,9 @@
 
 var bci2k = require( '../lib/bci2k' );
 
+require( 'setimmediate' );                      // Needed to fix promise-polyfill on non-IE
+var Promise = require( 'promise-polyfill' );    // Needed for IE Promise support
+
 
 // SETUP
 
@@ -22,14 +25,29 @@ var dataConnection = null;
 var fmonline = {};
 
 
+// HELPERS
+
+// Takes an asynchronous function with callback ( err, result ) => () and turns it into a Promise
+function promisify( f ) {
+    return new Promise( function( resolve, reject ) {
+        f( function( err, result ) {
+            if ( err ) {
+                reject( err );
+                return;
+            }
+            resolve( result );
+        } );
+    } );
+}
+
+
 // MAIN CLASS
 
 fmonline.OnlineManager = function() { 
     
     // Event callbacks
     this.onproperties       = function( properties ) {};
-    this.ondata             = function( data ) {};
-    this.onsubjectinfo      = function( subjectInfo ) {};
+    this.ontrial            = function( trialData ) {};
 
     // Connection for interfacing with the BCI2K system
     this._bciConnection = new bci2k.Connection(); 
@@ -62,7 +80,7 @@ fmonline.OnlineManager.prototype = {
         // Capture this for inline functions
         var manager = this;
 
-        this._waitForRunning()
+        this.ensureRunning()
             .then( function() {
 
                 if ( manager._debug ) {
@@ -80,7 +98,7 @@ fmonline.OnlineManager.prototype = {
 
     },
 
-    _waitForRunning: function() {
+    ensureRunning: function() {
 
         // Capture this for inline functions
         var manager = this;
@@ -132,6 +150,52 @@ fmonline.OnlineManager.prototype = {
         } );
     },
 
+    _appendSystemProperties: function( properties ) {
+        
+        var manager = this;     // Cache this for inline functions
+
+        // Make promises for system calls to add on dataset properties
+        var subjectNamePromise = promisify( function( cb ) {
+            manager._bciConnection.execute( 'Get Parameter SubjectName', function( result ) {
+                cb( null, result );
+            };
+        } );
+
+        var dataFilePromise = promisify( function( cb ) {
+            manager._bciConnection.execute( 'Get Parameter DataFile', function( result ) {
+                cb( null, result );
+            };
+        } );
+
+        // Promise the merged properties if all system calls finish
+        return Promise.all( [subjectNamePromise, dataFilePromise] )
+            .then( function( results ) {
+
+                // Process results and add them to properties
+                properties.subjectName = results[0].output.trim();
+
+                // TODO Parse out task name from DataFile
+                properties.taskName = results[1].output.trim();
+
+                // Returned promise resolves to the merged properties
+                return properties;
+
+            } )
+            .catch( function( reason ) {
+                
+                console.log( 'Could not obtain additional system properties: ' + reason );
+                
+                // Fill in defaults to avoid undefined's for user
+                properties.subjectName = '';
+                properties.taskName = '';
+
+                // Returned promise resolves to "merged" properties if system calls fail
+                return properties;
+
+            } );
+
+    },
+
     _connectToData: function() {
 
         // Capture this for inline functions
@@ -139,8 +203,12 @@ fmonline.OnlineManager.prototype = {
 
         this._dataConnection = new BCI2K.DataConnection();
         
-        // Copy over relevant data callbacks
-        this._dataConnection.onproperties = this.onproperties;
+        // Set relevant data callbacks
+        this._dataConnection.onsignalproperties = function( signalProperties ) {
+            manager._appendSystemProperties( signalProperties )
+                    .then( manager.onproperties );
+        }
+
         this._dataConnection.ondata = this.ondata;
 
         // Determine where data connection is located
@@ -154,17 +222,6 @@ fmonline.OnlineManager.prototype = {
             var dataHost = hostParts[0];
 
             manager._dataConnection.connect( dataHost + ':' + dataPort );
-
-        } );
-
-        // Determine the subject name
-        // TODO Seems odd to have this as a whole separate step?
-        this._bciConnection.execute( 'Get Parameter SubjectName', function( result ) {
-            
-            var subjectInfo = {};
-            subjectInfo.name = result.output.trim();
-
-            manager.onsubjectinfo( subjectInfo );
 
         } );
 

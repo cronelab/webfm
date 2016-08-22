@@ -20,8 +20,12 @@ d3.horizon = require( '../lib/horizon' );
 var bci2k = require( '../lib/bci2k' );
 
 var cronelib = require( '../lib/cronelib' );
+
 var fmstat = require( './fmstat' );
 var fmonline = require( './fmonline' );
+var fmui = require( './fmui' );
+var fmgen = require( './fmgen' );
+var fmdata = require( './fmdata' );
 
 
 // MEAT
@@ -31,60 +35,109 @@ var fmonline = require( './fmonline' );
 // Parse out URL query string
 var query = cronelib.parseQuery( window.location.search );
 
-var generateMode    = ( query.generate == 'yes' );
-var onlineMode      = ( query.online == 'yes' );
-// Resolve mode conflict
-if ( generateMode && onlineMode ) {
-    // Generate loses
-    generateMode = false;
+// Determine the correct operation mode
+var modeString = query.mode || undefined;
+var generateMode    = false;
+var onlineMode      = false;
+var loadMode        = false;
+if ( modeString.search( 'generate' ) >= 0 ) {
+    generateMode = true;
+} else if ( modeString.search( 'online' ) >= 0 ) {
+    onlineMode = true;
+} else {
+    loadMode = true;
 }
+
+// TODO ?
 var subjectID       = query.subject || undefined;
 var datasetName     = query.dataset || undefined;
 
 // Dataset
-var fmData = null;
+var dataset         = new fmdata.Dataset();
 
 // UI
-var subjectDisplayName = '';
-var channelNames = [];
-var valueUnits = 1.0;
-
-var startTime = 0.0;
-
-// Load UI config
-var uiConfig = {};
-$.getJSON( 'config/map.json' )
-    .done( function( data ) {
-        uiConfig = data;
-        // TODO Update UI using new config data
-    } );
+var uiManager = new fmui.InterfaceManager();
+uiManager.loadConfig( 'config/map.json' );
 
 
-// Set up online components, if necessary
+// DATA SOURCE SET-UP
 
-var onlineManager = null;
+var dataSource = null;
+
+// Online mode
 
 if ( onlineMode ) {
 
-    onlineManager = new fmonline.OnlineManager();
-    
-    onlineManager.onproperties = function( properties ) {
+    dataSource = new fmonline.OnlineDataSource();
 
-        // ...
-    
-    };
+    // Wire to common routines
+    dataSource.onproperties = updateProperties;
+    dataSource.ontrial = ingestTrial;
 
-    onlineManager.onsubjectinfo = function( subjectInfo ) {
-
-    };
-
-    onlineManager.ondata = function( data ) {
-        
-        // ..
-
-    };
+    dataSource.connect();
 
 }
+
+// Generator mode
+
+if ( generateMode ) {
+
+    dataSource = new fmgen.GeneratorDataSource();
+
+    dataSource.onproperties = updateProperties;
+    dataSource.ontrial = ingestTrial;
+
+    dataSource.start();
+
+}
+
+// Load mode
+
+if ( loadMode ) {
+
+    // TODO
+    var dataURI = '';
+    dataset.load( dataURI )
+            .then( function( data ) {
+                // TODO
+            } );
+            .catch( function( reason ) {
+                // TODO
+            } );
+
+}
+
+
+// COMMON ROUTINES
+
+// Property registration
+
+var updateProperties = function( properties ) {
+    
+    uiManager.showIcon( 'transfer' );
+
+    // TODO Put in uiManager?
+    subjectDisplayName = properties.subjectName;
+    taskDisplayName = properties.taskName;
+    channelNames = properties.channels;
+    valueUnits = properties.valueUnits;
+
+    uiManager.hideIcon( 'transfer' );
+
+}
+
+// Trial ingestion
+
+var ingestTrial = function( trialData ) {
+    
+    uiManager.showIcon( 'transfer' );
+
+    // ...
+
+    uiManager.hideIcon( 'transfer' );
+
+};
+
 
 
 //

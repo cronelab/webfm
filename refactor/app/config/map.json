@@ -9,5 +9,14 @@
 
     'iconShowDuration':     0,
     'iconHideDelay':        500,
-    'iconHideDuration':     500
+    'iconHideDuration':     500,
+
+    "fmMargin": {
+        "left": 0,
+        "right": 0,
+        "top": 70,
+        "bottom": 0
+    },
+
+    "chartDebounceDelay": 100
 }
