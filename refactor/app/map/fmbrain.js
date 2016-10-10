@@ -171,12 +171,12 @@ fmbrain.BrainVisualizer.prototype = {
     _dotX: function( d ) {
         var pos = this.sensorGeometry[ d.name ];
         return ( pos ) ? pos.u * this.size.width : undefined;
-    }
+    },
     _dotY: function( d ) {
         var pos = this.sensorGeometry[ d.name ];
         // TODO Should v-coordinate be reversed like this?
         return ( pos ) ? (1 - pos.v) * this.size.height : undefined;
-    }
+    },
     _dotRadius: function( d ) {
         return ( this.dotMinRadius + this.dotScale * Math.abs( d.value ) ) * this.size.width;
     },
@@ -203,8 +203,8 @@ fmbrain.BrainVisualizer.prototype = {
         if ( newContainerSize === undefined ) {
             // TODO Should this be a supported behavior?
             newContainerSize = {
-                'width':    $( '#brain' ).parent().width();
-                'height':   $( '#brain' ).parent().width();
+                'width':    $( '#brain' ).parent().width(),
+                'height':   $( '#brain' ).parent().width()
             };
         }
 

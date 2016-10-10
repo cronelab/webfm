@@ -1,18 +1,19 @@
-// =
+// ======================================================================== //
 //
 // fmdata
 // Datasets for WebFM
 //
-// =
+// ======================================================================== //
 
 
 // REQUIRES
 
-var $ = require( 'jquery' );
+var $       = require( 'jquery' );
 
-// Promise compatibility
-require( 'setimmediate' );
-var Promise = require( 'promise-polyfill' );
+require( 'setimmediate' );                      // Needed to fix promise
+                                                // polyfill on non-IE
+var Promise = require( 'promise-polyfill' );    // Needed for IE Promise
+                                                // support
 
 
 // MODULE OBJECT

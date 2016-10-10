@@ -52,11 +52,11 @@ fmgen.GeneratorDataSource.prototype = {
         // Include artificial delay for start
         setTimeout( this.makeProperties, this.propertiesDelay );       
         setTimeout( this.makeTrial, this.trialDelay );
-    }
+    },
 
     stop: function() {
         this.running = false;
-    }
+    },
 
     makeProperties: function() {
 
@@ -72,7 +72,7 @@ fmgen.GeneratorDataSource.prototype = {
         // Call user-provided handler
         this.onproperties( properties );
 
-    }
+    },
 
     makeTrial: function() {
 
@@ -96,7 +96,7 @@ fmgen.GeneratorDataSource.prototype = {
             setTimeout( this.makeTrial, this.trialDelay );
         }
 
-    }
+    },
 
     _defaultChannels: function( nChannels ) {
         var channels = [];
@@ -104,7 +104,7 @@ fmgen.GeneratorDataSource.prototype = {
             channels.push( 'chan' + i.toString() );
         }
         return channels;
-    }
+    },
 
     _defaultGenerator: function( channel, trial ) {
         var tv = fmstat.linspace( -1, 3, this.nTime );

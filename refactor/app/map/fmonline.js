@@ -10,8 +10,10 @@
 
 var bci2k = require( '../lib/bci2k' );
 
-require( 'setimmediate' );                      // Needed to fix promise-polyfill on non-IE
-var Promise = require( 'promise-polyfill' );    // Needed for IE Promise support
+require( 'setimmediate' );                      // Needed to fix promise
+                                                // polyfill on non-IE
+var Promise = require( 'promise-polyfill' );    // Needed for IE Promise
+                                                // support
 
 
 // SETUP
@@ -158,13 +160,13 @@ fmonline.OnlineManager.prototype = {
         var subjectNamePromise = promisify( function( cb ) {
             manager._bciConnection.execute( 'Get Parameter SubjectName', function( result ) {
                 cb( null, result );
-            };
+            } );
         } );
 
         var dataFilePromise = promisify( function( cb ) {
             manager._bciConnection.execute( 'Get Parameter DataFile', function( result ) {
                 cb( null, result );
-            };
+            } );
         } );
 
         // Promise the merged properties if all system calls finish

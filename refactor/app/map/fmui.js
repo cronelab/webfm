@@ -8,17 +8,18 @@
 
 // REQUIRES
 
-var $ = require( 'jquery' );
+var $           = require( 'jquery' );
 
-// Promise compatibility
-require( 'setimmediate' );
-var Promise = require( 'promise-polyfill' );
+require( 'setimmediate' );                          // Needed to fix promise
+                                                    // polyfill on non-IE
+var Promise     = require( 'promise-polyfill' );    // Needed for IE Promise
+                                                    // support
 
-var cronelib = require( '../lib/cronelib' );
-var fullscreen = require( '../lib/fullscreen' );
+var cronelib    = require( '../lib/cronelib' );
+var fullscreen  = require( '../lib/fullscreen' );
 
-var fmbrain = require( './fmbrain' );
-var fmraster = require( './fmraster' );
+var fmbrain     = require( './fmbrain' );
+var fmraster    = require( './fmraster' );
 
 
 // MODULE OBJECT
@@ -186,7 +187,7 @@ fmui.InterfaceManager.prototype = {
                         } else {
                             // TODO
                         }
-                    } );
+                    } )
                     .catch( function( reason ) {
                         console.log( 'Could not toggle fullscreen: ' + reason );
                     } );

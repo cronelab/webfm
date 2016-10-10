@@ -8,25 +8,24 @@
 
 // REQUIRES
 
-var path = require( 'path' );
+var path        = require( 'path' );
 
-var $ = require( 'jquery' );
-var d3 = require( 'd3' );
+var $           = require( 'jquery' );
+var d3          = require( 'd3' );
 
-// Old way of doing horizon charts
-// var horizon = require( '../lib/d3-horizon-chart.js' );
-// New kludge
-d3.horizon = require( '../lib/horizon' );
+// var horizon  = require( '../lib/d3-horizon-chart.js' ); // Old way of doing
+                                                           // horizon charts
+d3.horizon      = require( '../lib/horizon' );             // New kludge
 
-var bci2k = require( '../lib/bci2k' );
+var bci2k       = require( '../lib/bci2k' );
 
-var cronelib = require( '../lib/cronelib' );
+var cronelib    = require( '../lib/cronelib' );
 
-var fmstat = require( './fmstat' );
-var fmonline = require( './fmonline' );
-var fmui = require( './fmui' );
-var fmgen = require( './fmgen' );
-var fmdata = require( './fmdata' );
+var fmstat      = require( './fmstat' );
+var fmonline    = require( './fmonline' );
+var fmui        = require( './fmui' );
+var fmgen       = require( './fmgen' );
+var fmdata      = require( './fmdata' );
 
 
 // MEAT
@@ -34,13 +33,15 @@ var fmdata = require( './fmdata' );
 // Initialization
 
 // Parse out URL query string
-var query = cronelib.parseQuery( window.location.search );
+var query           = cronelib.parseQuery( window.location.search );
 
 // Determine the correct operation mode
-var modeString = query.mode || undefined;
+var modeString      = query.mode || undefined;
+
 var generateMode    = false;
 var onlineMode      = false;
 var loadMode        = false;
+
 if ( modeString.search( 'generate' ) >= 0 ) {
     generateMode = true;
 } else if ( modeString.search( 'online' ) >= 0 ) {
@@ -58,7 +59,7 @@ var dataBundle      = null;
 var dataset         = new fmdata.Dataset();
 
 // UI
-var uiManager = new fmui.InterfaceManager();
+var uiManager       = new fmui.InterfaceManager();
 uiManager.loadConfig( 'config/map.json' );
 
 
@@ -103,7 +104,7 @@ var getRecordInfo = function( subject, record ) {
             .done( resolve )
             .fail( function() {
                 // TODO Get error infor from jquery object
-                reject( 'Error loading JSON from: ' +  );
+                reject( 'Error loading JSON from: '  ); // TODO + ...
             } );
     } );
 };
