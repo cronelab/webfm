@@ -10,8 +10,15 @@
 
 var $ = require( 'jquery' );
 
+// Promise compatibility
+require( 'setimmediate' );
+var Promise = require( 'promise-polyfill' );
+
 var cronelib = require( '../lib/cronelib' );
 var fullscreen = require( '../lib/fullscreen' );
+
+var fmbrain = require( './fmbrain' );
+var fmraster = require( './fmraster' );
 
 
 // MODULE OBJECT
@@ -31,22 +38,22 @@ fmui.InterfaceManager.prototype = {
 
     constructor: fmui.InterfaceManager,
 
-    loadConfig: function( configURI, callback ) {
+    loadConfig: function( configURI ) {
         
         var manager = this;     // Cache this for nested functions
 
-        $.getJSON( configURI )
-            .done( function( data ) {
-                manager.config = data;
-
-                if ( callback !== undefined ) {
-                    // Custom callback specified; execute
-                    callback( data )
-                } else {
-                    // No custom callback specified; reasonable to execute setup
-                    manager.setup();
-                }
-            } );
+        // Wrap $.getJSON in a standard Promise
+        return new Promise( function( resolve, reject ) {
+            $.getJSON( configURI )
+                .done( resolve )
+                .fail( function() {
+                    // TODO Get error message from jquery object
+                    reject( 'Could not load UI config from: ' + configURI );
+                } );
+        } ).then( function( data ) {
+            manager.config = data;
+            manager.setup();
+        } );
 
     },
 
@@ -120,7 +127,7 @@ fmui.InterfaceManager.prototype = {
 
         this.resizeFM();
 
-        cronelib.debounce( this.updateCharts, this.config.chartDebounceDelay );
+        cronelib.debounce( this.updateCharts, this.config.chartDebounceDelay )();
 
     },
     

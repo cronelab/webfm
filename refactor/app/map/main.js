@@ -8,12 +8,13 @@
 
 // REQUIRES
 
+var path = require( 'path' );
+
 var $ = require( 'jquery' );
 var d3 = require( 'd3' );
 
 // Old way of doing horizon charts
 // var horizon = require( '../lib/d3-horizon-chart.js' );
-
 // New kludge
 d3.horizon = require( '../lib/horizon' );
 
@@ -50,9 +51,10 @@ if ( modeString.search( 'generate' ) >= 0 ) {
 
 // TODO ?
 var subjectID       = query.subject || undefined;
-var datasetName     = query.dataset || undefined;
+var recordName      = query.record || undefined;
 
 // Dataset
+var dataBundle      = null;
 var dataset         = new fmdata.Dataset();
 
 // UI
@@ -93,17 +95,40 @@ if ( generateMode ) {
 
 // Load mode
 
+var getRecordInfo = function( subject, record ) {
+    // Wrap $.getJSON in a standard promise
+    return new Promise( function( resolve, reject ) {
+        var infoPath = path.join( 'api', 'info', subject, record );
+        $.getJSON( infoPath )
+            .done( resolve )
+            .fail( function() {
+                // TODO Get error infor from jquery object
+                reject( 'Error loading JSON from: ' +  );
+            } );
+    } );
+};
+
+var unpackBundle = function( info ) {
+    if ( recordInfo.isBundle ) {
+        // Need to load bundle to identify first dataset
+        bundle = new fmdata.DataBundle();
+        return bundle.get( info.uri )
+                        .then( function() {
+                            // TODO Update UI with bundle displayGroup
+                            // Pass along the URI of the first dataset
+                            return Promise.resolve( bundle.uriForDataset( 0 ) );
+                        } );
+    } else {
+        // If we're just a dataset, can simply resolve to datast URI
+        return Promise.resolve( info.uri );
+    }
+}; 
+
 if ( loadMode ) {
 
-    // TODO
-    var dataURI = '';
-    dataset.load( dataURI )
-            .then( function( data ) {
-                // TODO
-            } );
-            .catch( function( reason ) {
-                // TODO
-            } );
+    getDataInfo( subjectID, recordName )
+        .then( unpackBundle )
+        .then( dataset.get );
 
 }
 
