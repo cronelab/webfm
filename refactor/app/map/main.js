@@ -67,34 +67,31 @@ uiManager.loadConfig( 'config/map.json' );
 
 var dataSource = null;
 
-// Online mode
-
-if ( onlineMode ) {
+if ( onlineMode ) {     // Using BCI2000Web over the net
 
     dataSource = new fmonline.OnlineDataSource();
 
     // Wire to common routines
-    dataSource.onproperties = updateProperties;
-    dataSource.ontrial = ingestTrial;
+    dataSource.onproperties     = updateProperties;
+    dataSource.ontrial          = ingestTrial;
 
     dataSource.connect();
 
 }
 
-// Generator mode
-
-if ( generateMode ) {
+if ( generateMode ) {   // Using an offline signal generator
 
     dataSource = new fmgen.GeneratorDataSource();
 
-    dataSource.onproperties = updateProperties;
-    dataSource.ontrial = ingestTrial;
+    // Wire to common routines
+    dataSource.onproperties     = updateProperties;
+    dataSource.ontrial          = ingestTrial;
 
     dataSource.start();
 
 }
 
-// Load mode
+// Load mode helpers
 
 var getRecordInfo = function( subject, record ) {
     // Wrap $.getJSON in a standard promise
@@ -104,13 +101,13 @@ var getRecordInfo = function( subject, record ) {
             .done( resolve )
             .fail( function() {
                 // TODO Get error infor from jquery object
-                reject( 'Error loading JSON from: '  ); // TODO + ...
+                reject( 'Error loading JSON from: ' + infoPath );
             } );
     } );
 };
 
 var unpackBundle = function( info ) {
-    if ( recordInfo.isBundle ) {
+    if ( info.isBundle ) {
         // Need to load bundle to identify first dataset
         bundle = new fmdata.DataBundle();
         return bundle.get( info.uri )
@@ -118,6 +115,9 @@ var unpackBundle = function( info ) {
                             // TODO Update UI with bundle displayGroup
                             // Pass along the URI of the first dataset
                             return Promise.resolve( bundle.uriForDataset( 0 ) );
+                            // TODO This all is a crappy system for doing
+                            // this. uriForDataset should be implicit in the
+                            // API, like infoPath above.
                         } );
     } else {
         // If we're just a dataset, can simply resolve to datast URI
@@ -125,11 +125,11 @@ var unpackBundle = function( info ) {
     }
 }; 
 
-if ( loadMode ) {
+if ( loadMode ) {       // Using data loaded from the hive
 
-    getDataInfo( subjectID, recordName )
-        .then( unpackBundle )
-        .then( dataset.get );
+    getDataInfo( subjectID, recordName )    // Get header info for the data
+        .then( unpackBundle )               // Unpack to get us a dataset URI
+        .then( dataset.get );               // Get the dataset for that URI
 
 }
 
@@ -143,10 +143,10 @@ var updateProperties = function( properties ) {
     uiManager.showIcon( 'transfer' );
 
     // TODO Put in uiManager?
-    subjectDisplayName = properties.subjectName;
-    taskDisplayName = properties.taskName;
-    channelNames = properties.channels;
-    valueUnits = properties.valueUnits;
+    subjectDisplayName  = properties.subjectName;
+    taskDisplayName     = properties.taskName;
+    channelNames        = properties.channels;
+    valueUnits          = properties.valueUnits;
 
     uiManager.hideIcon( 'transfer' );
 

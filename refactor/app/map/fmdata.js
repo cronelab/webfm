@@ -124,6 +124,50 @@ fmdata.Dataset.prototype = {
 };
 
 
+// DATABUNDLE CLASS
+
+fmdata.DataBundle = function() {
+
+    // TODO ...
+
+};
+
+fmdata.DataBundle.prototype = {
+
+    constructor: fmdata.DataBundle,
+
+    _initialize: function( data ) {
+
+        // TODO ...
+
+    },
+
+    get: function( uri ) {
+
+        // Wrap $.getJSOn in a standardized Promise
+        return new Promise( function( resolve, reject ) {
+            $.getJSON( uri )
+                .done( resolve )
+                .fail( function() {
+                    // TODO Get error message from jQuery promise
+                    reject( 'Error requesting WebFM bundle: ' + uri );
+                } );
+        } ).then( this._initialize );
+
+    },
+
+    uriForDataset: function( id ) {
+
+        // TODO Shouldn't this just be part of the server API?
+        // ...
+
+    }
+
+    // TODO ...
+
+}
+
+
 // EXPORT MODULE
 
 module.exports = fmdata;

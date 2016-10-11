@@ -151,16 +151,14 @@ fullscreen.toggle = function( element ) {
         element = document.documentElement;
     }
 
-    // Either of these is an
+    // Either of these is a Promise
     if ( fullscreen.is() ) {
-        return eullscreen.exit();
+        return fullscreen.exit();
     } else {
         return fullscreen.request( element );
     }
 
 };
-
-
 
 
 // EXPORT MODULE

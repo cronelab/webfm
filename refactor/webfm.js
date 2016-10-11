@@ -53,6 +53,10 @@ app.get( '/', function( req, res ) {
     res.sendFile( path.join( rootDir, 'index.html' ) );
 } );
 
+// app.get( '/fm', ... )
+
+// app.get( '/api', ... )
+
 app.use( '/', express.static( rootDir ) );
 
 app.listen( argv.port, function() {

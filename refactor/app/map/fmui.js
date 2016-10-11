@@ -110,12 +110,14 @@ fmui.InterfaceManager.prototype = {
 
     showIcon: function( iconName ) {
         // If properties aren't set, use 0
+        // TODO Necessary? We guarantee merged defaults when loading ...
         var showDuration = this.config.iconShowDuration || 0;
         $( '#' + iconName + '-icon' ).show( showDuration );
     },
 
     hideIcon: function( iconName ) {
         // If properties aren't set, use 0
+        // TODO As above.
         var hideDelay = this.config.iconHideDelay || 0;
         var hideDuration = this.config.iconHideDuration || 0;
 
