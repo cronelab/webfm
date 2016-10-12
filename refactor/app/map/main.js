@@ -1,6 +1,6 @@
 // ======================================================================== //
 //
-// main
+// map/main
 // Main entry for WebFM viewer (map.html).
 //
 // ======================================================================== //
@@ -32,27 +32,23 @@ var fmdata      = require( './fmdata' );
 
 // Initialization
 
-// Parse out URL query string
-var query           = cronelib.parseQuery( window.location.search );
+var pathComponents  = window.location.pathname.split( '/' );
 
-// Determine the correct operation mode
-var modeString      = query.mode || undefined;
+var modeString      = pathComponents[3] || 'generate';
 
-var generateMode    = false;
-var onlineMode      = false;
-var loadMode        = false;
+var generateMode    = modeString == 'generate';
+var onlineMode      = modeString == 'online';
+var loadMode        = (! (generateMode || onlineMode) );
 
-if ( modeString.search( 'generate' ) >= 0 ) {
-    generateMode = true;
-} else if ( modeString.search( 'online' ) >= 0 ) {
-    onlineMode = true;
-} else {
-    loadMode = true;
+var subjectID       = undefined;
+var recordName      = undefined;
+
+if ( loadMode ) {
+    subjectID       = pathComponents[3] || undefined;
+    recordName      = pathComponents[4] || undefined;
 }
 
-// TODO ?
-var subjectID       = query.subject || undefined;
-var recordName      = query.record || undefined;
+
 
 // Dataset
 var dataBundle      = null;
@@ -60,7 +56,7 @@ var dataset         = new fmdata.Dataset();
 
 // UI
 var uiManager       = new fmui.InterfaceManager();
-uiManager.loadConfig( 'config/map.json' );
+uiManager.loadConfig( '../config/map/ui' );
 
 
 // DATA SOURCE SET-UP
