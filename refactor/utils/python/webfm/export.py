@@ -103,9 +103,9 @@ def _preprocess_metadata( metadata ):
             # if export_key.lower() == '...':
 
         # Now finished with the relevant _export flags; kill them!
-        del metadata['_export']
+        del new_metadata['_export']
 
-    return metadata
+    return new_metadata
 
 
 def from_files( spec, output_path,
