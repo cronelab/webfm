@@ -28,7 +28,7 @@ BCI2K.DataView.prototype = Object.create( jDataView.prototype );
 
 BCI2K.DataView.prototype.getNullTermString = function() {
 	var val = "";
-	while( true ) {
+	while( this._offset < this.byteLength ) {
 		v = this.getUint8();
 		if( v == 0 ) break;
 		val += String.fromCharCode( v );
@@ -276,7 +276,7 @@ BCI2K.DataConnection.prototype = {
 	},
 
 	_decodeMessage: function( data ) {
-		var dv = new jDataView( data, 0, data.byteLength, true );
+		var dv = new BCI2K.DataView( data, 0, data.byteLength, true );
 
 		var descriptor = dv.getUint8();
 		switch( descriptor ) {
