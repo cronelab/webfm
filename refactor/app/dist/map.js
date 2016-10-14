@@ -93,6 +93,10 @@ BCI2K.Connection.prototype = {
 		};
 
 		this._socket.onmessage = function( event ) {
+
+			// TODO Helpful for debug
+			// console.log( event.data );
+
 			arr = event.data.split( ' ' );
 
 			var opcode = arr[0];
@@ -1206,6 +1210,7 @@ fmdata.DataBundle.prototype = {
 
         // TODO Shouldn't this just be part of the server API?
         // ...
+        return '/';
 
     }
 
@@ -1365,12 +1370,6 @@ var Promise = require( 'promise-polyfill' );    // Needed for IE Promise
                                                 // support
 
 
-// SETUP
-
-var bciConnection = new bci2k.Connection();
-var dataConnection = null;
-
-
 // MODULE OBJECT
 
 var fmonline = {};
@@ -1394,15 +1393,20 @@ function promisify( f ) {
 
 // MAIN CLASS
 
-fmonline.OnlineManager = function() { 
+fmonline.OnlineDataSource = function() { 
     
+    // For nested functions
+    var manager = this;
+
     // Event callbacks
     this.onproperties       = function( properties ) {};
     this.ontrial            = function( trialData ) {};
 
     // Connection for interfacing with the BCI2K system
     this._bciConnection = new bci2k.Connection(); 
-    this._bciConnection.onconnect = this._bciDidConnect;
+    this._bciConnection.onconnect = function( event ) {
+        manager._bciDidConnect( event );
+    };
 
     // Cached to prevent excess execute calls when true
     this._bciRunning = false;
@@ -1410,20 +1414,44 @@ fmonline.OnlineManager = function() {
     // Connection for receiving data from BCI2K
     this._dataConnection = null;
 
-    this._debug = true;
-
-    // Magic numbers
-    this._checkRunningInterval = 200;
+    this.config = {};
     
 };
 
-fmonline.OnlineManager.prototype = {
+fmonline.OnlineDataSource.prototype = {
 
-    constructor: fmonline.OnlineManater,
+    constructor: fmonline.OnlineDataSource,
 
-    connect: function() {
+    connect: function( address ) {
+
+        if ( address === undefined ) {
+            address = this.config.sourceAddress;
+        }
+
+        if ( this.config.debug ) {
+            console.log( 'Connecting to: ' + address );
+        }
+
         // Connect to the main BCI2K system
-        this._bciConnection.connect();
+        this._bciConnection.connect( address );
+    },
+
+    loadConfig: function( configURI ) {
+        
+        var manager = this;     // Cache this for nested functions
+
+        // Wrap $.getJSON in a standard Promise
+        return new Promise( function( resolve, reject ) {
+            $.getJSON( configURI )
+                .done( resolve )
+                .fail( function( req, reason, err ) {
+                    // TODO Get error message from jquery object
+                    reject( 'Could not load online config from ' + configURI + ' : ' + reason );
+                } );
+        } ).then( function( data ) {
+            manager.config = data;
+        } );
+
     },
 
     _bciDidConnect: function( event ) {
@@ -1431,10 +1459,14 @@ fmonline.OnlineManager.prototype = {
         // Capture this for inline functions
         var manager = this;
 
+        if ( this.config.debug ) {
+            console.log( 'Connected to BCI2K. Ensuring Running state ...' );
+        }
+
         this.ensureRunning()
             .then( function() {
 
-                if ( manager._debug ) {
+                if ( manager.config.debug ) {
                     console.log( 'BCI2K running; connecting to DataConnection ...' );
                 }
 
@@ -1459,7 +1491,6 @@ fmonline.OnlineManager.prototype = {
             
             if ( manager._bciRunning ) {
                 // We know we're running, so we can resolve without pinging BCI2K
-
                 resolve( true );
                 return;
             }
@@ -1468,35 +1499,40 @@ fmonline.OnlineManager.prototype = {
 
                 if ( ! manager._bciConnection.connected() ) {
                     // Can't check system state if not connected
-
-                    if ( manager._debug ) {
+                    if ( manager.config.debug ) {
                         console.log( 'Could not check whether BCI2K is running: Not connected to BCI2K.' );
                     }
-                    
                     // Try again later
-                    setTimeout( checkRunning, manager._checkRunningInterval );
+                    setTimeout( checkRunning, manager.config.checkRunningInterval );
                     return;
                 }
 
+                if ( manager.config.debug ) {
+                    console.log( 'Executing System State query ...' );
+                }
+
                 manager._bciConnection.execute( 'Get System State', function( result ) {
-                    
+
+                    if ( manager.config.debug ) {
+                        console.log( 'System state: ' + result.output );
+                    }
+
                     if ( result.output.search( 'Running' ) >= 0 ) {
                         // System state includes 'Running', so we're now good to go
-
-                        manager._bciRunning = true;     // Cache this fact to speed subsequent calls
-                        
+                        // Cache this fact to speed subsequent calls
+                        manager._bciRunning = true;
                         resolve( true );
                         return;
                     }
 
                     // Not running; try again later
-                    setTimeout( checkRunning, manager._checkRunningInterval );
+                    setTimeout( checkRunning, manager.config.checkRunningInterval );
 
                 } );
 
             };
 
-            setTimeout( checkRunning, manager._checkRunningInterval );
+            setTimeout( checkRunning, manager.config.checkRunningInterval );
 
         } );
     },
@@ -1540,7 +1576,7 @@ fmonline.OnlineManager.prototype = {
                 properties.subjectName = '';
                 properties.taskName = '';
 
-                // Returned promise resolves to "merged" properties if system calls fail
+                // Returned promise resolves to merged "null" properties if system calls fail
                 return properties;
 
             } );
@@ -1552,7 +1588,7 @@ fmonline.OnlineManager.prototype = {
         // Capture this for inline functions
         var manager = this;
 
-        this._dataConnection = new BCI2K.DataConnection();
+        this._dataConnection = new bci2k.DataConnection();
         
         // Set relevant data callbacks
         this._dataConnection.onsignalproperties = function( signalProperties ) {
@@ -1569,7 +1605,8 @@ fmonline.OnlineManager.prototype = {
             var dataPort = resultParts[resultParts.length - 1];
 
             // Safe to assume that data connection is at same host as system
-            var hostParts = manager.address.split( ':' );
+            // TODO A little janky
+            var hostParts = manager._bciConnection.address.split( ':' );
             var dataHost = hostParts[0];
 
             manager._dataConnection.connect( dataHost + ':' + dataPort );
@@ -1587,7 +1624,6 @@ module.exports = fmonline;
 
 
 //
-
 },{"../lib/bci2k":1,"promise-polyfill":16,"setimmediate":17}],9:[function(require,module,exports){
 // =
 //
@@ -1899,9 +1935,9 @@ fmui.InterfaceManager.prototype = {
         return new Promise( function( resolve, reject ) {
             $.getJSON( configURI )
                 .done( resolve )
-                .fail( function() {
+                .fail( function( req, reason, err ) {
                     // TODO Get error message from jquery object
-                    reject( 'Could not load UI config from: ' + configURI );
+                    reject( 'Could not load UI config from ' + configURI + ' : ' + reason );
                 } );
         } ).then( function( data ) {
             manager.config = data;
@@ -1951,13 +1987,24 @@ fmui.InterfaceManager.prototype = {
         $( '#fm' ).height( $( window ).height() - ( this.config.fmMargin.top + this.config.fmMargin.bottom ) );
     },
 
+    updateRecordDetails: function( subject, record ) {
+
+        // Use straight href for back button
+        $( '.fm-back' ).attr( 'href', '/#' + subject );
+
+        // TODO ...
+
+    },
+
     rewireButtons: function() {
+
         $( '.fm-zoom-in' ).on( 'click', this.zoomIn );
         $( '.fm-zoom-out' ).on( 'click', this.zoomOut );
         $( '.fm-gain-up' ).on( 'click', this.gainUp );
         $( '.fm-gain-down' ).on( 'click', this.gainDown );
 
         $( '.fm-toggle-fullscreen' ).on( 'click', this.toggleFullscreen );
+
     },
 
     showIcon: function( iconName ) {
@@ -2097,9 +2144,10 @@ var fmdata      = require( './fmdata' );
 
 // Initialization
 
+// TODO A little kludgey
 var pathComponents  = window.location.pathname.split( '/' );
 
-var modeString      = pathComponents[3] || 'generate';
+var modeString      = pathComponents[2] || 'generate';
 
 var generateMode    = modeString == 'generate';
 var onlineMode      = modeString == 'online';
@@ -2109,10 +2157,16 @@ var subjectID       = undefined;
 var recordName      = undefined;
 
 if ( loadMode ) {
+    subjectID       = pathComponents[2] || undefined;
+    recordName      = pathComponents[3] || undefined;
+} else {
     subjectID       = pathComponents[3] || undefined;
     recordName      = pathComponents[4] || undefined;
 }
 
+
+var apiPath         = '/api';
+var configPath      = '/map/config';
 
 
 // Dataset
@@ -2121,7 +2175,17 @@ var dataset         = new fmdata.Dataset();
 
 // UI
 var uiManager       = new fmui.InterfaceManager();
-uiManager.loadConfig( '../config/map/ui' );
+// TODO Handle rejection
+uiManager.loadConfig( path.join( configPath, 'ui' ) )
+            .then( function() {
+                // TODO Not this way ...
+                if ( subjectID && recordName ) {
+                    uiManager.updateRecordDetails( subjectID, recordName );
+                }
+            } )
+            .catch( function( reason ) {    // TODO Respond intelligently.
+                console.log( reason );
+            } );
 
 
 // DATA SOURCE SET-UP
@@ -2136,7 +2200,13 @@ if ( onlineMode ) {     // Using BCI2000Web over the net
     dataSource.onproperties     = updateProperties;
     dataSource.ontrial          = ingestTrial;
 
-    dataSource.connect();
+    dataSource.loadConfig( path.join( configPath, 'online' ) )
+                .then( function() {
+                    dataSource.connect();
+                } )
+                .catch( function( reason ) {    // TODO Respond intelligently
+                    console.log( reason );
+                } );
 
 }
 
@@ -2157,7 +2227,7 @@ if ( generateMode ) {   // Using an offline signal generator
 var getRecordInfo = function( subject, record ) {
     // Wrap $.getJSON in a standard promise
     return new Promise( function( resolve, reject ) {
-        var infoPath = path.join( 'api', 'info', subject, record );
+        var infoPath = path.join( apiPath, 'info', subject, record );
         $.getJSON( infoPath )
             .done( resolve )
             .fail( function() {
@@ -2188,7 +2258,7 @@ var unpackBundle = function( info ) {
 
 if ( loadMode ) {       // Using data loaded from the hive
 
-    getDataInfo( subjectID, recordName )    // Get header info for the data
+    getRecordInfo( subjectID, recordName )  // Get header info for the data
         .then( unpackBundle )               // Unpack to get us a dataset URI
         .then( dataset.get );               // Get the dataset for that URI
 

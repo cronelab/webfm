@@ -32,9 +32,10 @@ var fmdata      = require( './fmdata' );
 
 // Initialization
 
+// TODO A little kludgey
 var pathComponents  = window.location.pathname.split( '/' );
 
-var modeString      = pathComponents[3] || 'generate';
+var modeString      = pathComponents[2] || 'generate';
 
 var generateMode    = modeString == 'generate';
 var onlineMode      = modeString == 'online';
@@ -44,10 +45,16 @@ var subjectID       = undefined;
 var recordName      = undefined;
 
 if ( loadMode ) {
+    subjectID       = pathComponents[2] || undefined;
+    recordName      = pathComponents[3] || undefined;
+} else {
     subjectID       = pathComponents[3] || undefined;
     recordName      = pathComponents[4] || undefined;
 }
 
+
+var apiPath         = '/api';
+var configPath      = '/map/config';
 
 
 // Dataset
@@ -56,7 +63,17 @@ var dataset         = new fmdata.Dataset();
 
 // UI
 var uiManager       = new fmui.InterfaceManager();
-uiManager.loadConfig( '../config/map/ui' );
+// TODO Handle rejection
+uiManager.loadConfig( path.join( configPath, 'ui' ) )
+            .then( function() {
+                // TODO Not this way ...
+                if ( subjectID && recordName ) {
+                    uiManager.updateRecordDetails( subjectID, recordName );
+                }
+            } )
+            .catch( function( reason ) {    // TODO Respond intelligently.
+                console.log( reason );
+            } );
 
 
 // DATA SOURCE SET-UP
@@ -71,7 +88,13 @@ if ( onlineMode ) {     // Using BCI2000Web over the net
     dataSource.onproperties     = updateProperties;
     dataSource.ontrial          = ingestTrial;
 
-    dataSource.connect();
+    dataSource.loadConfig( path.join( configPath, 'online' ) )
+                .then( function() {
+                    dataSource.connect();
+                } )
+                .catch( function( reason ) {    // TODO Respond intelligently
+                    console.log( reason );
+                } );
 
 }
 
@@ -92,7 +115,7 @@ if ( generateMode ) {   // Using an offline signal generator
 var getRecordInfo = function( subject, record ) {
     // Wrap $.getJSON in a standard promise
     return new Promise( function( resolve, reject ) {
-        var infoPath = path.join( 'api', 'info', subject, record );
+        var infoPath = path.join( apiPath, 'info', subject, record );
         $.getJSON( infoPath )
             .done( resolve )
             .fail( function() {
@@ -123,7 +146,7 @@ var unpackBundle = function( info ) {
 
 if ( loadMode ) {       // Using data loaded from the hive
 
-    getDataInfo( subjectID, recordName )    // Get header info for the data
+    getRecordInfo( subjectID, recordName )  // Get header info for the data
         .then( unpackBundle )               // Unpack to get us a dataset URI
         .then( dataset.get );               // Get the dataset for that URI
 

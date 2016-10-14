@@ -92,6 +92,10 @@ BCI2K.Connection.prototype = {
 		};
 
 		this._socket.onmessage = function( event ) {
+
+			// TODO Helpful for debug
+			// console.log( event.data );
+
 			arr = event.data.split( ' ' );
 
 			var opcode = arr[0];

@@ -160,6 +160,7 @@ fmdata.DataBundle.prototype = {
 
         // TODO Shouldn't this just be part of the server API?
         // ...
+        return '/';
 
     }
 

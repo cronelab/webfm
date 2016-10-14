@@ -47,9 +47,9 @@ fmui.InterfaceManager.prototype = {
         return new Promise( function( resolve, reject ) {
             $.getJSON( configURI )
                 .done( resolve )
-                .fail( function() {
+                .fail( function( req, reason, err ) {
                     // TODO Get error message from jquery object
-                    reject( 'Could not load UI config from: ' + configURI );
+                    reject( 'Could not load UI config from ' + configURI + ' : ' + reason );
                 } );
         } ).then( function( data ) {
             manager.config = data;
@@ -99,13 +99,24 @@ fmui.InterfaceManager.prototype = {
         $( '#fm' ).height( $( window ).height() - ( this.config.fmMargin.top + this.config.fmMargin.bottom ) );
     },
 
+    updateRecordDetails: function( subject, record ) {
+
+        // Use straight href for back button
+        $( '.fm-back' ).attr( 'href', '/#' + subject );
+
+        // TODO ...
+
+    },
+
     rewireButtons: function() {
+
         $( '.fm-zoom-in' ).on( 'click', this.zoomIn );
         $( '.fm-zoom-out' ).on( 'click', this.zoomOut );
         $( '.fm-gain-up' ).on( 'click', this.gainUp );
         $( '.fm-gain-down' ).on( 'click', this.gainDown );
 
         $( '.fm-toggle-fullscreen' ).on( 'click', this.toggleFullscreen );
+
     },
 
     showIcon: function( iconName ) {
