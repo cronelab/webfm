@@ -1,0 +1,7 @@
+{
+    "debug"                 : true,
+    "sourceAddress"         : "10.21.29.7",
+
+    "checkRunningInterval"  : 1000,
+    "checkStateInterval"    : 1000
+}

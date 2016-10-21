@@ -1,0 +1,22 @@
+{
+    "rowHeight":            2,
+    "maxRowHeight":         8,
+    "pxPerRowHeight":       8,
+
+    "plotExtent":           4,
+    "maxPlotExtent":        1000,
+    "unitsPerPlotExtent":   0.5,
+
+    "iconShowDuration":     0,
+    "iconHideDelay":        500,
+    "iconHideDuration":     500,
+
+    "fmMargin": {
+        "left": 0,
+        "right": 0,
+        "top": 70,
+        "bottom": 0
+    },
+
+    "chartDebounceDelay": 100
+}

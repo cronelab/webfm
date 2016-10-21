@@ -1,0 +1,4 @@
+#!/bin/sh
+
+browserify ./index/main.js -o ./dist/index.js
+browserify ./map/main.js -o ./dist/map.js
