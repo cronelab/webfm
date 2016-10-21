@@ -76,7 +76,7 @@ var serveIndex = function( req, res ) {
 }
 
 // TODO For debugging
-var onlineConfigName = 'fmonline_griff.json';   // 'fmonline.json'
+var onlineConfigName = 'fmonline_lennon.json'; // 'fmonline_griff.json';   // 'fmonline.json'
 
 app.get( '/index/config/online',  serveConfig( onlineConfigName ) );
 

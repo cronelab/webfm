@@ -33,6 +33,13 @@ fmui.InterfaceManager = function() {
 
     this.config = {};
 
+    this.icons = [
+        'transfer',
+        'working'
+    ];
+
+    this.raster = new fmraster.ChannelRaster( '#fm' );
+
 };
 
 fmui.InterfaceManager.prototype = {
@@ -86,11 +93,17 @@ fmui.InterfaceManager.prototype = {
 
     setup: function() {
 
+        var manager = this; // Capture this
+
         // Incorporate the defaults with whatever we've loaded
         this.config = this._mergeDefaultConfig( this.config );
 
         this.resizeFM();
         this.rewireButtons();
+
+        this.icons.forEach( function( icon ) {
+            manager.hideIcon( icon );
+        } );
 
     },
 
@@ -110,12 +123,24 @@ fmui.InterfaceManager.prototype = {
 
     rewireButtons: function() {
 
-        $( '.fm-zoom-in' ).on( 'click', this.zoomIn );
-        $( '.fm-zoom-out' ).on( 'click', this.zoomOut );
-        $( '.fm-gain-up' ).on( 'click', this.gainUp );
-        $( '.fm-gain-down' ).on( 'click', this.gainDown );
+        var manager = this;
 
-        $( '.fm-toggle-fullscreen' ).on( 'click', this.toggleFullscreen );
+        $( '.fm-zoom-in' ).on( 'click', function() {
+            manager.zoomIn();
+        } );
+        $( '.fm-zoom-out' ).on( 'click', function() {
+            manager.zoomOut();
+        } );
+        $( '.fm-gain-up' ).on( 'click', function() {
+            manager.gainUp();
+        } );
+        $( '.fm-gain-down' ).on( 'click', function() {
+            manager.gainDown();
+        } );
+
+        $( '.fm-toggle-fullscreen' ).on( 'click', function() {
+            manager.toggleFullscreen()
+        } );
 
     },
 
@@ -123,7 +148,7 @@ fmui.InterfaceManager.prototype = {
         // If properties aren't set, use 0
         // TODO Necessary? We guarantee merged defaults when loading ...
         var showDuration = this.config.iconShowDuration || 0;
-        $( '#' + iconName + '-icon' ).show( showDuration );
+        $( '.fm-' + iconName + '-icon' ).show( showDuration );
     },
 
     hideIcon: function( iconName ) {
@@ -133,7 +158,7 @@ fmui.InterfaceManager.prototype = {
         var hideDuration = this.config.iconHideDuration || 0;
 
         setTimeout( function() {
-            $( '#' + iconName + '-icon' ).hide( hideDuration );
+            $( '.fm-' + iconName + '-icon' ).hide( hideDuration );
         }, hideDelay );
     },
 
@@ -193,6 +218,7 @@ fmui.InterfaceManager.prototype = {
     },
 
     toggleFullscreen: function( event ) {
+        console.log( 'Toggling fullscreen.' );
         fullscreen.toggle()
                     .then( function( result ) {
                         if ( fullscreen.is() ) {
@@ -204,6 +230,33 @@ fmui.InterfaceManager.prototype = {
                     .catch( function( reason ) {
                         console.log( 'Could not toggle fullscreen: ' + reason );
                     } );
+    },
+
+
+    /* GUI Update methods */
+
+    updateSubjectName: function( newSubjectName ) {
+        $( '.fm-subject-name' ).text( newSubjectName );
+    },
+
+    updateTaskName: function( newTaskName ) {
+        $( '.fm-task-name' ).text( newTaskName );
+    },
+
+    updateChannelNames: function( newChannelNames ) {
+        this.raster.setDisplayOrder( newChannelNames );
+    },
+
+    didResize: function() {
+
+        // TODO Better way?
+
+        var manager = this;
+
+        cronelib.debounce( function() {
+            manager.raster.update();
+        }, 500 )();   // TODO
+
     }
 
     

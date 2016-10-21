@@ -42,21 +42,33 @@
 html {
   position: relative;
   min-height: 100%;
+  height: 100%;
 }
 body {
   /* padding-top: 50px; */
   /* Margin bottom by footer height */
   /* margin-bottom: 60px; */
+  /*
   margin:0;
   padding:0; 
+  */
+  margin-bottom: 40px;
 }
 .footer {
-  position: absolute;
+  position: fixed;
+  left: 0;
   bottom: 0;
   width: 100%;
   /* Set the fixed height of the footer here */
-  height: 60px;
-  background-color: #f5f5f5;
+  height: 40px;
+  background-color: rgba( 245, 245, 245, 0.9);
+}
+
+.footer .container {
+  margin-top: 10px;
+}
+.footer .container .text-muted {
+  margin: 1px 0;
 }
 
 /* Custom page CSS
@@ -85,11 +97,6 @@ body > .container {
   margin-top: 10px;
 }
 
-.footer > .container {
-  padding-right: 15px;
-  padding-left: 15px;
-}
-
 code {
   font-size: 80%;
 }
@@ -97,8 +104,8 @@ code {
 
 
 #fm {
-    margin-top: 0px;    /* padding, 10 */
-    margin-bottom: 10px;
+    margin-top: 101px;    /* padding, 10 */
+    padding-bottom: 40px;
 }
 @media (min-width: @screen-sm-min) {
     #fm {
@@ -108,24 +115,24 @@ code {
 
 /* D3 CSS
 -------------------------------------------------- */
-.horizon {
+.fm-horizon {
   border-top: solid 1px rgba(0,0,0,.5);;
   border-bottom: solid 1px rgba(0,0,0,.5);;
   overflow: hidden;
   position: relative;
 }
 
-.horizon + .horizon {
+.fm-horizon + .fm-horizon {
   border-top: none;
 }
 
-.horizon canvas {
+.fm-horizon canvas {
   display: block;
   image-rendering: pixelated;
 }
 
-.horizon .title,
-.horizon .value {
+.fm-horizon .title,
+.fm-horizon .value {
   top: 0;
   line-height: 13px;
   margin: 1px 2px; /* 0 6px */
@@ -137,16 +144,23 @@ code {
   white-space: nowrap;
 }
 
-.horizon .title {
+.fm-horizon .title {
   left: 0;
 }
 
-.horizon .value {
+.fm-horizon .value {
   right: 0;
 }
 
 
-/* Re-color navbars
+
+/* Re-color navbar 2
+-------------------------------------------------- */
+.navbar-default {
+  background-color: rgba( 248, 248, 248, 0.9 );
+}
+
+/* Re-color navbars 1
 -------------------------------------------------- */
 .navbar-inverse {
   background-color: #397ad0;

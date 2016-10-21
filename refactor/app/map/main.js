@@ -75,6 +75,10 @@ uiManager.loadConfig( path.join( configPath, 'ui' ) )
                 console.log( reason );
             } );
 
+// Signal properties
+
+var signalChannels  = null;
+
 
 // DATA SOURCE SET-UP
 
@@ -85,18 +89,57 @@ if ( onlineMode ) {     // Using BCI2000Web over the net
     dataSource = new fmonline.OnlineDataSource();
 
     // Wire to common routines
-    dataSource.onproperties     = updateProperties;
-    dataSource.ontrial          = ingestTrial;
+    dataSource.onproperties = function( properties ) {
+        updateProperties( properties );
+    };
+    dataSource.onStartTrial = function() {
+        startTrial();
+    };
+    dataSource.ontrial = function( trialData ) {
+        ingestTrial( trialData );
+    };
 
     dataSource.loadConfig( path.join( configPath, 'online' ) )
                 .then( function() {
-                    dataSource.connect();
+                    prepareOnlineDataSource();
                 } )
                 .catch( function( reason ) {    // TODO Respond intelligently
                     console.log( reason );
                 } );
 
 }
+
+var prepareOnlineDataSource = function() {
+
+    dataSource.connect()
+                .then( function() {
+
+                    // Get subject name
+                    dataSource.getParameter( 'SubjectName' )
+                                .then( function( result ) {
+                                    uiManager.updateSubjectName( result.output.trim() );
+                                } )
+                                .catch( function( reason ) {
+                                    console.log( 'Could not obtain SubjectName: ' + reason );
+                                } );
+
+                    // Get task name
+                    dataSource.getParameter( 'DataFile' )
+                                .then( function( result ) {
+                                    // TODO Error checking
+                                    var taskName = result.output.trim().split( '/' )[1];
+                                    uiManager.updateTaskName( taskName );
+                                } );
+
+                } )
+                .catch( function( reason ) {    // TODO Something intelligent
+
+                    console.log( reason );
+
+                } );
+
+};
+
 
 if ( generateMode ) {   // Using an offline signal generator
 
@@ -161,27 +204,43 @@ var updateProperties = function( properties ) {
     
     uiManager.showIcon( 'transfer' );
 
-    // TODO Put in uiManager?
-    subjectDisplayName  = properties.subjectName;
-    taskDisplayName     = properties.taskName;
-    channelNames        = properties.channels;
-    valueUnits          = properties.valueUnits;
-
-    uiManager.hideIcon( 'transfer' );
-
-}
-
-// Trial ingestion
-
-var ingestTrial = function( trialData ) {
-    
-    uiManager.showIcon( 'transfer' );
-
-    // ...
+    console.log( 'Updating channel names.' );
+    uiManager.updateChannelNames( properties.channels );
 
     uiManager.hideIcon( 'transfer' );
 
 };
+
+// Trial ingestion
+
+var startTrial = function() {
+    uiManager.showIcon( 'transfer' );
+}
+
+var ingestTrial = function( trialData ) {
+    
+    // We're done transferring
+    uiManager.hideIcon( 'transfer' );
+
+    // Now we're working
+    uiManager.showIcon( 'working' );
+
+    // TODO
+    setTimeout( function() {
+        uiManager.raster.update( trialData );
+        uiManager.hideIcon( 'working' );
+    }, 0 );
+
+};
+
+
+// EVENT HOOKS
+
+$( window ).on( 'resize', function() {
+
+    uiManager.didResize();
+    
+} );
 
 
 

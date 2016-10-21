@@ -1,16 +1,35 @@
 var d3 = require( 'd3' );
 
+// Shit from core that I need.
+
+// Copies a variable number of methods from source to target.
+d3.rebind = function(target, source) {
+  var i = 1, n = arguments.length, method;
+  while (++i < n) target[method = arguments[i]] = d3_rebind(target, source, source[method]);
+  return target;
+};
+
+// Method is assumed to be a standard D3 getter-setter:
+// If passed with no arguments, gets the value.
+// If passed with arguments, sets the value and returns the target.
+function d3_rebind(target, source, method) {
+  return function() {
+    var value = method.apply(source, arguments);
+    return value === source ? target : value;
+  };
+}
+
 var d3_horizon = function() {
   var bands = 1, // between 1 and 5, typically
       mode = "offset", // or mirror
-      area = d3.svg.area(),
+      area = d3.area(), // d3.svg.area(),
       defined,
       x = d3_horizonX,
       y = d3_horizonY,
       width = 960,
       height = 40;
 
-  var color = d3.scale.linear()
+  var color = d3.scaleLinear()
       .domain([-1, 0, 1])
       .range(["#d62728", "#fff", "#1f77b4"]);
 
@@ -38,8 +57,8 @@ var d3_horizon = function() {
       });
 
       // Compute the new x- and y-scales, and transform.
-      var x1 = d3.scale.linear().domain([xMin, xMax]).range([0, width]),
-          y1 = d3.scale.linear().domain([0, yMax]).range([0, height * bands]),
+      var x1 = d3.scaleLinear().domain([xMin, xMax]).range([0, width]),
+          y1 = d3.scaleLinear().domain([0, yMax]).range([0, height * bands]),
           t1 = d3_horizonTransform(bands, height, mode);
 
       // Retrieve the old scales, if this is an update.
