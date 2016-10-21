@@ -36,6 +36,13 @@
   font-size: 18px;
 }
 
+.fm-time-label {
+  font-size: 32px;
+  margin-top: 3px;
+  margin-bottom: 2px;
+  color: #000000 !important;
+}
+
 
 /* Sticky footer styles
 -------------------------------------------------- */
@@ -64,10 +71,10 @@ body {
   background-color: rgba( 245, 245, 245, 0.9);
 }
 
-.footer .container {
+.footer .container-fluid {
   margin-top: 10px;
 }
-.footer .container .text-muted {
+.footer .container-fluid .text-muted {
   margin: 1px 0;
 }
 
