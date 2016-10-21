@@ -1,4 +1,6 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+"use strict";
+
 // ======================================================================== //
 //
 // main
@@ -9,38 +11,36 @@
 
 // REQUIRES
 
-var jDataView = require( 'jdataview' );
-
+var jDataView = require('jdataview');
 
 // MODULE OBJECT
 
 var BCI2K = {};
-
 
 // MEMBERS
 
 // BCI2K.DataView 
 // (Subclass of jDataView)
 
-BCI2K.DataView = function() {
-	jDataView.apply( this, arguments ); // Call jDataView constructor
-}
-BCI2K.DataView.prototype = Object.create( jDataView.prototype );
+BCI2K.DataView = function () {
+	jDataView.apply(this, arguments); // Call jDataView constructor
+};
+BCI2K.DataView.prototype = Object.create(jDataView.prototype);
 
-BCI2K.DataView.prototype.getNullTermString = function() {
+BCI2K.DataView.prototype.getNullTermString = function () {
 	var val = "";
-	while( this._offset < this.byteLength ) {
-		v = this.getUint8();
-		if( v == 0 ) break;
-		val += String.fromCharCode( v );
+	while (this._offset < this.byteLength) {
+		var v = this.getUint8();
+		if (v == 0) break;
+		val += String.fromCharCode(v);
 	}
 	return val;
-}
+};
 
-BCI2K.DataView.prototype.getLengthField = function( n ) {
+BCI2K.DataView.prototype.getLengthField = function (n) {
 	var len = 0;
 	var extended = false;
-	switch( n ) {
+	switch (n) {
 		case 1:
 			len = this.getUint8();
 			extended = len == 0xff;
@@ -54,458 +54,445 @@ BCI2K.DataView.prototype.getLengthField = function( n ) {
 			extended = len == 0xffffffff;
 			break;
 		default:
-			console.error( "unsupported" );
+			console.error("unsupported");
 			break;
 	}
 
-	return extended ? parseInt( this.getNullTermString() ) : len;
-}
-
+	return extended ? parseInt(this.getNullTermString()) : len;
+};
 
 // BCI2K.Connection
 // ...
 
-BCI2K.Connection = function() {
+BCI2K.Connection = function () {
 
-	this.onconnect = function( event ) {};
-	this.ondisconnect = function( event ) {};
+	this.onconnect = function (event) {};
+	this.ondisconnect = function (event) {};
 
 	this._socket = null;
 	this._execid = 0;
-	this._exec = {}
-}
+	this._exec = {};
+};
 
 BCI2K.Connection.prototype = {
 
 	constructor: BCI2K.Connection,
 
-	connect: function( address ) {
-		if( address === undefined )
-			address = window.location.host;
+	connect: function connect(address) {
+		if (address === undefined) address = window.location.host;
 		this.address = address;
-		this._socket = new WebSocket( "ws://" + address );
+		this._socket = new WebSocket("ws://" + address);
 
 		var connection = this;
 
-		this._socket.onopen = function( event ) {
-			connection.onconnect( event );
+		this._socket.onopen = function (event) {
+			connection.onconnect(event);
 		};
 
-		this._socket.onmessage = function( event ) {
-			arr = event.data.split( ' ' );
+		this._socket.onmessage = function (event) {
+			var arr = event.data.split(' ');
 
 			var opcode = arr[0];
 			var id = arr[1];
-			var msg = arr.slice( 2 ).join(' ');
-			 
-			switch( opcode ) {
-				case 'S': // START: Starting to execute command
-					if( connection._exec[ id ].onstart )
-						connection._exec[ id ].onstart( connection._exec[ id ] );
+			var msg = arr.slice(2).join(' ');
+
+			switch (opcode) {
+				case 'S':
+					// START: Starting to execute command
+					if (connection._exec[id].onstart) connection._exec[id].onstart(connection._exec[id]);
 					break;
-				case 'O': // OUTPUT: Received output from command
-					connection._exec[ id ].output += msg + ' \n';
-					if( connection._exec[ id ].onoutput )
-						connection._exec[ id ].onoutput( connection._exec[ id ] );
+				case 'O':
+					// OUTPUT: Received output from command
+					connection._exec[id].output += msg + ' \n';
+					if (connection._exec[id].onoutput) connection._exec[id].onoutput(connection._exec[id]);
 					break;
-				case 'D': // DONE: Done executing command
-					connection._exec[ id ].exitcode = parseInt( msg );
-					if( connection._exec[ id ].ondone )
-						connection._exec[ id ].ondone( connection._exec[ id ] );
-					delete connection._exec[ id ];
+				case 'D':
+					// DONE: Done executing command
+					connection._exec[id].exitcode = parseInt(msg);
+					if (connection._exec[id].ondone) connection._exec[id].ondone(connection._exec[id]);
+					delete connection._exec[id];
 					break;
 			}
 		};
 
-		this._socket.onclose = function( event ) {
-			connection.ondisconnect( event );
+		this._socket.onclose = function (event) {
+			connection.ondisconnect(event);
 		};
 	},
 
 	// Deprecated API
-	stream: function( callback ) {
+	stream: function stream(callback) {
 
 		var connection = this;
 
-		this.execute( "Get Parameter WSConnectorServer", function( result ) {
+		this.execute("Get Parameter WSConnectorServer", function (result) {
 			connection.dataConnection = new BCI2K.DataConnection();
 			connection.dataConnection.onGenericSignal = callback;
-			var dataAddress = connection.address + ':' + result.output.split( ':' )[1];
-			connection.dataConnection.connect( dataAddress );
-		} );
-
+			var dataAddress = connection.address + ':' + result.output.split(':')[1];
+			connection.dataConnection.connect(dataAddress);
+		});
 	},
 
-	tap: function( location, onSuccess, onFailure ) {
+	tap: function tap(location, onSuccess, onFailure) {
 
 		var connection = this;
 
 		var locprm = "WS" + location + "Server";
 
-		this.execute( "Get Parameter " + locprm, function( result ) {
+		this.execute("Get Parameter " + locprm, function (result) {
 
-			if ( result.output.indexOf( 'does not exist' ) >= 0 ) {
+			if (result.output.indexOf('does not exist') >= 0) {
 				// Parameter does not exist
-				if( onFailure ) onFailure( result );
+				if (onFailure) onFailure(result);
 				return;
 			}
 
-			if ( result.output == '' ) {
+			if (result.output == '') {
 				// Parameter exists but isn't set
-				if( onFailure ) onFailure( result );
+				if (onFailure) onFailure(result);
 				return;
 			}
 
 			var dataConnection = new BCI2K.DataConnection();
-			if( onSuccess ) onSuccess( dataConnection );
+			if (onSuccess) onSuccess(dataConnection);
 
-			var dataAddress = connection.address + ':' + result.output.split( ':' )[1];
-			dataConnection.connect( dataAddress );
-
-		} );
-
+			var dataAddress = connection.address + ':' + result.output.split(':')[1];
+			dataConnection.connect(dataAddress);
+		});
 	},
 
-	connected: function() {
-		return ( this._socket != null && this._socket.readyState == WebSocket.OPEN );
+	connected: function connected() {
+		return this._socket != null && this._socket.readyState == WebSocket.OPEN;
 	},
 
-	execute: function( instruction, ondone, onstart, onoutput ) {
-		if( this.connected() ) {
-			id = ( ++( this._execid ) ).toString();
-			this._exec[ id ] = {
+	execute: function execute(instruction, ondone, onstart, onoutput) {
+		if (this.connected()) {
+			var id = (++this._execid).toString();
+			this._exec[id] = {
 				onstart: onstart,
 				onoutput: onoutput,
-				ondone: ondone, 
-				output: "", 
+				ondone: ondone,
+				output: "",
 				exitcode: null
 			};
-			msg = "E " + id + " " + instruction;
-			this._socket.send( msg );
+			var msg = "E " + id + " " + instruction;
+			this._socket.send(msg);
 		}
 	},
 
-	getVersion: function( fn ) {
-		this.execute( "Version", function( exec ) {  
-			fn( exec.output.split(' ')[1] );
-		} );
+	getVersion: function getVersion(fn) {
+		this.execute("Version", function (exec) {
+			fn(exec.output.split(' ')[1]);
+		});
 	},
 
-	showWindow: function() {
-		this.execute( "Show Window" );
+	showWindow: function showWindow() {
+		this.execute("Show Window");
 	},
 
-	hideWindow: function() {
-		this.execute( "Hide Window" );
+	hideWindow: function hideWindow() {
+		this.execute("Hide Window");
 	},
 
-	resetSystem: function() {
-		this.execute( "Reset System" );
+	resetSystem: function resetSystem() {
+		this.execute("Reset System");
 	},
 
-	setConfig: function( fn ) {
-		this.execute( "Set Config", fn );
+	setConfig: function setConfig(fn) {
+		this.execute("Set Config", fn);
 	},
 
-	start: function() { 
-		this.execute( "Start" );
+	start: function start() {
+		this.execute("Start");
 	},
 
-	stop: function() {
-		this.execute( "Stop" );
+	stop: function stop() {
+		this.execute("Stop");
 	},
 
-	kill: function() {
-		this.execute( "Exit" );
+	kill: function kill() {
+		this.execute("Exit");
 	}
-}
-
+};
 
 // BCI2K.DataConnection
 // ...
 
-BCI2K.DataConnection = function() {
+BCI2K.DataConnection = function () {
 	this._socket = null;
 
-	this.onconnect = function( event ) {};
-	this.onGenericSignal = function( data ) {};
-	this.onStateVector = function( data ) {};
-	this.onSignalProperties = function( data ) {};
-	this.onStateFormat = function( data ) {};
-	this.ondisconnect = function( event ) {};
+	this.onconnect = function (event) {};
+	this.onGenericSignal = function (data) {};
+	this.onStateVector = function (data) {};
+	this.onSignalProperties = function (data) {};
+	this.onStateFormat = function (data) {};
+	this.ondisconnect = function (event) {};
 
 	this.signalProperties = null;
 	this.stateFormat = null;
 	this.stateVecOrder = null;
-}
+};
 
 BCI2K.DataConnection.prototype = {
 
 	constructor: BCI2K.DataConnection,
 
-	connect: function( address ) {
-		this._socket = new WebSocket( "ws://" + address );
+	connect: function connect(address) {
+		this._socket = new WebSocket("ws://" + address);
 
 		var connection = this;
 
-		this._socket.onopen = function( event ) {
-			connection.onconnect( event );
+		this._socket.onopen = function (event) {
+			connection.onconnect(event);
 		};
 
-		this._socket.onmessage = function( event ) {
+		this._socket.onmessage = function (event) {
 			var messageInterpreter = new FileReader();
-			messageInterpreter.onload = function( e ) {
-				connection._decodeMessage( e.target.result );
-			}
-			messageInterpreter.readAsArrayBuffer( event.data );
+			messageInterpreter.onload = function (e) {
+				connection._decodeMessage(e.target.result);
+			};
+			messageInterpreter.readAsArrayBuffer(event.data);
 		};
 
-		this._socket.onclose = function( event ) {
-			connection.ondisconnect( event );
+		this._socket.onclose = function (event) {
+			connection.ondisconnect(event);
 		};
 	},
 
-	connected: function() {
-		return ( this._socket != null && this._socket.readyState == WebSocket.OPEN );
+	connected: function connected() {
+		return this._socket != null && this._socket.readyState == WebSocket.OPEN;
 	},
 
 	SignalType: {
-		INT16 : 0,
-		FLOAT24 : 1,
-		FLOAT32 : 2,
-		INT32 : 3
+		INT16: 0,
+		FLOAT24: 1,
+		FLOAT32: 2,
+		INT32: 3
 	},
 
-	_decodeMessage: function( data ) {
-		var dv = new BCI2K.DataView( data, 0, data.byteLength, true );
+	_decodeMessage: function _decodeMessage(data) {
+		var dv = new BCI2K.DataView(data, 0, data.byteLength, true);
 
 		var descriptor = dv.getUint8();
-		switch( descriptor ) {
+		switch (descriptor) {
 			case 3:
-				this._decodeStateFormat( dv ); break;
+				this._decodeStateFormat(dv);break;
 			case 4:
 				var supplement = dv.getUint8();
-				switch( supplement ) {
+				switch (supplement) {
 					case 1:
-						this._decodeGenericSignal( dv ); break;
+						this._decodeGenericSignal(dv);break;
 					case 3:
-						this._decodeSignalProperties( dv ); break;
+						this._decodeSignalProperties(dv);break;
 					default:
-						console.error( "Unsupported Supplement: " + supplement.toString() );
+						console.error("Unsupported Supplement: " + supplement.toString());
 						break;
-				} break;
+				}break;
 			case 5:
-				this._decodeStateVector( dv ); break;
+				this._decodeStateVector(dv);break;
 			default:
-				console.error( "Unsupported Descriptor: " + descriptor.toString() ); break;
+				console.error("Unsupported Descriptor: " + descriptor.toString());break;
 		}
 	},
 
-	_decodePhysicalUnits: function( unitstr ) {
+	_decodePhysicalUnits: function _decodePhysicalUnits(unitstr) {
 		var units = {};
-		var unit = unitstr.split( ' ' );
+		var unit = unitstr.split(' ');
 		var idx = 0;
-		units.offset = Number( unit[ idx++ ] );
-		units.gain = Number( unit[ idx++ ] );
-		units.symbol = unit[ idx++ ];
-		units.vmin = Number( unit[ idx++ ] );
-		units.vmax = Number( unit[ idx++ ] );
+		units.offset = Number(unit[idx++]);
+		units.gain = Number(unit[idx++]);
+		units.symbol = unit[idx++];
+		units.vmin = Number(unit[idx++]);
+		units.vmax = Number(unit[idx++]);
 		return units;
 	},
 
-	_decodeSignalProperties: function( dv ) {
+	_decodeSignalProperties: function _decodeSignalProperties(dv) {
 		var propstr = dv.getNullTermString();
 
 		// Bugfix: There seems to not always be spaces after '{' characters
-		propstr = propstr.replace( /{/g, ' { ' );
-		propstr = propstr.replace( /}/g, ' } ' ); 
+		propstr = propstr.replace(/{/g, ' { ');
+		propstr = propstr.replace(/}/g, ' } ');
 
 		this.signalProperties = {};
-		var prop_tokens = propstr.split( ' ' );
+		var prop_tokens = propstr.split(' ');
 		var props = [];
-		for( var i = 0; i < prop_tokens.length; i++ ) {
-			if( $.trim( prop_tokens[i] ) == "" ) continue;
-			props.push( prop_tokens[i] );
+		for (var i = 0; i < prop_tokens.length; i++) {
+			if ($.trim(prop_tokens[i]) == "") continue;
+			props.push(prop_tokens[i]);
 		}
 
 		var pidx = 0;
-		this.signalProperties.name = props[ pidx++ ];
+		this.signalProperties.name = props[pidx++];
 
 		this.signalProperties.channels = [];
-		if( props[ pidx ] == '{' ) {
-			while( props[ ++pidx ] != '}' )
-				this.signalProperties.channels.push( props[ pidx ] );
-			pidx++; // }
+		if (props[pidx] == '{') {
+			while (props[++pidx] != '}') {
+				this.signalProperties.channels.push(props[pidx]);
+			}pidx++; // }
 		} else {
-			var numChannels = parseInt( props[ pidx++ ] );
-			for( var i = 0; i < numChannels; i++ )
-				this.signalProperties.channels.push( ( i + 1 ).toString() );
-		} 
+			var numChannels = parseInt(props[pidx++]);
+			for (var i = 0; i < numChannels; i++) {
+				this.signalProperties.channels.push((i + 1).toString());
+			}
+		}
 
 		this.signalProperties.elements = [];
-		if( props[ pidx ] == '{' ) {
-			while( props[ ++pidx ] != '}' )
-				this.signalProperties.elements.push( props[ pidx ] );
-			pidx++; // }
+		if (props[pidx] == '{') {
+			while (props[++pidx] != '}') {
+				this.signalProperties.elements.push(props[pidx]);
+			}pidx++; // }
 		} else {
-			var numElements = parseInt( props[ pidx++ ] );
-			for( var i = 0; i < numElements; i++ )
-				this.signalProperties.elements.push( ( i + 1 ).toString() );
+			var numElements = parseInt(props[pidx++]);
+			for (var i = 0; i < numElements; i++) {
+				this.signalProperties.elements.push((i + 1).toString());
+			}
 		}
-		
+
 		// Backward Compatibility
 		this.signalProperties.numelements = this.signalProperties.elements.length;
-		this.signalProperties.signaltype = props[ pidx++ ];
-		this.signalProperties.channelunit = this._decodePhysicalUnits(
-			props.slice( pidx, pidx += 5 ).join( ' ' )
-		);
+		this.signalProperties.signaltype = props[pidx++];
+		this.signalProperties.channelunit = this._decodePhysicalUnits(props.slice(pidx, pidx += 5).join(' '));
 
-		this.signalProperties.elementunit = this._decodePhysicalUnits(
-			props.slice( pidx, pidx += 5 ).join( ' ' )
-		);
+		this.signalProperties.elementunit = this._decodePhysicalUnits(props.slice(pidx, pidx += 5).join(' '));
 
 		pidx++; // '{'
 
-		this.signalProperties.valueunits = []
-		for( var i = 0; i < this.signalProperties.channels.length; i++ )
-			this.signalProperties.valueunits.push(
-				this._decodePhysicalUnits( 
-					props.slice( pidx, pidx += 5 ).join( ' ' )
-				) 
-			);
+		this.signalProperties.valueunits = [];
+		for (var i = 0; i < this.signalProperties.channels.length; i++) {
+			this.signalProperties.valueunits.push(this._decodePhysicalUnits(props.slice(pidx, pidx += 5).join(' ')));
+		}pidx++; // '}'
 
-		pidx++; // '}'
-		
-		this.onSignalProperties( this.signalProperties );
+		this.onSignalProperties(this.signalProperties);
 	},
 
-	_decodeStateFormat: function( dv ) {
+	_decodeStateFormat: function _decodeStateFormat(dv) {
 		this.stateFormat = {};
 		var formatStr = dv.getNullTermString();
 
-		var lines = formatStr.split( '\n' );
-		for( var lineIdx = 0; lineIdx < lines.length; lineIdx++ ){
-			if( $.trim( lines[ lineIdx ] ).length == 0 ) continue;
-			var stateline = lines[ lineIdx ].split( ' ' );
+		var lines = formatStr.split('\n');
+		for (var lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+			if ($.trim(lines[lineIdx]).length == 0) continue;
+			var stateline = lines[lineIdx].split(' ');
 			var name = stateline[0];
-			this.stateFormat[ name ] = {};
-			this.stateFormat[ name ].bitWidth = parseInt( stateline[1] );
-			this.stateFormat[ name ].defaultValue = parseInt( stateline[2] );
-			this.stateFormat[ name ].byteLocation = parseInt( stateline[3] );
-			this.stateFormat[ name ].bitLocation = parseInt( stateline[4] );
+			this.stateFormat[name] = {};
+			this.stateFormat[name].bitWidth = parseInt(stateline[1]);
+			this.stateFormat[name].defaultValue = parseInt(stateline[2]);
+			this.stateFormat[name].byteLocation = parseInt(stateline[3]);
+			this.stateFormat[name].bitLocation = parseInt(stateline[4]);
 		}
 
-		var vecOrder = []
-		for( var state in this.stateFormat ) {
-			var loc = this.stateFormat[ state ].byteLocation * 8;
-			loc += this.stateFormat[ state ].bitLocation
-			vecOrder.push( [ state, loc ] );
+		var vecOrder = [];
+		for (var state in this.stateFormat) {
+			var loc = this.stateFormat[state].byteLocation * 8;
+			loc += this.stateFormat[state].bitLocation;
+			vecOrder.push([state, loc]);
 		}
 
 		// Sort by bit location
-		vecOrder.sort( function( a, b ) {
-			return a[1] < b[1] ? -1 : ( a[1] > b[1] ? 1 : 0 );
-		} );
+		vecOrder.sort(function (a, b) {
+			return a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0;
+		});
 
 		// Create a list of ( state, bitwidth ) for decoding state vectors
 		this.stateVecOrder = [];
-		for( var i = 0; i < vecOrder.length; i++ ) {
-			var state = vecOrder[i][0]
-			this.stateVecOrder.push( [ state, this.stateFormat[ state ].bitWidth ] );
-		} 
+		for (var i = 0; i < vecOrder.length; i++) {
+			var state = vecOrder[i][0];
+			this.stateVecOrder.push([state, this.stateFormat[state].bitWidth]);
+		}
 
-		this.onStateFormat( this.stateFormat );
+		this.onStateFormat(this.stateFormat);
 	},
 
-	_decodeGenericSignal: function( dv ) {
+	_decodeGenericSignal: function _decodeGenericSignal(dv) {
 
 		var signalType = dv.getUint8();
-		var nChannels = dv.getLengthField( 2 );
-		var nElements = dv.getLengthField( 2 );
+		var nChannels = dv.getLengthField(2);
+		var nElements = dv.getLengthField(2);
 
 		var signal = [];
-		for( var ch = 0; ch < nChannels; ++ch ) {
-			signal.push( [] );
-			for( var el = 0; el < nElements; ++el ) {
-				switch( signalType ) {
+		for (var ch = 0; ch < nChannels; ++ch) {
+			signal.push([]);
+			for (var el = 0; el < nElements; ++el) {
+				switch (signalType) {
 
 					case this.SignalType.INT16:
-						signal[ ch ].push( dv.getInt16() );
+						signal[ch].push(dv.getInt16());
 						break;
 
 					case this.SignalType.FLOAT32:
-						signal[ ch ].push( dv.getFloat32() );
+						signal[ch].push(dv.getFloat32());
 						break;
 
 					case this.SignalType.INT32:
-						signal[ ch ].push( dv.getInt32() );
+						signal[ch].push(dv.getInt32());
 						break;
 
 					case this.SignalType.FLOAT24:
 						// TODO: Currently Unsupported
-						signal[ ch ].push( 0.0 );
+						signal[ch].push(0.0);
 						break;
 				}
 			}
 		}
 
-		this.onGenericSignal( signal );
+		this.onGenericSignal(signal);
 	},
 
-	_decodeStateVector: function( dv ) {
-		if( this.stateVecOrder == null ) return;
+	_decodeStateVector: function _decodeStateVector(dv) {
+		if (this.stateVecOrder == null) return;
 
 		// Currently, states are maximum 32 bit unsigned integers
 		// BitLocation 0 refers to the least significant bit of a byte in the packet
 		// ByteLocation 0 refers to the first byte in the sequence.
 		// Bits must be populated in increasing significance
 
-		var stateVectorLength = parseInt( dv.getNullTermString() );
-		var numVectors = parseInt( dv.getNullTermString() );
+		var stateVectorLength = parseInt(dv.getNullTermString());
+		var numVectors = parseInt(dv.getNullTermString());
 
 		var vecOff = dv.tell();
 
 		var states = {};
-		for( var state in this.stateFormat )
-			states[ state ] = Array( numVectors ).fill( this.stateFormat[ state ].defaultValue ) ;
-
-		for( var vecIdx = 0; vecIdx < numVectors; vecIdx++ ) {
-			var vec = dv.getBytes( stateVectorLength, dv.tell(), true, false );
+		for (var state in this.stateFormat) {
+			states[state] = Array(numVectors).fill(this.stateFormat[state].defaultValue);
+		}for (var vecIdx = 0; vecIdx < numVectors; vecIdx++) {
+			var vec = dv.getBytes(stateVectorLength, dv.tell(), true, false);
 			var bits = [];
-			for( var byteIdx = 0; byteIdx < vec.length; byteIdx++ ) {
-				bits.push( ( vec[ byteIdx ] & 0x01 ) != 0 ? 1 : 0 );
-				bits.push( ( vec[ byteIdx ] & 0x02 ) != 0 ? 1 : 0 );
-				bits.push( ( vec[ byteIdx ] & 0x04 ) != 0 ? 1 : 0 );
-				bits.push( ( vec[ byteIdx ] & 0x08 ) != 0 ? 1 : 0 );
-				bits.push( ( vec[ byteIdx ] & 0x10 ) != 0 ? 1 : 0 );
-				bits.push( ( vec[ byteIdx ] & 0x20 ) != 0 ? 1 : 0 );
-				bits.push( ( vec[ byteIdx ] & 0x40 ) != 0 ? 1 : 0 );
-				bits.push( ( vec[ byteIdx ] & 0x80 ) != 0 ? 1 : 0 );
+			for (var byteIdx = 0; byteIdx < vec.length; byteIdx++) {
+				bits.push((vec[byteIdx] & 0x01) != 0 ? 1 : 0);
+				bits.push((vec[byteIdx] & 0x02) != 0 ? 1 : 0);
+				bits.push((vec[byteIdx] & 0x04) != 0 ? 1 : 0);
+				bits.push((vec[byteIdx] & 0x08) != 0 ? 1 : 0);
+				bits.push((vec[byteIdx] & 0x10) != 0 ? 1 : 0);
+				bits.push((vec[byteIdx] & 0x20) != 0 ? 1 : 0);
+				bits.push((vec[byteIdx] & 0x40) != 0 ? 1 : 0);
+				bits.push((vec[byteIdx] & 0x80) != 0 ? 1 : 0);
 			}
 
-				for( var stateIdx = 0; stateIdx < this.stateVecOrder.length; stateIdx++ ) {
-				var fmt = this.stateFormat[ this.stateVecOrder[ stateIdx ][ 0 ] ];
+			for (var stateIdx = 0; stateIdx < this.stateVecOrder.length; stateIdx++) {
+				var fmt = this.stateFormat[this.stateVecOrder[stateIdx][0]];
 				var offset = fmt.byteLocation * 8 + fmt.bitLocation;
-				var val = 0; var mask = 0x01;
-				for( var bIdx = 0; bIdx < fmt.bitWidth; bIdx++ ) {
-					if( bits[ offset + bIdx ] ) val = ( val | mask ) >>> 0;
-					mask = ( mask << 1 ) >>> 0;
+				var val = 0;var mask = 0x01;
+				for (var bIdx = 0; bIdx < fmt.bitWidth; bIdx++) {
+					if (bits[offset + bIdx]) val = (val | mask) >>> 0;
+					mask = mask << 1 >>> 0;
 				}
-				states[ this.stateVecOrder[ stateIdx ][0] ][ vecIdx ] = val;
-				}
+				states[this.stateVecOrder[stateIdx][0]][vecIdx] = val;
+			}
 		}
-		this.onStateVector( states );
-	},
-}
-
+		this.onStateVector(states);
+	}
+};
 
 // EXPORT MODULE
 
 module.exports = BCI2K;
 
-
 //
+
 },{"jdataview":25}],2:[function(require,module,exports){
+'use strict';
+
 // ======================================================================== //
 //
 // cronelib
@@ -517,164 +504,156 @@ module.exports = BCI2K;
 // REQUIRES
 
 // Promise compatibility
-require( 'setimmediate' );
-var Promise = require( 'promise-polyfill' );
-
+require('setimmediate');
+var Promise = require('promise-polyfill');
 
 // MODULE OBJECT
 
 var cronelib = {};
-
 
 // METHODS
 
 // cronelib.forEachAsync
 // Allows breaks in the computation to do other stuff
 
-cronelib.forEachAsync = function( arr, f, config ) {
+cronelib.forEachAsync = function (arr, f, config) {
 
     // TODO Find a better pattern
     var batchSize = 100;
-    var onbatch = function( i, n ) {};
+    var onbatch = function onbatch(i, n) {};
 
-    if ( config ) {
+    if (config) {
         batchSize = config.batchSize || batchSize;
         onbatch = config.onbatch || onbatch;
     }
 
-    return new Promise( function( resolve, reject ) {
+    return new Promise(function (resolve, reject) {
 
         // TODO Handle errors inside loop with reject
 
-        ( function worker( start ) {
+        (function worker(start) {
 
-            setTimeout( function() {
+            setTimeout(function () {
 
                 var nextStart = start + batchSize;
 
                 // Execute f on this block
-                for ( var i = start; i < nextStart; i++ ) {
-                    if ( i >= arr.length ) {
+                for (var i = start; i < nextStart; i++) {
+                    if (i >= arr.length) {
                         // We're done!
                         resolve();
                         return;
                     }
                     // We're not done, so do something
-                    f( arr[i], i, arr );
+                    f(arr[i], i, arr);
                 }
 
                 // Call our callback
-                onbatch( nextStart, arr.length );
+                onbatch(nextStart, arr.length);
 
                 // Move on to next block
-                worker( nextStart );
-
-            }, 0 );
-
-        } )( 0 );
-
-    } );
-
+                worker(nextStart);
+            }, 0);
+        })(0);
+    });
 };
 
-cronelib.reduceAsync = function( arr, f, a0, config ) {
-    
+cronelib.reduceAsync = function (arr, f, a0, config) {
+
     var initialValue = arr[0];
     var initialIndex = 1;
 
-    if ( a0 !== undefined ) {
+    if (a0 !== undefined) {
         initialValue = a0;
         initialIndex = 0;
     }
 
     // TODO Find a better pattern
     var batchSize = 100;
-    var onbatch = function( i, n ) {};
+    var onbatch = function onbatch(i, n) {};
 
-    if ( config ) {
+    if (config) {
         batchSize = config.batchSize || batchSize;
         onbatch = config.onbatch || batchSize;
     }
 
-    return new Promise( function( resolve, reject ) {
+    return new Promise(function (resolve, reject) {
 
         // TODO Handle errors inside loop with reject
 
-        ( function worker( start, acc ) {
+        (function worker(start, acc) {
 
-            setTimeout( function() {
+            setTimeout(function () {
 
                 var nextStart = start + batchSize;
 
                 // Execute f on this block
-                for ( var i = start; i < nextStart; i++ ) {
-                    if ( i >= arr.length ) {
+                for (var i = start; i < nextStart; i++) {
+                    if (i >= arr.length) {
                         // We're done!
-                        resolve( acc );
+                        resolve(acc);
                         return;
                     }
                     // We're not done, so do something
-                    acc = f( acc, arr[i], i, arr );
+                    acc = f(acc, arr[i], i, arr);
                 }
-                
+
                 // Call our callback
-                onbatch( nextStart, arr.length );
+                onbatch(nextStart, arr.length);
 
                 // Move on to next block
-                worker( nextStart, acc );
-
-            }, 0 );
-
-        } )( initialIndex, initialValue );
-
-    } );
-
+                worker(nextStart, acc);
+            }, 0);
+        })(initialIndex, initialValue);
+    });
 };
 
-cronelib.mapAsync = function( arr, f, config ) {
+cronelib.mapAsync = function (arr, f, config) {
     // TODO Inefficient?
-    return cronelib.reduceAsync( arr, function( acc, x, i,  xs ) {
-        acc.push( f( x, i, xs ) );
+    return cronelib.reduceAsync(arr, function (acc, x, i, xs) {
+        acc.push(f(x, i, xs));
         return acc;
-    }, [], config );
+    }, [], config);
 };
-
 
 // cronelib.parseQuery
 // Parses URL queries to objects
 
-cronelib.parseQuery = function( qstr ) {
+cronelib.parseQuery = function (qstr) {
     var query = {};
-    var a = qstr.substr( 1 ).split( '&' );
-    for( var i = 0; i < a.length; i++ ) {
-        var b = a[ i ].split( '=' );
-        query[ decodeURIComponent( b[0] ) ] = decodeURIComponent( b[1] || '' );
+    var a = qstr.substr(1).split('&');
+    for (var i = 0; i < a.length; i++) {
+        var b = a[i].split('=');
+        query[decodeURIComponent(b[0])] = decodeURIComponent(b[1] || '');
     }
     return query;
-}
+};
 
 // cronelib.debounce
 // For, e.g., preventing excessive resize() calls
 
-cronelib.debounce = function( func , timeout ) {
-    var timeoutID , timeout = timeout || 200;
+cronelib.debounce = function (func, timeout) {
+    var timeoutID,
+        timeout = timeout || 200;
     return function () {
-        var scope = this , args = arguments;
-        clearTimeout( timeoutID );
-        timeoutID = setTimeout( function () {
-            func.apply( scope , Array.prototype.slice.call( args ) );
-        } , timeout );
-    }
-}
-
+        var scope = this,
+            args = arguments;
+        clearTimeout(timeoutID);
+        timeoutID = setTimeout(function () {
+            func.apply(scope, Array.prototype.slice.call(args));
+        }, timeout);
+    };
+};
 
 // EXPORT MODULE
 
 module.exports = cronelib;
 
-
 //
+
 },{"promise-polyfill":27,"setimmediate":28}],3:[function(require,module,exports){
+'use strict';
+
 // =
 //
 // fullscreen
@@ -685,54 +664,28 @@ module.exports = cronelib;
 
 // REQUIRES
 
-require( 'setimmediate' );                          // Needed to fix promise
-                                                    // polyfill on non-IE
-var Promise = require( 'promise-polyfill' );        // Needed for IE Promise
-                                                    // support
+require('setimmediate'); // Needed to fix promise
+// polyfill on non-IE
+var Promise = require('promise-polyfill'); // Needed for IE Promise
+// support
 
 
 // MODULE OBJECT
 
 var fullscreen = {};
 
-
 // Platform-dependent nomenclature
 // TODO Standards
 
-fullscreen.changeEvents = [
-    'webkitfullscreenchange',
-    'mozfullscreenchange',
-    'fullscreenchange',
-    'MSFullscreenChange'
-];
+fullscreen.changeEvents = ['webkitfullscreenchange', 'mozfullscreenchange', 'fullscreenchange', 'MSFullscreenChange'];
 
-fullscreen.errorEvents = [
-    'webkitfullscreenerror',
-    'mozfullscreenerror',
-    'fullscreenerror',
-    'MSFullscreenError'
-];
+fullscreen.errorEvents = ['webkitfullscreenerror', 'mozfullscreenerror', 'fullscreenerror', 'MSFullscreenError'];
 
-fullscreen.requestFunctions = [
-    'webkitRequestFullscreen',
-    'mozRequestFullScreen',
-    'requestFullscreen',
-    'msRequestFullscreen'
-];
+fullscreen.requestFunctions = ['webkitRequestFullscreen', 'mozRequestFullScreen', 'requestFullscreen', 'msRequestFullscreen'];
 
-fullscreen.exitFunctions = [
-    'webkitExitFullscreen',
-    'mozCancelFullScreen',
-    'exitFullscreen',
-    'msExitFullscreen'
-];
+fullscreen.exitFunctions = ['webkitExitFullscreen', 'mozCancelFullScreen', 'exitFullscreen', 'msExitFullscreen'];
 
-fullscreen.isProperties = [
-    'webkitIsFullScreen',
-    'mozFullScreen',
-    'msFullscreenElement'
-];
-
+fullscreen.isProperties = ['webkitIsFullScreen', 'mozFullScreen', 'msFullscreenElement'];
 
 // HELPERS
 
@@ -742,158 +695,400 @@ fullscreen.isProperties = [
 
 // MEAT
 
-fullscreen.is = function() {
+fullscreen.is = function () {
     var ret = false;
-    fullscreen.isProperties.forEach( function( propertyName ) {
-        if ( document[propertyName] ) {
+    fullscreen.isProperties.forEach(function (propertyName) {
+        if (document[propertyName]) {
             ret = true;
         }
-    } );
+    });
     return ret;
 };
 
-fullscreen._changePromise = function( meat ) {
-    
-    return new Promise( function( resolve, reject ) {
-        
+fullscreen._changePromise = function (meat) {
+
+    return new Promise(function (resolve, reject) {
+
         // Set up some event handlers / helpers
 
-        var clearListeners = function() {
-            fullscreen.changeEvents.forEach( function( eventName ) {
-                document.removeEventListener( eventName, onChanged );
-            } );
-            fullscreen.errorEvents.forEach( function( eventName ) {
-                document.removeEventListener( eventName, onError );
-            } );
+        var clearListeners = function clearListeners() {
+            fullscreen.changeEvents.forEach(function (eventName) {
+                document.removeEventListener(eventName, onChanged);
+            });
+            fullscreen.errorEvents.forEach(function (eventName) {
+                document.removeEventListener(eventName, onError);
+            });
         };
 
-        var onChanged = function( event ) {
+        var onChanged = function onChanged(event) {
             clearListeners();
-            resolve( true );
+            resolve(true);
         };
 
-        var onError = function( event ) {
+        var onError = function onError(event) {
             clearListeners();
             // TODO Get error message from event
-            reject( 'Problem with fullscreen change.' );
-        }
+            reject('Problem with fullscreen change.');
+        };
 
         // Leverage fullscreen event callbacks for promise
-        fullscreen.changeEvents.forEach( function( eventName ) {
-            document.addEventListener( eventName, onChanged );
-        } );
-        fullscreen.errorEvents.forEach( function( eventName ) {
-            document.addEventListener( eventName, onError );
-        } );
-        
+        fullscreen.changeEvents.forEach(function (eventName) {
+            document.addEventListener(eventName, onChanged);
+        });
+        fullscreen.errorEvents.forEach(function (eventName) {
+            document.addEventListener(eventName, onError);
+        });
+
         // Do things!
         meat();
-
-    } );
-
+    });
 };
 
-fullscreen.request = function( element ) {
+fullscreen.request = function (element) {
 
     // Return a change promise that tries to request fullscreen
-    return fullscreen._changePromise( function() {
+    return fullscreen._changePromise(function () {
 
-        fullscreen.requestFunctions.forEach( function( functionName ) {
-            if ( element[functionName] ) {
+        fullscreen.requestFunctions.forEach(function (functionName) {
+            if (element[functionName]) {
                 element[functionName]();
             }
-        } );
-
-    } );
-
+        });
+    });
 };
 
-fullscreen.exit = function() {
+fullscreen.exit = function () {
 
-    return fullscreen._changePromise( function() {
+    return fullscreen._changePromise(function () {
 
-        fullscreen.exitFunctions.forEach( function( functionName ) {
-            if ( document[functionName] ) {
+        fullscreen.exitFunctions.forEach(function (functionName) {
+            if (document[functionName]) {
                 document[functionName]();
             }
-        } );
-
-    } );
-
+        });
+    });
 };
 
-fullscreen.toggle = function( element ) {
-    
-    if ( element === undefined ) {
+fullscreen.toggle = function (element) {
+
+    if (element === undefined) {
         element = document.documentElement;
     }
 
     // Either of these is a Promise
-    if ( fullscreen.is() ) {
+    if (fullscreen.is()) {
         return fullscreen.exit();
     } else {
-        return fullscreen.request( element );
+        return fullscreen.request(element);
     }
-
 };
-
 
 // EXPORT MODULE
 
 module.exports = fullscreen;
 
-
 //
+
 },{"promise-polyfill":27,"setimmediate":28}],4:[function(require,module,exports){
-var d3 = require( 'd3' );
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+exports.default = function () {
+
+    // default settings:
+    //var colors = ['#08519c','#3182bd','#6baed6','#bdd7e7','#bae4b3','#74c476','#31a354','#006d2c'],
+    //var colors = ['#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#fee090', '#fdae61', '#f46d43', '#d73027'],
+    //var colors = ["#5e4fa2", "#3288bd", "#66c2a5", "#abdda4", "#e6f598", "#fee08b", "#fdae61", "#f46d43", "#d53e4f", "#9e0142"],
+    var colors = ["#313695", "#4575b4", "#74add1", "#abd9e9", "#fee090", "#fdae61", "#f46d43", "#d73027"],
+        bands = colors.length >> 1,
+        // number of bands in each direction (positive / negative)
+    width = 1000,
+        // width in pixels
+    height = 30,
+        offsetX = 0,
+        step = 1,
+        spacing = 0,
+        mode = 'offset',
+        axis = null,
+        title = null,
+        extent = null,
+        // the extent is derived from the data, unless explicitly set via .extent([min, max])
+    //x = d3.scaleLinear(), // TODO: use ordinal scale instead?
+    x = null,
+        y = (0, _d3Scale.scaleLinear)().range([0, height]),
+        canvas = null;
+
+    // Appends a canvas element to the current element
+    // and draws a horizon graph based on data & settings
+    function horizonChart(data) {
+
+        var selection = (0, _d3Selection.select)(this);
+        var dIncrement = step + spacing;
+
+        // update the width
+        //width = horizon.node().getBoundingClientRect().width;
+        width = dIncrement * data.length;
+
+        // Recycle canvas if it already exists
+        if (selection.select('canvas').empty()) {
+            canvas = selection.append('canvas');
+        } else {
+            canvas = selection.select('canvas');
+        }
+
+        canvas.attr('width', width).attr('height', height);
+
+        // Recycle title and value labels
+        // TODO Cleaner
+        if (selection.select('.title').empty()) {
+            selection.append('span').attr('class', 'title').text(title);
+        } else {
+            selection.select('.title').text(title);
+        }
+
+        if (selection.select('.value').empty()) {
+            selection.append('span').attr('class', 'value');
+        }
+
+        var context = canvas.node().getContext('2d');
+        //context.imageSmoothingEnabled = false;
+        //context.translate(margin.left, margin.top);
+
+        // update the y scale, based on the data extents
+        var _extent = extent || (0, _d3Array.extent)(data);
+
+        var max = Math.max(-_extent[0], _extent[1]);
+        y.domain([0, max]);
+        //x = d3.scaleTime().domain[];
+        axis = (0, _d3Axis.axisTop)(x).ticks(5);
+
+        // Draw ----------------------------------------------------------------------------
+
+        context.clearRect(0, 0, width, height);
+        //context.translate(0.5, 0.5);
+
+        // the data frame currently being shown:
+        var increment = step + spacing,
+            startIndex = ~~Math.max(0, -(offsetX / increment)),
+            endIndex = ~~Math.min(data.length, startIndex + width / increment);
+
+        // skip drawing if there's no data to be drawn
+        if (startIndex > data.length) return;
+
+        // we are drawing positive & negative bands separately to avoid mutating canvas state
+        // http://www.html5rocks.com/en/tutorials/canvas/performance/
+
+        var negative = false;
+        // draw positive bands
+        for (var b = 0; b < bands; b++) {
+            context.fillStyle = colors[bands + b];
+
+            // Adjust the range based on the current band index.
+            var bExtents = (b + 1 - bands) * height;
+            y.range([bands * height + bExtents, bExtents]);
+
+            // only the current data frame is being drawn i.e. what's visible:
+            for (var i = startIndex, value; i < endIndex; i++) {
+                value = data[i];
+                if (value <= 0) {
+                    negative = true;continue;
+                }
+                if (value === undefined) continue;
+                context.fillRect(offsetX + i * increment, y(value), step, y(0) - y(value));
+            }
+        }
+
+        // draw negative bands
+        if (negative) {
+
+            // mirror the negative bands, by flipping the canvas
+            if (mode === 'offset') {
+                context.translate(0, height);
+                context.scale(1, -1);
+            }
+
+            for (b = 0; b < bands; b++) {
+                context.fillStyle = colors[bands - b - 1];
+
+                // Adjust the range based on the current band index.
+                bExtents = (b + 1 - bands) * height;
+                y.range([bands * height + bExtents, bExtents]);
+
+                // only the current data frame is being drawn i.e. what's visible:
+                for (var j = startIndex, nvalue; j < endIndex; j++) {
+                    nvalue = data[j];
+                    if (nvalue >= 0) continue;
+                    context.fillRect(offsetX + j * increment, y(-nvalue), step, y(0) - y(-nvalue));
+                }
+            }
+        }
+
+        /*
+        // Offscreen Draw -----------------------------------------------------------------------
+         function createOffscreenCanvas(width,height){
+            var canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            return canvas;
+        }
+         var offscreenCanvas = createOffscreenCanvas(increment * data.length, height);
+        var offscreenContext = offscreenCanvas.getContext('2d');
+        // draw each band:
+        for (var b = 0; b < bands; b++) {
+            offscreenContext.fillStyle = colors[b];
+             // Adjust the range based on the current band index.
+            var y0 = (b + 1 - bands) * height;
+            y.range([bands * height + y0, y0]);
+             // draw the whole period on an offscreen canvas
+            for (var i = 0; i < data.length; i++) {
+            offscreenContext.fillRect(i * increment, y(data[i]), step, y(0) - y(data[i]));
+            }
+        }
+         var onscreenImage;
+        _draw = function() {
+            onscreenImage = offscreenContext.getImageData(-offsetX, 0, width, height);
+            context.putImageData(onscreenImage, 0, 0);
+             //context.clearRect(0, 0, width, height);
+            //context.translate(offsetX, 0);
+            //context.drawImage(offscreenCanvas, offsetX, 0);
+        };
+        */
+    }
+
+    horizonChart.axis = function (_) {
+        return arguments.length ? (axis = _, horizonChart) : axis;
+    };
+
+    horizonChart.canvas = function (_) {
+        return arguments.length ? (canvas = _, horizonChart) : canvas;
+    };
+
+    // Array of colors representing the number of bands
+    horizonChart.colors = function (_) {
+        if (!arguments.length) return colors;
+        colors = _;
+
+        // update the number of bands
+        bands = colors.length >> 1;
+
+        return horizonChart;
+    };
+
+    // get/set the height of the graph
+    horizonChart.height = function (_) {
+        return arguments.length ? (height = _, horizonChart) : height;
+    };
+
+    // get/set the step of the graph, i.e. the width of each bar
+    horizonChart.step = function (_) {
+        return arguments.length ? (step = _, horizonChart) : step;
+    };
+
+    // get/set the spacing between the bars of the graph
+    horizonChart.spacing = function (_) {
+        return arguments.length ? (spacing = _, horizonChart) : spacing;
+    };
+
+    // get/set the title of the horizon
+    horizonChart.title = function (_) {
+        return arguments.length ? (title = _, horizonChart) : title;
+    };
+
+    // mirror or offset
+    horizonChart.mode = function (_) {
+        return arguments.length ? (mode = _, horizonChart) : mode;
+    };
+
+    // get/set the extents of the Y axis. If not set the extents are derived from the data
+    horizonChart.extent = function (_) {
+        return arguments.length ? (extent = _, horizonChart) : extent;
+    };
+
+    horizonChart.offsetX = function (_) {
+        return arguments.length ? (offsetX = _, horizonChart) : offsetX;
+    };
+
+    // the data frame currently being shown:
+    horizonChart.indexExtent = function () {
+        var increment = step + spacing,
+            startIndex = -offsetX / increment,
+            endIndex = startIndex + width / increment;
+
+        return [startIndex, endIndex];
+    };
+
+    return horizonChart;
+};
+
+var _d3Selection = require('d3-selection');
+
+var _d3Scale = require('d3-scale');
+
+var _d3Axis = require('d3-axis');
+
+var _d3Array = require('d3-array');
+
+},{"d3-array":14,"d3-axis":15,"d3-scale":20,"d3-selection":21}],5:[function(require,module,exports){
+"use strict";
+
+var d3 = require('d3');
 
 // Shit from core that I need.
 
 // Copies a variable number of methods from source to target.
-d3.rebind = function(target, source) {
-  var i = 1, n = arguments.length, method;
-  while (++i < n) target[method = arguments[i]] = d3_rebind(target, source, source[method]);
-  return target;
+d3.rebind = function (target, source) {
+  var i = 1,
+      n = arguments.length,
+      method;
+  while (++i < n) {
+    target[method = arguments[i]] = d3_rebind(target, source, source[method]);
+  }return target;
 };
 
 // Method is assumed to be a standard D3 getter-setter:
 // If passed with no arguments, gets the value.
 // If passed with arguments, sets the value and returns the target.
 function d3_rebind(target, source, method) {
-  return function() {
+  return function () {
     var value = method.apply(source, arguments);
     return value === source ? target : value;
   };
 }
 
-var d3_horizon = function() {
-  var bands = 1, // between 1 and 5, typically
-      mode = "offset", // or mirror
-      area = d3.area(), // d3.svg.area(),
-      defined,
+var d3_horizon = function d3_horizon() {
+  var bands = 1,
+      // between 1 and 5, typically
+  mode = "offset",
+      // or mirror
+  area = d3.area(),
+      // d3.svg.area(),
+  defined,
       x = d3_horizonX,
       y = d3_horizonY,
       width = 960,
       height = 40;
 
-  var color = d3.scaleLinear()
-      .domain([-1, 0, 1])
-      .range(["#d62728", "#fff", "#1f77b4"]);
+  var color = d3.scaleLinear().domain([-1, 0, 1]).range(["#d62728", "#fff", "#1f77b4"]);
 
   // For each small multiple…
   function horizon(g) {
-    g.each(function(d) {
+    g.each(function (d) {
       var g = d3.select(this),
           xMin = Infinity,
           xMax = -Infinity,
           yMax = -Infinity,
-          x0, // old x-scale
-          y0, // old y-scale
-          t0,
+          x0,
+          // old x-scale
+      y0,
+          // old y-scale
+      t0,
           id; // unique id for paths
 
       // Compute x- and y-values along with extents.
-      var data = d.map(function(d, i) {
+      var data = d.map(function (d, i) {
         var xv = x.call(this, d, i),
             yv = y.call(this, d, i);
         if (xv < xMin) xMin = xv;
@@ -922,107 +1117,90 @@ var d3_horizon = function() {
       }
 
       // We'll use a defs to store the area path and the clip path.
-      var defs = g.selectAll("defs")
-          .data([null]);
+      var defs = g.selectAll("defs").data([null]);
 
       // The clip path is a simple rect.
-      defs.enter().append("defs").append("clipPath")
-          .attr("id", "d3_horizon_clip" + id)
-        .append("rect")
-          .attr("width", width)
-          .attr("height", height);
+      defs.enter().append("defs").append("clipPath").attr("id", "d3_horizon_clip" + id).append("rect").attr("width", width).attr("height", height);
 
-      d3.transition(defs.select("rect"))
-          .attr("width", width)
-          .attr("height", height);
+      d3.transition(defs.select("rect")).attr("width", width).attr("height", height);
 
       // We'll use a container to clip all horizon layers at once.
-      g.selectAll("g")
-          .data([null])
-        .enter().append("g")
-          .attr("clip-path", "url(#d3_horizon_clip" + id + ")");
+      g.selectAll("g").data([null]).enter().append("g").attr("clip-path", "url(#d3_horizon_clip" + id + ")");
 
       // Instantiate each copy of the path with different transforms.
-      var path = g.select("g").selectAll("path")
-          .data(d3.range(-1, -bands - 1, -1).concat(d3.range(1, bands + 1)), Number);
+      var path = g.select("g").selectAll("path").data(d3.range(-1, -bands - 1, -1).concat(d3.range(1, bands + 1)), Number);
 
-      if (defined) area.defined(function(_, i) { return defined.call(this, d[i], i); });
+      if (defined) area.defined(function (_, i) {
+        return defined.call(this, d[i], i);
+      });
 
-      var d0 = area
-          .x(function(d) { return x0(d[0]); })
-          .y0(height * bands)
-          .y1(function(d) { return height * bands - y0(d[1]); })
-          (data);
+      var d0 = area.x(function (d) {
+        return x0(d[0]);
+      }).y0(height * bands).y1(function (d) {
+        return height * bands - y0(d[1]);
+      })(data);
 
-      var d1 = area
-          .x(function(d) { return x1(d[0]); })
-          .y1(function(d) { return height * bands - y1(d[1]); })
-          (data);
+      var d1 = area.x(function (d) {
+        return x1(d[0]);
+      }).y1(function (d) {
+        return height * bands - y1(d[1]);
+      })(data);
 
-      path.enter().append("path")
-          .style("fill", color)
-          .attr("transform", t0)
-          .attr("d", d0);
+      path.enter().append("path").style("fill", color).attr("transform", t0).attr("d", d0);
 
-      d3.transition(path)
-          .style("fill", color)
-          .attr("transform", t1)
-          .attr("d", d1);
+      d3.transition(path).style("fill", color).attr("transform", t1).attr("d", d1);
 
-      d3.transition(path.exit())
-          .attr("transform", t1)
-          .attr("d", d1)
-          .remove();
+      d3.transition(path.exit()).attr("transform", t1).attr("d", d1).remove();
 
       // Stash the new scales.
-      this.__chart__ = {x: x1, y: y1, t: t1, id: id};
+      this.__chart__ = { x: x1, y: y1, t: t1, id: id };
     });
   }
 
-  horizon.bands = function(_) {
+  horizon.bands = function (_) {
     if (!arguments.length) return bands;
     bands = +_;
     color.domain([-bands, 0, bands]);
     return horizon;
   };
 
-  horizon.mode = function(_) {
+  horizon.mode = function (_) {
     if (!arguments.length) return mode;
     mode = _ + "";
     return horizon;
   };
 
-  horizon.colors = function(_) {
+  horizon.colors = function (_) {
     if (!arguments.length) return color.range();
     color.range(_);
     return horizon;
   };
 
-  horizon.x = function(_) {
+  horizon.x = function (_) {
     if (!arguments.length) return x;
     x = _;
     return horizon;
   };
 
-  horizon.y = function(_) {
+  horizon.y = function (_) {
     if (!arguments.length) return y;
     y = _;
     return horizon;
   };
 
-  horizon.width = function(_) {
+  horizon.width = function (_) {
     if (!arguments.length) return width;
     width = +_;
     return horizon;
   };
 
-  horizon.height = function(_) {
+  horizon.height = function (_) {
     if (!arguments.length) return height;
     height = +_;
     return horizon;
   };
 
-  horizon.defined = function(_) {
+  horizon.defined = function (_) {
     if (!arguments.length) return defined;
     defined = _;
     return horizon;
@@ -1033,18 +1211,26 @@ var d3_horizon = function() {
 
 var d3_horizonId = 0;
 
-function d3_horizonX(d) { return d[0]; }
-function d3_horizonY(d) { return d[1]; }
-
-function d3_horizonTransform(bands, h, mode) {
-  return mode == "offset"
-      ? function(d) { return "translate(0," + (d + (d < 0) - bands) * h + ")"; }
-      : function(d) { return (d < 0 ? "scale(1,-1)" : "") + "translate(0," + (d - bands) * h + ")"; };
+function d3_horizonX(d) {
+  return d[0];
+}
+function d3_horizonY(d) {
+  return d[1];
 }
 
+function d3_horizonTransform(bands, h, mode) {
+  return mode == "offset" ? function (d) {
+    return "translate(0," + (d + (d < 0) - bands) * h + ")";
+  } : function (d) {
+    return (d < 0 ? "scale(1,-1)" : "") + "translate(0," + (d - bands) * h + ")";
+  };
+}
 
 module.exports = d3_horizon;
-},{"d3":24}],5:[function(require,module,exports){
+
+},{"d3":24}],6:[function(require,module,exports){
+'use strict';
+
 // =
 //
 // fmbrain
@@ -1055,28 +1241,26 @@ module.exports = d3_horizon;
 
 // REQUIRES
 
-var $ = require( 'jquery' );
-var d3 = require( 'd3' );
-
+var $ = require('jquery');
+var d3 = require('d3');
 
 // MODULE OBJECT
 
 var fmbrain = {};
 
-
 // MAIN CLASS
 
-fmbrain.BrainVisualizer = function() {
+fmbrain.BrainVisualizer = function () {
 
-    this.imageData          = null;
-    this.sensorGeometry     = null;
+    this.imageData = null;
+    this.sensorGeometry = null;
 
-    this.baseNode           = null;
-    this.brainSvg           = null;
-    this.brainImage         = null;
+    this.baseNode = null;
+    this.brainSvg = null;
+    this.brainImage = null;
 
-    this.selectedChannel    = null;
-    this.data               = null;
+    this.selectedChannel = null;
+    this.data = null;
 
     // TODO Possible to handle resizing properly with just CSS?
     this.size = {
@@ -1090,18 +1274,18 @@ fmbrain.BrainVisualizer = function() {
         bottom: 0,
         left: 0
     };
-    this.dotMinRadius   = 0.003;      // u (horizontal) units
-    this.dotScale       = 0.008;
+    this.dotMinRadius = 0.003; // u (horizontal) units
+    this.dotScale = 0.008;
 
     // TODO Handle this with CSS for quick style interchange 
-    this.dotStrokeInactive      = '#000000';
+    this.dotStrokeInactive = '#000000';
     this.dotStrokeWidthInactive = 1;
-    this.dotStrokeActive        = '#ffff00';
-    this.dotStrokeWidthActive   = 3;
+    this.dotStrokeActive = '#ffff00';
+    this.dotStrokeWidthActive = 3;
 
-    this.dotFillNeutral     = '#ffffff';
-    this.dotFillPositive    = '#f46d43';
-    this.dotFillNegative    = '#74add1';
+    this.dotFillNeutral = '#ffffff';
+    this.dotFillPositive = '#f46d43';
+    this.dotFillNegative = '#74add1';
 
     /*
     this.dotColors = [
@@ -1115,23 +1299,22 @@ fmbrain.BrainVisualizer = function() {
         "#d73027"
     ];
     */
-
 };
 
 fmbrain.BrainVisualizer.prototype = {
 
     constructor: fmbrain.BrainVisualizer,
 
-    _defaultData: function() {
+    _defaultData: function _defaultData() {
         // TODO Return a data array giving zeros for each channel
     },
 
-    setupFromDataset: function( dataset, baseNode ) {
+    setupFromDataset: function setupFromDataset(dataset, baseNode) {
         // TODO Error handling
-        this.setup( dataset.metadata.brainImage, dataset.metadata.sensorGeometry, baseNode );
+        this.setup(dataset.metadata.brainImage, dataset.metadata.sensorGeometry, baseNode);
     },
 
-    setup: function( imageData, sensorGeometry, baseNode ) {
+    setup: function setup(imageData, sensorGeometry, baseNode) {
 
         // TODO Format checking
         this.imageData = brainImage;
@@ -1140,158 +1323,130 @@ fmbrain.BrainVisualizer.prototype = {
         this.data = this._defaultData();
 
         // TODO Should substitute this with baseId (need different nodes for d3 and jQuery)
-        this.baseNode = baseNode || d3.select( '#brain' );
+        this.baseNode = baseNode || d3.select('#brain');
 
         // DOMination
-        
+
         // TODO Sizing is somewhat opaque, clean up pls
-        this.brainSvg = d3.select( '#brain' ).append( 'svg' )
-                            .attr( 'width', this.size.width + this.margin.left + this.margin.right )
-                            .attr( 'height', this.size.height + this.margin.top + this.margin.bottom );
+        this.brainSvg = d3.select('#brain').append('svg').attr('width', this.size.width + this.margin.left + this.margin.right).attr('height', this.size.height + this.margin.top + this.margin.bottom);
         // TODO ???? Transform should be on the element that brainImage is under?
-        this.brainSvg.append( 'g' )
-                        .attr( 'transform', 'translate(' + this.marginn.left + ',' + this.margin.top + ')' );
+        this.brainSvg.append('g').attr('transform', 'translate(' + this.marginn.left + ',' + this.margin.top + ')');
 
         // TODO Could need to set width and height for data URI to work
-        this.brainImage = brainSvg.append( 'g' ).append( 'image' )
-                                                .attr( 'xlink:href', this.imageData )
-                                                .attr( 'x', '0' )
-                                                .attr( 'y', '0' );
+        this.brainImage = brainSvg.append('g').append('image').attr('xlink:href', this.imageData).attr('x', '0').attr('y', '0');
 
-        this.brainDots = brainSvg.append( 'g' )
-                                    .attr( 'class', 'brain-dots' )
-                                 .selectAll( '.brain-dot' )
-                                    .data( this.data )
-                                 .enter()
-                                 .append( 'circle' )
-                                 .filter( this._dotFilter )     // TODO Necessary?
-                                    .attr( 'class', 'dot' )
-                                    .style( 'fill', this._dotFill )
-                                    .style( 'stroke', this._dotStroke )
-                                    .style( 'stroke-width', this._dotStrokeWidth )
-                                    .call( this._dotPosition )
-                                    .sort( this._dotOrder );
+        this.brainDots = brainSvg.append('g').attr('class', 'brain-dots').selectAll('.brain-dot').data(this.data).enter().append('circle').filter(this._dotFilter) // TODO Necessary?
+        .attr('class', 'dot').style('fill', this._dotFill).style('stroke', this._dotStroke).style('stroke-width', this._dotStrokeWidth).call(this._dotPosition).sort(this._dotOrder);
 
         // Now that we've added everything we need, do an initial update to make everything pretty
         this.update();
-
     },
 
-    _dotFilter: function( d ) {
+    _dotFilter: function _dotFilter(d) {
         // TODO Not a super effective filter ...
-        if ( this._dotX( d ) === undefined ) {
+        if (this._dotX(d) === undefined) {
             return false;
         }
         return true;
     },
 
-    _dotFill: function( d ) {
+    _dotFill: function _dotFill(d) {
         // TODO Very naive way of coloring based on old d3_horizon_chart API
-        if ( d.value == 0.0 ) {
+        if (d.value == 0.0) {
             return this.dotFillNeutral;
-        } else if ( d.value > 0.0 ) {
+        } else if (d.value > 0.0) {
             return this.dotFillPositive;
         }
         return this.dotFillNegative;
     },
 
-    _dotStroke: function( d ) {
-        if ( this.selectedChannel == null ) {
-            return this.dotStrokeInactive;      // Nothing is active
+    _dotStroke: function _dotStroke(d) {
+        if (this.selectedChannel == null) {
+            return this.dotStrokeInactive; // Nothing is active
         }
-        if ( d.name == this.selectedChannel ) {
-            return this.dotStrokeActive;        // This datum is active
+        if (d.name == this.selectedChannel) {
+            return this.dotStrokeActive; // This datum is active
         }
-        return this.dotStrokeInactive;          // " " isn't
+        return this.dotStrokeInactive; // " " isn't
     },
 
-    _dotStrokeWidth: function( d ) {
-        if ( this.selectedChannel == null ) {
+    _dotStrokeWidth: function _dotStrokeWidth(d) {
+        if (this.selectedChannel == null) {
             return this.dotStrokeWidthInactive;
         }
-        if ( d.name == this.selectedChannel ) {
+        if (d.name == this.selectedChannel) {
             return this.dotStrokeWidthActive;
         }
         return this.dotStrokeWidthInactive;
     },
 
-    _dotX: function( d ) {
-        var pos = this.sensorGeometry[ d.name ];
-        return ( pos ) ? pos.u * this.size.width : undefined;
+    _dotX: function _dotX(d) {
+        var pos = this.sensorGeometry[d.name];
+        return pos ? pos.u * this.size.width : undefined;
     },
-    _dotY: function( d ) {
-        var pos = this.sensorGeometry[ d.name ];
+    _dotY: function _dotY(d) {
+        var pos = this.sensorGeometry[d.name];
         // TODO Should v-coordinate be reversed like this?
-        return ( pos ) ? (1 - pos.v) * this.size.height : undefined;
+        return pos ? (1 - pos.v) * this.size.height : undefined;
     },
-    _dotRadius: function( d ) {
-        return ( this.dotMinRadius + this.dotScale * Math.abs( d.value ) ) * this.size.width;
+    _dotRadius: function _dotRadius(d) {
+        return (this.dotMinRadius + this.dotScale * Math.abs(d.value)) * this.size.width;
     },
-    _dotPosition: function( dot ) {
-        dot.attr( 'cx', this._dotX )
-            .attr( 'cy', this._dotY )
-            .attr( 'r', this._dotRadius );
+    _dotPosition: function _dotPosition(dot) {
+        dot.attr('cx', this._dotX).attr('cy', this._dotY).attr('r', this._dotRadius);
     },
 
-    _dotOrder: function( a, b ) {
+    _dotOrder: function _dotOrder(a, b) {
         // Selected channel is always on top
-        if ( a.name == this.selectedChannel ) {
+        if (a.name == this.selectedChannel) {
             return +1;
         }
-        if ( b.name == this.SelectedChannel ) {
+        if (b.name == this.SelectedChannel) {
             return -1;
         }
 
         // Smaller dots are on top
-        return this._dotRadius( b ) - this._dotRadius( a );
+        return this._dotRadius(b) - this._dotRadius(a);
     },
 
-    updateContainerSize: function( newContainerSize ) {
-        if ( newContainerSize === undefined ) {
+    updateContainerSize: function updateContainerSize(newContainerSize) {
+        if (newContainerSize === undefined) {
             // TODO Should this be a supported behavior?
             newContainerSize = {
-                'width':    $( '#brain' ).parent().width(),
-                'height':   $( '#brain' ).parent().width()
+                'width': $('#brain').parent().width(),
+                'height': $('#brain').parent().width()
             };
         }
 
-        this.size.width = newContainerSize.width - ( this.margin.left + this.margin.right );
-        this.size.height = newContainerSize.height - ( this.margin.top + this.margin.bottom );
+        this.size.width = newContainerSize.width - (this.margin.left + this.margin.right);
+        this.size.height = newContainerSize.height - (this.margin.top + this.margin.bottom);
     },
 
-    update: function( newData ) {
+    update: function update(newData) {
 
-        if ( newData !== undefined ) {
+        if (newData !== undefined) {
             this.data = newData;
         }
-        
+
         // TODO Update size manually here, or leave to client?
 
-        this.brainSvg.attr( 'width', this.size.width + this.margin.left + this.margin.right )
-                        .attr( 'height', this.size.height + this.margin.top + this.margin.bottom );
+        this.brainSvg.attr('width', this.size.width + this.margin.left + this.margin.right).attr('height', this.size.height + this.margin.top + this.margin.bottom);
 
-        this.brainImage.attr( 'width', this.size.width )
-                        .attr( 'height', this.size.height );
+        this.brainImage.attr('width', this.size.width).attr('height', this.size.height);
 
-        this.brainDots.data( this.data )
-                        .style( 'fill', this._dotFill )
-                        .style( 'stroke', this._dotStroke )
-                        .style( 'stroke-width', dotStrokeWidth )
-                        .call( dotPosition )
-                        .sort( dotOrder );
-
+        this.brainDots.data(this.data).style('fill', this._dotFill).style('stroke', this._dotStroke).style('stroke-width', dotStrokeWidth).call(dotPosition).sort(dotOrder);
     }
 
 };
 
-
 // EXPORT MODULE
 module.exports = fmbrain;
 
-
 //
 
-},{"d3":24,"jquery":26}],6:[function(require,module,exports){
+},{"d3":24,"jquery":26}],7:[function(require,module,exports){
+'use strict';
+
 // ======================================================================== //
 //
 // fmdata
@@ -1302,125 +1457,111 @@ module.exports = fmbrain;
 
 // REQUIRES
 
-var $       = require( 'jquery' );
+var $ = require('jquery');
 
-require( 'setimmediate' );                      // Needed to fix promise
-                                                // polyfill on non-IE
-var Promise = require( 'promise-polyfill' );    // Needed for IE Promise
-                                                // support
+require('setimmediate'); // Needed to fix promise
+// polyfill on non-IE
+var Promise = require('promise-polyfill'); // Needed for IE Promise
+// support
 
 
 // MODULE OBJECT
 
 var fmdata = {};
 
-
 // DATASET CLASS
 
-fmdata.Dataset = function() {
+fmdata.Dataset = function () {
 
     this.metadata = {};
     this.contents = {};
-
 };
 
 fmdata.Dataset.prototype = {
 
     constructor: fmdata.Dataset,
 
-    _importMetadata: function( uri ) {
+    _importMetadata: function _importMetadata(uri) {
 
         var dataset = this;
 
         // Wrap $.getJSON in a standard Promise
-        return new Promise( function( resolve, reject ) {
-            $.getJSON( uri )
-                .done( resolve )
-                .fail( function() {
-                    // TODO Get error out of jquery object
-                    reject( 'Error importing metadata file: ' + uri );
-                } );
-        } ).then( function( data ) {
+        return new Promise(function (resolve, reject) {
+            $.getJSON(uri).done(resolve).fail(function () {
+                // TODO Get error out of jquery object
+                reject('Error importing metadata file: ' + uri);
+            });
+        }).then(function (data) {
             // Final metadata is extension of imported data by actual metadata
             // NOTE $.extend is executed in-place on data
-            this.metadata = $.extend( data, this.metadata );
-        } );
-
+            this.metadata = $.extend(data, this.metadata);
+        });
     },
 
-    _executeImports: function( imports ) {
+    _executeImports: function _executeImports(imports) {
 
         // Put all kinds imports on the same footing by array-izing them
-        imports = [].concat( imports );
+        imports = [].concat(imports);
 
         // _ingegrateMetadata gives precedence to what's currently in this.metadata,
         // so just go in reverse order to preserve "later overwrites earlier" order
         imports.reverse();
-        
+
         // Construct and execute the import chain
-        return imports.reduce( function( promisedResult, uriNext ) {
+        return imports.reduce(function (promisedResult, uriNext) {
             // The next promised import result is constructed from the previous promise
             // by thenning the import of the next metadata URI
-            return promisedResult.then( function( result ) {
-                dataset._importMetadata( uriNext );
-            } );
-        }, Promise.resolve() );     // Initialize with the identity promise
-
+            return promisedResult.then(function (result) {
+                dataset._importMetadata(uriNext);
+            });
+        }, Promise.resolve()); // Initialize with the identity promise
     },
 
-    _initialize: function( data ) {
-        
-        var dataset = this;     // Capture this for nested functions
+    _initialize: function _initialize(data) {
+
+        var dataset = this; // Capture this for nested functions
 
         // Contents 
-        var initContents = function( contents ) {
-            return new Promise( function( resolve, reject ) {
+        var initContents = function initContents(contents) {
+            return new Promise(function (resolve, reject) {
                 dataset.contents = contents;
                 // TODO Format checking
-                resolve( contents );
-            } );
+                resolve(contents);
+            });
         };
 
         // Metadata
-        var initMetadata = function( metadata ) {
-            return new Promise( function( resolve, reject ) {
+        var initMetadata = function initMetadata(metadata) {
+            return new Promise(function (resolve, reject) {
                 dataset.metadata = metadata;
                 // TODO Format checking
-                resolve( metadata );
-            } ).then( function( result ) {
-                if ( result.hasOwnProperty( '_import' ) ) {
-                    return dataset._executeImports( result['_import'] );
+                resolve(metadata);
+            }).then(function (result) {
+                if (result.hasOwnProperty('_import')) {
+                    return dataset._executeImports(result['_import']);
                 }
-            } );
+            });
         };
 
-        return Promise.all( [
-            initContent( data.contents ),
-            initMetadata( data.metadata )
-        ] );
-
+        return Promise.all([initContent(data.contents), initMetadata(data.metadata)]);
     },
 
-    get: function( uri ) {
+    get: function get(uri) {
 
         // Wrap $.getJSOn in a standardized Promise
-        return new Promise( function( resolve, reject ) {
-            $.getJSON( uri )
-                .done( resolve )
-                .fail( function() {
-                    // TODO Get error message from jQuery promise
-                    reject( 'Error requesting WebFM file: ' + uri );
-                } );
-        } ).then( this._initialize );   // Once we've got the data, initialize
-
+        return new Promise(function (resolve, reject) {
+            $.getJSON(uri).done(resolve).fail(function () {
+                // TODO Get error message from jQuery promise
+                reject('Error requesting WebFM file: ' + uri);
+            });
+        }).then(this._initialize); // Once we've got the data, initialize
     }
 
 };
 
-
 // DATABUNDLE CLASS
 
-fmdata.DataBundle = function() {
+fmdata.DataBundle = function () {
 
     // TODO ...
 
@@ -1430,47 +1571,43 @@ fmdata.DataBundle.prototype = {
 
     constructor: fmdata.DataBundle,
 
-    _initialize: function( data ) {
+    _initialize: function _initialize(data) {
 
         // TODO ...
 
     },
 
-    get: function( uri ) {
+    get: function get(uri) {
 
         // Wrap $.getJSOn in a standardized Promise
-        return new Promise( function( resolve, reject ) {
-            $.getJSON( uri )
-                .done( resolve )
-                .fail( function() {
-                    // TODO Get error message from jQuery promise
-                    reject( 'Error requesting WebFM bundle: ' + uri );
-                } );
-        } ).then( this._initialize );
-
+        return new Promise(function (resolve, reject) {
+            $.getJSON(uri).done(resolve).fail(function () {
+                // TODO Get error message from jQuery promise
+                reject('Error requesting WebFM bundle: ' + uri);
+            });
+        }).then(this._initialize);
     },
 
-    uriForDataset: function( id ) {
+    uriForDataset: function uriForDataset(id) {
 
         // TODO Shouldn't this just be part of the server API?
         // ...
         return '/';
-
     }
 
     // TODO ...
 
-}
-
+};
 
 // EXPORT MODULE
 
 module.exports = fmdata;
 
-
 //
 
-},{"jquery":26,"promise-polyfill":27,"setimmediate":28}],7:[function(require,module,exports){
+},{"jquery":26,"promise-polyfill":27,"setimmediate":28}],8:[function(require,module,exports){
+'use strict';
+
 // =
 // 
 // fmgen
@@ -1481,17 +1618,15 @@ module.exports = fmdata;
 
 // REQUIRES
 
-var fmstat = require( './fmstat' );
-
+var fmstat = require('./fmstat');
 
 // MODULE OBJECT
 
 var fmgen = {};
 
-
 // MEAT
 
-fmgen.GeneratorDataSource = function() {
+fmgen.GeneratorDataSource = function () {
 
     this.nTime = 500;
 
@@ -1499,57 +1634,55 @@ fmgen.GeneratorDataSource = function() {
     this.maxTrials = 200;
 
     this.properties = {
-        'channels': this._defaultChannels( 128 )
+        'channels': this._defaultChannels(128)
     };
 
     // Delays in ms
-    this.trialDelay         = 2 * 1000;
-    this.propertiesDelay    = 0.5 * 1000;
+    this.trialDelay = 2 * 1000;
+    this.propertiesDelay = 0.5 * 1000;
 
     this.running = false;
 
     this.generator = this._defaultGenerator;
 
-    this.onproperties = function( properties ) {};
-    this.ontrial = function( trialData ) {};
-
-}
+    this.onproperties = function (properties) {};
+    this.ontrial = function (trialData) {};
+};
 
 fmgen.GeneratorDataSource.prototype = {
-    
+
     constructor: fmgen.GeneratorDataSource,
 
-    start: function() {
+    start: function start() {
         this.running = true;
 
         // Include artificial delay for start
-        setTimeout( this.makeProperties, this.propertiesDelay );       
-        setTimeout( this.makeTrial, this.trialDelay );
+        setTimeout(this.makeProperties, this.propertiesDelay);
+        setTimeout(this.makeTrial, this.trialDelay);
     },
 
-    stop: function() {
+    stop: function stop() {
         this.running = false;
     },
 
-    makeProperties: function() {
+    makeProperties: function makeProperties() {
 
         // TODO Make these mutable
         var properties = this.properties;
 
         // Ensure reasonable defaults
-        properties.subjectName  = properties.subjectName    || 'DEMO_SUBJECT';
-        properties.taskName     = properties.taskName       || 'DEMO_TASK';
+        properties.subjectName = properties.subjectName || 'DEMO_SUBJECT';
+        properties.taskName = properties.taskName || 'DEMO_TASK';
         // channels is specified by default
-        properties.valueUnits   = prpoerties.valueUnits     || 1.0;
+        properties.valueUnits = prpoerties.valueUnits || 1.0;
 
         // Call user-provided handler
-        this.onproperties( properties );
-
+        this.onproperties(properties);
     },
 
-    makeTrial: function() {
+    makeTrial: function makeTrial() {
 
-        if ( ! this.running ) {
+        if (!this.running) {
             // We aren't running, so no need to do anything
             return;
         }
@@ -1557,45 +1690,44 @@ fmgen.GeneratorDataSource.prototype = {
         this.curTrial = this.curTrial + 1;
 
         // Use generator to make trial data
-        var trialData = channels.map( function( channel ) { 
-            this.generator( channel, this.curTrial );
-        } );
+        var trialData = channels.map(function (channel) {
+            this.generator(channel, this.curTrial);
+        });
 
         // Pass it on to the user's event handler
-        this.ontrial( trialData );
+        this.ontrial(trialData);
 
-        if ( this.curTrial < this.maxTrials ) {
+        if (this.curTrial < this.maxTrials) {
             // We still have trials to make
-            setTimeout( this.makeTrial, this.trialDelay );
+            setTimeout(this.makeTrial, this.trialDelay);
         }
-
     },
 
-    _defaultChannels: function( nChannels ) {
+    _defaultChannels: function _defaultChannels(nChannels) {
         var channels = [];
-        for ( var i = 1; i <= nChannels; i++ ) {
-            channels.push( 'chan' + i.toString() );
+        for (var i = 1; i <= nChannels; i++) {
+            channels.push('chan' + i.toString());
         }
         return channels;
     },
 
-    _defaultGenerator: function( channel, trial ) {
-        var tv = fmstat.linspace( -1, 3, this.nTime );
-        var yv = tv.map( fmstat.sin_f( 0.33, tv ) );
-        return fmstat.add_v( yv, fmstat.suml_v( 0.5, fmstat.randn_v( yv.length ) ) );
+    _defaultGenerator: function _defaultGenerator(channel, trial) {
+        var tv = fmstat.linspace(-1, 3, this.nTime);
+        var yv = tv.map(fmstat.sin_f(0.33, tv));
+        return fmstat.add_v(yv, fmstat.suml_v(0.5, fmstat.randn_v(yv.length)));
     }
 
-}
-
+};
 
 // EXPORT MODULE
 
 module.exports = fmgen;
 
-
 //
 
-},{"./fmstat":10}],8:[function(require,module,exports){
+},{"./fmstat":11}],9:[function(require,module,exports){
+'use strict';
+
 // ======================================================================== //
 //
 // fmonline
@@ -1606,37 +1738,36 @@ module.exports = fmgen;
 
 // REQUIRES
 
-var bci2k = require( '../lib/bci2k' );
+var bci2k = require('../lib/bci2k');
 
-require( 'setimmediate' );                      // Needed to fix promise
-                                                // polyfill on non-IE
-var Promise = require( 'promise-polyfill' );    // Needed for IE Promise
-                                                // support
+require('setimmediate'); // Needed to fix promise
+// polyfill on non-IE
+var Promise = require('promise-polyfill'); // Needed for IE Promise
+// support
 
 
 // MODULE OBJECT
 
 var fmonline = {};
 
-
 // HELPERS
 
 // Takes an asynchronous function with callback ( err, result ) => () and turns it into a Promise
-function promisify( f ) {
-    return new Promise( function( resolve, reject ) {
-        f( function( err, result ) {
-            if ( err ) {
-                reject( err );
+function promisify(f) {
+    return new Promise(function (resolve, reject) {
+        f(function (err, result) {
+            if (err) {
+                reject(err);
                 return;
             }
-            resolve( result );
-        } );
-    } );
+            resolve(result);
+        });
+    });
 }
 
 // Returns an array of zeros
-function zeroArray( n ) {
-    return Array.apply( null, new Array( n ) ).map( Number.prototype.valueOf, 0 );
+function zeroArray(n) {
+    return Array.apply(null, new Array(n)).map(Number.prototype.valueOf, 0);
 }
 
 // Important kinds of data:
@@ -1647,573 +1778,536 @@ function zeroArray( n ) {
 
 // MAIN CLASS
 
-fmonline.OnlineDataSource = function() { 
-    
+fmonline.OnlineDataSource = function () {
+
     // For nested functions
     var manager = this;
 
     // Event callbacks
-    this.onproperties           = function( properties ) {};
+    this.onproperties = function (properties) {};
 
-    this.onStartTrial           = function() {};
-    this.ontrial                = function( trialData ) {};
+    this.onStartTrial = function () {};
+    this.ontrial = function (trialData) {};
 
-    this.onSystemStateChange    = function( newState ) {};
+    this.onSystemStateChange = function (newState) {};
 
     // Connection for interfacing with the BCI2K system
-    this._bciConnection = new bci2k.Connection(); 
-    this._bciConnection.onconnect = function( event ) {
-        manager._bciDidConnect( event );
+    this._bciConnection = new bci2k.Connection();
+    this._bciConnection.onconnect = function (event) {
+        manager._bciDidConnect(event);
     };
 
     // Cached to prevent excess execute calls when true
     this._bciRunning = false;
 
     this._dataFormatter = new fmonline.DataFormatter();
-    this._dataFormatter.ontrial = function( trialData ) {
-        manager.ontrial( trialData );
+    this._dataFormatter.ontrial = function (trialData) {
+        manager.ontrial(trialData);
     };
-    this._dataFormatter.onStartTrial = function() {
+    this._dataFormatter.onStartTrial = function () {
         manager.onStartTrial();
     };
-    this._dataFormatter.onFeatureProperties = function( properties ) {
-        manager.onproperties( properties );
+    this._dataFormatter.onFeatureProperties = function (properties) {
+        manager.onproperties(properties);
     };
 
     this.config = {};
-    
 };
 
 fmonline.OnlineDataSource.prototype = {
 
     constructor: fmonline.OnlineDataSource,
 
-    connect: function( address ) {
+    connect: function connect(address) {
 
-        var manager = this;     // Capture this for nested functions
+        var manager = this; // Capture this for nested functions
 
-        if ( address === undefined ) {
+        if (address === undefined) {
             address = this.config.sourceAddress;
         }
 
-        if ( this.config.debug ) {
-            console.log( 'Connecting to: ' + address );
+        if (this.config.debug) {
+            console.log('Connecting to: ' + address);
         }
 
         // TODO Incorporate this Promise-based API for connect() elsewhere
-        return new Promise( function( resolve, reject ) {
+        return new Promise(function (resolve, reject) {
 
             // Setup callback to resolve promise
-            manager._bciConnection.onconnect = function( event ) {
-                resolve( event );
+            manager._bciConnection.onconnect = function (event) {
+                resolve(event);
             };
 
             // Connect to the main BCI2K system
-            manager._bciConnection.connect( address );
+            manager._bciConnection.connect(address);
+        }).then(function (event) {
 
-        } ).then( function( event ) {
-
-            manager._bciDidConnect( event );
-
-        } );
+            manager._bciDidConnect(event);
+        });
     },
 
-    loadConfig: function( configURI ) {
-        
-        var manager = this;     // Cache this for nested functions
+    loadConfig: function loadConfig(configURI) {
+
+        var manager = this; // Cache this for nested functions
 
         // Wrap $.getJSON in a standard Promise
-        return new Promise( function( resolve, reject ) {
-            $.getJSON( configURI )
-                .done( resolve )
-                .fail( function( req, reason, err ) {
-                    // TODO Get error message from jquery object
-                    reject( 'Could not load online config from ' + configURI + ' : ' + reason );
-                } );
-        } ).then( function( data ) {
+        return new Promise(function (resolve, reject) {
+            $.getJSON(configURI).done(resolve).fail(function (req, reason, err) {
+                // TODO Get error message from jquery object
+                reject('Could not load online config from ' + configURI + ' : ' + reason);
+            });
+        }).then(function (data) {
             manager.config = data;
-        } );
-
+        });
     },
 
-    _bciDidConnect: function( event ) {
-        
+    _bciDidConnect: function _bciDidConnect(event) {
+
         // Capture this for inline functions
         var manager = this;
 
-        if ( this.config.debug ) {
-            console.log( 'Connected to BCI2K. Ensuring Running state ...' );
+        if (this.config.debug) {
+            console.log('Connected to BCI2K. Ensuring Running state ...');
         }
 
-        this.ensureRunning()
-            .then( function() {
+        this.ensureRunning().then(function () {
 
-                if ( manager.config.debug ) {
-                    console.log( 'BCI2K running; connecting to DataConnection ...' );
-                }
+            if (manager.config.debug) {
+                console.log('BCI2K running; connecting to DataConnection ...');
+            }
 
-                manager._connectToData();
+            manager._connectToData();
+        }).catch(function (reason) {
 
-            } )
-            .catch( function( reason ) {
-
-                console.log( 'Could not ensure BCI2K is running: ' + reason );
-
-            } );
-
+            console.log('Could not ensure BCI2K is running: ' + reason);
+        });
     },
 
-    ensureRunning: function() {
+    ensureRunning: function ensureRunning() {
 
         // Capture this for inline functions
         var manager = this;
-        
+
         // Returns a promise that resolves if/when BCI2K is running
-        return new Promise( function( resolve, reject ) {
-            
-            if ( manager._bciRunning ) {
+        return new Promise(function (resolve, reject) {
+
+            if (manager._bciRunning) {
                 // We know we're running, so we can resolve without pinging BCI2K
-                resolve( true );
+                resolve(true);
                 return;
             }
 
-            var checkRunning = function() {
+            var checkRunning = function checkRunning() {
 
-                if ( ! manager._bciConnection.connected() ) {
+                if (!manager._bciConnection.connected()) {
                     // Can't check system state if not connected
-                    if ( manager.config.debug ) {
-                        console.log( 'Could not check whether BCI2K is running: Not connected to BCI2K.' );
+                    if (manager.config.debug) {
+                        console.log('Could not check whether BCI2K is running: Not connected to BCI2K.');
                     }
                     // Try again later
-                    setTimeout( checkRunning, manager.config.checkRunningInterval );
+                    setTimeout(checkRunning, manager.config.checkRunningInterval);
                     return;
                 }
 
-                if ( manager.config.debug ) {
-                    console.log( 'Executing System State query ...' );
+                if (manager.config.debug) {
+                    console.log('Executing System State query ...');
                 }
 
-                manager._bciConnection.execute( 'Get System State', function( result ) {
+                manager._bciConnection.execute('Get System State', function (result) {
 
-                    if ( manager.config.debug ) {
-                        console.log( 'System state: ' + result.output );
+                    if (manager.config.debug) {
+                        console.log('System state: ' + result.output);
                     }
 
-                    if ( result.output.search( 'Running' ) >= 0 ) {
+                    if (result.output.search('Running') >= 0) {
                         // System state includes 'Running', so we're now good to go
                         // Cache this fact to speed subsequent calls
                         manager._bciRunning = true;
-                        resolve( true );
+                        resolve(true);
                         return;
                     }
 
                     // Not running; try again later
-                    setTimeout( checkRunning, manager.config.checkRunningInterval );
-
-                } );
-
+                    setTimeout(checkRunning, manager.config.checkRunningInterval);
+                });
             };
 
-            setTimeout( checkRunning, manager.config.checkRunningInterval );
-
-        } );
+            setTimeout(checkRunning, manager.config.checkRunningInterval);
+        });
     },
 
-    getParameter: function( parameter ) {
+    getParameter: function getParameter(parameter) {
 
         var manager = this; // Capture this
 
-        return new Promise( function( resolve, reject ) {
-            manager._bciConnection.execute( 'Get Parameter ' + parameter, function( result ) {
+        return new Promise(function (resolve, reject) {
+            manager._bciConnection.execute('Get Parameter ' + parameter, function (result) {
                 // TODO Error handling
-                resolve( result );
-            } );
-        } );
-
+                resolve(result);
+            });
+        });
     },
 
-    _appendSystemProperties: function( properties ) {
-        
-        var manager = this;     // Cache this for inline functions
+    _appendSystemProperties: function _appendSystemProperties(properties) {
+
+        var manager = this; // Cache this for inline functions
 
         // Make promises for system calls to add on dataset properties
-        var subjectNamePromise = promisify( function( cb ) {
-            manager._bciConnection.execute( 'Get Parameter SubjectName', function( result ) {
-                cb( null, result );
-            } );
-        } );
+        var subjectNamePromise = promisify(function (cb) {
+            manager._bciConnection.execute('Get Parameter SubjectName', function (result) {
+                cb(null, result);
+            });
+        });
 
-        var dataFilePromise = promisify( function( cb ) {
-            manager._bciConnection.execute( 'Get Parameter DataFile', function( result ) {
-                cb( null, result );
-            } );
-        } );
+        var dataFilePromise = promisify(function (cb) {
+            manager._bciConnection.execute('Get Parameter DataFile', function (result) {
+                cb(null, result);
+            });
+        });
 
         // Promise the merged properties if all system calls finish
-        return Promise.all( [subjectNamePromise, dataFilePromise] )
-            .then( function( results ) {
+        return Promise.all([subjectNamePromise, dataFilePromise]).then(function (results) {
 
-                // Process results and add them to properties
-                properties.subjectName = results[0].output.trim();
+            // Process results and add them to properties
+            properties.subjectName = results[0].output.trim();
 
-                // TODO Parse out task name from DataFile
-                properties.taskName = results[1].output.trim();
+            // TODO Parse out task name from DataFile
+            properties.taskName = results[1].output.trim();
 
-                // Returned promise resolves to the merged properties
-                return properties;
+            // Returned promise resolves to the merged properties
+            return properties;
+        }).catch(function (reason) {
 
-            } )
-            .catch( function( reason ) {
-                
-                console.log( 'Could not obtain additional system properties: ' + reason );
-                
-                // Fill in defaults to avoid undefined's for user
-                properties.subjectName = '';
-                properties.taskName = '';
+            console.log('Could not obtain additional system properties: ' + reason);
 
-                // Returned promise resolves to merged "null" properties if system calls fail
-                return properties;
+            // Fill in defaults to avoid undefined's for user
+            properties.subjectName = '';
+            properties.taskName = '';
 
-            } );
-
+            // Returned promise resolves to merged "null" properties if system calls fail
+            return properties;
+        });
     },
 
-    _connectToData: function() {
+    _connectToData: function _connectToData() {
 
         // Capture this for inline functions
         var manager = this;
 
         // Tap raw data stream
-        this._bciConnection.tap( 'Source', function( dataConnection ) {
+        this._bciConnection.tap('Source', function (dataConnection) {
 
-            if ( manager.config.debug ) {
-                console.log( 'Source tapped.' );
+            if (manager.config.debug) {
+                console.log('Source tapped.');
             }
-            
-            manager._dataFormatter._connectSource( dataConnection );
 
-        }, function( err ) {
+            manager._dataFormatter._connectSource(dataConnection);
+        }, function (err) {
 
-            console.log( 'Could not connect to Source: ' + JSON.stringify( err ) );
-
-        } );
+            console.log('Could not connect to Source: ' + JSON.stringify(err));
+        });
 
         // Tap spectral feature stream
-        this._bciConnection.tap( 'SpectralOutput', function( dataConnection ) {
+        this._bciConnection.tap('SpectralOutput', function (dataConnection) {
 
-            if ( manager.config.debug ) {
-                console.log( 'SpectralOutput tapped.' );
+            if (manager.config.debug) {
+                console.log('SpectralOutput tapped.');
             }
 
-            manager._dataFormatter._connectFeature( dataConnection );
+            manager._dataFormatter._connectFeature(dataConnection);
+        }, function (err) {
 
-        }, function( err ) {
-
-            console.log( 'Could not connect to SpectralOutput: ' + JSON.stringify( err ) );
-
-        } );
-
+            console.log('Could not connect to SpectralOutput: ' + JSON.stringify(err));
+        });
     }
 
 };
 
-
 // HELPER CLASS
 
-fmonline.DataFormatter = function() {
+fmonline.DataFormatter = function () {
 
     // Properties
-    this._sourceConnection      = null;
-    this._featureConnection     = null;
+    this._sourceConnection = null;
+    this._featureConnection = null;
 
     // TODO config
-    this._precisionTiming       = false;
-    this._timingChannel         = 'ainp1';
-    this._timingState           = 'StimulusCode';
+    this._precisionTiming = false;
+    this._timingChannel = 'ainp1';
+    this._timingState = 'StimulusCode';
 
-    this._featureBand           = [70.0, 110.0];
-    this._frameWindow           = [-2.0, 5.0];
+    this._featureBand = [70.0, 110.0];
+    this._frameWindow = [-2.0, 5.0];
 
-    this.trialWindow            = [-1.5, 4.5];
+    this.trialWindow = [-1.5, 4.5];
 
     // TODO Magic
-    this._featureWindow         = null;
+    this._featureWindow = null;
 
-    this._frameBlocks           = null;
-    this._trialBlocks           = null;
-    this._postTrialBlocks       = null;     // TODO Refactor
+    this._frameBlocks = null;
+    this._trialBlocks = null;
+    this._postTrialBlocks = null; // TODO Refactor
 
-    this.sourceChannels         = null;
-    this.sourceProperties       = null;
-    this.sourceBuffer           = null;
-    this.sourceBufferChannels   = null;
-    this.sourceBlockNumber      = 0;
+    this.sourceChannels = null;
+    this.sourceProperties = null;
+    this.sourceBuffer = null;
+    this.sourceBufferChannels = null;
+    this.sourceBlockNumber = 0;
 
-    this.featureChannels        = null;
-    this.featureProperties      = null;
-    this.featureBuffer          = null;
-    this.featureBlockNumber     = 0;
+    this.featureChannels = null;
+    this.featureProperties = null;
+    this.featureBuffer = null;
+    this.featureBlockNumber = 0;
 
-    this.previousState          = null;
-    this.stateBlockNumber       = 0;
+    this.previousState = null;
+    this.stateBlockNumber = 0;
 
-    this.canProcess             = true;
+    this.canProcess = true;
 
-    this.trialEndBlockNumber    = null;
+    this.trialEndBlockNumber = null;
 
     // Events
-    this.onStartTrial = function() {};
-    this.ontrial = function( trialData ) {};
+    this.onStartTrial = function () {};
+    this.ontrial = function (trialData) {};
 
-    this.onSourceProperties = function( properties ) {};
-    this.onFeatureProperties = function( properties ) {};
-
+    this.onSourceProperties = function (properties) {};
+    this.onFeatureProperties = function (properties) {};
 };
 
 fmonline.DataFormatter.prototype = {
 
     constructor: fmonline.DataFormatter,
 
-    _connectSource: function( dataConnection ) {
+    _connectSource: function _connectSource(dataConnection) {
 
-        var formatter = this;   // Capture this
+        var formatter = this; // Capture this
 
         this._sourceConnection = dataConnection;
 
-        this._sourceConnection.onSignalProperties = function( properties ) {
-            formatter.sourceProperties      = properties;
-            formatter.sourceChannels        = properties.channels;
-            
-            if ( formatter._precisionTiming ) {
+        this._sourceConnection.onSignalProperties = function (properties) {
+            formatter.sourceProperties = properties;
+            formatter.sourceChannels = properties.channels;
+
+            if (formatter._precisionTiming) {
 
                 // Check if timing channel is in the montage
-                if ( formatter.sourceChannels.indexOf( formatter._timingChannel ) < 0 ) {
-                    console.log( 'Timing channel not detected; falling back to imprecise timing.' );
+                if (formatter.sourceChannels.indexOf(formatter._timingChannel) < 0) {
+                    console.log('Timing channel not detected; falling back to imprecise timing.');
                     formatter._precisionTiming = false;
                     formatter.sourceBufferChannels = [];
                 } else {
-                    formatter.sourceBufferChannels = [ formatter._timingChannel ];
+                    formatter.sourceBufferChannels = [formatter._timingChannel];
                 }
-
             }
 
-            formatter.onSourceProperties( properties );
+            formatter.onSourceProperties(properties);
 
             formatter._propertiesReceived();
         };
 
-        this._sourceConnection.onGenericSignal = function( genericSignal ) {
-            formatter._processSourceSignal( genericSignal );
+        this._sourceConnection.onGenericSignal = function (genericSignal) {
+            formatter._processSourceSignal(genericSignal);
         };
 
-        this._sourceConnection.onStateFormat = function( format ) {
+        this._sourceConnection.onStateFormat = function (format) {
 
             // Check if timing state is available
-            if ( format[formatter._timingState] === undefined ) {
-                console.log( 'WARNING: Desired timing state ' + formatter._timingState + ' was not detected in the state format for Source.' );
+            if (format[formatter._timingState] === undefined) {
+                console.log('WARNING: Desired timing state ' + formatter._timingState + ' was not detected in the state format for Source.');
             }
-
         };
 
-        this._sourceConnection.onStateVector = function( stateVector ) {
-            formatter._processStateVector( stateVector );
+        this._sourceConnection.onStateVector = function (stateVector) {
+            formatter._processStateVector(stateVector);
         };
-
     },
 
-    _connectFeature: function( dataConnection ) {
+    _connectFeature: function _connectFeature(dataConnection) {
 
-        var formatter = this;   // Capture this
+        var formatter = this; // Capture this
 
         this._featureConnection = dataConnection;
 
-        this._featureConnection.onSignalProperties = function( properties ) {
-            formatter.featureProperties     = properties;
-            formatter.featureChannels       = properties.channels;
+        this._featureConnection.onSignalProperties = function (properties) {
+            formatter.featureProperties = properties;
+            formatter.featureChannels = properties.channels;
 
-            formatter.onFeatureProperties( properties );
+            formatter.onFeatureProperties(properties);
 
             formatter._propertiesReceived();
         };
 
-        this._featureConnection.onGenericSignal = function( genericSignal ) {
-            formatter._processFeatureSignal( genericSignal );
+        this._featureConnection.onGenericSignal = function (genericSignal) {
+            formatter._processFeatureSignal(genericSignal);
         };
-
     },
 
-    _propertiesReceived: function() {
+    _propertiesReceived: function _propertiesReceived() {
         // TODO This is dumb and an antipattern and everything is horrible
-        if ( this.sourceProperties && this.featureProperties ) {
+        if (this.sourceProperties && this.featureProperties) {
             this._allPropertiesReceived();
         }
     },
 
-    _allPropertiesReceived: function() {
-        this._setupFeatureWindow( );
+    _allPropertiesReceived: function _allPropertiesReceived() {
+        this._setupFeatureWindow();
         this._setupBuffers();
     },
 
-    _setupBuffers: function() {
-        
+    _setupBuffers: function _setupBuffers() {
+
         // Determine number of blocks in the buffer
         // TODO Assumes elementunit in seconds
-        var blockLengthSeconds      = this.sourceProperties.numelements * this.sourceProperties.elementunit.gain;
-        var windowLengthSeconds     = this._frameWindow[1] - this._frameWindow[0];
-        var windowLengthBlocks      = Math.ceil( windowLengthSeconds / blockLengthSeconds );
+        var blockLengthSeconds = this.sourceProperties.numelements * this.sourceProperties.elementunit.gain;
+        var windowLengthSeconds = this._frameWindow[1] - this._frameWindow[0];
+        var windowLengthBlocks = Math.ceil(windowLengthSeconds / blockLengthSeconds);
 
         // Initialize feature buffer
-        this.featureBuffer = this.featureChannels.reduce( function( arr, ch, i ) {
-            arr.push( zeroArray( windowLengthBlocks ) );
+        this.featureBuffer = this.featureChannels.reduce(function (arr, ch, i) {
+            arr.push(zeroArray(windowLengthBlocks));
             return arr;
-        }, [] );
+        }, []);
 
-        var trialLengthSeconds  = this.trialWindow[1] - this.trialWindow[0];
-        this._trialBlocks       = Math.ceil( trialLengthSeconds / blockLengthSeconds );
-        this._postTrialBlocks   = Math.ceil( this.trialWindow[1] / blockLengthSeconds );
+        var trialLengthSeconds = this.trialWindow[1] - this.trialWindow[0];
+        this._trialBlocks = Math.ceil(trialLengthSeconds / blockLengthSeconds);
+        this._postTrialBlocks = Math.ceil(this.trialWindow[1] / blockLengthSeconds);
 
         // TODO Debug
-        console.log( 'Created feature buffer: ' + this.featureChannels.length + ' channels x ' + windowLengthBlocks + ' samples.' );
-
+        console.log('Created feature buffer: ' + this.featureChannels.length + ' channels x ' + windowLengthBlocks + ' samples.');
     },
 
-    _windowForFrequencies: function( fv ) {
-        
+    _windowForFrequencies: function _windowForFrequencies(fv) {
+
         // TODO Replace with more nuanced window
-        
+
         // TODO Second to last bin
-        return fv.map( function( f, i ) {
-            return ( i == fv.length - 2 ) ? 1.0 : 0.0;
-        } );
+        return fv.map(function (f, i) {
+            return i == fv.length - 2 ? 1.0 : 0.0;
+        });
 
         var formatter = this;
 
-        var isInBand = function( x ) {
-            return (formatter._featureBand[0] <= x && x <= formatter._featureBand[1])
+        var isInBand = function isInBand(x) {
+            return formatter._featureBand[0] <= x && x <= formatter._featureBand[1];
         };
 
-        var windowRaw = fv.map( function( f ) {
-            return isInBand( f ) ? 1.0 : 0.0;
-        } );
+        var windowRaw = fv.map(function (f) {
+            return isInBand(f) ? 1.0 : 0.0;
+        });
 
-        var windowSum = windowRaw.reduce( function( a, b ) { return a + b; } );
+        var windowSum = windowRaw.reduce(function (a, b) {
+            return a + b;
+        });
 
-        return windowRaw.map( function( w ) {
+        return windowRaw.map(function (w) {
             return w / windowSum;
-        } );
-
+        });
     },
 
-    _setupFeatureWindow: function() {
+    _setupFeatureWindow: function _setupFeatureWindow() {
 
-        var formatter = this;   // Capture this
+        var formatter = this; // Capture this
         var transform = this.featureProperties.elementunit;
 
         // TODO Assumes elementunit in Hz
-        var featureFreqs = this.featureProperties.elements.map( function( e ) {
-            return transform.offset + ( e * transform.gain );
-        } );
+        var featureFreqs = this.featureProperties.elements.map(function (e) {
+            return transform.offset + e * transform.gain;
+        });
 
         // Compute the window vector
-        this._featureWindow = this._windowForFrequencies( featureFreqs );
-
+        this._featureWindow = this._windowForFrequencies(featureFreqs);
     },
 
-    _computeFeature: function( data ) {
+    _computeFeature: function _computeFeature(data) {
         // data is an array of arrays; outer array is over channels, inner array
         // is over feature elements
 
         // TODO Error checking
 
-        var formatter = this;   // Capture this
+        var formatter = this; // Capture this
 
         // Map computation over channels
-        return data.map( function( dv ) {
+        return data.map(function (dv) {
             // Window the feature elements
-            return dv.reduce( function( acc, el, iel ) {
+            return dv.reduce(function (acc, el, iel) {
                 return acc + el * formatter._featureWindow[iel];
-            }, 0.0 );      
-        } );
-
+            }, 0.0);
+        });
     },
 
-    _pushFeatureSample: function( sample ) {
+    _pushFeatureSample: function _pushFeatureSample(sample) {
         // sample is an array (over channels) of feature values
 
         // TODO Error checking
 
-        var formatter = this;   // Capture this
+        var formatter = this; // Capture this
 
         // Shift the buffer for each channel
-        this.featureBuffer.forEach( function( fv ) {
+        this.featureBuffer.forEach(function (fv) {
             fv.shift();
-        } );
+        });
 
         // Push new sample onto each channel
-        sample.forEach( function( d, i ) {
-            formatter.featureBuffer[i].push( d );
-        } );
-
+        sample.forEach(function (d, i) {
+            formatter.featureBuffer[i].push(d);
+        });
     },
 
-    _processSourceSignal: function( signal ) {
+    _processSourceSignal: function _processSourceSignal(signal) {
 
-        if ( !this.canProcess ) {
-            console.log( "Received source signal, but can't process it." );
+        if (!this.canProcess) {
+            console.log("Received source signal, but can't process it.");
             return;
         }
 
         this.sourceBlockNumber += 1;
 
         // TODO Buffer precision timing channels
-
     },
 
-    _processFeatureSignal: function( signal ) {
+    _processFeatureSignal: function _processFeatureSignal(signal) {
 
-        if ( !this.canProcess ) {
-            console.log( "Received feature signal, but can't process it." );
+        if (!this.canProcess) {
+            console.log("Received feature signal, but can't process it.");
             return;
         }
 
         this.featureBlockNumber += 1;
 
-        var computedFeatures = this._computeFeature( signal );
-        this._pushFeatureSample( computedFeatures );
+        var computedFeatures = this._computeFeature(signal);
+        this._pushFeatureSample(computedFeatures);
 
-        if ( this.trialEndBlockNumber ) {
+        if (this.trialEndBlockNumber) {
             // We're in a trial, so check if we need to send one out
-            if ( this.featureBlockNumber >= this.trialEndBlockNumber ) {
+            if (this.featureBlockNumber >= this.trialEndBlockNumber) {
                 // It's time!
                 this._sendTrial();
             }
         }
-
     },
 
-    _processStateVector: function( state ) {
+    _processStateVector: function _processStateVector(state) {
 
-        var formatter = this;   // Capture this
+        var formatter = this; // Capture this
 
-        if ( !this.canProcess ) {
-            console.log( "Received a state signal, but can't process it." );
+        if (!this.canProcess) {
+            console.log("Received a state signal, but can't process it.");
         }
 
         this.stateBlockNumber += 1;
 
         // Look for changes in the timing state
         // TODO Assumes at most one change per sample block
-        state[this._timingState].some( function( s ) {
-            return formatter._updateTimingState( s );
-        } );
-
+        state[this._timingState].some(function (s) {
+            return formatter._updateTimingState(s);
+        });
     },
 
-    _updateTimingState: function( newState ) {
+    _updateTimingState: function _updateTimingState(newState) {
 
         // TODO Shitty API nomenclature
 
-        if ( newState == this.previousState ) {
+        if (newState == this.previousState) {
             // Same ol'
             return false;
         }
@@ -2223,71 +2317,69 @@ fmonline.DataFormatter.prototype = {
         this.previousState = newState;
 
         // TODO Debug
-        console.log( 'Timing state changed: ' + newState );
+        console.log('Timing state changed: ' + newState);
 
-        this._timingStateChanged( newState );
+        this._timingStateChanged(newState);
 
         return true;
-
     },
 
-    _timingStateChanged: function( newState ) {
+    _timingStateChanged: function _timingStateChanged(newState) {
 
         // TODO Only for StimulusCode
-        if ( newState == 0 ) {
+        if (newState == 0) {
             // Not a new trial; continue
             return;
         }
 
-        if ( this.trialEndBlockNumber ) {
+        if (this.trialEndBlockNumber) {
             // Got a new trial while still waiting for previous trial to end
-            console.log( 'WARNING Received new trial state, but already in a trial. Ignoring.' );
+            console.log('WARNING Received new trial state, but already in a trial. Ignoring.');
             return;
         }
 
         // Starting a new trial for real
 
-        this.trialEndBlockNumber = ( this.stateBlockNumber - 1 ) + this._postTrialBlocks;
+        this.trialEndBlockNumber = this.stateBlockNumber - 1 + this._postTrialBlocks;
 
         this.onStartTrial();
-
     },
 
-    _sendTrial: function() {
+    _sendTrial: function _sendTrial() {
 
         var formatter = this;
 
         var deltaBlocks = this.trialEndBlockNumber - this.featureBlockNumber;
 
         // Map across channels ...
-        var trialData = this.featureBuffer.map( function( dv ) { 
-            return dv.slice( dv.length - deltaBlocks - formatter._trialBlocks, dv.length - deltaBlocks );
-        } );
+        var trialData = this.featureBuffer.map(function (dv) {
+            return dv.slice(dv.length - deltaBlocks - formatter._trialBlocks, dv.length - deltaBlocks);
+        });
 
         this.trialEndBlockNumber = null;
 
-        this.ontrial( this._formatTrialData( trialData ) );
-
+        this.ontrial(this._formatTrialData(trialData));
     },
 
-    _formatTrialData: function( trialData ) {
+    _formatTrialData: function _formatTrialData(trialData) {
         // Convert a channel by time array to an object
-        return this.featureChannels.reduce( function( obj, ch, i ) {
+        return this.featureChannels.reduce(function (obj, ch, i) {
             obj[ch] = trialData[i];
             return obj;
-        }, {} );
+        }, {});
     }
 
 };
-
 
 // EXPORT MODULE
 
 module.exports = fmonline;
 
-
 //
-},{"../lib/bci2k":1,"promise-polyfill":27,"setimmediate":28}],9:[function(require,module,exports){
+
+},{"../lib/bci2k":1,"promise-polyfill":27,"setimmediate":28}],10:[function(require,module,exports){
+'use strict';
+
 // =
 //
 // fmraster
@@ -2298,90 +2390,77 @@ module.exports = fmonline;
 
 // REQUIRES
 
-var $ = require( 'jquery' );
-var d3 = require( 'd3' );
+var $ = require('jquery');
+var d3 = require('d3');
 //d3.horizon = require( '../lib/horizon' );
-d3.horizonChart = require( 'd3-horizon-chart' ).horizonChart;
+//d3.horizonChart = require( 'd3-horizon-chart' ).horizonChart;
+d3.horizonChart = require('../lib/horizon-chart-custom.js').default;
 
 // Promise compatibility
-require( 'setimmediate' );
-var Promise = require( 'promise-polyfill' );
-
+require('setimmediate');
+var Promise = require('promise-polyfill');
 
 // MODULE OBJECT
 
 var fmraster = {};
 
-
 // MAIN CLASS
 
-fmraster.ChannelRaster = function( baseNodeId ) {
-    
-    this.baseNodeId = baseNodeId;   // e.g., '#fm'
+fmraster.ChannelRaster = function (baseNodeId) {
 
-    this.displayOrder   = null;
-    this.data           = null;
+    this.baseNodeId = baseNodeId; // e.g., '#fm'
+
+    this.displayOrder = null;
+    this.data = null;
 
     // Cursor
 
-    this.cursorSvg              = null;
-    this.cursorLine             = null;
-    this.cursorLineOrigin       = null;
-    this.cursorTimescale        = null;
-    this.cursorTimescaleBorder  = null;
-    this.cursorText             = null;
+    this.cursorSvg = null;
+    this.cursorLine = null;
+    this.cursorLineOrigin = null;
+    this.cursorTimescale = null;
+    this.cursorTimescaleBorder = null;
+    this.cursorText = null;
 
-    this.cursorPosition         = null;
-    this.cursorLocked           = false;
+    this.cursorPosition = null;
+    this.cursorLocked = false;
 
     // TODO Config
     this.cursorSize = {
-        'width':    0,
-        'height':   0
+        'width': 0,
+        'height': 0
     };
-
 
     // Charts
 
-    this.chartSvg               = null;
-    this.chartXScale            = null;
-    this.chartYScale            = null;
-    this.chartColorScale        = null;
+    this.chartSvg = null;
+    this.chartXScale = null;
+    this.chartYScale = null;
+    this.chartColorScale = null;
 
-    this.chartMin               = 0.0;      // TODO Expose to manager
-    this.chartMax               = 1200.0;
+    this.chartMin = 0.0; // TODO Expose to manager
+    this.chartMax = 6.0;
 
     // TODO Config
-    this.channelHeight          = 20;
+    this.channelHeight = 15;
     this.chartMargin = {
         top: 100,
         right: 0,
         bottom: 37,
         left: 0
     };
-    this.rangeColors = [
-        "#313695",
-        "#4575b4",
-        "#74add1",
-        "#abd9e9",
-        "#ffffff",
-        "#fee090",
-        "#fdae61",
-        "#f46d43",
-        "#d73027"
-    ];
+    this.rangeColors = ["#313695", "#4575b4", "#74add1", "#abd9e9", "#ffffff", "#fee090", "#fdae61", "#f46d43", "#d73027"];
     // this.rangeColors = ["#313695", "#ffffff", "#d73027"];
-
 };
 
 fmraster.ChannelRaster.prototype = {
 
     constructor: fmraster.ChannelRaster,
 
-    setup: function() {
+    setup: function setup() {
 
-        if ( !this.displayOrder ) {
-            console.log( 'Cannot setup ChannelRaster without display order.' );
+        if (!this.displayOrder) {
+            console.log('Cannot setup ChannelRaster without display order.');
             return;
         }
 
@@ -2389,34 +2468,27 @@ fmraster.ChannelRaster.prototype = {
         this.setupCharts();
     },
 
-    setupCursor: function() {
+    setupCursor: function setupCursor() {
 
         // TODO Put style calls into the CSS, not the JS
-        this.cursorSvg = d3.select( this.baseNodeId ).append( 'svg' )
-                                                        .attr( 'class', 'cursor-svg' )
-                                                        .style( 'position', 'fixed' )
-                                                        .style( 'z-index', '100' )
-                                                        .style( 'pointer-events', 'none' )
-                                                        .attr( 'width', this.cursorSize.width )
-                                                        .attr( 'height', this.cursorSize.height );
+        this.cursorSvg = d3.select(this.baseNodeId).append('svg').attr('class', 'cursor-svg').style('position', 'fixed').style('z-index', '100').style('pointer-events', 'none').attr('width', this.cursorSize.width).attr('height', this.cursorSize.height);
 
         // ...
-
     },
 
-    setupCharts: function() {
+    setupCharts: function setupCharts() {
 
-        if ( !this.data ) {
-            console.log( 'WARNING Cannot setup charts without data.' );
+        if (!this.data) {
+            console.log('WARNING Cannot setup charts without data.');
             return;
         }
 
-        var raster = this;  // Capture this.
+        var raster = this; // Capture this.
 
         // TODO Error checking
         var height = this.channelHeight * this.data.length;
-        var width = $( this.baseNodeId ).width() - this.chartMargin.left - this.chartMargin.right;
-        
+        var width = $(this.baseNodeId).width() - this.chartMargin.left - this.chartMargin.right;
+
         var n = this.data.length;
         var step = width / this.data[0].values.length;
 
@@ -2424,101 +2496,93 @@ fmraster.ChannelRaster.prototype = {
         var horizonChart = d3.horizonChart();
 
         // Join horizons to channels
-        var horizons = d3.select( this.baseNodeId ).selectAll( '.fm-horizon' )
-                            .data( this.data, function( d ) {
-                                return d.channel;
-                            } );
+        var horizons = d3.select(this.baseNodeId).selectAll('.fm-horizon').data(this.data, function (d) {
+            return d.channel;
+        });
 
         // And new horizons
-        horizons.enter().append( 'div' )
-                            .attr( 'class', 'fm-horizon' )
-                            .style( 'margin-bottom', function( d, i ) { // TODO Shitty.
-                                return ( i < n - 1 ) ? '0px' : '40px';
-                            } )
-                        .each( function( d, i ) {
-                            horizonChart.title( d.channel )
-                                        .height( raster.channelHeight )
-                                        .step( step  )
-                                        .extent( [ raster.chartMin, raster.chartMax ] )
-                                        .call( this, d.values );
-                        } );
+        horizons.enter().append('div').attr('class', 'fm-horizon').style('margin-bottom', function (d, i) {
+            // TODO Shitty.
+            return i < n - 1 ? '0px' : '40px';
+        }).merge(horizons).each(function (d, i) {
+            horizonChart.title(d.channel).height(raster.channelHeight).step(step).extent([raster.chartMin, raster.chartMax]).call(this, d.values);
+        });
 
         // Add unneeded horizons
         horizons.exit().remove();
-
     },
 
-    updateCursorSize: function( newSize ) {
+    updateCursorSize: function updateCursorSize(newSize) {
         // TODO Should this be supported behavior?
-        if ( newSize === undefined ) {
+        if (newSize === undefined) {
             newSize = {
-                'width':    baseNode.width(),
-                'height':   baseNode.height()
+                'width': baseNode.width(),
+                'height': baseNode.height()
             };
         }
         // TODO Error checking
         cursorSize = newSize;
     },
 
-    update: function( newData ) {
-    
-        if ( newData !== undefined ) {
-            this._updateData( newData );
+    update: function update(newData) {
+
+        if (newData !== undefined) {
+            this._updateData(newData);
         }
 
         // TODO
         this.setupCharts();
-
     },
 
-    _updateData: function( newData ) {
+    _updateData: function _updateData(newData) {
         // TODO Error checking
-        this.data = this._reformatData( newData );
+        this.data = this._reformatData(newData);
     },
 
-    _reformatData: function( data ) {
+    _reformatData: function _reformatData(data) {
         // Data passed in is a String -> Array dict.
         // Reformat to array of named pairs in display order.
-        return this.displayOrder.map( function( ch ) {
+        return this.displayOrder.map(function (ch) {
             // TODO Error checking
             return {
                 channel: ch,
                 values: data[ch]
             };
-        } );
+        });
     },
 
-    setDisplayOrder: function( newDisplayOrder ) {
+    setDisplayOrder: function setDisplayOrder(newDisplayOrder) {
         // Change instance value
         this.displayOrder = newDisplayOrder;
 
-        if ( !this.data ) {
+        if (!this.data) {
             // If we don't have data, don't need to update it
             return;
         }
 
         // Update data to reflect new order
-        
+
         // Turn the data into a dict
-        var dictData = this.data.reduce( function( obj, x ) {
+        var dictData = this.data.reduce(function (obj, x) {
             obj[x.channel] = x.values;
             return obj;
-        }, {} );
+        }, {});
 
         // Compute the new data with the updated display order
-        this._updateData( dictData );
+        this._updateData(dictData);
     }
 
 };
-
 
 // EXPORT MODULE
 
 module.exports = fmraster;
 
-
 //
-},{"d3":24,"d3-horizon-chart":18,"jquery":26,"promise-polyfill":27,"setimmediate":28}],10:[function(require,module,exports){
+
+},{"../lib/horizon-chart-custom.js":4,"d3":24,"jquery":26,"promise-polyfill":27,"setimmediate":28}],11:[function(require,module,exports){
+"use strict";
+
 // ======================================================================== //
 //
 // fmstat
@@ -2531,150 +2595,240 @@ module.exports = fmraster;
 
 var fmstat = {};
 
+// CLASSES
+
+fmstat.Gaussian = function (mu, s2, n) {
+
+    this.mean = mu;
+    this.variance = s2;
+    this.count = n;
+
+    this._m2 = undefined;
+};
+
+fmstat.Gaussian.prototype = {
+
+    constructor: fmstat.Gaussian,
+
+    ingest: function ingest(datum) {
+
+        var delta = this.mean === undefined ? datum : datum - this.mean;
+
+        // Update count
+        this.count = this.count === undefined ? 1 : this.count + 1;
+        // Update mean
+        this.mean = this.mean === undefined ? datum : this.mean + delta / this.count;
+        // Update moment
+        this._m2 = this._m2 === undefined ? delta * (datum - this.mean) : this._m2 + delta * (datum - this.mean);
+        // Update variance
+        // TODO Could fail in weird cases still
+        this.variance = this.count < 2 ? undefined : this._m2 / (this.count - 1);
+    }
+
+};
+
+fmstat.ChannelStat = function () {
+
+    this.baseline = new fmstat.Gaussian();
+
+    this.values = null;
+};
+
+fmstat.ChannelStat.prototype = {
+
+    constructor: fmstat.ChannelStat,
+
+    updateBaseline: function updateBaseline(data) {
+
+        var stat = this;
+
+        // Add each datum to the baseline distribution
+        data.forEach(function (d) {
+            stat.baseline.ingest(d);
+        });
+    },
+
+    updateValues: function updateValues(data) {
+
+        var stat = this;
+
+        if (!this.values) {
+            this.values = [];
+            // Use geometry of data to construct values
+            data.forEach(function (d) {
+                stat.values.push(new fmstat.Gaussian());
+            });
+        }
+
+        data.forEach(function (d, i) {
+            stat.values[i].ingest(d);
+        });
+    },
+
+    meanValues: function meanValues() {
+        return this.values.map(function (v) {
+            return v.mean;
+        });
+    },
+
+    baselineNormalizedValues: function baselineNormalizedValues() {
+
+        var stat = this;
+
+        return this.values.map(function (v) {
+            if (stat.baseline.variance === undefined) {
+                return v.mean - stat.baseline.mean;
+            }
+            return (v.mean - stat.baseline.mean) / Math.sqrt(stat.baseline.variance);
+        });
+    }
+
+};
 
 // METHODS
 
 // fmstat.randn
 // Box-Muller standard normal samples
 
-fmstat.randn = function() {
+fmstat.randn = function () {
     var u = 1 - Math.random();
     var v = 1 - Math.random();
 
-    return Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
-}
+    return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+};
 
 // fmstat.randn_v
 // ^ But as a vector
 
-fmstat.randn_v = function( n ) {
+fmstat.randn_v = function (n) {
     var ret = [];
-    for ( i = 0; i < n; i++ ) {
+    for (i = 0; i < n; i++) {
         ret[i] = fmstat.randn();
     }
     return ret;
-}
+};
 
 // fmstat.cumsum
 // It has a funny name
 
-fmstat.cumsum = function( arr ) {
+fmstat.cumsum = function (arr) {
     var ret = [];
     var cur = 0.0;
-    for ( i = 0; i < arr.length; i++ ) {
+    for (i = 0; i < arr.length; i++) {
         cur += arr[i];
         ret[i] = cur;
     }
     return ret;
-}
+};
 
 // fmstat.add_v
 // Vector addition
 
-fmstat.add_v = function( v1, v2 ) {
+fmstat.add_v = function (v1, v2) {
     var ret = [];
-    for ( i = 0; i < Math.min( v1.length, v2.length ); i++ ) {
+    for (i = 0; i < Math.min(v1.length, v2.length); i++) {
         ret[i] = v1[i] + v2[i];
     }
     return ret;
-}
+};
 
 // fmstat.smul_v
 // Vector scalar multiplication
 
-fmstat.smul_v = function( k, v ) {
+fmstat.smul_v = function (k, v) {
     var ret = [];
-    for ( i = 0; i < v.length; i++ ) {
+    for (i = 0; i < v.length; i++) {
         ret[i] = k * v[i];
     }
     return ret;
-}
+};
 
 // fmstat.add_m
 // Matrix addition
 
-fmstat.add_m = function( m1, m2 ) {
+fmstat.add_m = function (m1, m2) {
     var ret = [];
-    for ( i = 0; i < m1.length; i++ ) {
+    for (i = 0; i < m1.length; i++) {
         ret[i] = [];
-        for ( j = 0; j < m1[i].length; j++ ) {
+        for (j = 0; j < m1[i].length; j++) {
             ret[i][j] = m1[i][j] + m2[i][j];
         }
     }
     return ret;
-}
+};
 
 // fmstat.smul_m
 // Matrix scalar multiplication
 
-fmstat.smul_m = function( k, m ) {
+fmstat.smul_m = function (k, m) {
     var ret = [];
-    for ( i = 0; i < m.length; i++ ) {
+    for (i = 0; i < m.length; i++) {
         ret[i] = [];
-        for ( j = 0; j < m[i].length; j++ ) {
+        for (j = 0; j < m[i].length; j++) {
             ret[i][j] = k * m[i][j];
         }
     }
     return ret;
-}
+};
 
 // fmstat.pmul_m
 // Matrix entrywise multiplication
 
-fmstat.pmul_m = function( m1, m2 ) {
+fmstat.pmul_m = function (m1, m2) {
     var ret = [];
-    for ( i = 0; i < m1.length; i++ ) {
+    for (i = 0; i < m1.length; i++) {
         ret[i] = [];
-        for ( j = 0; j < m1[i].length; j++ ) {
+        for (j = 0; j < m1[i].length; j++) {
             ret[i][j] = m1[i][j] * m2[i][j];
         }
     }
     return ret;
-}
+};
 
 // fmstat.linspace
 // Linearly interpolated vector
 
-fmstat.linspace = function( a, b, n ) {
+fmstat.linspace = function (a, b, n) {
     var ret = [];
     var step = (b - a) / (n - 1);
-    for ( i = 0; i < n; i ++ ) {
-        ret[i] =  a + i * step;
+    for (i = 0; i < n; i++) {
+        ret[i] = a + i * step;
     }
     return ret;
-}
+};
 
 // fmstat.zeros
 // Zeros
 
-fmstat.zeros = function( r, c ) {
+fmstat.zeros = function (r, c) {
     var ret = [];
-    for ( i = 0; i < r; i++ ) {
+    for (i = 0; i < r; i++) {
         ret[i] = [];
-        for ( j = 0; j < c; j++ ) {
+        for (j = 0; j < c; j++) {
             ret[i][j] = 0.0;
         }
     }
     return ret;
-}
+};
 
 // fmstat.sin_f
 // Returns a sine function at a given spatial frequency
 
-fmstat.sin_f = function( f ) {
-    return function( t ) {
-        return Math.sin( 2 * Math.PI * f * t );
+fmstat.sin_f = function (f) {
+    return function (t) {
+        return Math.sin(2 * Math.PI * f * t);
     };
-}
-
+};
 
 // EXPORT MODULE
 
 module.exports = fmstat;
 
-
 //
-},{}],11:[function(require,module,exports){
+
+},{}],12:[function(require,module,exports){
+'use strict';
+
 // =
 //
 // fmui
@@ -2685,272 +2839,257 @@ module.exports = fmstat;
 
 // REQUIRES
 
-var $           = require( 'jquery' );
+var $ = require('jquery');
 
-require( 'setimmediate' );                          // Needed to fix promise
-                                                    // polyfill on non-IE
-var Promise     = require( 'promise-polyfill' );    // Needed for IE Promise
-                                                    // support
+require('setimmediate'); // Needed to fix promise
+// polyfill on non-IE
+var Promise = require('promise-polyfill'); // Needed for IE Promise
+// support
 
-var cronelib    = require( '../lib/cronelib' );
-var fullscreen  = require( '../lib/fullscreen' );
+var cronelib = require('../lib/cronelib');
+var fullscreen = require('../lib/fullscreen');
 
-var fmbrain     = require( './fmbrain' );
-var fmraster    = require( './fmraster' );
-
+var fmbrain = require('./fmbrain');
+var fmraster = require('./fmraster');
 
 // MODULE OBJECT
 
 var fmui = {};
 
-
 // MAIN CLASS
 
-fmui.InterfaceManager = function() {
+fmui.InterfaceManager = function () {
 
     this.config = {};
 
-    this.icons = [
-        'transfer',
-        'working'
-    ];
+    this.icons = ['transfer', 'working'];
 
-    this.raster = new fmraster.ChannelRaster( '#fm' );
-
+    this.raster = new fmraster.ChannelRaster('#fm');
 };
 
 fmui.InterfaceManager.prototype = {
 
     constructor: fmui.InterfaceManager,
 
-    loadConfig: function( configURI ) {
-        
-        var manager = this;     // Cache this for nested functions
+    loadConfig: function loadConfig(configURI) {
+
+        var manager = this; // Cache this for nested functions
 
         // Wrap $.getJSON in a standard Promise
-        return new Promise( function( resolve, reject ) {
-            $.getJSON( configURI )
-                .done( resolve )
-                .fail( function( req, reason, err ) {
-                    // TODO Get error message from jquery object
-                    reject( 'Could not load UI config from ' + configURI + ' : ' + reason );
-                } );
-        } ).then( function( data ) {
+        return new Promise(function (resolve, reject) {
+            $.getJSON(configURI).done(resolve).fail(function (req, reason, err) {
+                // TODO Get error message from jquery object
+                reject('Could not load UI config from ' + configURI + ' : ' + reason);
+            });
+        }).then(function (data) {
             manager.config = data;
             manager.setup();
-        } );
-
+        });
     },
 
-    _mergeDefaultConfig: function( config ) {
-    
+    _mergeDefaultConfig: function _mergeDefaultConfig(config) {
+
         // Copy over any extras that might not be merged here
         var mergedConfig = config;
 
         // For required config items, specify a default if nothing is provided
-        mergedConfig.rowHeight          = config.rowHeight          || 5;
-        mergedConfig.maxRowHeight       = config.maxRowHeight       || 10;
-        mergedConfig.pxPerRowHeight     = config.pxPerRowHeight     || 5;
+        mergedConfig.rowHeight = config.rowHeight || 5;
+        mergedConfig.maxRowHeight = config.maxRowHeight || 10;
+        mergedConfig.pxPerRowHeight = config.pxPerRowHeight || 5;
 
-        mergedConfig.plotExtent         = config.plotExtent         || 5;
-        mergedConfig.maxPlotExtent      = config.maxPlotExtent      || 10;
+        mergedConfig.plotExtent = config.plotExtent || 5;
+        mergedConfig.maxPlotExtent = config.maxPlotExtent || 10;
         mergedConfig.unitsPerPlotExtent = config.unitsPerPlotExtent || 1;
 
-        mergedConfig.iconShowDuration   = config.iconShowDuration   || 100;
-        mergedConfig.iconHideDelay      = config.iconHideDelay      || 1000;
-        mergedConfig.iconHideDuration   = config.iconHideDuration   || 100;
+        mergedConfig.iconShowDuration = config.iconShowDuration || 100;
+        mergedConfig.iconHideDelay = config.iconHideDelay || 1000;
+        mergedConfig.iconHideDuration = config.iconHideDuration || 100;
 
         mergedConfig.fmMargin = config.fmMargin || { 'left': 0, 'right': 0, 'top': 0, 'bottom': 0 };
 
         mergedConfig.chartDebounceDelay = config.chartDebounceDelay || 100;
 
         return mergedConfig;
-        
     },
 
-    setup: function() {
+    setup: function setup() {
 
         var manager = this; // Capture this
 
         // Incorporate the defaults with whatever we've loaded
-        this.config = this._mergeDefaultConfig( this.config );
+        this.config = this._mergeDefaultConfig(this.config);
 
         this.resizeFM();
         this.rewireButtons();
 
-        this.icons.forEach( function( icon ) {
-            manager.hideIcon( icon );
-        } );
-
+        this.icons.forEach(function (icon) {
+            manager.hideIcon(icon);
+        });
     },
 
     // TODO Accomplish this with CSS?
-    resizeFM: function() {
-        $( '#fm' ).height( $( window ).height() - ( this.config.fmMargin.top + this.config.fmMargin.bottom ) );
+    resizeFM: function resizeFM() {
+        $('#fm').height($(window).height() - (this.config.fmMargin.top + this.config.fmMargin.bottom));
     },
 
-    updateRecordDetails: function( subject, record ) {
+    updateRecordDetails: function updateRecordDetails(subject, record) {
 
         // Use straight href for back button
-        $( '.fm-back' ).attr( 'href', '/#' + subject );
+        $('.fm-back').attr('href', '/#' + subject);
 
         // TODO ...
-
     },
 
-    rewireButtons: function() {
+    rewireButtons: function rewireButtons() {
 
         var manager = this;
 
-        $( '.fm-zoom-in' ).on( 'click', function() {
+        $('.fm-zoom-in').on('click', function () {
             manager.zoomIn();
-        } );
-        $( '.fm-zoom-out' ).on( 'click', function() {
+        });
+        $('.fm-zoom-out').on('click', function () {
             manager.zoomOut();
-        } );
-        $( '.fm-gain-up' ).on( 'click', function() {
+        });
+        $('.fm-gain-up').on('click', function () {
             manager.gainUp();
-        } );
-        $( '.fm-gain-down' ).on( 'click', function() {
+        });
+        $('.fm-gain-down').on('click', function () {
             manager.gainDown();
-        } );
+        });
+        $('.fm-show-options').on('click', function () {
+            manager.showOptions();
+        });
 
-        $( '.fm-toggle-fullscreen' ).on( 'click', function() {
-            manager.toggleFullscreen()
-        } );
-
+        $('.fm-toggle-fullscreen').on('click', function () {
+            manager.toggleFullscreen();
+        });
     },
 
-    showIcon: function( iconName ) {
+    showIcon: function showIcon(iconName) {
         // If properties aren't set, use 0
         // TODO Necessary? We guarantee merged defaults when loading ...
         var showDuration = this.config.iconShowDuration || 0;
-        $( '.fm-' + iconName + '-icon' ).show( showDuration );
+        $('.fm-' + iconName + '-icon').show(showDuration);
     },
 
-    hideIcon: function( iconName ) {
+    hideIcon: function hideIcon(iconName) {
         // If properties aren't set, use 0
         // TODO As above.
         var hideDelay = this.config.iconHideDelay || 0;
         var hideDuration = this.config.iconHideDuration || 0;
 
-        setTimeout( function() {
-            $( '.fm-' + iconName + '-icon' ).hide( hideDuration );
-        }, hideDelay );
+        setTimeout(function () {
+            $('.fm-' + iconName + '-icon').hide(hideDuration);
+        }, hideDelay);
     },
 
-    windowDidResize: function() {
+    windowDidResize: function windowDidResize() {
 
         this.resizeFM();
 
-        cronelib.debounce( this.updateCharts, this.config.chartDebounceDelay )();
-
+        cronelib.debounce(this.updateCharts, this.config.chartDebounceDelay)();
     },
-    
-    
 
-    updateCharts: function() {
-        
+    updateCharts: function updateCharts() {
+
         // ...
 
     },
 
-
     /* Button handlers */
 
-    zoomIn: function( event ) {
+    zoomIn: function zoomIn(event) {
         this.rowHeight = this.rowHeight + 1;
-        if ( this.rowHeight > this.config.maxRowHeight ) {
+        if (this.rowHeight > this.config.maxRowHeight) {
             this.rowHeight = this.config.maxRowHeight;
-            return;                         // Only update if we actually change
+            return; // Only update if we actually change
         }
         this.updateCharts();
     },
-    
-    zoomOut: function( event ) {
+
+    zoomOut: function zoomOut(event) {
         this.rowHeight = this.rowHeight - 1;
-        if ( this.rowHeight < 1 ) {
+        if (this.rowHeight < 1) {
             this.rowHeight = 1;
             return;
         }
         this.updateCharts();
     },
 
-    gainDown: function( event ) {
+    gainDown: function gainDown(event) {
         this.plotExtent = this.plotExtent + 1;
-        if ( this.plotExtent > this.config.maxPlotExtent ) {
+        if (this.plotExtent > this.config.maxPlotExtent) {
             this.plotExtent = this.config.maxPlotExtent;
             return;
         }
         this.updateCharts();
     },
 
-    gainUp: function( event ) {
+    gainUp: function gainUp(event) {
         this.plotExtent = this.plotExtent - 1;
-        if ( this.plotExtent < 1 ) {
+        if (this.plotExtent < 1) {
             this.plotExtent = 1;
             return;
         }
         this.updateCharts();
     },
 
-    toggleFullscreen: function( event ) {
-        console.log( 'Toggling fullscreen.' );
-        fullscreen.toggle()
-                    .then( function( result ) {
-                        if ( fullscreen.is() ) {
-                            // TODO Change fullscreen button icon
-                        } else {
-                            // TODO
-                        }
-                    } )
-                    .catch( function( reason ) {
-                        console.log( 'Could not toggle fullscreen: ' + reason );
-                    } );
+    toggleFullscreen: function toggleFullscreen(event) {
+        fullscreen.toggle().then(function (result) {
+            if (fullscreen.is()) {
+                // TODO Change fullscreen button icon
+            } else {
+                    // TODO
+                }
+        }).catch(function (reason) {
+            console.log('Could not toggle fullscreen: ' + reason);
+        });
     },
 
+    showOptions: function showOptions(event) {
+        $('#fm-options-modal').modal();
+    },
 
     /* GUI Update methods */
 
-    updateSubjectName: function( newSubjectName ) {
-        $( '.fm-subject-name' ).text( newSubjectName );
+    updateSubjectName: function updateSubjectName(newSubjectName) {
+        $('.fm-subject-name').text(newSubjectName);
     },
 
-    updateTaskName: function( newTaskName ) {
-        $( '.fm-task-name' ).text( newTaskName );
+    updateTaskName: function updateTaskName(newTaskName) {
+        $('.fm-task-name').text(newTaskName);
     },
 
-    updateChannelNames: function( newChannelNames ) {
-        this.raster.setDisplayOrder( newChannelNames );
+    updateChannelNames: function updateChannelNames(newChannelNames) {
+        this.raster.setDisplayOrder(newChannelNames);
     },
 
-    didResize: function() {
+    didResize: function didResize() {
 
         // TODO Better way?
 
         var manager = this;
 
-        cronelib.debounce( function() {
+        cronelib.debounce(function () {
             manager.raster.update();
-        }, 500 )();   // TODO
-
+        }, 500)(); // TODO
     }
 
-    
     /* Animation */
 
     // TODO
-    
-};
 
+};
 
 // EXPORT MODULE
 
 module.exports = fmui;
 
-
 //
-},{"../lib/cronelib":2,"../lib/fullscreen":3,"./fmbrain":5,"./fmraster":9,"jquery":26,"promise-polyfill":27,"setimmediate":28}],12:[function(require,module,exports){
+
+},{"../lib/cronelib":2,"../lib/fullscreen":3,"./fmbrain":6,"./fmraster":10,"jquery":26,"promise-polyfill":27,"setimmediate":28}],13:[function(require,module,exports){
+'use strict';
+
 // ======================================================================== //
 //
 // map/main
@@ -2961,245 +3100,246 @@ module.exports = fmui;
 
 // REQUIRES
 
-var path        = require( 'path' );
+var path = require('path');
 
-var $           = require( 'jquery' );
-var d3          = require( 'd3' );
+var $ = require('jquery');
+var d3 = require('d3');
 
 // var horizon  = require( '../lib/d3-horizon-chart.js' ); // Old way of doing
-                                                           // horizon charts
-d3.horizon      = require( '../lib/horizon' );             // New kludge
+// horizon charts
+d3.horizon = require('../lib/horizon'); // New kludge
 
-var bci2k       = require( '../lib/bci2k' );
+var bci2k = require('../lib/bci2k');
 
-var cronelib    = require( '../lib/cronelib' );
+var cronelib = require('../lib/cronelib');
 
-var fmstat      = require( './fmstat' );
-var fmonline    = require( './fmonline' );
-var fmui        = require( './fmui' );
-var fmgen       = require( './fmgen' );
-var fmdata      = require( './fmdata' );
-
+var fmstat = require('./fmstat');
+var fmonline = require('./fmonline');
+var fmui = require('./fmui');
+var fmgen = require('./fmgen');
+var fmdata = require('./fmdata');
 
 // MEAT
 
 // Initialization
 
 // TODO A little kludgey
-var pathComponents  = window.location.pathname.split( '/' );
+var pathComponents = window.location.pathname.split('/');
 
-var modeString      = pathComponents[2] || 'generate';
+var modeString = pathComponents[2] || 'generate';
 
-var generateMode    = modeString == 'generate';
-var onlineMode      = modeString == 'online';
-var loadMode        = (! (generateMode || onlineMode) );
+var generateMode = modeString == 'generate';
+var onlineMode = modeString == 'online';
+var loadMode = !(generateMode || onlineMode);
 
-var subjectID       = undefined;
-var recordName      = undefined;
+var subjectID = undefined;
+var recordName = undefined;
 
-if ( loadMode ) {
-    subjectID       = pathComponents[2] || undefined;
-    recordName      = pathComponents[3] || undefined;
+if (loadMode) {
+    subjectID = pathComponents[2] || undefined;
+    recordName = pathComponents[3] || undefined;
 } else {
-    subjectID       = pathComponents[3] || undefined;
-    recordName      = pathComponents[4] || undefined;
+    subjectID = pathComponents[3] || undefined;
+    recordName = pathComponents[4] || undefined;
 }
 
-
-var apiPath         = '/api';
-var configPath      = '/map/config';
-
+var apiPath = '/api';
+var configPath = '/map/config';
 
 // Dataset
-var dataBundle      = null;
-var dataset         = new fmdata.Dataset();
+var dataBundle = null;
+var dataset = new fmdata.Dataset();
 
 // UI
-var uiManager       = new fmui.InterfaceManager();
+var uiManager = new fmui.InterfaceManager();
 // TODO Handle rejection
-uiManager.loadConfig( path.join( configPath, 'ui' ) )
-            .then( function() {
-                // TODO Not this way ...
-                if ( subjectID && recordName ) {
-                    uiManager.updateRecordDetails( subjectID, recordName );
-                }
-            } )
-            .catch( function( reason ) {    // TODO Respond intelligently.
-                console.log( reason );
-            } );
+uiManager.loadConfig(path.join(configPath, 'ui')).then(function () {
+    // TODO Not this way ...
+    if (subjectID && recordName) {
+        uiManager.updateRecordDetails(subjectID, recordName);
+    }
+}).catch(function (reason) {
+    // TODO Respond intelligently.
+    console.log(reason);
+});
 
 // Signal properties
 
-var signalChannels  = null;
-
+var signalChannels = null;
 
 // DATA SOURCE SET-UP
 
 var dataSource = null;
 
-if ( onlineMode ) {     // Using BCI2000Web over the net
+if (onlineMode) {
+    // Using BCI2000Web over the net
 
     dataSource = new fmonline.OnlineDataSource();
 
     // Wire to common routines
-    dataSource.onproperties = function( properties ) {
-        updateProperties( properties );
+    dataSource.onproperties = function (properties) {
+        updateProperties(properties);
     };
-    dataSource.onStartTrial = function() {
+    dataSource.onStartTrial = function () {
         startTrial();
     };
-    dataSource.ontrial = function( trialData ) {
-        ingestTrial( trialData );
+    dataSource.ontrial = function (trialData) {
+        ingestTrial(trialData);
     };
 
-    dataSource.loadConfig( path.join( configPath, 'online' ) )
-                .then( function() {
-                    prepareOnlineDataSource();
-                } )
-                .catch( function( reason ) {    // TODO Respond intelligently
-                    console.log( reason );
-                } );
-
+    dataSource.loadConfig(path.join(configPath, 'online')).then(function () {
+        prepareOnlineDataSource();
+    }).catch(function (reason) {
+        // TODO Respond intelligently
+        console.log(reason);
+    });
 }
 
-var prepareOnlineDataSource = function() {
+var prepareOnlineDataSource = function prepareOnlineDataSource() {
 
-    dataSource.connect()
-                .then( function() {
+    dataSource.connect().then(function () {
 
-                    // Get subject name
-                    dataSource.getParameter( 'SubjectName' )
-                                .then( function( result ) {
-                                    uiManager.updateSubjectName( result.output.trim() );
-                                } )
-                                .catch( function( reason ) {
-                                    console.log( 'Could not obtain SubjectName: ' + reason );
-                                } );
+        // Get subject name
+        dataSource.getParameter('SubjectName').then(function (result) {
+            uiManager.updateSubjectName(result.output.trim());
+        }).catch(function (reason) {
+            console.log('Could not obtain SubjectName: ' + reason);
+        });
 
-                    // Get task name
-                    dataSource.getParameter( 'DataFile' )
-                                .then( function( result ) {
-                                    // TODO Error checking
-                                    var taskName = result.output.trim().split( '/' )[1];
-                                    uiManager.updateTaskName( taskName );
-                                } );
+        // Get task name
+        dataSource.getParameter('DataFile').then(function (result) {
+            // TODO Error checking
+            var taskName = result.output.trim().split('/')[1];
+            uiManager.updateTaskName(taskName);
+        });
+    }).catch(function (reason) {
+        // TODO Something intelligent
 
-                } )
-                .catch( function( reason ) {    // TODO Something intelligent
-
-                    console.log( reason );
-
-                } );
-
+        console.log(reason);
+    });
 };
 
-
-if ( generateMode ) {   // Using an offline signal generator
+if (generateMode) {
+    // Using an offline signal generator
 
     dataSource = new fmgen.GeneratorDataSource();
 
     // Wire to common routines
-    dataSource.onproperties     = updateProperties;
-    dataSource.ontrial          = ingestTrial;
+    dataSource.onproperties = updateProperties;
+    dataSource.ontrial = ingestTrial;
 
     dataSource.start();
-
 }
 
 // Load mode helpers
 
-var getRecordInfo = function( subject, record ) {
+var getRecordInfo = function getRecordInfo(subject, record) {
     // Wrap $.getJSON in a standard promise
-    return new Promise( function( resolve, reject ) {
-        var infoPath = path.join( apiPath, 'info', subject, record );
-        $.getJSON( infoPath )
-            .done( resolve )
-            .fail( function() {
-                // TODO Get error infor from jquery object
-                reject( 'Error loading JSON from: ' + infoPath );
-            } );
-    } );
+    return new Promise(function (resolve, reject) {
+        var infoPath = path.join(apiPath, 'info', subject, record);
+        $.getJSON(infoPath).done(resolve).fail(function () {
+            // TODO Get error infor from jquery object
+            reject('Error loading JSON from: ' + infoPath);
+        });
+    });
 };
 
-var unpackBundle = function( info ) {
-    if ( info.isBundle ) {
+var unpackBundle = function unpackBundle(info) {
+    if (info.isBundle) {
         // Need to load bundle to identify first dataset
         bundle = new fmdata.DataBundle();
-        return bundle.get( info.uri )
-                        .then( function() {
-                            // TODO Update UI with bundle displayGroup
-                            // Pass along the URI of the first dataset
-                            return Promise.resolve( bundle.uriForDataset( 0 ) );
-                            // TODO This all is a crappy system for doing
-                            // this. uriForDataset should be implicit in the
-                            // API, like infoPath above.
-                        } );
+        return bundle.get(info.uri).then(function () {
+            // TODO Update UI with bundle displayGroup
+            // Pass along the URI of the first dataset
+            return Promise.resolve(bundle.uriForDataset(0));
+            // TODO This all is a crappy system for doing
+            // this. uriForDataset should be implicit in the
+            // API, like infoPath above.
+        });
     } else {
         // If we're just a dataset, can simply resolve to datast URI
-        return Promise.resolve( info.uri );
+        return Promise.resolve(info.uri);
     }
-}; 
+};
 
-if ( loadMode ) {       // Using data loaded from the hive
+if (loadMode) {
+    // Using data loaded from the hive
 
-    getRecordInfo( subjectID, recordName )  // Get header info for the data
-        .then( unpackBundle )               // Unpack to get us a dataset URI
-        .then( dataset.get );               // Get the dataset for that URI
-
+    getRecordInfo(subjectID, recordName) // Get header info for the data
+    .then(unpackBundle) // Unpack to get us a dataset URI
+    .then(dataset.get); // Get the dataset for that URI
 }
-
 
 // COMMON ROUTINES
 
+// TODO Move into an fmdata.Dataset object ...
+var channelStats = {};
+
 // Property registration
 
-var updateProperties = function( properties ) {
-    
-    uiManager.showIcon( 'transfer' );
+var updateProperties = function updateProperties(properties) {
 
-    console.log( 'Updating channel names.' );
-    uiManager.updateChannelNames( properties.channels );
+    uiManager.showIcon('transfer');
 
-    uiManager.hideIcon( 'transfer' );
+    // Allocate data
+    properties.channels.forEach(function (ch) {
+        channelStats[ch] = new fmstat.ChannelStat();
+    });
 
+    // Update GUI
+    uiManager.updateChannelNames(properties.channels);
+
+    uiManager.hideIcon('transfer');
 };
 
 // Trial ingestion
 
-var startTrial = function() {
-    uiManager.showIcon( 'transfer' );
-}
-
-var ingestTrial = function( trialData ) {
-    
-    // We're done transferring
-    uiManager.hideIcon( 'transfer' );
-
-    // Now we're working
-    uiManager.showIcon( 'working' );
-
-    // TODO
-    setTimeout( function() {
-        uiManager.raster.update( trialData );
-        uiManager.hideIcon( 'working' );
-    }, 0 );
-
+var startTrial = function startTrial() {
+    uiManager.showIcon('transfer');
 };
 
+var ingestTrial = function ingestTrial(trialData) {
+
+    // We're done transferring
+    uiManager.hideIcon('transfer');
+
+    // Now we're working
+    uiManager.showIcon('working');
+
+    // TODO
+    cronelib.forEachAsync(Object.keys(channelStats), function (ch) {
+
+        var chValues = trialData[ch];
+        var chBaseline = chValues.slice(0, 10);
+
+        channelStats[ch].updateBaseline(chBaseline);
+        channelStats[ch].updateValues(chValues);
+    }, {
+        batchSize: 5
+    }).then(function () {
+
+        // TODO
+        var meanData = {};
+        Object.keys(channelStats).forEach(function (ch) {
+            //meanData[ch] = channelStats[ch].meanValues();
+            meanData[ch] = channelStats[ch].baselineNormalizedValues();
+        });
+        uiManager.raster.update(meanData);
+
+        uiManager.hideIcon('working');
+    });
+};
 
 // EVENT HOOKS
 
-$( window ).on( 'resize', function() {
+$(window).on('resize', function () {
 
     uiManager.didResize();
-    
-} );
-
-
+});
 
 //
 
-},{"../lib/bci2k":1,"../lib/cronelib":2,"../lib/horizon":4,"./fmdata":6,"./fmgen":7,"./fmonline":8,"./fmstat":10,"./fmui":11,"d3":24,"jquery":26,"path":33}],13:[function(require,module,exports){
+},{"../lib/bci2k":1,"../lib/cronelib":2,"../lib/horizon":5,"./fmdata":7,"./fmgen":8,"./fmonline":9,"./fmstat":11,"./fmui":12,"d3":24,"jquery":26,"path":33}],14:[function(require,module,exports){
 // https://d3js.org/d3-array/ Version 1.0.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -3664,7 +3804,7 @@ $( window ).on( 'resize', function() {
   Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 // https://d3js.org/d3-axis/ Version 1.0.3. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -3856,7 +3996,7 @@ $( window ).on( 'resize', function() {
   Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 // https://d3js.org/d3-collection/ Version 1.0.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -4074,7 +4214,7 @@ $( window ).on( 'resize', function() {
   Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 // https://d3js.org/d3-color/ Version 1.0.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -4592,7 +4732,7 @@ $( window ).on( 'resize', function() {
   Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 // https://d3js.org/d3-format/ Version 1.0.2. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -4922,241 +5062,7 @@ $( window ).on( 'resize', function() {
   Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
-},{}],18:[function(require,module,exports){
-// https://github.com/kmandov/d3-horizon-chart Version 0.0.6. Copyright 2016 Kiril Mandov.
-(function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-selection'), require('d3-scale'), require('d3-axis'), require('d3-array')) :
-    typeof define === 'function' && define.amd ? define(['exports', 'd3-selection', 'd3-scale', 'd3-axis', 'd3-array'], factory) :
-    (factory((global.d3 = global.d3 || {}),global.d3,global.d3,global.d3,global.d3));
-}(this, (function (exports,d3Selection,d3Scale,d3Axis,d3Array) { 'use strict';
-
-function horizonChart () {
-
-    // default settings:
-    //var colors = ['#08519c','#3182bd','#6baed6','#bdd7e7','#bae4b3','#74c476','#31a354','#006d2c'],
-    //var colors = ['#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#fee090', '#fdae61', '#f46d43', '#d73027'],
-    //var colors = ["#5e4fa2", "#3288bd", "#66c2a5", "#abdda4", "#e6f598", "#fee08b", "#fdae61", "#f46d43", "#d53e4f", "#9e0142"],
-    var colors = ["#313695", "#4575b4", "#74add1", "#abd9e9", "#fee090", "#fdae61", "#f46d43", "#d73027"],
-        bands = colors.length >> 1, // number of bands in each direction (positive / negative)
-        width = 1000, // width in pixels
-        height = 30,
-        offsetX = 0,
-        step = 1,
-        spacing = 0,
-        mode = 'offset',
-        axis = null,
-        title = null,
-        extent = null, // the extent is derived from the data, unless explicitly set via .extent([min, max])
-        //x = d3.scaleLinear(), // TODO: use ordinal scale instead?
-        x = null,
-        y = d3Scale.scaleLinear().range([0, height]),
-        canvas = null;
-
-    // Appends a canvas element to the current element
-    // and draws a horizon graph based on data & settings
-    function horizonChart(data) {
-
-        var selection = d3Selection.select(this);
-        var dIncrement = step + spacing;
-
-        // update the width
-        //width = horizon.node().getBoundingClientRect().width;
-        width = dIncrement * data.length;
-        canvas = selection.append('canvas');
-
-        canvas
-            .attr('width', width)
-            .attr('height', height);
-
-        selection.append('span')
-            .attr('class', 'title')
-            .text(title);
-
-        selection.append('span')
-            .attr('class', 'value');
-
-        var context = canvas.node().getContext('2d');
-        //context.imageSmoothingEnabled = false;
-        //context.translate(margin.left, margin.top);
-
-        // update the y scale, based on the data extents
-        var _extent = extent || d3Array.extent(data);
-
-        var max = Math.max(-_extent[0], _extent[1]);
-        y.domain([0, max]);
-        //x = d3.scaleTime().domain[];
-        axis = d3Axis.axisTop(x).ticks(5);
-
-        // Draw ----------------------------------------------------------------------------
-
-        context.clearRect(0, 0, width, height);
-        //context.translate(0.5, 0.5);
-
-        // the data frame currently being shown:
-        var increment = step + spacing,
-            startIndex = ~~Math.max(0, -(offsetX / increment)),
-            endIndex = ~~Math.min(data.length, startIndex + width / increment);
-
-        // skip drawing if there's no data to be drawn
-        if (startIndex > data.length) return;
-
-
-        // we are drawing positive & negative bands separately to avoid mutating canvas state
-        // http://www.html5rocks.com/en/tutorials/canvas/performance/
-
-        var negative = false;
-        // draw positive bands
-        for (var b = 0; b < bands; b++) {
-            context.fillStyle = colors[bands + b];
-
-            // Adjust the range based on the current band index.
-            var bExtents = (b + 1 - bands) * height;
-            y.range([bands * height + bExtents, bExtents]);
-
-            // only the current data frame is being drawn i.e. what's visible:
-            for (var i = startIndex, value; i < endIndex; i++) {
-                value = data[i];
-                if (value <= 0) { negative = true; continue; }
-                if (value === undefined) continue;
-                context.fillRect(offsetX + i * increment, y(value), step, y(0) - y(value));
-            }
-        }
-
-        // draw negative bands
-        if (negative) {
-
-            // mirror the negative bands, by flipping the canvas
-            if (mode === 'offset') {
-                context.translate(0, height);
-                context.scale(1, -1);
-            }
-
-            for (b = 0; b < bands; b++) {
-                context.fillStyle = colors[bands - b - 1];
-
-                // Adjust the range based on the current band index.
-                bExtents = (b + 1 - bands) * height;
-                y.range([bands * height + bExtents, bExtents]);
-
-                // only the current data frame is being drawn i.e. what's visible:
-                for (var j = startIndex, nvalue; j < endIndex; j++) {
-                    nvalue = data[j];
-                    if (nvalue >= 0) continue;
-                    context.fillRect(offsetX + j * increment, y(-nvalue), step, y(0) - y(-nvalue));
-                }
-            }
-        }
-
-        /*
-        // Offscreen Draw -----------------------------------------------------------------------
-
-        function createOffscreenCanvas(width,height){
-            var canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
-            return canvas;
-        }
-
-        var offscreenCanvas = createOffscreenCanvas(increment * data.length, height);
-        var offscreenContext = offscreenCanvas.getContext('2d');
-        // draw each band:
-        for (var b = 0; b < bands; b++) {
-            offscreenContext.fillStyle = colors[b];
-
-            // Adjust the range based on the current band index.
-            var y0 = (b + 1 - bands) * height;
-            y.range([bands * height + y0, y0]);
-
-            // draw the whole period on an offscreen canvas
-            for (var i = 0; i < data.length; i++) {
-            offscreenContext.fillRect(i * increment, y(data[i]), step, y(0) - y(data[i]));
-            }
-        }
-
-        var onscreenImage;
-        _draw = function() {
-            onscreenImage = offscreenContext.getImageData(-offsetX, 0, width, height);
-            context.putImageData(onscreenImage, 0, 0);
-
-            //context.clearRect(0, 0, width, height);
-            //context.translate(offsetX, 0);
-            //context.drawImage(offscreenCanvas, offsetX, 0);
-        };
-        */
-    }
-
-    horizonChart.axis = function (_) {
-        return arguments.length ? (axis = _, horizonChart) : axis;
-    };
-
-    horizonChart.canvas = function (_) {
-        return arguments.length ? (canvas = _, horizonChart) : canvas;
-    };
-
-    // Array of colors representing the number of bands
-    horizonChart.colors = function (_) {
-        if (!arguments.length) return colors;
-        colors = _;
-
-        // update the number of bands
-        bands = colors.length >> 1;
-
-        return horizonChart;
-    };
-
-    // get/set the height of the graph
-    horizonChart.height = function (_) {
-        return arguments.length ? (height = _, horizonChart) : height;
-    };
-
-    // get/set the step of the graph, i.e. the width of each bar
-    horizonChart.step = function (_) {
-        return arguments.length ? (step = _, horizonChart) : step;
-    };
-
-    // get/set the spacing between the bars of the graph
-    horizonChart.spacing = function (_) {
-        return arguments.length ? (spacing = _, horizonChart) : spacing;
-    };
-
-    // get/set the title of the horizon
-    horizonChart.title = function (_) {
-        return arguments.length ? (title = _, horizonChart) : title;
-    };
-
-    // mirror or offset
-    horizonChart.mode = function (_) {
-        return arguments.length ? (mode = _, horizonChart) : mode;
-    };
-
-    // get/set the extents of the Y axis. If not set the extents are derived from the data
-    horizonChart.extent = function (_) {
-        return arguments.length ? (extent = _, horizonChart) : extent;
-    };
-
-    horizonChart.offsetX = function (_) {
-        return arguments.length ? (offsetX = _, horizonChart) : offsetX;
-    };
-
-    // the data frame currently being shown:
-    horizonChart.indexExtent = function () {
-        var increment = step + spacing,
-            startIndex = -offsetX / increment,
-            endIndex = startIndex + width / increment;
-
-        return [startIndex, endIndex];
-    };
-
-    return horizonChart;
-
-}
-
-exports.horizonChart = horizonChart;
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
-})));
-},{"d3-array":13,"d3-axis":14,"d3-scale":20,"d3-selection":21}],19:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 // https://d3js.org/d3-interpolate/ Version 1.1.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-color')) :
@@ -5699,7 +5605,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
   Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
-},{"d3-color":16}],20:[function(require,module,exports){
+},{"d3-color":17}],20:[function(require,module,exports){
 // https://d3js.org/d3-scale/ Version 1.0.3. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array'), require('d3-collection'), require('d3-interpolate'), require('d3-format'), require('d3-time'), require('d3-time-format'), require('d3-color')) :
@@ -6602,7 +6508,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
   Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
-},{"d3-array":13,"d3-collection":15,"d3-color":16,"d3-format":17,"d3-interpolate":19,"d3-time":23,"d3-time-format":22}],21:[function(require,module,exports){
+},{"d3-array":14,"d3-collection":16,"d3-color":17,"d3-format":18,"d3-interpolate":19,"d3-time":23,"d3-time-format":22}],21:[function(require,module,exports){
 // https://d3js.org/d3-selection/ Version 1.0.2. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -38228,4 +38134,4 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}]},{},[12]);
+},{}]},{},[13]);

@@ -11,6 +11,102 @@
 var fmstat = {};
 
 
+// CLASSES
+
+fmstat.Gaussian = function( mu, s2, n ) {
+
+    this.mean       = mu;
+    this.variance   = s2;
+    this.count      = n;
+
+    this._m2        = undefined;
+
+};
+
+fmstat.Gaussian.prototype = {
+
+    constructor: fmstat.Gaussian,
+
+    ingest: function( datum ) {
+
+        var delta       = ( this.mean === undefined ) ? datum : datum - this.mean;
+
+        // Update count
+        this.count      = ( this.count === undefined ) ? 1 : this.count + 1;
+        // Update mean
+        this.mean       = ( this.mean === undefined ) ? datum : this.mean + delta / this.count;
+        // Update moment
+        this._m2        = ( this._m2 === undefined ) ? delta * ( datum - this.mean ) : this._m2 + delta * ( datum - this.mean );
+        // Update variance
+        // TODO Could fail in weird cases still
+        this.variance = ( this.count < 2 ) ? undefined : this._m2 / ( this.count - 1 );
+
+    }
+
+};
+
+fmstat.ChannelStat = function() {
+
+    this.baseline = new fmstat.Gaussian();
+
+    this.values = null;
+
+};
+
+fmstat.ChannelStat.prototype = {
+
+    constructor: fmstat.ChannelStat,
+
+    updateBaseline: function( data ) {
+
+        var stat = this;
+
+        // Add each datum to the baseline distribution
+        data.forEach( function( d ) {
+            stat.baseline.ingest( d );
+        } );
+
+    },
+
+    updateValues: function( data ) {
+
+        var stat = this;
+
+        if ( !this.values ) {
+            this.values = [];
+            // Use geometry of data to construct values
+            data.forEach( function( d ) {
+                stat.values.push( new fmstat.Gaussian() );
+            } );
+        }
+
+        data.forEach( function( d, i ) {
+            stat.values[i].ingest( d );
+        } );
+
+    },
+
+    meanValues: function() {
+        return this.values.map( function( v ) {
+            return v.mean;
+        } );
+    },
+
+    baselineNormalizedValues: function() {
+        
+        var stat = this;
+
+        return this.values.map( function( v ) {
+            if ( stat.baseline.variance === undefined ) {
+                return v.mean - stat.baseline.mean;
+            }
+            return ( v.mean - stat.baseline.mean ) / Math.sqrt( stat.baseline.variance );
+        } );
+
+    }
+
+};
+
 // METHODS
 
 // fmstat.randn

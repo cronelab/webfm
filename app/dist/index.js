@@ -1,4 +1,6 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+'use strict';
+
 // ======================================================================== //
 //
 // bciwatch
@@ -9,225 +11,214 @@
 
 // REQUIRES
 
-var bci2k = require( '../lib/bci2k' );
+var bci2k = require('../lib/bci2k');
 
-require( 'setimmediate' );                      // Needed to fix promise
-                                                // polyfill on non-IE
-var Promise = require( 'promise-polyfill' );    // Needed for IE Promise
-                                                // support
+require('setimmediate'); // Needed to fix promise
+// polyfill on non-IE
+var Promise = require('promise-polyfill'); // Needed for IE Promise
+// support
 
 
 // MODULE OBJECT
 
 var bciwatch = {};
 
-
 // HELPERS
 
-function isFunction( f ) {
+function isFunction(f) {
     var getType = {};
     return functionToCheck && getType.toString.call(functionToCheck) === '[object Function]';
 }
 
 // Takes an asynchronous function with callback ( err, result ) => () and turns it into a Promise
-function promisify( f ) {
-    return new Promise( function( resolve, reject ) {
-        f( function( err, result ) {
-            if ( err ) {
-                reject( err );
+function promisify(f) {
+    return new Promise(function (resolve, reject) {
+        f(function (err, result) {
+            if (err) {
+                reject(err);
                 return;
             }
-            resolve( result );
-        } );
-    } );
+            resolve(result);
+        });
+    });
 }
-
 
 // MAIN CLASS
 
-bciwatch.BCI2KWatcher = function() {
+bciwatch.BCI2KWatcher = function () {
 
     // For nested functions
     var watcher = this;
 
     // Event callbacks
-    this.onstatechange = function( newState ) {};
+    this.onstatechange = function (newState) {};
 
     // Connection for interfacing with the BCI2K system
-    this._bciConnection = new bci2k.Connection(); 
-    this._bciConnection.onconnect = function( event ) {
-        watcher._bciDidConnect( event );
+    this._bciConnection = new bci2k.Connection();
+    this._bciConnection.onconnect = function (event) {
+        watcher._bciDidConnect(event);
     };
 
-    this.watching   = false;
-    this.state      = 'Not Connected';
+    this.watching = false;
+    this.state = 'Not Connected';
 
-    this.config     = {};
-
-}
+    this.config = {};
+};
 
 bciwatch.BCI2KWatcher.prototype = {
 
     constructor: bciwatch.BCI2KWatcher,
 
-    connect: function( address, cb ) {
+    connect: function connect(address, cb) {
         // TODO Better API
 
         // For nested functions
         var watcher = this;
 
-        if ( address === undefined ) {
+        if (address === undefined) {
             address = this.config.sourceAddress;
         }
 
-        if ( cb !== undefined ) {
+        if (cb !== undefined) {
             // TODO A somewhat indirect way to get callback execution
             // TODO Connection errors never get handled ...
-            this._bciConnection.onconnect = function( event ) {
-                watcher._bciDidConnect( event, cb );
-            }
+            this._bciConnection.onconnect = function (event) {
+                watcher._bciDidConnect(event, cb);
+            };
         }
 
-        if ( this.config.debug ) {
-            console.log( 'Connecting to: ' + address );
+        if (this.config.debug) {
+            console.log('Connecting to: ' + address);
         }
 
         // Connect to the main BCI2K system
-        this._bciConnection.connect( address );
-
+        this._bciConnection.connect(address);
     },
 
-    loadConfig: function( configURI ) {
-        
-        var watcher = this;     // Cache this for nested functions
+    loadConfig: function loadConfig(configURI) {
+
+        var watcher = this; // Cache this for nested functions
 
         // Wrap $.getJSON in a standard Promise
-        return new Promise( function( resolve, reject ) {
-            $.getJSON( configURI )
-                .done( resolve )
-                .fail( function( req, reason, err ) {
-                    // TODO Get error message from jquery object
-                    reject( 'Could not load watcher config from ' + configURI + ' : ' + reason );
-                } );
-        } ).then( function( data ) {
+        return new Promise(function (resolve, reject) {
+            $.getJSON(configURI).done(resolve).fail(function (req, reason, err) {
+                // TODO Get error message from jquery object
+                reject('Could not load watcher config from ' + configURI + ' : ' + reason);
+            });
+        }).then(function (data) {
             watcher.config = data;
-        } );
-
+        });
     },
 
-    _bciDidConnect: function( event, cb ) {
+    _bciDidConnect: function _bciDidConnect(event, cb) {
 
-        if ( this.config.debug ) {
-            console.log( 'Connected to BCI2K.' );
+        if (this.config.debug) {
+            console.log('Connected to BCI2K.');
         }
 
-        this._updateState( 'Connected' );
+        this._updateState('Connected');
 
         // Trigger callback from .connect, if it exists
-        if ( cb !== undefined ) {
-            cb( null, event );
+        if (cb !== undefined) {
+            cb(null, event);
         }
-
     },
 
-    _updateState: function( newState ) {
-        if ( this.state != newState ) {
+    _updateState: function _updateState(newState) {
+        if (this.state != newState) {
             this.state = newState;
-            this.onstatechange( this.state );
+            this.onstatechange(this.state);
         }
     },
 
-    _checkState: function() {
+    _checkState: function _checkState() {
 
         // Capture this for inline functions
         var watcher = this;
 
-        var tryLaterIfWatching = function() {
-            if ( watcher.watching ) {
-                setTimeout( function() {
+        var tryLaterIfWatching = function tryLaterIfWatching() {
+            if (watcher.watching) {
+                setTimeout(function () {
                     watcher._checkState();
-                }, watcher.config.checkStateInterval );
+                }, watcher.config.checkStateInterval);
             }
         };
 
-        if ( ! this._bciConnection.connected() ) {
+        if (!this._bciConnection.connected()) {
             // Can't check system state if not connected
-            if ( this.config.debug ) {
-                console.log( 'Could not check whether BCI2K is running: Not connected to BCI2K.' );
+            if (this.config.debug) {
+                console.log('Could not check whether BCI2K is running: Not connected to BCI2K.');
             }
             // Update to Not Connected state
-            this._updateState( 'Not Connected' );
+            this._updateState('Not Connected');
             tryLaterIfWatching();
             return;
         }
 
         // We know we're connected now
 
-        if ( this.config.debug ) {
-            console.log( 'Executing System State query ...' );
+        if (this.config.debug) {
+            console.log('Executing System State query ...');
         }
 
-        this._bciConnection.execute( 'Get System State', function( result ) {
+        this._bciConnection.execute('Get System State', function (result) {
             // Got the state back from BCI2K
             var newState = result.output.trim();
-            if ( watcher.config.debug ) {
-                console.log( 'System state: ' + newState );
+            if (watcher.config.debug) {
+                console.log('System state: ' + newState);
             }
             // Update to new state
-            watcher._updateState( newState );
+            watcher._updateState(newState);
             tryLaterIfWatching();
-        } );
-
+        });
     },
 
-    start: function() {
+    start: function start() {
 
         // Capture this for inline functions
         var watcher = this;
 
         this.watching = true;
-        
-        // Check Now!
-        setTimeout( function() {
-            watcher._checkState();
-        }, 0 );
 
+        // Check Now!
+        setTimeout(function () {
+            watcher._checkState();
+        }, 0);
     },
 
-    stop: function() {
+    stop: function stop() {
 
         this.watching = false;
 
         // This should short-circuit any active state checking.
-
     },
 
-    getParameter: function( parameter ) {
+    getParameter: function getParameter(parameter) {
 
         // Capture this for inline functions
         var watcher = this;
 
         // Make promises for system calls to add on dataset properties
-        return promisify( function( cb ) {
-            watcher._bciConnection.execute( 'Get Parameter ' + parameter, function( result ) {
+        return promisify(function (cb) {
+            watcher._bciConnection.execute('Get Parameter ' + parameter, function (result) {
                 // TODO Do I want this for everything?
                 // TODO Check for err based on result.exitcode
-                cb( null, result.output.trim() );
-            } );
-        } );
-
+                cb(null, result.output.trim());
+            });
+        });
     }
 
-}
-
+};
 
 // EXPORT MODULE
 
 module.exports = bciwatch;
 
-
 //
+
 },{"../lib/bci2k":3,"promise-polyfill":6,"setimmediate":7}],2:[function(require,module,exports){
+'use strict';
+
 // ======================================================================== //
 //
 // index/main
@@ -238,351 +229,310 @@ module.exports = bciwatch;
 
 // REQUIRES
 
-var path        = require( 'path' );
+var path = require('path');
 
-var $           = require( 'jquery' );
-var async       = require( 'async' );
+var $ = require('jquery');
+var async = require('async');
 
-var bciwatch    = require( './bciwatch' );
-
+var bciwatch = require('./bciwatch');
 
 // INIT
 
-var knownSubjects   = undefined;
-var subjectRecords  = undefined;
+var knownSubjects = undefined;
+var subjectRecords = undefined;
 
-var apiPath         = '/api';
-var configPath      = '/index/config';
+var apiPath = '/api';
+var configPath = '/index/config';
 
-var parameterRecheckDuration    = 2000;
+var parameterRecheckDuration = 2000;
 
 // BCI2K state watch setup
-var bciWatcher      = null;
-
+var bciWatcher = null;
 
 // HELPERS
 
-var removeNewlines = function( s ) {
-    return s.replace( /(\r\n|\n|\r)/gm, '' );
+var removeNewlines = function removeNewlines(s) {
+    return s.replace(/(\r\n|\n|\r)/gm, '');
 };
-
 
 // MEAT
 
 // Handling BCI2K
 
-var setupWatcher = function() {
+var setupWatcher = function setupWatcher() {
 
     bciWatcher = new bciwatch.BCI2KWatcher();
 
     // Set up state change callback
     bciWatcher.onstatechange = bciStateChange;
 
-    bciWatcher.loadConfig( path.join( configPath, 'online' ) )
-                .then( function() {
+    bciWatcher.loadConfig(path.join(configPath, 'online')).then(function () {
 
-                    // TODO Pick a damn pattern.
-                    bciWatcher.connect( undefined, function( err, event ) {
+        // TODO Pick a damn pattern.
+        bciWatcher.connect(undefined, function (err, event) {
 
-                        if ( err ) {
-                            console.log( err ); // TODO Respond intelligently
-                            return;
-                        }
+            if (err) {
+                console.log(err); // TODO Respond intelligently
+                return;
+            }
 
-                        bciWatcher.start();
+            bciWatcher.start();
+        });
+    }).catch(function (reason) {
+        // TODO Respond intelligently
 
-                    } );
-
-                } )
-                .catch( function( reason ) {    // TODO Respond intelligently
-
-                    console.log( reason );
-
-                } );
+        console.log(reason);
+    });
 };
 
 // TODO
-var mapItStates     = [ 'Idle', 'Suspended', 'Running' ];
+var mapItStates = ['Idle', 'Suspended', 'Running'];
 // TODO
-var infoStates      = [ 'Suspended', 'Running' ];
+var infoStates = ['Suspended', 'Running'];
 
 // TODO Shouldn't have to edit JS to change look and feel ...
 // should use special-purpose CSS classes
-var stateClasses    = {
-    'Not Connected' : 'text-muted',
-    'Idle'          : 'text-info',
-    'Suspended'     : 'text-warning',
-    'Running'       : 'text-success'
+var stateClasses = {
+    'Not Connected': 'text-muted',
+    'Idle': 'text-info',
+    'Suspended': 'text-warning',
+    'Running': 'text-success'
 };
 
-var clearTaskDetails = function() {
-    $( '#subject-label' ).html( '' );
+var clearTaskDetails = function clearTaskDetails() {
+    $('#subject-label').html('');
 };
 
-var getSubjectName = function() {
+var getSubjectName = function getSubjectName() {
 
-    bciWatcher.getParameter( 'SubjectName' )
-                .then( function( subjectName ) {
+    bciWatcher.getParameter('SubjectName').then(function (subjectName) {
 
-                    if ( subjectName.length == 0 ) {
-                        // Parameter not set
+        if (subjectName.length == 0) {
+            // Parameter not set
 
-                        $( '#subject-label' ).html( '<small>(No SubjectName set.)</small>' );
-                        
-                        // TODO The fact that there's this awkward magic number
-                        // use suggests that this is a bad way to do this ...
-                        setTimeout( function() {
-                            getSubjectName();
-                        }, parameterRecheckDuration );
+            $('#subject-label').html('<small>(No SubjectName set.)</small>');
 
-                        return;
-                    }
+            // TODO The fact that there's this awkward magic number
+            // use suggests that this is a bad way to do this ...
+            setTimeout(function () {
+                getSubjectName();
+            }, parameterRecheckDuration);
 
-                    $( '#subject-label' ).html( subjectName );
-
-                } )
-                .catch( function( reason ) {
-
-                    console.log( reason );      // TODO Handle
-
-                } );
-
-};
-
-var getTaskName = function() {
-
-    bciWatcher.getParameter( 'DataFile' )
-                .then( function( data ) {
-
-                    if ( data.length == 0 ) {
-                        // Parameter not set
-
-                        $( '#task-label' ).html( '<small>(No DataFile set.)</small>' );
-                        
-                        // TODO The fact that there's this awkward magic number
-                        // use suggests that this is a bad way to do this ...
-                        setTimeout( function() {
-                            getTaskName();
-                        }, parameterRecheckDuration );
-
-                        return;
-                    }
-
-                    // TODO Is this format universal?
-                    var dataPathParts = data.split( path.sep );
-                    var taskName = dataPathParts[1];    // i.e., subject/task/...
-
-                    $( '#task-label' ).html( taskName );
-
-                } )
-                .catch( function( reason ) {
-
-                    console.log( reason );      // TODO Handle
-
-                } );
-
-};
-
-
-var bciStateChange = function( newState ) {
-
-    // Update state label text
-    $( '#state-label' ).html( '<strong>' + newState + '<strong>' );
-
-    // Set correct state class
-    $.map( stateClasses, function( v, k ) {
-        if ( newState == k ) {
-            $( '#state-label' ).addClass( v );
             return;
         }
-        $( '#state-label' ).removeClass( v );
-    } );
+
+        $('#subject-label').html(subjectName);
+    }).catch(function (reason) {
+
+        console.log(reason); // TODO Handle
+    });
+};
+
+var getTaskName = function getTaskName() {
+
+    bciWatcher.getParameter('DataFile').then(function (data) {
+
+        if (data.length == 0) {
+            // Parameter not set
+
+            $('#task-label').html('<small>(No DataFile set.)</small>');
+
+            // TODO The fact that there's this awkward magic number
+            // use suggests that this is a bad way to do this ...
+            setTimeout(function () {
+                getTaskName();
+            }, parameterRecheckDuration);
+
+            return;
+        }
+
+        // TODO Is this format universal?
+        var dataPathParts = data.split(path.sep);
+        var taskName = dataPathParts[1]; // i.e., subject/task/...
+
+        $('#task-label').html(taskName);
+    }).catch(function (reason) {
+
+        console.log(reason); // TODO Handle
+    });
+};
+
+var bciStateChange = function bciStateChange(newState) {
+
+    // Update state label text
+    $('#state-label').html('<strong>' + newState + '<strong>');
+
+    // Set correct state class
+    $.map(stateClasses, function (v, k) {
+        if (newState == k) {
+            $('#state-label').addClass(v);
+            return;
+        }
+        $('#state-label').removeClass(v);
+    });
 
     // Encourage mapping when appropriate
-    if ( mapItStates.indexOf( newState ) >= 0 ) {
-        $( '#online-button' ).removeClass( 'disabled' );
+    if (mapItStates.indexOf(newState) >= 0) {
+        $('#online-button').removeClass('disabled');
     } else {
-        $( '#online-button' ).addClass( 'disabled' );
+        $('#online-button').addClass('disabled');
     }
 
     // Attempt to get subject and task info if available
-    if ( infoStates.indexOf( newState ) >= 0 ) {
+    if (infoStates.indexOf(newState) >= 0) {
 
-        $( '#info-label' ).removeClass( 'hidden' );
+        $('#info-label').removeClass('hidden');
 
         getSubjectName();
 
         getTaskName();
-
     } else {
 
-        $( '#info-label' ).addClass( 'hidden' );
+        $('#info-label').addClass('hidden');
 
         clearTaskDetails();
-
     }
-
 };
-
 
 // GUI Helpers
 
-var updateMainBrain = function( brainData ) {
+var updateMainBrain = function updateMainBrain(brainData) {
     // We can directly add the base64 image data. Science!
-    $( '#main-brain' ).attr( 'src', brainData );
+    $('#main-brain').attr('src', brainData);
 };
 
-var addRecordCell = function( subject, record ) {
+var addRecordCell = function addRecordCell(subject, record) {
     // TODO Need to incorporate number of members for badge
     // TODO Could fail if record is badly named
-    $( '<a/>', {
-        id:     record,
-        href:   path.join( '/', 'map', subject, record ),
-        class:  'list-group-item',
-        text:   record
-    } ).appendTo( '#record-list' );
+    $('<a/>', {
+        id: record,
+        href: path.join('/', 'map', subject, record),
+        class: 'list-group-item',
+        text: record
+    }).appendTo('#record-list');
 };
 // TODO Better way to curry?
-var recordCellAdderFor = function( subject ) {
-    return function( record ) {
-        addRecordCell( subject, record );
+var recordCellAdderFor = function recordCellAdderFor(subject) {
+    return function (record) {
+        addRecordCell(subject, record);
     };
 };
 
-var addSubjectCell = function( subject ) {
+var addSubjectCell = function addSubjectCell(subject) {
 
-    var cellClick = function() {
-        selectSubject( subject );
+    var cellClick = function cellClick() {
+        selectSubject(subject);
     };
 
     // TODO Need to incorporate number of members for badge
-    $( '<a/>', {
-        id:     subject,
-        href:   '#' + subject,
-        class:  'list-group-item',
-        text:   subject,
+    $('<a/>', {
+        id: subject,
+        href: '#' + subject,
+        class: 'list-group-item',
+        text: subject,
         on: {
             click: cellClick
         }
-    } ).appendTo( '#subject-list' );
-
+    }).appendTo('#subject-list');
 };
 
-var loadBrain = function( subject ) {
+var loadBrain = function loadBrain(subject) {
 
-    var brainPath = path.join( apiPath, 'brain', subject );
+    var brainPath = path.join(apiPath, 'brain', subject);
 
-    $.get( brainPath )
-        .done( function( brainData ) {
+    $.get(brainPath).done(function (brainData) {
 
-            // Update the main brain image
-            updateMainBrain( removeNewlines( brainData ) );
+        // Update the main brain image
+        updateMainBrain(removeNewlines(brainData));
+    }).fail(function (req, textStatus, err) {
 
-        } )
-        .fail( function( req, textStatus, err ) {
-
-            // TODO Handle errors
-            console.log( err );
-
-        } );
-
+        // TODO Handle errors
+        console.log(err);
+    });
 };
-
 
 // Main logic
 
-var loadRecords = function( subject ) {
+var loadRecords = function loadRecords(subject) {
 
-    var listPath = path.join( apiPath, 'list', subject );
+    var listPath = path.join(apiPath, 'list', subject);
 
-    $.getJSON( listPath )
-        .done( function( records ) {
+    $.getJSON(listPath).done(function (records) {
 
-            // Ensure consistent ordering
-            records.sort();
+        // Ensure consistent ordering
+        records.sort();
 
-            // Update the DOM for the record list
-            records.forEach( recordCellAdderFor( subject ) );
+        // Update the DOM for the record list
+        records.forEach(recordCellAdderFor(subject));
+    }).fail(function (req, textStatus, err) {
 
-        } )
-        .fail( function( req, textStatus, err ) {
-
-            // TODO Handle errors
-            console.log( err );
-
-        } );
-
+        // TODO Handle errors
+        console.log(err);
+    });
 };
 
-var selectSubject = function( subject ) {
+var selectSubject = function selectSubject(subject) {
 
     // Deselect everyone
-    $( '#subject-list' ).children().removeClass( 'active' );
+    $('#subject-list').children().removeClass('active');
 
-    if ( subject.length == 0 ) {
+    if (subject.length == 0) {
         // Nothing we can do.
         return;
     }
 
     // Re-select current
-    $( '#' + subject ).addClass( 'active' );
+    $('#' + subject).addClass('active');
 
     // Load the records from the server API
-    loadRecords( subject );
+    loadRecords(subject);
 
     // Load the brain image from the server API
-    loadBrain( subject );
-
+    loadBrain(subject);
 };
 
-var loadSubjects = function() {
+var loadSubjects = function loadSubjects() {
 
-    var listPath = path.join( apiPath, 'list' );
+    var listPath = path.join(apiPath, 'list');
 
-    $.getJSON( listPath )
-        .done( function( subjects ) {
+    $.getJSON(listPath).done(function (subjects) {
 
-            // Ensure consistent ordering
-            subjects.sort();
+        // Ensure consistent ordering
+        subjects.sort();
 
-            // Update the DOM for the subject list
-            subjects.forEach( addSubjectCell );
+        // Update the DOM for the subject list
+        subjects.forEach(addSubjectCell);
 
-            // Check for a hash
-            // TODO Only do this on load?
-            selectFromHash( window.location.hash );
+        // Check for a hash
+        // TODO Only do this on load?
+        selectFromHash(window.location.hash);
+    }).fail(function (req, textStatus, err) {
 
-        } )
-        .fail( function( req, textStatus, err ) {
-
-            // TODO Handle errors
-            console.log( err );
-
-        } );
-
+        // TODO Handle errors
+        console.log(err);
+    });
 };
 
-var selectFromHash = function( hash ) {
-    
+var selectFromHash = function selectFromHash(hash) {
+
     // window.location.hash has a '#' at the front, so clip it
-    var hashSubject = hash.slice( 1 );
+    var hashSubject = hash.slice(1);
 
-    selectSubject( hashSubject );
-
+    selectSubject(hashSubject);
 };
 
-$( window ).on( 'load', function() {
+$(window).on('load', function () {
 
     loadSubjects();
 
     setupWatcher();
-
-} );
-
-
+});
 
 //
+
 },{"./bciwatch":1,"async":8,"jquery":5,"path":13}],3:[function(require,module,exports){
+"use strict";
+
 // ======================================================================== //
 //
 // main
@@ -593,38 +543,36 @@ $( window ).on( 'load', function() {
 
 // REQUIRES
 
-var jDataView = require( 'jdataview' );
-
+var jDataView = require('jdataview');
 
 // MODULE OBJECT
 
 var BCI2K = {};
-
 
 // MEMBERS
 
 // BCI2K.DataView 
 // (Subclass of jDataView)
 
-BCI2K.DataView = function() {
-	jDataView.apply( this, arguments ); // Call jDataView constructor
-}
-BCI2K.DataView.prototype = Object.create( jDataView.prototype );
+BCI2K.DataView = function () {
+	jDataView.apply(this, arguments); // Call jDataView constructor
+};
+BCI2K.DataView.prototype = Object.create(jDataView.prototype);
 
-BCI2K.DataView.prototype.getNullTermString = function() {
+BCI2K.DataView.prototype.getNullTermString = function () {
 	var val = "";
-	while( this._offset < this.byteLength ) {
-		v = this.getUint8();
-		if( v == 0 ) break;
-		val += String.fromCharCode( v );
+	while (this._offset < this.byteLength) {
+		var v = this.getUint8();
+		if (v == 0) break;
+		val += String.fromCharCode(v);
 	}
 	return val;
-}
+};
 
-BCI2K.DataView.prototype.getLengthField = function( n ) {
+BCI2K.DataView.prototype.getLengthField = function (n) {
 	var len = 0;
 	var extended = false;
-	switch( n ) {
+	switch (n) {
 		case 1:
 			len = this.getUint8();
 			extended = len == 0xff;
@@ -638,457 +586,442 @@ BCI2K.DataView.prototype.getLengthField = function( n ) {
 			extended = len == 0xffffffff;
 			break;
 		default:
-			console.error( "unsupported" );
+			console.error("unsupported");
 			break;
 	}
 
-	return extended ? parseInt( this.getNullTermString() ) : len;
-}
-
+	return extended ? parseInt(this.getNullTermString()) : len;
+};
 
 // BCI2K.Connection
 // ...
 
-BCI2K.Connection = function() {
+BCI2K.Connection = function () {
 
-	this.onconnect = function( event ) {};
-	this.ondisconnect = function( event ) {};
+	this.onconnect = function (event) {};
+	this.ondisconnect = function (event) {};
 
 	this._socket = null;
 	this._execid = 0;
-	this._exec = {}
-}
+	this._exec = {};
+};
 
 BCI2K.Connection.prototype = {
 
 	constructor: BCI2K.Connection,
 
-	connect: function( address ) {
-		if( address === undefined )
-			address = window.location.host;
+	connect: function connect(address) {
+		if (address === undefined) address = window.location.host;
 		this.address = address;
-		this._socket = new WebSocket( "ws://" + address );
+		this._socket = new WebSocket("ws://" + address);
 
 		var connection = this;
 
-		this._socket.onopen = function( event ) {
-			connection.onconnect( event );
+		this._socket.onopen = function (event) {
+			connection.onconnect(event);
 		};
 
-		this._socket.onmessage = function( event ) {
-			arr = event.data.split( ' ' );
+		this._socket.onmessage = function (event) {
+			var arr = event.data.split(' ');
 
 			var opcode = arr[0];
 			var id = arr[1];
-			var msg = arr.slice( 2 ).join(' ');
-			 
-			switch( opcode ) {
-				case 'S': // START: Starting to execute command
-					if( connection._exec[ id ].onstart )
-						connection._exec[ id ].onstart( connection._exec[ id ] );
+			var msg = arr.slice(2).join(' ');
+
+			switch (opcode) {
+				case 'S':
+					// START: Starting to execute command
+					if (connection._exec[id].onstart) connection._exec[id].onstart(connection._exec[id]);
 					break;
-				case 'O': // OUTPUT: Received output from command
-					connection._exec[ id ].output += msg + ' \n';
-					if( connection._exec[ id ].onoutput )
-						connection._exec[ id ].onoutput( connection._exec[ id ] );
+				case 'O':
+					// OUTPUT: Received output from command
+					connection._exec[id].output += msg + ' \n';
+					if (connection._exec[id].onoutput) connection._exec[id].onoutput(connection._exec[id]);
 					break;
-				case 'D': // DONE: Done executing command
-					connection._exec[ id ].exitcode = parseInt( msg );
-					if( connection._exec[ id ].ondone )
-						connection._exec[ id ].ondone( connection._exec[ id ] );
-					delete connection._exec[ id ];
+				case 'D':
+					// DONE: Done executing command
+					connection._exec[id].exitcode = parseInt(msg);
+					if (connection._exec[id].ondone) connection._exec[id].ondone(connection._exec[id]);
+					delete connection._exec[id];
 					break;
 			}
 		};
 
-		this._socket.onclose = function( event ) {
-			connection.ondisconnect( event );
+		this._socket.onclose = function (event) {
+			connection.ondisconnect(event);
 		};
 	},
 
 	// Deprecated API
-	stream: function( callback ) {
+	stream: function stream(callback) {
 
 		var connection = this;
 
-		this.execute( "Get Parameter WSConnectorServer", function( result ) {
+		this.execute("Get Parameter WSConnectorServer", function (result) {
 			connection.dataConnection = new BCI2K.DataConnection();
 			connection.dataConnection.onGenericSignal = callback;
-			var dataAddress = connection.address + ':' + result.output.split( ':' )[1];
-			connection.dataConnection.connect( dataAddress );
-		} );
-
+			var dataAddress = connection.address + ':' + result.output.split(':')[1];
+			connection.dataConnection.connect(dataAddress);
+		});
 	},
 
-	tap: function( location, onSuccess, onFailure ) {
+	tap: function tap(location, onSuccess, onFailure) {
 
 		var connection = this;
 
 		var locprm = "WS" + location + "Server";
 
-		this.execute( "Get Parameter " + locprm, function( result ) {
+		this.execute("Get Parameter " + locprm, function (result) {
 
-			if ( result.output.indexOf( 'does not exist' ) >= 0 ) {
+			if (result.output.indexOf('does not exist') >= 0) {
 				// Parameter does not exist
-				if( onFailure ) onFailure( result );
+				if (onFailure) onFailure(result);
 				return;
 			}
 
-			if ( result.output == '' ) {
+			if (result.output == '') {
 				// Parameter exists but isn't set
-				if( onFailure ) onFailure( result );
+				if (onFailure) onFailure(result);
 				return;
 			}
 
 			var dataConnection = new BCI2K.DataConnection();
-			if( onSuccess ) onSuccess( dataConnection );
+			if (onSuccess) onSuccess(dataConnection);
 
-			var dataAddress = connection.address + ':' + result.output.split( ':' )[1];
-			dataConnection.connect( dataAddress );
-
-		} );
-
+			var dataAddress = connection.address + ':' + result.output.split(':')[1];
+			dataConnection.connect(dataAddress);
+		});
 	},
 
-	connected: function() {
-		return ( this._socket != null && this._socket.readyState == WebSocket.OPEN );
+	connected: function connected() {
+		return this._socket != null && this._socket.readyState == WebSocket.OPEN;
 	},
 
-	execute: function( instruction, ondone, onstart, onoutput ) {
-		if( this.connected() ) {
-			id = ( ++( this._execid ) ).toString();
-			this._exec[ id ] = {
+	execute: function execute(instruction, ondone, onstart, onoutput) {
+		if (this.connected()) {
+			var id = (++this._execid).toString();
+			this._exec[id] = {
 				onstart: onstart,
 				onoutput: onoutput,
-				ondone: ondone, 
-				output: "", 
+				ondone: ondone,
+				output: "",
 				exitcode: null
 			};
-			msg = "E " + id + " " + instruction;
-			this._socket.send( msg );
+			var msg = "E " + id + " " + instruction;
+			this._socket.send(msg);
 		}
 	},
 
-	getVersion: function( fn ) {
-		this.execute( "Version", function( exec ) {  
-			fn( exec.output.split(' ')[1] );
-		} );
+	getVersion: function getVersion(fn) {
+		this.execute("Version", function (exec) {
+			fn(exec.output.split(' ')[1]);
+		});
 	},
 
-	showWindow: function() {
-		this.execute( "Show Window" );
+	showWindow: function showWindow() {
+		this.execute("Show Window");
 	},
 
-	hideWindow: function() {
-		this.execute( "Hide Window" );
+	hideWindow: function hideWindow() {
+		this.execute("Hide Window");
 	},
 
-	resetSystem: function() {
-		this.execute( "Reset System" );
+	resetSystem: function resetSystem() {
+		this.execute("Reset System");
 	},
 
-	setConfig: function( fn ) {
-		this.execute( "Set Config", fn );
+	setConfig: function setConfig(fn) {
+		this.execute("Set Config", fn);
 	},
 
-	start: function() { 
-		this.execute( "Start" );
+	start: function start() {
+		this.execute("Start");
 	},
 
-	stop: function() {
-		this.execute( "Stop" );
+	stop: function stop() {
+		this.execute("Stop");
 	},
 
-	kill: function() {
-		this.execute( "Exit" );
+	kill: function kill() {
+		this.execute("Exit");
 	}
-}
-
+};
 
 // BCI2K.DataConnection
 // ...
 
-BCI2K.DataConnection = function() {
+BCI2K.DataConnection = function () {
 	this._socket = null;
 
-	this.onconnect = function( event ) {};
-	this.onGenericSignal = function( data ) {};
-	this.onStateVector = function( data ) {};
-	this.onSignalProperties = function( data ) {};
-	this.onStateFormat = function( data ) {};
-	this.ondisconnect = function( event ) {};
+	this.onconnect = function (event) {};
+	this.onGenericSignal = function (data) {};
+	this.onStateVector = function (data) {};
+	this.onSignalProperties = function (data) {};
+	this.onStateFormat = function (data) {};
+	this.ondisconnect = function (event) {};
 
 	this.signalProperties = null;
 	this.stateFormat = null;
 	this.stateVecOrder = null;
-}
+};
 
 BCI2K.DataConnection.prototype = {
 
 	constructor: BCI2K.DataConnection,
 
-	connect: function( address ) {
-		this._socket = new WebSocket( "ws://" + address );
+	connect: function connect(address) {
+		this._socket = new WebSocket("ws://" + address);
 
 		var connection = this;
 
-		this._socket.onopen = function( event ) {
-			connection.onconnect( event );
+		this._socket.onopen = function (event) {
+			connection.onconnect(event);
 		};
 
-		this._socket.onmessage = function( event ) {
+		this._socket.onmessage = function (event) {
 			var messageInterpreter = new FileReader();
-			messageInterpreter.onload = function( e ) {
-				connection._decodeMessage( e.target.result );
-			}
-			messageInterpreter.readAsArrayBuffer( event.data );
+			messageInterpreter.onload = function (e) {
+				connection._decodeMessage(e.target.result);
+			};
+			messageInterpreter.readAsArrayBuffer(event.data);
 		};
 
-		this._socket.onclose = function( event ) {
-			connection.ondisconnect( event );
+		this._socket.onclose = function (event) {
+			connection.ondisconnect(event);
 		};
 	},
 
-	connected: function() {
-		return ( this._socket != null && this._socket.readyState == WebSocket.OPEN );
+	connected: function connected() {
+		return this._socket != null && this._socket.readyState == WebSocket.OPEN;
 	},
 
 	SignalType: {
-		INT16 : 0,
-		FLOAT24 : 1,
-		FLOAT32 : 2,
-		INT32 : 3
+		INT16: 0,
+		FLOAT24: 1,
+		FLOAT32: 2,
+		INT32: 3
 	},
 
-	_decodeMessage: function( data ) {
-		var dv = new BCI2K.DataView( data, 0, data.byteLength, true );
+	_decodeMessage: function _decodeMessage(data) {
+		var dv = new BCI2K.DataView(data, 0, data.byteLength, true);
 
 		var descriptor = dv.getUint8();
-		switch( descriptor ) {
+		switch (descriptor) {
 			case 3:
-				this._decodeStateFormat( dv ); break;
+				this._decodeStateFormat(dv);break;
 			case 4:
 				var supplement = dv.getUint8();
-				switch( supplement ) {
+				switch (supplement) {
 					case 1:
-						this._decodeGenericSignal( dv ); break;
+						this._decodeGenericSignal(dv);break;
 					case 3:
-						this._decodeSignalProperties( dv ); break;
+						this._decodeSignalProperties(dv);break;
 					default:
-						console.error( "Unsupported Supplement: " + supplement.toString() );
+						console.error("Unsupported Supplement: " + supplement.toString());
 						break;
-				} break;
+				}break;
 			case 5:
-				this._decodeStateVector( dv ); break;
+				this._decodeStateVector(dv);break;
 			default:
-				console.error( "Unsupported Descriptor: " + descriptor.toString() ); break;
+				console.error("Unsupported Descriptor: " + descriptor.toString());break;
 		}
 	},
 
-	_decodePhysicalUnits: function( unitstr ) {
+	_decodePhysicalUnits: function _decodePhysicalUnits(unitstr) {
 		var units = {};
-		var unit = unitstr.split( ' ' );
+		var unit = unitstr.split(' ');
 		var idx = 0;
-		units.offset = Number( unit[ idx++ ] );
-		units.gain = Number( unit[ idx++ ] );
-		units.symbol = unit[ idx++ ];
-		units.vmin = Number( unit[ idx++ ] );
-		units.vmax = Number( unit[ idx++ ] );
+		units.offset = Number(unit[idx++]);
+		units.gain = Number(unit[idx++]);
+		units.symbol = unit[idx++];
+		units.vmin = Number(unit[idx++]);
+		units.vmax = Number(unit[idx++]);
 		return units;
 	},
 
-	_decodeSignalProperties: function( dv ) {
+	_decodeSignalProperties: function _decodeSignalProperties(dv) {
 		var propstr = dv.getNullTermString();
 
 		// Bugfix: There seems to not always be spaces after '{' characters
-		propstr = propstr.replace( /{/g, ' { ' );
-		propstr = propstr.replace( /}/g, ' } ' ); 
+		propstr = propstr.replace(/{/g, ' { ');
+		propstr = propstr.replace(/}/g, ' } ');
 
 		this.signalProperties = {};
-		var prop_tokens = propstr.split( ' ' );
+		var prop_tokens = propstr.split(' ');
 		var props = [];
-		for( var i = 0; i < prop_tokens.length; i++ ) {
-			if( $.trim( prop_tokens[i] ) == "" ) continue;
-			props.push( prop_tokens[i] );
+		for (var i = 0; i < prop_tokens.length; i++) {
+			if ($.trim(prop_tokens[i]) == "") continue;
+			props.push(prop_tokens[i]);
 		}
 
 		var pidx = 0;
-		this.signalProperties.name = props[ pidx++ ];
+		this.signalProperties.name = props[pidx++];
 
 		this.signalProperties.channels = [];
-		if( props[ pidx ] == '{' ) {
-			while( props[ ++pidx ] != '}' )
-				this.signalProperties.channels.push( props[ pidx ] );
-			pidx++; // }
+		if (props[pidx] == '{') {
+			while (props[++pidx] != '}') {
+				this.signalProperties.channels.push(props[pidx]);
+			}pidx++; // }
 		} else {
-			var numChannels = parseInt( props[ pidx++ ] );
-			for( var i = 0; i < numChannels; i++ )
-				this.signalProperties.channels.push( ( i + 1 ).toString() );
-		} 
+			var numChannels = parseInt(props[pidx++]);
+			for (var i = 0; i < numChannels; i++) {
+				this.signalProperties.channels.push((i + 1).toString());
+			}
+		}
 
 		this.signalProperties.elements = [];
-		if( props[ pidx ] == '{' ) {
-			while( props[ ++pidx ] != '}' )
-				this.signalProperties.elements.push( props[ pidx ] );
-			pidx++; // }
+		if (props[pidx] == '{') {
+			while (props[++pidx] != '}') {
+				this.signalProperties.elements.push(props[pidx]);
+			}pidx++; // }
 		} else {
-			var numElements = parseInt( props[ pidx++ ] );
-			for( var i = 0; i < numElements; i++ )
-				this.signalProperties.elements.push( ( i + 1 ).toString() );
+			var numElements = parseInt(props[pidx++]);
+			for (var i = 0; i < numElements; i++) {
+				this.signalProperties.elements.push((i + 1).toString());
+			}
 		}
-		
+
 		// Backward Compatibility
 		this.signalProperties.numelements = this.signalProperties.elements.length;
-		this.signalProperties.signaltype = props[ pidx++ ];
-		this.signalProperties.channelunit = this._decodePhysicalUnits(
-			props.slice( pidx, pidx += 5 ).join( ' ' )
-		);
+		this.signalProperties.signaltype = props[pidx++];
+		this.signalProperties.channelunit = this._decodePhysicalUnits(props.slice(pidx, pidx += 5).join(' '));
 
-		this.signalProperties.elementunit = this._decodePhysicalUnits(
-			props.slice( pidx, pidx += 5 ).join( ' ' )
-		);
+		this.signalProperties.elementunit = this._decodePhysicalUnits(props.slice(pidx, pidx += 5).join(' '));
 
 		pidx++; // '{'
 
-		this.signalProperties.valueunits = []
-		for( var i = 0; i < this.signalProperties.channels.length; i++ )
-			this.signalProperties.valueunits.push(
-				this._decodePhysicalUnits( 
-					props.slice( pidx, pidx += 5 ).join( ' ' )
-				) 
-			);
+		this.signalProperties.valueunits = [];
+		for (var i = 0; i < this.signalProperties.channels.length; i++) {
+			this.signalProperties.valueunits.push(this._decodePhysicalUnits(props.slice(pidx, pidx += 5).join(' ')));
+		}pidx++; // '}'
 
-		pidx++; // '}'
-		
-		this.onSignalProperties( this.signalProperties );
+		this.onSignalProperties(this.signalProperties);
 	},
 
-	_decodeStateFormat: function( dv ) {
+	_decodeStateFormat: function _decodeStateFormat(dv) {
 		this.stateFormat = {};
 		var formatStr = dv.getNullTermString();
 
-		var lines = formatStr.split( '\n' );
-		for( var lineIdx = 0; lineIdx < lines.length; lineIdx++ ){
-			if( $.trim( lines[ lineIdx ] ).length == 0 ) continue;
-			var stateline = lines[ lineIdx ].split( ' ' );
+		var lines = formatStr.split('\n');
+		for (var lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+			if ($.trim(lines[lineIdx]).length == 0) continue;
+			var stateline = lines[lineIdx].split(' ');
 			var name = stateline[0];
-			this.stateFormat[ name ] = {};
-			this.stateFormat[ name ].bitWidth = parseInt( stateline[1] );
-			this.stateFormat[ name ].defaultValue = parseInt( stateline[2] );
-			this.stateFormat[ name ].byteLocation = parseInt( stateline[3] );
-			this.stateFormat[ name ].bitLocation = parseInt( stateline[4] );
+			this.stateFormat[name] = {};
+			this.stateFormat[name].bitWidth = parseInt(stateline[1]);
+			this.stateFormat[name].defaultValue = parseInt(stateline[2]);
+			this.stateFormat[name].byteLocation = parseInt(stateline[3]);
+			this.stateFormat[name].bitLocation = parseInt(stateline[4]);
 		}
 
-		var vecOrder = []
-		for( var state in this.stateFormat ) {
-			var loc = this.stateFormat[ state ].byteLocation * 8;
-			loc += this.stateFormat[ state ].bitLocation
-			vecOrder.push( [ state, loc ] );
+		var vecOrder = [];
+		for (var state in this.stateFormat) {
+			var loc = this.stateFormat[state].byteLocation * 8;
+			loc += this.stateFormat[state].bitLocation;
+			vecOrder.push([state, loc]);
 		}
 
 		// Sort by bit location
-		vecOrder.sort( function( a, b ) {
-			return a[1] < b[1] ? -1 : ( a[1] > b[1] ? 1 : 0 );
-		} );
+		vecOrder.sort(function (a, b) {
+			return a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0;
+		});
 
 		// Create a list of ( state, bitwidth ) for decoding state vectors
 		this.stateVecOrder = [];
-		for( var i = 0; i < vecOrder.length; i++ ) {
-			var state = vecOrder[i][0]
-			this.stateVecOrder.push( [ state, this.stateFormat[ state ].bitWidth ] );
-		} 
+		for (var i = 0; i < vecOrder.length; i++) {
+			var state = vecOrder[i][0];
+			this.stateVecOrder.push([state, this.stateFormat[state].bitWidth]);
+		}
 
-		this.onStateFormat( this.stateFormat );
+		this.onStateFormat(this.stateFormat);
 	},
 
-	_decodeGenericSignal: function( dv ) {
+	_decodeGenericSignal: function _decodeGenericSignal(dv) {
 
 		var signalType = dv.getUint8();
-		var nChannels = dv.getLengthField( 2 );
-		var nElements = dv.getLengthField( 2 );
+		var nChannels = dv.getLengthField(2);
+		var nElements = dv.getLengthField(2);
 
 		var signal = [];
-		for( var ch = 0; ch < nChannels; ++ch ) {
-			signal.push( [] );
-			for( var el = 0; el < nElements; ++el ) {
-				switch( signalType ) {
+		for (var ch = 0; ch < nChannels; ++ch) {
+			signal.push([]);
+			for (var el = 0; el < nElements; ++el) {
+				switch (signalType) {
 
 					case this.SignalType.INT16:
-						signal[ ch ].push( dv.getInt16() );
+						signal[ch].push(dv.getInt16());
 						break;
 
 					case this.SignalType.FLOAT32:
-						signal[ ch ].push( dv.getFloat32() );
+						signal[ch].push(dv.getFloat32());
 						break;
 
 					case this.SignalType.INT32:
-						signal[ ch ].push( dv.getInt32() );
+						signal[ch].push(dv.getInt32());
 						break;
 
 					case this.SignalType.FLOAT24:
 						// TODO: Currently Unsupported
-						signal[ ch ].push( 0.0 );
+						signal[ch].push(0.0);
 						break;
 				}
 			}
 		}
 
-		this.onGenericSignal( signal );
+		this.onGenericSignal(signal);
 	},
 
-	_decodeStateVector: function( dv ) {
-		if( this.stateVecOrder == null ) return;
+	_decodeStateVector: function _decodeStateVector(dv) {
+		if (this.stateVecOrder == null) return;
 
 		// Currently, states are maximum 32 bit unsigned integers
 		// BitLocation 0 refers to the least significant bit of a byte in the packet
 		// ByteLocation 0 refers to the first byte in the sequence.
 		// Bits must be populated in increasing significance
 
-		var stateVectorLength = parseInt( dv.getNullTermString() );
-		var numVectors = parseInt( dv.getNullTermString() );
+		var stateVectorLength = parseInt(dv.getNullTermString());
+		var numVectors = parseInt(dv.getNullTermString());
 
 		var vecOff = dv.tell();
 
 		var states = {};
-		for( var state in this.stateFormat )
-			states[ state ] = Array( numVectors ).fill( this.stateFormat[ state ].defaultValue ) ;
-
-		for( var vecIdx = 0; vecIdx < numVectors; vecIdx++ ) {
-			var vec = dv.getBytes( stateVectorLength, dv.tell(), true, false );
+		for (var state in this.stateFormat) {
+			states[state] = Array(numVectors).fill(this.stateFormat[state].defaultValue);
+		}for (var vecIdx = 0; vecIdx < numVectors; vecIdx++) {
+			var vec = dv.getBytes(stateVectorLength, dv.tell(), true, false);
 			var bits = [];
-			for( var byteIdx = 0; byteIdx < vec.length; byteIdx++ ) {
-				bits.push( ( vec[ byteIdx ] & 0x01 ) != 0 ? 1 : 0 );
-				bits.push( ( vec[ byteIdx ] & 0x02 ) != 0 ? 1 : 0 );
-				bits.push( ( vec[ byteIdx ] & 0x04 ) != 0 ? 1 : 0 );
-				bits.push( ( vec[ byteIdx ] & 0x08 ) != 0 ? 1 : 0 );
-				bits.push( ( vec[ byteIdx ] & 0x10 ) != 0 ? 1 : 0 );
-				bits.push( ( vec[ byteIdx ] & 0x20 ) != 0 ? 1 : 0 );
-				bits.push( ( vec[ byteIdx ] & 0x40 ) != 0 ? 1 : 0 );
-				bits.push( ( vec[ byteIdx ] & 0x80 ) != 0 ? 1 : 0 );
+			for (var byteIdx = 0; byteIdx < vec.length; byteIdx++) {
+				bits.push((vec[byteIdx] & 0x01) != 0 ? 1 : 0);
+				bits.push((vec[byteIdx] & 0x02) != 0 ? 1 : 0);
+				bits.push((vec[byteIdx] & 0x04) != 0 ? 1 : 0);
+				bits.push((vec[byteIdx] & 0x08) != 0 ? 1 : 0);
+				bits.push((vec[byteIdx] & 0x10) != 0 ? 1 : 0);
+				bits.push((vec[byteIdx] & 0x20) != 0 ? 1 : 0);
+				bits.push((vec[byteIdx] & 0x40) != 0 ? 1 : 0);
+				bits.push((vec[byteIdx] & 0x80) != 0 ? 1 : 0);
 			}
 
-				for( var stateIdx = 0; stateIdx < this.stateVecOrder.length; stateIdx++ ) {
-				var fmt = this.stateFormat[ this.stateVecOrder[ stateIdx ][ 0 ] ];
+			for (var stateIdx = 0; stateIdx < this.stateVecOrder.length; stateIdx++) {
+				var fmt = this.stateFormat[this.stateVecOrder[stateIdx][0]];
 				var offset = fmt.byteLocation * 8 + fmt.bitLocation;
-				var val = 0; var mask = 0x01;
-				for( var bIdx = 0; bIdx < fmt.bitWidth; bIdx++ ) {
-					if( bits[ offset + bIdx ] ) val = ( val | mask ) >>> 0;
-					mask = ( mask << 1 ) >>> 0;
+				var val = 0;var mask = 0x01;
+				for (var bIdx = 0; bIdx < fmt.bitWidth; bIdx++) {
+					if (bits[offset + bIdx]) val = (val | mask) >>> 0;
+					mask = mask << 1 >>> 0;
 				}
-				states[ this.stateVecOrder[ stateIdx ][0] ][ vecIdx ] = val;
-				}
+				states[this.stateVecOrder[stateIdx][0]][vecIdx] = val;
+			}
 		}
-		this.onStateVector( states );
-	},
-}
-
+		this.onStateVector(states);
+	}
+};
 
 // EXPORT MODULE
 
 module.exports = BCI2K;
 
-
 //
+
 },{"jdataview":4}],4:[function(require,module,exports){
 (function (Buffer){
 !function(factory) {

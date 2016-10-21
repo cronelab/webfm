@@ -137,6 +137,9 @@ fmui.InterfaceManager.prototype = {
         $( '.fm-gain-down' ).on( 'click', function() {
             manager.gainDown();
         } );
+        $( '.fm-show-options' ).on( 'click', function() {
+            manager.showOptions();
+        } );
 
         $( '.fm-toggle-fullscreen' ).on( 'click', function() {
             manager.toggleFullscreen()
@@ -218,7 +221,6 @@ fmui.InterfaceManager.prototype = {
     },
 
     toggleFullscreen: function( event ) {
-        console.log( 'Toggling fullscreen.' );
         fullscreen.toggle()
                     .then( function( result ) {
                         if ( fullscreen.is() ) {
@@ -230,6 +232,10 @@ fmui.InterfaceManager.prototype = {
                     .catch( function( reason ) {
                         console.log( 'Could not toggle fullscreen: ' + reason );
                     } );
+    },
+
+    showOptions: function( event ) {
+        $( '#fm-options-modal' ).modal();
     },
 
 

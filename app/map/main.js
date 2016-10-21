@@ -198,13 +198,21 @@ if ( loadMode ) {       // Using data loaded from the hive
 
 // COMMON ROUTINES
 
+// TODO Move into an fmdata.Dataset object ...
+var channelStats = {};
+
 // Property registration
 
 var updateProperties = function( properties ) {
     
     uiManager.showIcon( 'transfer' );
 
-    console.log( 'Updating channel names.' );
+    // Allocate data
+    properties.channels.forEach( function( ch ) {
+        channelStats[ch] = new fmstat.ChannelStat();
+    } );
+
+    // Update GUI
     uiManager.updateChannelNames( properties.channels );
 
     uiManager.hideIcon( 'transfer' );
@@ -226,10 +234,29 @@ var ingestTrial = function( trialData ) {
     uiManager.showIcon( 'working' );
 
     // TODO
-    setTimeout( function() {
-        uiManager.raster.update( trialData );
+    cronelib.forEachAsync( Object.keys( channelStats ), function( ch ) {
+
+        var chValues = trialData[ch];
+        var chBaseline = chValues.slice( 0, 10 );
+
+        channelStats[ch].updateBaseline( chBaseline );
+        channelStats[ch].updateValues( chValues );
+
+    }, {
+        batchSize: 5
+    } ).then( function() {
+
+        // TODO
+        var meanData = {};
+        Object.keys( channelStats ).forEach( function( ch ) {
+            //meanData[ch] = channelStats[ch].meanValues();
+            meanData[ch] = channelStats[ch].baselineNormalizedValues();
+        } )
+        uiManager.raster.update( meanData );
+
         uiManager.hideIcon( 'working' );
-    }, 0 );
+
+    } );
 
 };
 

@@ -11,7 +11,8 @@
 var $ = require( 'jquery' );
 var d3 = require( 'd3' );
 //d3.horizon = require( '../lib/horizon' );
-d3.horizonChart = require( 'd3-horizon-chart' ).horizonChart;
+//d3.horizonChart = require( 'd3-horizon-chart' ).horizonChart;
+d3.horizonChart = require( '../lib/horizon-chart-custom.js' ).default;
 
 // Promise compatibility
 require( 'setimmediate' );
@@ -59,10 +60,10 @@ fmraster.ChannelRaster = function( baseNodeId ) {
     this.chartColorScale        = null;
 
     this.chartMin               = 0.0;      // TODO Expose to manager
-    this.chartMax               = 1200.0;
+    this.chartMax               = 6.0;
 
     // TODO Config
-    this.channelHeight          = 20;
+    this.channelHeight          = 15;
     this.chartMargin = {
         top: 100,
         right: 0,
@@ -145,6 +146,7 @@ fmraster.ChannelRaster.prototype = {
                             .style( 'margin-bottom', function( d, i ) { // TODO Shitty.
                                 return ( i < n - 1 ) ? '0px' : '40px';
                             } )
+                .merge( horizons )
                         .each( function( d, i ) {
                             horizonChart.title( d.channel )
                                         .height( raster.channelHeight )
