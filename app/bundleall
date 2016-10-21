@@ -1,4 +1,4 @@
 #!/bin/sh
 
-browserify ./index/main.js -o ./dist/index.js
-browserify ./map/main.js -o ./dist/map.js
+browserify ./index/main.js -t babelify -o ./dist/index.js
+browserify ./map/main.js -t babelify -o ./dist/map.js
