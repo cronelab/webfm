@@ -28,8 +28,8 @@ BCI2K.DataView.prototype = Object.create( jDataView.prototype );
 
 BCI2K.DataView.prototype.getNullTermString = function() {
 	var val = "";
-	while( this._offset < this.byteLength ) {
-		v = this.getUint8();
+	while ( this._offset < this.byteLength ) {
+		var v = this.getUint8();
 		if( v == 0 ) break;
 		val += String.fromCharCode( v );
 	}
@@ -91,7 +91,7 @@ BCI2K.Connection.prototype = {
 		};
 
 		this._socket.onmessage = function( event ) {
-			arr = event.data.split( ' ' );
+			var arr = event.data.split( ' ' );
 
 			var opcode = arr[0];
 			var id = arr[1];
@@ -171,7 +171,7 @@ BCI2K.Connection.prototype = {
 
 	execute: function( instruction, ondone, onstart, onoutput ) {
 		if( this.connected() ) {
-			id = ( ++( this._execid ) ).toString();
+			var id = ( ++( this._execid ) ).toString();
 			this._exec[ id ] = {
 				onstart: onstart,
 				onoutput: onoutput,
@@ -179,7 +179,7 @@ BCI2K.Connection.prototype = {
 				output: "", 
 				exitcode: null
 			};
-			msg = "E " + id + " " + instruction;
+			var msg = "E " + id + " " + instruction;
 			this._socket.send( msg );
 		}
 	},
