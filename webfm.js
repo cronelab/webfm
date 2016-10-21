@@ -1,61 +1,431 @@
-// Configure loading modules from the lib directory,
-// except for 'app' ones, which are in a sibling
-// directory.
-requirejs.config( {
-    baseUrl: 'lib',
+// ======================================================================== //
+//
+// webfm
+// The WebFM server.
+//
+// ======================================================================== //
 
-    paths: {
-        app:                '../app',
-        jquery:             '../../bower_components/jquery/dist/jquery',
-        jdataview:          '../../bower_components/jdataview/dist/browser/jdataview',
-        //bootstrap:          'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js',
-        materialize:        'https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/js/materialize.min',
 
-        // D3 Stuff
-        d3:                 'https://d3js.org/d3.v3.min',
-        'd3-selection':     'https://d3js.org/d3-selection.v0.6.min',
-        'd3-array':         'https://d3js.org/d3-array.v0.7.min',
-        'd3-collection':    'https://d3js.org/d3-collection.v0.1.min',
-        'd3-color':         'https://d3js.org/d3-color.v0.4.min',
-        'd3-format':        'https://d3js.org/d3-format.v0.5.min',
-        'd3-interpolate':   'https://d3js.org/d3-interpolate.v0.7.min',
-        'd3-time':          'https://d3js.org/d3-time.v0.2.min',
-        'd3-time-format':   'https://d3js.org/d3-time-format.v0.3.min',
-        'd3-scale':         'https://d3js.org/d3-scale.v0.6.min',
-        'd3-axis':          'https://d3js.org/d3-axis.v0.3.min',
-        'd3-queue':         'https://d3js.org/d3-queue.v2.min',
-        'd3-dispatch':      'https://d3js.org/d3-dispatch.v0.4.min',
-        'd3-dsv':           'https://d3js.org/d3-dsv.v0.3.min',
-        'd3-request':       'https://d3js.org/d3-request.v0.4.min',
-        'd3-horizon-chart': 'https://npmcdn.com/d3-horizon-chart/build/d3-horizon-chart.min',
-        
-        // Local stuff
-        // bci2kconfig:        '../../system/bci2kconfig.js'
-    },
+// Requires
 
-    shim: {
-        //bootstrap: { deps: ['jquery'] },
-        materialize: { deps: ['jquery'] },
+var fs          = require( 'fs' );
+var path        = require( 'path' );
 
-        /*
-        d3_selection: { exports: 'd3_selection' },
-        d3_array: { exports: 'd3_array' },
-        d3_ollection: { exports: 'd3_collection' },
-        d3_color: { exports: 'd3_color' },
-        d3_format: { exports: 'd3_format' },
-        d3_interpolate: { exports: 'd3_interpolate' },
-        d3_color: { exports: 'd3_color' },
-        */
+var optimist    = require( 'optimist' )
+                    .usage( 'Web-based functional map server.\nUsage: $0' )
+                    .options( 'p', {
+                        alias: 'port',
+                        describe: 'TCP port to host server on',
+                        default: 54321
+                    } )
+                    .options( 'r', {
+                        alias: 'root',
+                        describe: 'Directory to use as web root',
+                        default: './public'
+                    } )
+                    .options( 'd', {
+                        alias: 'data',
+                        describe: 'Directory for data hive',
+                        default: './data'
+                    } )
+                    .options( 'a', {
+                        alias: 'app',
+                        describe: 'Directory for application scripts',
+                        default: './app'
+                    } )
+                    .options( 'h', {
+                        alias: 'help',
+                        describe: 'Show this help message',
+                        boolean: true,
+                        default: false
+                    } );
+var argv        = optimist.argv;
 
-        'd3-horizon-chart': {
-            deps: ['d3', 'd3-selection', 'd3-array', 'd3-collection',
-                'd3-color', 'd3-format', 'd3-interpolate', 'd3-time',
-                'd3-time-format', 'd3-scale', 'd3-axis', 'd3-queue',
-                'd3-dispatch', 'd3-dsv', 'd3-request' ],
-            exports: 'd3_horizon_chart'
+var express     = require( 'express' );
+var async       = require( 'async' );
+var jsonfile    = require( 'jsonfile' );
+
+
+// Process argv
+
+var port    = argv.port;
+
+var rootDir = path.resolve( argv.root );
+var dataDir = path.resolve( argv.data );
+var appDir  = path.resolve( argv.app );
+
+
+// Set up server
+
+var app = express();
+
+// TODO Iffy re. html pages?
+app.use( '/', express.static( rootDir ) );
+
+var serveConfig = function( configName ) {
+    return function( req, res ) {
+        res.sendFile( path.join( appDir, 'config', configName ) );
+    }
+}
+
+
+// Index routes
+
+var serveIndex = function( req, res ) {
+    res.sendFile( path.join( rootDir, 'index.html' ) );
+}
+
+// TODO For debugging
+var onlineConfigName = 'fmonline_lennon.json'; // 'fmonline_griff.json';   // 'fmonline.json'
+
+app.get( '/index/config/online',  serveConfig( onlineConfigName ) );
+
+app.get( '/', serveIndex );
+app.get( '/index', serveIndex );
+
+
+// Functional map routes
+
+var serveMap = function( req, res ) {
+    res.sendFile( path.join( rootDir, 'map.html' ) );
+}
+
+
+// TODO Bad practice to have map.html just figure it out from path
+// Should use template engine. This is janky af.
+
+app.get( '/map/config/ui',      serveConfig( 'fmui.json' ) );
+app.get( '/map/config/online',  serveConfig( onlineConfigName ) );
+
+// Generator
+app.get( '/map', serveMap );
+app.get( '/map/generate', serveMap );
+
+// Load
+app.get( '/map/:subject/:record', serveMap );
+
+// Online
+app.get( '/map/online', serveMap );
+app.get( '/map/online/:subject', serveMap );            // TODO Necessary?
+app.get( '/map/online/:subject/:record', serveMap );    // We get this from
+                                                        // bci2k.js ...
+
+
+// Data api
+
+// TODO Make it so there can be multiple
+var mapExtension        = '.fm';
+var bundleExtension     = '.fmbundle';
+var metadataFilename    = '.metadata';
+
+var dataPath = function( subject, record, dataset, kind ) {
+    if ( !record ) {
+        return path.join( dataDir, subject );
+    }
+}
+
+var getSubjectMetadata = function( subject, cb ) {
+
+    var metaPath = path.join( dataDir, subject, '.metadata' );
+
+    // Try to open and parse the metadata file
+    jsonfile.readFile( metaPath, function( err, metadata ) {
+        if ( err ) {
+            cb( err );
+            return;
+        }
+        cb( null, metadata );
+        return;
+    } );
+
+}
+
+var checkSubject = function( subject, cb ) {
+    
+    var checkPath = path.join( dataDir, subject );
+
+    fs.stat( checkPath, function( err, stats ) {
+        if ( err ) {
+            // TODO We probably care about the details of the error, but
+            // for now let's assume it isn't a subject.
+            cb( null, false );
+            return;
+        }
+        // Subject name should be a directory
+        // TODO Should check a little more? Maybe for members?
+        cb( null, stats.isDirectory() );
+    } );
+
+}
+
+var checkRecord = function( subject, record, cb ) {
+
+    var checker = function( checkPath, checkKind ) {
+        return function( innerCB ) {
+            fs.stat( checkPath, function( err, stats ) {
+                if ( err ) {
+                    // We don't want to kick back an error, because that would
+                    // short-circuit our parallel call
+                    innerCB( null, false );
+                    return;
+                }
+                // Check that the thing we found is the kind of thing we want
+                innerCB( null, checkKind == 'bundle' ? stats.isDirectory() : stats.isFile() );
+            } );
         }
     }
+
+    var checkOrder = {
+        'map':      checker( path.join( dataDir, subject, record + mapExtension ), 'map' ),
+        'bundle':   checker( path.join( dataDir, subject, record + bundleExtension ), 'bundle' )
+    };
+
+    async.parallel( checkOrder, function( err, results ) {
+        // This should ostensibly never happen.
+        if ( err ) {
+            cb( err );
+            return;
+        }
+        // TODO More elegantly
+        if ( results.map && results.bundle ) {
+            console.log( 'WARNING Both map and bundle exist with same name. Bundle takes precedence.' );
+        }
+        // WOMP WOMP
+        if ( (!results.map) && (!results.bundle) ) {
+            cb( null, 'none' );
+            return;
+        }
+        // Bundle
+        if ( results.bundle ) {
+            cb( null, 'bundle' );
+            return;
+        }
+        // Must be a map
+        cb( null, 'map' );
+    } );
+
+}
+
+// Get info on particular record.
+app.get( '/api/info/:subject/:record', function( req, res ) {
+
+    var errOut = function( code, msg ) {
+        console.log( msg );
+        res.status( code ).send( msg );
+    }
+
+    var subject     = req.params.subject;
+    var record      = req.params.record;
+
+    // Check and see what kind of thing we are
+    checkRecord( subject, record, function( err, recordType ) {
+        if ( err ) {    // Couldn't determine for some reason
+            errOut( 500, "Couldn't determine record type: /" + subject + "/" + record );
+            return;
+        }
+
+        if ( recordType == 'none' ) {   // Not found
+            errOut( 404, "Record not found: /" + subject + "/" + record );
+            return;
+        }
+
+        var recordInfo = {
+            'subject'   : subject,
+            'record'    : record,
+            'isBundle'  : recordType == 'bundle',
+            'uri'       : path.join( '/', 'api', 'data', subject, record )
+        };
+
+        res.json( recordInfo );
+
+        // TODO This should be exhaustive ... Right?
+    } );
+
 } );
 
-// Start loading the main app file.
-requirejs( ['app/main'] );
+// Get list of subjects
+app.get( '/api/list', function( req, res ) {
+
+    var errOut = function( code, msg ) {
+        console.log( msg );
+        res.status( code ).send( msg );
+    }
+
+    // Get all members of the data directory
+    fs.readdir( dataDir, function( err, entries ) {
+
+        if ( err ) {
+            errOut( 500, 'Could not read data directory contents: ' + JSON.stringify( err ) );
+            return;
+        }
+
+        // Oh my god I'm currying.
+        var checkerForEntry = function( entry ) {
+            return function( cb ) {
+                checkSubject( entry, cb );
+            };
+        }
+
+        async.parallel( entries.map( checkerForEntry ), function( err, results ) {
+
+            if ( err ) {
+                // TODO This does die if an error is thrown, but checkSubject
+                // doesn't so we cool. Probably.
+                errOut( 500, 'Unable to obtain subject list: ' + JSON.stringify( err ) );
+                return;
+            }
+
+            // Pull out only the entries that passed checkSubject
+            var goodEntries = entries.filter( function( e, ie ) {
+                return results[ie];
+            } );
+
+            // It's away!
+            res.status( 200 ).json( goodEntries );
+
+        } );
+
+    } );
+
+} );
+
+// Get list of records for subject
+app.get( '/api/list/:subject', function( req, res ) {
+
+    var errOut = function( code, msg ) {
+        console.log( msg );
+        res.status( code ).send( msg );
+    }
+
+    var subject     = req.params.subject;
+    var subjectDir  = path.join( dataDir, subject );
+
+    // Get all members of the subject's directory
+    fs.readdir( subjectDir, function( err, entries ) {
+
+        if ( err ) {
+            errOut( 500, 'Could not read data directory for subject ' + subject + ': ' + JSON.stringify( err ) );
+            return;
+        }
+
+        // Curry +
+        var checkerForEntry = function( entry ) {
+            // Record name should be before the '.'
+            var record = entry.split( '.' )[0];
+            return function( cb ) {
+                checkRecord( subject, record, cb );
+            };
+        }
+
+        async.parallel( entries.map( checkerForEntry ), function( err, results ) {
+
+            if ( err ) {
+                // TODO This does die if an error is thrown, but checkSubject
+                // doesn't so we cool. Probably.
+                errOut( 500, 'Unable to obtain record list: ' + JSON.stringify( err ) );
+                return;
+            }
+
+            // Pull out only the entries that passed checkSubject
+            var goodEntries = entries.filter( function( e, ie ) {
+                return !( results[ie] == 'none' );
+            } );
+
+            // Entries are filenames, so find out just their record names
+            var goodRecords = goodEntries.map( function( e ) {
+                return e.split( '.' )[0];
+            } );
+
+            // It's away!
+            res.status( 200 ).json( goodRecords );
+
+        } );
+
+    } );
+
+} );
+
+// Get subject brain image data from .metadata
+app.get( '/api/brain/:subject', function( req, res ) {
+
+    var errOut = function( code, msg ) {
+        console.log( msg );
+        res.status( code ).send( msg );
+    }
+
+    var subject = req.params.subject;
+
+    // First check if subject exists
+    checkSubject( subject, function( err, isSubject ) {
+        
+        if ( err ) {
+            // Based on how checkSubject is defined, this shouldn't happen
+            errOut( 500, 'Error determining if ' + subject + ' is a subject: ' + JSON.stringify( err ) );
+            return;
+        }
+
+        if ( !isSubject ) {
+            // Not a subject
+            errOut( 404, 'Subject ' + subject + ' not found.' );
+            return;
+        }
+
+        // We know it's a valid subject, so check if we've got metadata
+        getSubjectMetadata( subject, function( err, metadata ) {
+
+            if ( err ) {
+                // TODO Be more granular with error codes based on err
+                errOut( 500, 'Error loading metadata for ' + subject + ': ' + JSON.stringify( err ) );
+                return;
+            }
+
+            // We've got metadata, so check that we've got a brain image
+            if ( metadata.brainImage === undefined ) {
+                // TODO Better error code for this?
+                errOut( 404, 'Brain image not specified for subject ' + subject );
+                return;
+            }
+
+            res.status( 200 ).send( metadata.brainImage );
+
+        } );
+
+    } );
+
+} );
+
+// Get list of datasets in a specific record
+app.get( '/api/list/:subject/:record', function( req, res ) {
+
+    // TODO ...
+
+} );
+
+// Get entire record
+app.get( '/api/data/:subject/:record', function( req, res ) {
+
+    // TODO ...
+
+} );
+
+// Get entire dataset, if record is a bundle
+app.get( '/api/data/:subject/:record/:dataset', function( req, res ) {
+
+    // TODO ...
+
+} );
+
+
+
+// 
+
+
+
+// GO!
+
+app.listen( argv.port, function() {
+    console.log( "Serving " + rootDir + " on " + argv.port + ":tcp" );
+} );
+
+
+//
