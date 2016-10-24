@@ -56,10 +56,10 @@
 
         <ul class="nav navbar-nav navbar-right">
           <li class="fm-working-icon">
-            <a class="glyphicon-button" href="#"><span class="glyphicon glyphicon-refresh"></span></a>
+            <a class="glyphicon-button" href="#"><span class="glyphicon glyphicon-hourglass"></span></a>
           </li>
           <li class="fm-transfer-icon">
-            <a class="glyphicon-button" href="#"><span class="glyphicon glyphicon-download-alt"></span></a>
+            <a class="glyphicon-button" href="#"><span class="glyphicon glyphicon-transfer"></span></a>
           </li>
           <li class="fm-toggle-fullscreen">
             <a class="glyphicon-button" href="#"><span class="glyphicon glyphicon-fullscreen"></span></a>
@@ -160,20 +160,124 @@
 
   <!-- Modals -->
 
-  <div class="modal fade" id="fm-options-modal" tabindex="-1" role="dialog" aria-labelledby="fmOptionsModal">
-    <div class="modal-dialog" role="document">
+  <div id="fm-options-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="fmOptionsModal">
+    <div id="fm-options-modal-dialog" class="modal-dialog modal-lg" role="document">
       <div class="modal-content">
+
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          <h4 class="modal-title" id="fmOptionsModal">Tools &amp; Options</h4>
+          <h4 class="modal-title" id="fmOptionsModal">Options, Tools, &amp; Goodies</h4>
         </div>
+
         <div class="modal-body">
-          <p>Content goes here.</p>
+
+          <div class="row">
+
+            <div class="col-sm-3">
+
+              <div class="fm-options-tab-list list-group">
+                <a href="#fm-options-content-options" class="list-group-item active">
+                  <span class="glyphicon glyphicon-wrench"></span>&emsp;Options
+                </a>
+                <a href="#fm-options-content-scope" class="list-group-item">
+                  <span class="glyphicon glyphicon-eye-open"></span>&emsp;Scope
+                </a>
+                <a href="#" class="list-group-item">
+                  <span class="glyphicon glyphicon-cloud-upload"></span>&emsp;Save
+                </a>
+                <a href="#" class="list-group-item">
+                  <span class="glyphicon glyphicon-console"></span>&emsp;Dev
+                </a>
+                <a href="#" class="list-group-item">
+                  <span class="glyphicon glyphicon-sunglasses"></span>&emsp;About
+                </a>
+              </div>
+
+            </div>
+
+            <div class="col-sm-9">
+
+              <div class="tab-content">
+
+                <div id="fm-options-content-options" role="tabpanel" class="tab-pane active">
+
+                  <h3 style="margin-top: 6px;">Event Triggers</h3>
+                  <p>
+                    Set options relating to how events are triggered from the received data. When using precision timing, you can use the <strong><span class="glyphicon glyphicon-eye-open"></span> Scope</strong> tool to identify reasonable threshold values.
+                  </p>
+
+                  <h4>Stimulus</h4>
+
+                  <form class="form-horizontal">
+                    <div class="form-group">
+                      <label for="fm-option-stim-channel" class="col-md-2 col-sm-3 control-label">Channel</label>
+                      <div class="col-md-3 col-sm-9">
+                        <input type="text" class="form-control" id="fm-option-stim-channel" placeholder="ainp1">
+                      </div>
+                      <label for="fm-option-stim-off" class="col-md-1 col-sm-4 control-label">Off</label>
+                      <div class="col-md-2 col-sm-3">
+                        <input type="text" class="form-control" id="fm-option-stim-off" placeholder="0">
+                      </div>
+                      <label for="fm-option-stim-on" class="col-md-1 col-sm-2 control-label">On</label>
+                      <div class="col-md-2 col-sm-3">
+                        <input type="text" class="form-control" id="fm-option-stim-on" placeholder="65355">
+                      </div>
+                    </div>
+                  </form>
+
+                  <h4>Response</h4>
+
+                  <form class="form-horizontal">
+                    <div class="form-group">
+                      <label for="fm-option-resp-channel" class="col-md-2 col-sm-3 control-label">Channel</label>
+                      <div class="col-md-3 col-sm-9">
+                        <input type="text" class="form-control" id="fm-option-resp-channel" placeholder="ainp2">
+                      </div>
+                      <label for="fm-option-resp-off" class="col-md-1 col-sm-4 control-label">Off</label>
+                      <div class="col-md-2 col-sm-3">
+                        <input type="text" class="form-control" id="fm-option-resp-off" placeholder="0">
+                      </div>
+                      <label for="fm-option-resp-on" class="col-md-1 col-sm-2 control-label">On</label>
+                      <div class="col-md-2 col-sm-3">
+                        <input type="text" class="form-control" id="fm-option-resp-on" placeholder="65355">
+                      </div>
+                    </div>
+                  </form>
+
+                  <h3>Another Heading</h3>
+                  <p>
+                    Lorem ipsum sid et dolor.
+                  </p>
+
+                </div> <!-- tabpanel (options) -->
+
+                <div id="fm-options-content-scope" role="tabpanel" class="tab-pane">
+
+                  <form class="form-horizontal">
+                    <div class="form-group">
+                      <label for="fm-option-scope-channel" class="col-md-2 col-sm-3 control-label">Channel</label>
+                      <div class="col-md-3 col-sm-9">
+                        <input type="text" class="form-control" id="fm-option-scope-channel" placeholder="ainp1">
+                      </div>
+                    </div>
+                  </form>
+
+                  <div id="scope"></div>
+
+                </div> <!-- tabpanel (scope) -->
+
+              </div> <!-- tab-content -->
+
+            </div>
+
+          </div>
+
         </div>
+
         <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary">Save changes</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal">Done</button>
         </div>
+
       </div>
     </div>
   </div>

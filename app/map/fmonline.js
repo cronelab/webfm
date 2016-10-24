@@ -57,6 +57,7 @@ fmonline.OnlineDataSource = function() {
     // Event callbacks
     this.onproperties           = function( properties ) {};
 
+    this.onRawSignal            = function( rawSignal ) {};
     this.onStartTrial           = function() {};
     this.ontrial                = function( trialData ) {};
 
@@ -72,6 +73,9 @@ fmonline.OnlineDataSource = function() {
     this._bciRunning = false;
 
     this._dataFormatter = new fmonline.DataFormatter();
+    this._dataFormatter.onSourceSignal = function( rawSignal ) {
+        manager.onRawSignal( rawSignal );
+    };
     this._dataFormatter.ontrial = function( trialData ) {
         manager.ontrial( trialData );
     };
@@ -364,11 +368,12 @@ fmonline.DataFormatter = function() {
     this.trialEndBlockNumber    = null;
 
     // Events
-    this.onStartTrial = function() {};
-    this.ontrial = function( trialData ) {};
+    this.onSourceSignal         = function( rawData ) {};
+    this.onStartTrial           = function() {};
+    this.ontrial                = function( trialData ) {};
 
-    this.onSourceProperties = function( properties ) {};
-    this.onFeatureProperties = function( properties ) {};
+    this.onSourceProperties     = function( properties ) {};
+    this.onFeatureProperties    = function( properties ) {};
 
 };
 
@@ -569,6 +574,9 @@ fmonline.DataFormatter.prototype = {
 
         // TODO Buffer precision timing channels
 
+        // TODO Do more intelligently
+        this.onSourceSignal( this._formatSourceData( signal ) );
+
     },
 
     _processFeatureSignal: function( signal ) {
@@ -668,14 +676,22 @@ fmonline.DataFormatter.prototype = {
 
         this.trialEndBlockNumber = null;
 
-        this.ontrial( this._formatTrialData( trialData ) );
+        this.ontrial( this._formatFeatureData( trialData ) );
 
     },
 
-    _formatTrialData: function( trialData ) {
+    _formatFeatureData: function( trialData ) {
         // Convert a channel by time array to an object
         return this.featureChannels.reduce( function( obj, ch, i ) {
             obj[ch] = trialData[i];
+            return obj;
+        }, {} );
+    },
+
+    _formatSourceData: function( sourceData ) {
+        // Convert a channel by time array to an object
+        return this.sourceChannels.reduce( function( obj, ch, i ) {
+            obj[ch] = sourceData[i];
             return obj;
         }, {} );
     }

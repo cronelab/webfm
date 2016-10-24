@@ -120,6 +120,12 @@ code {
     }
 }
 
+
+#scope {
+  height: 350px;
+}
+
+
 /* D3 CSS
 -------------------------------------------------- */
 .fm-horizon {
@@ -157,6 +163,12 @@ code {
 
 .fm-horizon .value {
   right: 0;
+}
+
+.fm-scope-line {
+  fill: none;
+  stroke: black;
+  stroke-width: 1.5px;
 }
 
 

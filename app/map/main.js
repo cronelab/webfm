@@ -98,6 +98,9 @@ if ( onlineMode ) {     // Using BCI2000Web over the net
     dataSource.ontrial = function( trialData ) {
         ingestTrial( trialData );
     };
+    dataSource.onRawSignal = function( rawSignal ) {
+        ingestSignal( rawSignal );
+    };
 
     dataSource.loadConfig( path.join( configPath, 'online' ) )
                 .then( function() {
@@ -219,11 +222,20 @@ var updateProperties = function( properties ) {
 
 };
 
-// Trial ingestion
+// Data ingestion
+
+var ingestSignal = function( signal ) {
+
+    // Update 
+    uiManager.scope.update( signal );
+
+};
 
 var startTrial = function() {
+
     uiManager.showIcon( 'transfer' );
-}
+
+};
 
 var ingestTrial = function( trialData ) {
     

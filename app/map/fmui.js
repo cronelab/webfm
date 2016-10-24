@@ -10,6 +10,11 @@
 
 var $           = require( 'jquery' );
 
+// Hacky as Hell way to get browserify to work
+window.$ = window.jQuery = $;   // Bootstrap needs $ in global namespace
+require( 'bootstrap' );
+$.noConflict( true );           // Clean up global namespace afterwards
+
 require( 'setimmediate' );                          // Needed to fix promise
                                                     // polyfill on non-IE
 var Promise     = require( 'promise-polyfill' );    // Needed for IE Promise
@@ -20,6 +25,12 @@ var fullscreen  = require( '../lib/fullscreen' );
 
 var fmbrain     = require( './fmbrain' );
 var fmraster    = require( './fmraster' );
+var fmscope     = require( './fmscope' );
+
+
+// GLOBALS
+
+var ENTER_KEY   = 13;   // TODO Should probably go in config
 
 
 // MODULE OBJECT
@@ -39,6 +50,8 @@ fmui.InterfaceManager = function() {
     ];
 
     this.raster = new fmraster.ChannelRaster( '#fm' );
+
+    this.scope = new fmscope.ChannelScope( '#scope' );
 
 };
 
@@ -100,10 +113,16 @@ fmui.InterfaceManager.prototype = {
 
         this.resizeFM();
         this.rewireButtons();
+        this.rewireForms();
 
         this.icons.forEach( function( icon ) {
             manager.hideIcon( icon );
         } );
+
+        // TODO Get this to work
+        //this.raster.setup();
+
+        //this.scope.setup();
 
     },
 
@@ -125,25 +144,49 @@ fmui.InterfaceManager.prototype = {
 
         var manager = this;
 
-        $( '.fm-zoom-in' ).on( 'click', function() {
-            manager.zoomIn();
+        $( '.fm-zoom-in' ).on( 'click', function( event ) {
+            manager.zoomIn( event );
         } );
-        $( '.fm-zoom-out' ).on( 'click', function() {
-            manager.zoomOut();
+        $( '.fm-zoom-out' ).on( 'click', function( event ) {
+            manager.zoomOut( event );
         } );
-        $( '.fm-gain-up' ).on( 'click', function() {
-            manager.gainUp();
+        $( '.fm-gain-up' ).on( 'click', function( event ) {
+            manager.gainUp( event );
         } );
-        $( '.fm-gain-down' ).on( 'click', function() {
-            manager.gainDown();
-        } );
-        $( '.fm-show-options' ).on( 'click', function() {
-            manager.showOptions();
+        $( '.fm-gain-down' ).on( 'click', function( event ) {
+            manager.gainDown( event );
         } );
 
-        $( '.fm-toggle-fullscreen' ).on( 'click', function() {
-            manager.toggleFullscreen()
+        $( '.fm-toggle-fullscreen' ).on( 'click', function( event ) {
+            manager.toggleFullscreen( event );
         } );
+
+        $( '.fm-show-options' ).on( 'click', function( event ) {
+            manager.showOptions( event );
+        } );
+        $( '.fm-options-tab-list a' ).on( 'click', function( event ) {
+            // Prevent auto-triggering
+            event.preventDefault();
+
+            manager.showOptionsTab( this, event );
+        } );
+
+    },
+
+    rewireForms: function() {
+
+        var manager = this;     // Capture this
+
+        // TODO Use classes?
+
+        // TODO Elegant way to gate by enter key?
+        $( '#fm-option-scope-channel' ).on( 'keypress', function ( event ) {
+            var key = event.which;
+            if ( key == ENTER_KEY ) {
+                // Trigger scoping
+                manager.scope.start( $( '#fm-option-scope-channel' ).val() );
+            }
+        } );   
 
     },
 
@@ -235,7 +278,54 @@ fmui.InterfaceManager.prototype = {
     },
 
     showOptions: function( event ) {
-        $( '#fm-options-modal' ).modal();
+        $( '#fm-options-modal' ).modal( 'show' );
+    },
+
+    showOptionsTab: function( caller, event ) {
+
+        // Show the caller's tab
+        $( caller ).tab( 'show' );
+
+        // Deactivate the tab list
+        $( '.fm-options-tab-list .list-group-item' ).removeClass( 'active' );
+
+        // TODO Get Bootstrap events for tab show / hide to work
+        // Selected tab is last word of hash
+        var selectedTab = caller.hash.split( '-' ).pop();
+        var scopeChannel = $( '#fm-option-scope-channel' ).val();
+
+        if ( selectedTab == 'scope' ) {
+            this.scope.setup();     // TODO Necessary?
+            this.scope.start( scopeChannel ? scopeChannel : undefined );
+        } else {
+            this.scope.stop();
+        }
+
+        // Activate the caller
+        // TODO Deactivation is with class behavior, but this is specific instance
+        // Could cause de-synch behavior if multiple instances of class
+        $( caller ).addClass( 'active' );
+
+    },
+
+    setModalSize: function( size, event ) {
+
+        console.log( 'Changing size to ' + size );
+
+        if ( size == 'lg' ) {
+            $( '#fm-options-modal-dialog' ).removeClass( 'modal-sm' )
+                                            .addClass( 'modal-lg' );
+            return;
+        }
+
+        if ( size == 'sm' ) {
+            $( '#fm-options-modal-dialog' ).removeClass( 'modal-lg' )
+                                            .addClass( 'modal-sm' );
+            return;
+        }
+
+        $( '#fm-options-modal-dialog' ).removeClass( 'modal-lg modal-sm' );
+        return;
     },
 
 
@@ -261,7 +351,7 @@ fmui.InterfaceManager.prototype = {
 
         cronelib.debounce( function() {
             manager.raster.update();
-        }, 500 )();   // TODO
+        }, 100 )();   // TODO
 
     }
 
