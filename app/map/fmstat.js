@@ -93,6 +93,9 @@ fmstat.ChannelStat.prototype = {
     },
 
     baselineNormalizedValues: function() {
+
+        // TODO Wrong form of baseline normalization; should use SEM units?
+        // TODO Check limit description in maxcog demo notebook.
         
         var stat = this;
 
@@ -103,11 +106,141 @@ fmstat.ChannelStat.prototype = {
             return ( v.mean - stat.baseline.mean ) / Math.sqrt( stat.baseline.variance );
         } );
 
+    },
+
+    _thresholdedValues: function( threshold ) {
+        return this.baselineNormalizedValues().map( function( v ) {
+            return ( Math.abs( v ) > threshold ) ? v : 0.0;
+        } );
+    },
+
+    pointwiseCorrectedValues: function( alpha, bothWays ) {
+        var twoTailed = true;
+        if ( bothWays !== undefined ) {
+            twoTailed = bothWays;
+        }
+        var threshold = fmstat.ppfn( 1 - ( alpha / ( twoTailed ? 2 : 1 ) ), 0.0, 1.0 );
+
+        return this._thresholdedValues( threshold );
+    },
+
+    bonferroniCorrectedValues: function( alpha, bothWays ) {
+        var twoTailed = true;
+        if ( bothWays !== undefined ) {
+            twoTailed = bothWays;
+        }
+        var threshold = fmstat.ppfn( 1 - ( alpha / ( ( twoTailed ? 2 : 1 ) * this.values.length ) ), 0.0, 1.0 );
+
+        return this._thresholdedValues( threshold );
+    },
+
+    fdrCorrectedValues: function( fdr ) {
+
+        // Consider everything relative to standard normal
+        var normValues = this.baselineNormalizedValues();
+
+        // Compute p-values
+        var pValues = normValues.map( function( v ) {
+            return 2.0 * ( 1.0 - fmstat.cdfn( Math.abs( v ), 0.0, 1.0 ) );
+        } );
+
+        // Sort p-values
+        var sortResult = fmstat.argsort( pValues );
+
+        // Determine the critical sort index k
+        var kGood = -1;
+        var nTests = sortResult.values.length;
+        sortResult.values.every( function( p, k ) {
+            if ( p > (k / nTests) * fdr ) {
+                return false;
+            }
+            kGood = k;
+            return true;
+        } );
+
+        // Determine which sorted hypotheses we should reject
+        var canReject = pValues.map( function( p ) { return false; } );
+        sortResult.indices.every( function( i, k ) {
+            if ( k > kGood ) {      // k = index in sort
+                return false;
+            }
+            canReject[i] = true;    // i = original index
+            return true;
+        } );
+
+        // Return the thresholded values
+        return normValues.map( function( v, i ) {
+            return canReject[i] ? v : 0.0;
+        } );
+
     }
 
 };
 
 // METHODS
+
+fmstat.argsort = function( arr ) {
+
+    var zipped = arr.map( function( d, i ) {
+        return [d, i];
+    } );
+
+    zipped.sort( function( left, right ) {
+        return left[0] < right[0] ? -1 : 1;
+    } );
+
+    var ret = {
+        values: [],
+        indices: []
+    };
+
+    zipped.forEach( function( d ) {
+        ret.values.push( d[0] );
+        ret.indices.push( d[1] );
+    } );
+
+    return ret;
+
+};
+
+// fmstat.cdfn & fmstat.erf courtesy of
+// https://github.com/errcw/gaussian
+
+fmstat.ppfn = function( x, mean, variance ) {
+    return mean - Math.sqrt( 2 * variance ) * fmstat.ierfc(2 * x);
+}
+
+fmstat.cdfn = function( x, mean, variance ) {
+    return 0.5 * fmstat.erfc(-(x - mean) / (Math.sqrt( 2 * variance )));
+}
+
+fmstat.erfc = function(x) {
+    var z = Math.abs(x);
+    var t = 1 / (1 + z / 2);
+    var r = t * Math.exp(-z * z - 1.26551223 + t * (1.00002368 +
+            t * (0.37409196 + t * (0.09678418 + t * (-0.18628806 +
+            t * (0.27886807 + t * (-1.13520398 + t * (1.48851587 +
+            t * (-0.82215223 + t * 0.17087277)))))))))
+    return x >= 0 ? r : 2 - r;
+};
+
+fmstat.ierfc = function( x ) {
+    if (x >= 2) { return -100; }
+    if (x <= 0) { return 100; }
+
+    var xx = (x < 1) ? x : 2 - x;
+    var t = Math.sqrt(-2 * Math.log(xx / 2));
+
+    var r = -0.70711 * ((2.30753 + t * 0.27061) / (1 + t * (0.99229 + t * 0.04481)) - t);
+
+    for (var j = 0; j < 2; j++) {
+        var err = fmstat.erfc(r) - xx;
+        r += err / (1.12837916709551257 * Math.exp(-(r * r)) - r * err);
+    }
+
+    return (x < 1) ? r : -r;
+};
+
 
 // fmstat.randn
 // Box-Muller standard normal samples

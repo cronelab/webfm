@@ -35,11 +35,10 @@ var fmdata      = require( './fmdata' );
 // TODO A little kludgey
 var pathComponents  = window.location.pathname.split( '/' );
 
-var modeString      = pathComponents[2] || 'generate';
+var modeString      = pathComponents[2] || 'online';
 
-var generateMode    = modeString == 'generate';
 var onlineMode      = modeString == 'online';
-var loadMode        = (! (generateMode || onlineMode) );
+var loadMode        = !onlineMode;
 
 var subjectID       = undefined;
 var recordName      = undefined;
@@ -74,10 +73,6 @@ uiManager.loadConfig( path.join( configPath, 'ui' ) )
             .catch( function( reason ) {    // TODO Respond intelligently.
                 console.log( reason );
             } );
-
-// Signal properties
-
-var signalChannels  = null;
 
 
 // DATA SOURCE SET-UP
@@ -143,18 +138,6 @@ var prepareOnlineDataSource = function() {
 
 };
 
-
-if ( generateMode ) {   // Using an offline signal generator
-
-    dataSource = new fmgen.GeneratorDataSource();
-
-    // Wire to common routines
-    dataSource.onproperties     = updateProperties;
-    dataSource.ontrial          = ingestTrial;
-
-    dataSource.start();
-
-}
 
 // Load mode helpers
 
@@ -226,13 +209,14 @@ var updateProperties = function( properties ) {
 
 var ingestSignal = function( signal ) {
 
-    // Update 
+    // Update scope view
     uiManager.scope.update( signal );
 
 };
 
 var startTrial = function() {
 
+    // We're starting to transfer a trial
     uiManager.showIcon( 'transfer' );
 
 };
@@ -262,7 +246,9 @@ var ingestTrial = function( trialData ) {
         var meanData = {};
         Object.keys( channelStats ).forEach( function( ch ) {
             //meanData[ch] = channelStats[ch].meanValues();
-            meanData[ch] = channelStats[ch].baselineNormalizedValues();
+            //meanData[ch] = channelStats[ch].baselineNormalizedValues();
+            //meanData[ch] = channelStats[ch].bonferroniCorrectedValues( 0.05, true );
+            meanData[ch] = channelStats[ch].fdrCorrectedValues( 0.05 );
         } )
         uiManager.raster.update( meanData );
 

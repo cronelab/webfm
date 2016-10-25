@@ -60,7 +60,7 @@ fmraster.ChannelRaster = function( baseNodeId ) {
     this.chartColorScale        = null;
 
     this.chartMin               = 0.0;      // TODO Expose to manager
-    this.chartMax               = 6.0;
+    this.chartMax               = 10.0;
 
     // TODO Config
     this.channelHeight          = 15;

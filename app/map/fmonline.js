@@ -575,7 +575,7 @@ fmonline.DataFormatter.prototype = {
         // TODO Buffer precision timing channels
 
         // TODO Do more intelligently
-        this.onSourceSignal( this._formatSourceData( signal ) );
+        this.onSourceSignal( this._formatSourceData( signal  ));
 
     },
 
@@ -629,12 +629,7 @@ fmonline.DataFormatter.prototype = {
         }
 
         // Changed!
-
         this.previousState = newState;
-
-        // TODO Debug
-        console.log( 'Timing state changed: ' + newState );
-
         this._timingStateChanged( newState );
 
         return true;

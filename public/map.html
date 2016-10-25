@@ -179,16 +179,19 @@
                 <a href="#fm-options-content-options" class="list-group-item active">
                   <span class="glyphicon glyphicon-wrench"></span>&emsp;Options
                 </a>
+                <a href="#fm-options-content-montage" class="list-group-item">
+                  <span class="glyphicon glyphicon-list"></span>&emsp;Montage
+                </a>
                 <a href="#fm-options-content-scope" class="list-group-item">
                   <span class="glyphicon glyphicon-eye-open"></span>&emsp;Scope
                 </a>
-                <a href="#" class="list-group-item">
+                <a class="list-group-item disabled">
                   <span class="glyphicon glyphicon-cloud-upload"></span>&emsp;Save
                 </a>
-                <a href="#" class="list-group-item">
+                <a class="list-group-item disabled">
                   <span class="glyphicon glyphicon-console"></span>&emsp;Dev
                 </a>
-                <a href="#" class="list-group-item">
+                <a href="#fm-options-content-about" class="list-group-item">
                   <span class="glyphicon glyphicon-sunglasses"></span>&emsp;About
                 </a>
               </div>
@@ -201,7 +204,42 @@
 
                 <div id="fm-options-content-options" role="tabpanel" class="tab-pane active">
 
-                  <h3 style="margin-top: 6px;">Event Triggers</h3>
+                  <h3 style="margin-top: 6px;">Timing</h3>
+                  <p>
+                    Lorem ipsum sid et dolor.
+                  </p>
+
+                  <h4>Stimulus</h4>
+
+                  <form class="form-horizontal">
+                    <div class="form-group">
+                      <label class="col-md-3 col-sm-4 control-label">Trial window</label>
+                      <label for="fm-option-stim-trial-start" class="col-md-1 col-sm-1 control-label">Start</label>
+                      <div class="col-md-2 col-sm-3">
+                        <input type="text" class="form-control" id="fm-option-stim-trial-start" placeholder="-1.0">
+                      </div>
+                      <label for="fm-option-stim-trial-end" class="col-md-1 col-sm-1 control-label">End</label>
+                      <div class="col-md-2 col-sm-3">
+                        <input type="text" class="form-control" id="fm-option-stim-trial-end" placeholder="3.0">
+                      </div>
+                    </div>
+                  </form>
+
+                  <form class="form-horizontal">
+                    <div class="form-group">
+                      <label class="col-md-3 col-sm-4 control-label">Baseline</label>
+                      <label for="fm-option-stim-baseline-start" class="col-md-1 col-sm-1 control-label">Start</label>
+                      <div class="col-md-2 col-sm-3">
+                        <input type="text" class="form-control" id="fm-option-stim-baseline-start" placeholder="-1.0">
+                      </div>
+                      <label for="fm-option-stim-baseline-end" class="col-md-1 col-sm-1 control-label">End</label>
+                      <div class="col-md-2 col-sm-3">
+                        <input type="text" class="form-control" id="fm-option-stim-baseline-end" placeholder="-0.2">
+                      </div>
+                    </div>
+                  </form>
+
+                  <h3>Event Triggers</h3>
                   <p>
                     Set options relating to how events are triggered from the received data. When using precision timing, you can use the <strong><span class="glyphicon glyphicon-eye-open"></span> Scope</strong> tool to identify reasonable threshold values.
                   </p>
@@ -211,14 +249,14 @@
                   <form class="form-horizontal">
                     <div class="form-group">
                       <label for="fm-option-stim-channel" class="col-md-2 col-sm-3 control-label">Channel</label>
-                      <div class="col-md-3 col-sm-9">
+                      <div class="col-md-3 col-sm-7">
                         <input type="text" class="form-control" id="fm-option-stim-channel" placeholder="ainp1">
                       </div>
-                      <label for="fm-option-stim-off" class="col-md-1 col-sm-4 control-label">Off</label>
+                      <label for="fm-option-stim-off" class="col-md-1 col-sm-3 control-label">Off</label>
                       <div class="col-md-2 col-sm-3">
                         <input type="text" class="form-control" id="fm-option-stim-off" placeholder="0">
                       </div>
-                      <label for="fm-option-stim-on" class="col-md-1 col-sm-2 control-label">On</label>
+                      <label for="fm-option-stim-on" class="col-md-1 col-sm-1 control-label">On</label>
                       <div class="col-md-2 col-sm-3">
                         <input type="text" class="form-control" id="fm-option-stim-on" placeholder="65355">
                       </div>
@@ -230,34 +268,71 @@
                   <form class="form-horizontal">
                     <div class="form-group">
                       <label for="fm-option-resp-channel" class="col-md-2 col-sm-3 control-label">Channel</label>
-                      <div class="col-md-3 col-sm-9">
+                      <div class="col-md-3 col-sm-7">
                         <input type="text" class="form-control" id="fm-option-resp-channel" placeholder="ainp2">
                       </div>
-                      <label for="fm-option-resp-off" class="col-md-1 col-sm-4 control-label">Off</label>
+                      <label for="fm-option-resp-off" class="col-md-1 col-sm-3 control-label">Off</label>
                       <div class="col-md-2 col-sm-3">
                         <input type="text" class="form-control" id="fm-option-resp-off" placeholder="0">
                       </div>
-                      <label for="fm-option-resp-on" class="col-md-1 col-sm-2 control-label">On</label>
+                      <label for="fm-option-resp-on" class="col-md-1 col-sm-1 control-label">On</label>
                       <div class="col-md-2 col-sm-3">
                         <input type="text" class="form-control" id="fm-option-resp-on" placeholder="65355">
                       </div>
                     </div>
                   </form>
 
-                  <h3>Another Heading</h3>
-                  <p>
-                    Lorem ipsum sid et dolor.
-                  </p>
-
                 </div> <!-- tabpanel (options) -->
 
+                <div id="fm-options-content-montage" role="tabpanel" class="tab-pane">
+
+                  <h3 style="margin-top: 6px;">Montage</h3>
+                  <p>
+                    <strong>Click</strong> electrodes in the list to exclude or
+                    un-exclude them from the displayed channel raster.
+                  </p>
+
+                  <table class="table table-hover table-condensed fm-montage-table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Excluded</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <th scope="row">LTG01</th>
+                        <td>No</td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                </div> <!-- tabpanel (montage) -->
+
                 <div id="fm-options-content-scope" role="tabpanel" class="tab-pane">
+
+                  <h3 style="margin-top: 6px;">Scope</h3>
+
+                  <p>
+                    Enter a <strong>Channel</strong> name to begin scoping live data. By default,
+                    the scale will automatically adjust to match the incoming
+                    signal; alternatively, you can fix the scale by entering
+                    a <strong>Min</strong> or <strong>Max</strong> value.
+                  </p>
 
                   <form class="form-horizontal">
                     <div class="form-group">
                       <label for="fm-option-scope-channel" class="col-md-2 col-sm-3 control-label">Channel</label>
-                      <div class="col-md-3 col-sm-9">
+                      <div class="col-md-3 col-sm-7">
                         <input type="text" class="form-control" id="fm-option-scope-channel" placeholder="ainp1">
+                      </div>
+                      <label for="fm-option-scope-min" class="col-md-1 col-sm-3 control-label">Min</label>
+                      <div class="col-md-2 col-sm-3">
+                        <input type="text" class="form-control" id="fm-option-scope-min" placeholder="-100">
+                      </div>
+                      <label for="fm-option-scope-max" class="col-md-1 col-sm-1 control-label">Max</label>
+                      <div class="col-md-2 col-sm-3">
+                        <input type="text" class="form-control" id="fm-option-scope-max" placeholder="100">
                       </div>
                     </div>
                   </form>
@@ -265,6 +340,44 @@
                   <div id="scope"></div>
 
                 </div> <!-- tabpanel (scope) -->
+
+                <div id="fm-options-content-about" role="tabpanel" class="tab-pane">
+
+                  <h1>WebFM <small>v1.0-alpha</small></h1>
+
+                  <p>
+                    Online functional mapping&mdash;online.
+                  </p>
+
+                  <p>
+                    Fork me on <a href="http://github.com/cronelab/webfm">GitHub</a>.
+                  </p>
+
+                  <h4 style="margin-top:30px;">Written by</h4>
+
+                  <p>
+                    <dl class="dl-horizontal">
+                      <dt>Max Collard</dt>
+                      <dd>Web frontend, Map, Server</dd>
+
+                      <dt>Griffin Milsap</dt>
+                      <dd>BCI2000Web, bci2k.js</dd>
+                    </dl>
+                  </p>
+
+                  <h4>Powered by</h4>
+
+                  <p>
+                    <ul class="list-inline">
+                      <li><a href="https://github.com/griffinmilsap/bci2k.js">bci2k.js</a></li>
+                      <li>Bootstrap</li>
+                      <li>node.js</li>
+                      <li>d3</li>
+                      <li>d3-horizon-chart</li>
+                    </ul>
+                  </p>
+
+                </div> <!-- tabpanel (about) -->
 
               </div> <!-- tab-content -->
 

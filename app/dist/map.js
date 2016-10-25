@@ -651,7 +651,7 @@ module.exports = cronelib;
 
 //
 
-},{"promise-polyfill":41,"setimmediate":42}],3:[function(require,module,exports){
+},{"promise-polyfill":42,"setimmediate":43}],3:[function(require,module,exports){
 'use strict';
 
 // =
@@ -789,7 +789,7 @@ module.exports = fullscreen;
 
 //
 
-},{"promise-polyfill":41,"setimmediate":42}],4:[function(require,module,exports){
+},{"promise-polyfill":42,"setimmediate":43}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1605,7 +1605,7 @@ module.exports = fmdata;
 
 //
 
-},{"jquery":40,"promise-polyfill":41,"setimmediate":42}],8:[function(require,module,exports){
+},{"jquery":40,"promise-polyfill":42,"setimmediate":43}],8:[function(require,module,exports){
 'use strict';
 
 // =
@@ -2321,12 +2321,7 @@ fmonline.DataFormatter.prototype = {
         }
 
         // Changed!
-
         this.previousState = newState;
-
-        // TODO Debug
-        console.log('Timing state changed: ' + newState);
-
         this._timingStateChanged(newState);
 
         return true;
@@ -2393,7 +2388,7 @@ module.exports = fmonline;
 
 //
 
-},{"../lib/bci2k":1,"promise-polyfill":41,"setimmediate":42}],10:[function(require,module,exports){
+},{"../lib/bci2k":1,"promise-polyfill":42,"setimmediate":43}],10:[function(require,module,exports){
 'use strict';
 
 // =
@@ -2455,7 +2450,7 @@ fmraster.ChannelRaster = function (baseNodeId) {
     this.chartColorScale = null;
 
     this.chartMin = 0.0; // TODO Expose to manager
-    this.chartMax = 6.0;
+    this.chartMax = 10.0;
 
     // TODO Config
     this.channelHeight = 15;
@@ -2596,7 +2591,7 @@ module.exports = fmraster;
 
 //
 
-},{"../lib/horizon-chart-custom.js":4,"d3":38,"jquery":40,"promise-polyfill":41,"setimmediate":42}],11:[function(require,module,exports){
+},{"../lib/horizon-chart-custom.js":4,"d3":38,"jquery":40,"promise-polyfill":42,"setimmediate":43}],11:[function(require,module,exports){
 'use strict';
 
 // ======================================================================== //
@@ -2637,16 +2632,17 @@ fmscope.ChannelScope = function (baseNodeId) {
     this.channel = null;
     this.data = null;
     this.dataExtent = null;
+    this.targetExtent = null;
 
     // TODO Config
-    this.extentSnap = 0.15;
-    this.windowSamples = 2000; // TODO Make this in seconds
+    this.extentSnap = 0.20;
+    this.windowSamples = 5000; // TODO Make this in seconds
 
     this.plotMargin = {
-        left: 40,
-        right: 10,
-        top: 20,
-        bottom: 60
+        left: 25,
+        right: 40,
+        top: 10,
+        bottom: 20
     };
 
     this.plotSvg = null;
@@ -2665,25 +2661,56 @@ fmscope.ChannelScope.prototype = {
     _setupData: function _setupData() {
 
         this.data = zeroArray(this.windowSamples);
-        this.dataExtent = [-100, 100];
+
+        if (!this.channel) {
+            this.dataExtent = [-100, 100];
+            this.targetExtent = [null, null];
+        } else {
+            if (!this.dataExtent) {
+                this.dataExtent = [-100, 100];
+            }
+            if (!this.targetExtent) {
+                this.targetExtent = [null, null];
+            }
+        }
+    },
+
+    autoResize: function autoResize() {
+
+        // TODO This requires the base node to  be visible because of how
+        // jQuery works; so, setup must occur when plot is visible!
+        var width = $(this.baseNodeId).width() - (this.plotMargin.left + this.plotMargin.right);
+        var height = $(this.baseNodeId).height() - (this.plotMargin.top + this.plotMargin.bottom);
+
+        if (width <= 0 || height <= 0) {
+            // We're not visible so stfu and go away
+            return;
+        }
+
+        this._resizePlot(width, height);
+    },
+
+    _resizePlot: function _resizePlot(width, height) {
+
+        this.plotSvg.attr('width', width + this.plotMargin.left + this.plotMargin.right).attr('height', height + this.plotMargin.top + this.plotMargin.bottom);
+
+        this.plotXScale.range([0, width]);
+        this.plotYScale.range([height, 0]);
+
+        d3.select('.fm-scope-axis-x').attr('transform', 'translate(' + 0 + ',' + height + ')');
     },
 
     _setupPlot: function _setupPlot() {
 
         var scope = this;
 
-        // Issues with d3 auto-populating w/h
-        // var width = baseNode.attr( 'width' );
-        // var height = baseNode.attr( 'height' );
-        var width = $(this.baseNodeId).width() - (this.plotMargin.left + this.plotMargin.right);
-        var height = $(this.baseNodeId).height() - (this.plotMargin.top + this.plotMargin.bottom);
+        this.plotSvg = d3.select(this.baseNodeId).append('svg').attr('class', 'fm-scope-plot');
 
-        this.plotSvg = d3.select(this.baseNodeId).append('svg').attr('class', 'fm-scope-plot').attr('width', width + this.plotMargin.left + this.plotMargin.right).attr('height', height + this.plotMargin.top + this.plotMargin.bottom);
-
+        // TODO Put transform call in _resizePlot?
         var g = this.plotSvg.append('g').attr('transform', 'translate(' + this.plotMargin.left + ',' + this.plotMargin.top + ')');
 
-        this.plotXScale = d3.scaleLinear().domain([0, this.windowSamples - 1]).range([0, width]);
-        this.plotYScale = d3.scaleLinear().domain(this.dataExtent).range([height, 0]);
+        this.plotXScale = d3.scaleLinear().domain([0, this.windowSamples - 1]);
+        this.plotYScale = d3.scaleLinear().domain(this.dataExtent);
 
         this.plotLine = d3.line().x(function (d, i) {
             return scope.plotXScale(i);
@@ -2696,12 +2723,15 @@ fmscope.ChannelScope.prototype = {
         this.plotXAxis = d3.axisBottom(this.plotXScale);
         this.plotYAxis = d3.axisLeft(this.plotYScale);
 
-        g.append('g').attr('class', 'axis fm-scope-axis-x').attr('transform', 'translate(' + 0 + ',' + height + ')');
+        g.append('g').attr('class', 'axis fm-scope-axis-x');
 
         g.append('g').attr('class', 'axis fm-scope-axis-y');
 
         // Line
         g.append('path').attr('class', 'line fm-scope-line');
+
+        // Resize it!
+        this.autoResize();
     },
 
     setup: function setup() {
@@ -2776,8 +2806,6 @@ fmscope.ChannelScope.prototype = {
             return;
         }
 
-        console.log('Updating scope with new data.');
-
         if (newData !== undefined) {
             // Incorporate new data into display buffer
             this._receiveSignal(newData);
@@ -2807,7 +2835,6 @@ fmscope.ChannelScope.prototype = {
 
     _updateScale: function _updateScale() {
 
-        // Extent is a running min / max of the data as long as we're scoping
         var dataMin = this.data.reduce(function (acc, d) {
             return Math.min(acc, d);
         });
@@ -2815,8 +2842,20 @@ fmscope.ChannelScope.prototype = {
             return Math.max(acc, d);
         });
 
-        this.dataExtent[0] = this.dataExtent[0] + this.extentSnap * (dataMin - this.dataExtent[0]);
-        this.dataExtent[1] = this.dataExtent[1] + this.extentSnap * (dataMax - this.dataExtent[1]);
+        var targetMin = 0;
+        var targetMax = 0;
+
+        if (!this.targetExtent) {
+            // Target extent is the min and max of the data
+            targetMin = dataMin;
+            targetMax = dataMax;
+        } else {
+            targetMin = this.targetExtent[0] === null ? dataMin : this.targetExtent[0];
+            targetMax = this.targetExtent[1] === null ? dataMax : this.targetExtent[1];
+        }
+
+        this.dataExtent[0] = this.dataExtent[0] + this.extentSnap * (targetMin - this.dataExtent[0]);
+        this.dataExtent[1] = this.dataExtent[1] + this.extentSnap * (targetMax - this.dataExtent[1]);
 
         // Update our plot to reflect the new extent
         this.plotYScale.domain(this.dataExtent);
@@ -2847,6 +2886,14 @@ fmscope.ChannelScope.prototype = {
 
         // Update our plottiing variables to reflect the new data
         this._updateScale();
+    },
+
+    setMinTarget: function setMinTarget(newTarget) {
+        this.targetExtent[0] = newTarget;
+    },
+
+    setMaxTarget: function setMaxTarget(newTarget) {
+        this.targetExtent[1] = newTarget;
     }
 
 };
@@ -2857,7 +2904,7 @@ module.exports = fmscope;
 
 //
 
-},{"d3":38,"jquery":40,"promise-polyfill":41,"setimmediate":42}],12:[function(require,module,exports){
+},{"d3":38,"jquery":40,"promise-polyfill":42,"setimmediate":43}],12:[function(require,module,exports){
 "use strict";
 
 // ======================================================================== //
@@ -2958,11 +3005,142 @@ fmstat.ChannelStat.prototype = {
             }
             return (v.mean - stat.baseline.mean) / Math.sqrt(stat.baseline.variance);
         });
+    },
+
+    _thresholdedValues: function _thresholdedValues(threshold) {
+        return this.baselineNormalizedValues().map(function (v) {
+            return Math.abs(v) > threshold ? v : 0.0;
+        });
+    },
+
+    pointwiseCorrectedValues: function pointwiseCorrectedValues(alpha, bothWays) {
+        var twoTailed = true;
+        if (bothWays !== undefined) {
+            twoTailed = bothWays;
+        }
+        var threshold = fmstat.ppfn(1 - alpha / (twoTailed ? 2 : 1), 0.0, 1.0);
+
+        return this._thresholdedValues(threshold);
+    },
+
+    bonferroniCorrectedValues: function bonferroniCorrectedValues(alpha, bothWays) {
+        var twoTailed = true;
+        if (bothWays !== undefined) {
+            twoTailed = bothWays;
+        }
+        var threshold = fmstat.ppfn(1 - alpha / ((twoTailed ? 2 : 1) * this.values.length), 0.0, 1.0);
+
+        return this._thresholdedValues(threshold);
+    },
+
+    fdrCorrectedValues: function fdrCorrectedValues(fdr) {
+
+        // Consider everything relative to standard normal
+        var normValues = this.baselineNormalizedValues();
+
+        // Compute p-values
+        var pValues = normValues.map(function (v) {
+            return 2.0 * (1.0 - fmstat.cdfn(Math.abs(v), 0.0, 1.0));
+        });
+
+        // Sort p-values
+        var sortResult = fmstat.argsort(pValues);
+
+        // Determine the critical sort index k
+        var kGood = -1;
+        var nTests = sortResult.values.length;
+        sortResult.values.every(function (p, k) {
+            if (p > k / nTests * fdr) {
+                return false;
+            }
+            kGood = k;
+            return true;
+        });
+
+        // Determine which sorted hypotheses we should reject
+        var canReject = pValues.map(function (p) {
+            return false;
+        });
+        sortResult.indices.every(function (i, k) {
+            if (k > kGood) {
+                // k = index in sort
+                return false;
+            }
+            canReject[i] = true; // i = original index
+            return true;
+        });
+
+        // Return the thresholded values
+        return normValues.map(function (v, i) {
+            return canReject[i] ? v : 0.0;
+        });
     }
 
 };
 
 // METHODS
+
+fmstat.argsort = function (arr) {
+
+    var zipped = arr.map(function (d, i) {
+        return [d, i];
+    });
+
+    zipped.sort(function (left, right) {
+        return left[0] < right[0] ? -1 : 1;
+    });
+
+    var ret = {
+        values: [],
+        indices: []
+    };
+
+    zipped.forEach(function (d) {
+        ret.values.push(d[0]);
+        ret.indices.push(d[1]);
+    });
+
+    return ret;
+};
+
+// fmstat.cdfn & fmstat.erf courtesy of
+// https://github.com/errcw/gaussian
+
+fmstat.ppfn = function (x, mean, variance) {
+    return mean - Math.sqrt(2 * variance) * fmstat.ierfc(2 * x);
+};
+
+fmstat.cdfn = function (x, mean, variance) {
+    return 0.5 * fmstat.erfc(-(x - mean) / Math.sqrt(2 * variance));
+};
+
+fmstat.erfc = function (x) {
+    var z = Math.abs(x);
+    var t = 1 / (1 + z / 2);
+    var r = t * Math.exp(-z * z - 1.26551223 + t * (1.00002368 + t * (0.37409196 + t * (0.09678418 + t * (-0.18628806 + t * (0.27886807 + t * (-1.13520398 + t * (1.48851587 + t * (-0.82215223 + t * 0.17087277)))))))));
+    return x >= 0 ? r : 2 - r;
+};
+
+fmstat.ierfc = function (x) {
+    if (x >= 2) {
+        return -100;
+    }
+    if (x <= 0) {
+        return 100;
+    }
+
+    var xx = x < 1 ? x : 2 - x;
+    var t = Math.sqrt(-2 * Math.log(xx / 2));
+
+    var r = -0.70711 * ((2.30753 + t * 0.27061) / (1 + t * (0.99229 + t * 0.04481)) - t);
+
+    for (var j = 0; j < 2; j++) {
+        var err = fmstat.erfc(r) - xx;
+        r += err / (1.12837916709551257 * Math.exp(-(r * r)) - r * err);
+    }
+
+    return x < 1 ? r : -r;
+};
 
 // fmstat.randn
 // Box-Muller standard normal samples
@@ -3118,6 +3296,8 @@ module.exports = fmstat;
 
 var $ = require('jquery');
 
+var Cookies = require('js-cookie');
+
 // Hacky as Hell way to get browserify to work
 window.$ = window.jQuery = $; // Bootstrap needs $ in global namespace
 require('bootstrap');
@@ -3153,6 +3333,7 @@ fmui.InterfaceManager = function () {
     this.icons = ['transfer', 'working'];
 
     this.raster = new fmraster.ChannelRaster('#fm');
+    this.allChannels = []; // TODO Can avoid?
 
     this.scope = new fmscope.ChannelScope('#scope');
 };
@@ -3209,7 +3390,6 @@ fmui.InterfaceManager.prototype = {
         // Incorporate the defaults with whatever we've loaded
         this.config = this._mergeDefaultConfig(this.config);
 
-        this.resizeFM();
         this.rewireButtons();
         this.rewireForms();
 
@@ -3221,11 +3401,6 @@ fmui.InterfaceManager.prototype = {
         //this.raster.setup();
 
         //this.scope.setup();
-    },
-
-    // TODO Accomplish this with CSS?
-    resizeFM: function resizeFM() {
-        $('#fm').height($(window).height() - (this.config.fmMargin.top + this.config.fmMargin.bottom));
     },
 
     updateRecordDetails: function updateRecordDetails(subject, record) {
@@ -3261,9 +3436,7 @@ fmui.InterfaceManager.prototype = {
             manager.showOptions(event);
         });
         $('.fm-options-tab-list a').on('click', function (event) {
-            // Prevent auto-triggering
-            event.preventDefault();
-
+            event.preventDefault(); // Prevent auto-triggering
             manager.showOptionsTab(this, event);
         });
     },
@@ -3272,15 +3445,28 @@ fmui.InterfaceManager.prototype = {
 
         var manager = this; // Capture this
 
-        // TODO Use classes?
+        // TODO Use classes rather than ids?
 
-        // TODO Elegant way to gate by enter key?
-        $('#fm-option-scope-channel').on('keypress', function (event) {
-            var key = event.which;
-            if (key == ENTER_KEY) {
-                // Trigger scoping
-                manager.scope.start($('#fm-option-scope-channel').val());
-            }
+        // Modal dialog
+
+        $('#fm-options-modal').on('hidden.bs.modal', function (event) {
+            manager.optionsHidden(event);
+        });
+
+        // Options page
+        // ...
+
+        // Scope page
+
+        $('#fm-option-scope-channel').on('change', function (event) {
+            manager.updateScopeChannel(this.value);
+        });
+
+        $('#fm-option-scope-min').on('change', function (event) {
+            manager.updateScopeMin(this.value == '' ? null : +this.value);
+        });
+        $('#fm-option-scope-max').on('change', function (event) {
+            manager.updateScopeMax(this.value == '' ? null : +this.value);
         });
     },
 
@@ -3300,13 +3486,6 @@ fmui.InterfaceManager.prototype = {
         setTimeout(function () {
             $('.fm-' + iconName + '-icon').hide(hideDuration);
         }, hideDelay);
-    },
-
-    windowDidResize: function windowDidResize() {
-
-        this.resizeFM();
-
-        cronelib.debounce(this.updateCharts, this.config.chartDebounceDelay)();
     },
 
     updateCharts: function updateCharts() {
@@ -3369,6 +3548,10 @@ fmui.InterfaceManager.prototype = {
         $('#fm-options-modal').modal('show');
     },
 
+    optionsHidden: function optionsHidden(event) {
+        this.scope.stop();
+    },
+
     showOptionsTab: function showOptionsTab(caller, event) {
 
         // Show the caller's tab
@@ -3413,6 +3596,24 @@ fmui.InterfaceManager.prototype = {
         return;
     },
 
+    updateScopeMin: function updateScopeMin(newMin) {
+        if (isNaN(newMin)) {
+            return;
+        }
+        this.scope.setMinTarget(newMin);
+    },
+
+    updateScopeMax: function updateScopeMax(newMax) {
+        if (isNaN(newMax)) {
+            return;
+        }
+        this.scope.setMaxTarget(newMax);
+    },
+
+    updateScopeChannel: function updateScopeChannel(newChannel) {
+        this.scope.start(newChannel);
+    },
+
     /* GUI Update methods */
 
     updateSubjectName: function updateSubjectName(newSubjectName) {
@@ -3423,8 +3624,112 @@ fmui.InterfaceManager.prototype = {
         $('.fm-task-name').text(newTaskName);
     },
 
+    _populateMontageList: function _populateMontageList(newChannelNames) {
+
+        var manager = this;
+
+        var exclusion = this.getExclusion();
+
+        var montageBody = $('.fm-montage-table tbody');
+
+        // Clear out old montage
+        montageBody.empty();
+
+        // Build up new montage
+        // TODO Incorporate excluded channels
+        newChannelNames.forEach(function (ch) {
+            var curRow = $('<tr></tr>');
+            curRow.append($('<th scope="row" class="fm-montage-cell-channelname">' + ch + '</th>'));
+
+            var isExcludedText = exclusion[ch] ? 'Yes' : 'No';
+            curRow.append($('<td class="fm-montage-cell-isexcluded">' + isExcludedText + '</td>')); // TODO Check if excluded
+
+            if (exclusion[ch]) {
+                curRow.addClass('danger');
+            }
+
+            curRow.on('click', function (event) {
+
+                var selection = $(this);
+                var shouldExclude = !selection.hasClass('danger');
+
+                if (shouldExclude) {
+                    manager.exclude(ch);
+                } else {
+                    manager.unexclude(ch);
+                }
+
+                selection.toggleClass('danger');
+                $('.fm-montage-cell-isexcluded', this).text(shouldExclude ? 'Yes' : 'No');
+            });
+
+            montageBody.append(curRow);
+        });
+    },
+
+    getExclusion: function getExclusion() {
+        // Get the excluded channels
+        var exclusion = Cookies.getJSON('exclusion');
+
+        if (exclusion === undefined) {
+            // Cookie is not set, so generate default
+            exclusion = {};
+            // ... and set it so this doesn't happen again!
+            Cookies.set('exclusion', exclusion, {
+                expires: this.config.cookieExpirationDays
+            });
+        }
+
+        return exclusion;
+    },
+
+    setExclusion: function setExclusion(exclusion) {
+        Cookies.set('exclusion', exclusion, {
+            expires: this.config.cookieExpirationDays
+        });
+    },
+
+    exclude: function exclude(channel) {
+        // TODO Check if channel is in allChannels?
+        var exclusion = this.getExclusion();
+        exclusion[channel] = true;
+        this.setExclusion(exclusion);
+
+        // Update raster display
+        this.raster.setDisplayOrder(this.allChannels.filter(this.channelFilter()));
+    },
+
+    unexclude: function unexclude(channel) {
+        // TODO Better behavior: Check if channel is in exclusion, then delete
+        var exclusion = this.getExclusion();
+        exclusion[channel] = false;
+        this.setExclusion(exclusion);
+
+        // Update raster display
+        this.raster.setDisplayOrder(this.allChannels.filter(this.channelFilter()));
+    },
+
+    channelFilter: function channelFilter() {
+        var exclusion = this.getExclusion();
+        return function (ch) {
+            if (exclusion[ch] === undefined) {
+                return true;
+            }
+            return !exclusion[ch];
+        };
+    },
+
     updateChannelNames: function updateChannelNames(newChannelNames) {
-        this.raster.setDisplayOrder(newChannelNames);
+
+        // Update our state
+        this.allChannels = newChannelNames;
+
+        // Update the GUI with the complete channel list
+        this._populateMontageList(this.allChannels);
+
+        // Update the raster with the filtered channel list
+        // TODO Support different ordering, or just exclusion?
+        this.raster.setDisplayOrder(this.allChannels.filter(this.channelFilter()));
     },
 
     didResize: function didResize() {
@@ -3435,7 +3740,11 @@ fmui.InterfaceManager.prototype = {
 
         cronelib.debounce(function () {
             manager.raster.update();
-        }, 100)(); // TODO
+        }, this.config.rasterDebounceDelay)(); // TODO
+
+        cronelib.debounce(function () {
+            manager.scope.autoResize();
+        }, this.config.scopeDebounceDelay)();
     }
 
     /* Animation */
@@ -3450,7 +3759,7 @@ module.exports = fmui;
 
 //
 
-},{"../lib/cronelib":2,"../lib/fullscreen":3,"./fmbrain":6,"./fmraster":10,"./fmscope":11,"bootstrap":15,"jquery":40,"promise-polyfill":41,"setimmediate":42}],14:[function(require,module,exports){
+},{"../lib/cronelib":2,"../lib/fullscreen":3,"./fmbrain":6,"./fmraster":10,"./fmscope":11,"bootstrap":15,"jquery":40,"js-cookie":41,"promise-polyfill":42,"setimmediate":43}],14:[function(require,module,exports){
 'use strict';
 
 // ======================================================================== //
@@ -3489,11 +3798,10 @@ var fmdata = require('./fmdata');
 // TODO A little kludgey
 var pathComponents = window.location.pathname.split('/');
 
-var modeString = pathComponents[2] || 'generate';
+var modeString = pathComponents[2] || 'online';
 
-var generateMode = modeString == 'generate';
 var onlineMode = modeString == 'online';
-var loadMode = !(generateMode || onlineMode);
+var loadMode = !onlineMode;
 
 var subjectID = undefined;
 var recordName = undefined;
@@ -3525,10 +3833,6 @@ uiManager.loadConfig(path.join(configPath, 'ui')).then(function () {
     // TODO Respond intelligently.
     console.log(reason);
 });
-
-// Signal properties
-
-var signalChannels = null;
 
 // DATA SOURCE SET-UP
 
@@ -3584,18 +3888,6 @@ var prepareOnlineDataSource = function prepareOnlineDataSource() {
         console.log(reason);
     });
 };
-
-if (generateMode) {
-    // Using an offline signal generator
-
-    dataSource = new fmgen.GeneratorDataSource();
-
-    // Wire to common routines
-    dataSource.onproperties = updateProperties;
-    dataSource.ontrial = ingestTrial;
-
-    dataSource.start();
-}
 
 // Load mode helpers
 
@@ -3662,12 +3954,13 @@ var updateProperties = function updateProperties(properties) {
 
 var ingestSignal = function ingestSignal(signal) {
 
-    // Update 
+    // Update scope view
     uiManager.scope.update(signal);
 };
 
 var startTrial = function startTrial() {
 
+    // We're starting to transfer a trial
     uiManager.showIcon('transfer');
 };
 
@@ -3695,7 +3988,9 @@ var ingestTrial = function ingestTrial(trialData) {
         var meanData = {};
         Object.keys(channelStats).forEach(function (ch) {
             //meanData[ch] = channelStats[ch].meanValues();
-            meanData[ch] = channelStats[ch].baselineNormalizedValues();
+            //meanData[ch] = channelStats[ch].baselineNormalizedValues();
+            //meanData[ch] = channelStats[ch].bonferroniCorrectedValues( 0.05, true );
+            meanData[ch] = channelStats[ch].fdrCorrectedValues(0.05);
         });
         uiManager.raster.update(meanData);
 
@@ -3712,7 +4007,7 @@ $(window).on('resize', function () {
 
 //
 
-},{"../lib/bci2k":1,"../lib/cronelib":2,"../lib/horizon":5,"./fmdata":7,"./fmgen":8,"./fmonline":9,"./fmstat":12,"./fmui":13,"d3":38,"jquery":40,"path":47}],15:[function(require,module,exports){
+},{"../lib/bci2k":1,"../lib/cronelib":2,"../lib/horizon":5,"./fmdata":7,"./fmgen":8,"./fmonline":9,"./fmstat":12,"./fmui":13,"d3":38,"jquery":40,"path":48}],15:[function(require,module,exports){
 // This file is autogenerated via the `commonjs` Grunt task. You can require() this file in a CommonJS environment.
 require('../../js/transition.js')
 require('../../js/alert.js')
@@ -27834,7 +28129,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
     return jDataView;
 });
 }).call(this,require("buffer").Buffer)
-},{"buffer":44}],40:[function(require,module,exports){
+},{"buffer":45}],40:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.1.1
  * https://jquery.com/
@@ -38057,6 +38352,164 @@ return jQuery;
 } );
 
 },{}],41:[function(require,module,exports){
+/*!
+ * JavaScript Cookie v2.1.3
+ * https://github.com/js-cookie/js-cookie
+ *
+ * Copyright 2006, 2015 Klaus Hartl & Fagner Brack
+ * Released under the MIT license
+ */
+;(function (factory) {
+	var registeredInModuleLoader = false;
+	if (typeof define === 'function' && define.amd) {
+		define(factory);
+		registeredInModuleLoader = true;
+	}
+	if (typeof exports === 'object') {
+		module.exports = factory();
+		registeredInModuleLoader = true;
+	}
+	if (!registeredInModuleLoader) {
+		var OldCookies = window.Cookies;
+		var api = window.Cookies = factory();
+		api.noConflict = function () {
+			window.Cookies = OldCookies;
+			return api;
+		};
+	}
+}(function () {
+	function extend () {
+		var i = 0;
+		var result = {};
+		for (; i < arguments.length; i++) {
+			var attributes = arguments[ i ];
+			for (var key in attributes) {
+				result[key] = attributes[key];
+			}
+		}
+		return result;
+	}
+
+	function init (converter) {
+		function api (key, value, attributes) {
+			var result;
+			if (typeof document === 'undefined') {
+				return;
+			}
+
+			// Write
+
+			if (arguments.length > 1) {
+				attributes = extend({
+					path: '/'
+				}, api.defaults, attributes);
+
+				if (typeof attributes.expires === 'number') {
+					var expires = new Date();
+					expires.setMilliseconds(expires.getMilliseconds() + attributes.expires * 864e+5);
+					attributes.expires = expires;
+				}
+
+				try {
+					result = JSON.stringify(value);
+					if (/^[\{\[]/.test(result)) {
+						value = result;
+					}
+				} catch (e) {}
+
+				if (!converter.write) {
+					value = encodeURIComponent(String(value))
+						.replace(/%(23|24|26|2B|3A|3C|3E|3D|2F|3F|40|5B|5D|5E|60|7B|7D|7C)/g, decodeURIComponent);
+				} else {
+					value = converter.write(value, key);
+				}
+
+				key = encodeURIComponent(String(key));
+				key = key.replace(/%(23|24|26|2B|5E|60|7C)/g, decodeURIComponent);
+				key = key.replace(/[\(\)]/g, escape);
+
+				return (document.cookie = [
+					key, '=', value,
+					attributes.expires ? '; expires=' + attributes.expires.toUTCString() : '', // use expires attribute, max-age is not supported by IE
+					attributes.path ? '; path=' + attributes.path : '',
+					attributes.domain ? '; domain=' + attributes.domain : '',
+					attributes.secure ? '; secure' : ''
+				].join(''));
+			}
+
+			// Read
+
+			if (!key) {
+				result = {};
+			}
+
+			// To prevent the for loop in the first place assign an empty array
+			// in case there are no cookies at all. Also prevents odd result when
+			// calling "get()"
+			var cookies = document.cookie ? document.cookie.split('; ') : [];
+			var rdecode = /(%[0-9A-Z]{2})+/g;
+			var i = 0;
+
+			for (; i < cookies.length; i++) {
+				var parts = cookies[i].split('=');
+				var cookie = parts.slice(1).join('=');
+
+				if (cookie.charAt(0) === '"') {
+					cookie = cookie.slice(1, -1);
+				}
+
+				try {
+					var name = parts[0].replace(rdecode, decodeURIComponent);
+					cookie = converter.read ?
+						converter.read(cookie, name) : converter(cookie, name) ||
+						cookie.replace(rdecode, decodeURIComponent);
+
+					if (this.json) {
+						try {
+							cookie = JSON.parse(cookie);
+						} catch (e) {}
+					}
+
+					if (key === name) {
+						result = cookie;
+						break;
+					}
+
+					if (!key) {
+						result[name] = cookie;
+					}
+				} catch (e) {}
+			}
+
+			return result;
+		}
+
+		api.set = api;
+		api.get = function (key) {
+			return api.call(api, key);
+		};
+		api.getJSON = function () {
+			return api.apply({
+				json: true
+			}, [].slice.call(arguments));
+		};
+		api.defaults = {};
+
+		api.remove = function (key, attributes) {
+			api(key, '', extend(attributes, {
+				expires: -1
+			}));
+		};
+
+		api.withConverter = init;
+
+		return api;
+	}
+
+	return init(function () {});
+}));
+
+},{}],42:[function(require,module,exports){
 (function (root) {
 
   // Store setTimeout reference so promise-polyfill will be unaffected by
@@ -38291,7 +38744,7 @@ return jQuery;
 
 })(this);
 
-},{}],42:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 (function (process,global){
 (function (global, undefined) {
     "use strict";
@@ -38481,7 +38934,7 @@ return jQuery;
 }(typeof self === "undefined" ? typeof global === "undefined" ? this : global : self));
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":48}],43:[function(require,module,exports){
+},{"_process":49}],44:[function(require,module,exports){
 'use strict'
 
 exports.byteLength = byteLength
@@ -38597,7 +39050,7 @@ function fromByteArray (uint8) {
   return parts.join('')
 }
 
-},{}],44:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 (function (global){
 /*!
  * The buffer module from node.js, for the browser.
@@ -40390,7 +40843,7 @@ function isnan (val) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"base64-js":43,"ieee754":45,"isarray":46}],45:[function(require,module,exports){
+},{"base64-js":44,"ieee754":46,"isarray":47}],46:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -40476,14 +40929,14 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],46:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 var toString = {}.toString;
 
 module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
 
-},{}],47:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -40711,7 +41164,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require('_process'))
-},{"_process":48}],48:[function(require,module,exports){
+},{"_process":49}],49:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 

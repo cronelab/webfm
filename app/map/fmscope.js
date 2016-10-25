@@ -39,16 +39,17 @@ fmscope.ChannelScope = function( baseNodeId ) {
     this.channel        = null;
     this.data           = null;
     this.dataExtent     = null;
+    this.targetExtent   = null;
 
     // TODO Config
-    this.extentSnap     = 0.15;
-    this.windowSamples  = 2000;     // TODO Make this in seconds
+    this.extentSnap     = 0.20;
+    this.windowSamples  = 5000;     // TODO Make this in seconds
 
     this.plotMargin = {
-        left: 40,
-        right: 10,
-        top: 20,
-        bottom: 60
+        left: 25,
+        right: 40,
+        top: 10,
+        bottom: 20
     };
 
     this.plotSvg        = null;
@@ -67,34 +68,68 @@ fmscope.ChannelScope.prototype = {
 
     _setupData: function() {
 
-        this.data       = zeroArray( this.windowSamples );
-        this.dataExtent = [-100, 100];
+        this.data           = zeroArray( this.windowSamples );
+
+        if ( !this.channel ) {
+            this.dataExtent     = [-100, 100];
+            this.targetExtent   = [null, null];
+        } else {
+            if ( !this.dataExtent ) {
+                this.dataExtent     = [-100, 100];
+            }
+            if ( !this.targetExtent ) {
+                this.targetExtent   = [null, null];
+            }
+        }
+
+        
+
+    },
+
+    autoResize: function() {
+
+        // TODO This requires the base node to  be visible because of how
+        // jQuery works; so, setup must occur when plot is visible!
+        var width = $( this.baseNodeId ).width() - (this.plotMargin.left + this.plotMargin.right);
+        var height = $( this.baseNodeId ).height() - (this.plotMargin.top + this.plotMargin.bottom);
+
+        if ( width <= 0 || height <= 0 ) {
+            // We're not visible so stfu and go away
+            return;
+        }
+
+        this._resizePlot( width, height );
+
+    },
+
+    _resizePlot: function( width, height ) {
+
+        this.plotSvg.attr( 'width', width + this.plotMargin.left + this.plotMargin.right )
+                    .attr( 'height', height + this.plotMargin.top + this.plotMargin.bottom );
+
+        this.plotXScale.range( [0, width] );
+        this.plotYScale.range( [height, 0] );
+
+        d3.select( '.fm-scope-axis-x' )
+            .attr( 'transform', 'translate(' + 0 + ',' + height + ')' );
+
     },
 
     _setupPlot: function() {
 
         var scope = this;
 
-        // Issues with d3 auto-populating w/h
-        // var width = baseNode.attr( 'width' );
-        // var height = baseNode.attr( 'height' );
-        var width = $( this.baseNodeId ).width() - (this.plotMargin.left + this.plotMargin.right);
-        var height = $( this.baseNodeId ).height() - (this.plotMargin.top + this.plotMargin.bottom);
-
         this.plotSvg = d3.select( this.baseNodeId ).append( 'svg' )
-                                                    .attr( 'class', 'fm-scope-plot' )
-                                                    .attr( 'width', width + this.plotMargin.left + this.plotMargin.right )
-                                                    .attr( 'height', height + this.plotMargin.top + this.plotMargin.bottom );
+                                                    .attr( 'class', 'fm-scope-plot' );
 
+        // TODO Put transform call in _resizePlot?
         var g = this.plotSvg.append( 'g' )
                             .attr( 'transform', 'translate(' + this.plotMargin.left + ',' + this.plotMargin.top + ')' );
 
         this.plotXScale = d3.scaleLinear()
-                                .domain( [0, this.windowSamples - 1] )
-                                .range( [0, width] );
+                                .domain( [0, this.windowSamples - 1] );
         this.plotYScale = d3.scaleLinear()
-                                .domain( this.dataExtent )
-                                .range( [height, 0] );
+                                .domain( this.dataExtent );
 
         this.plotLine = d3.line()
                             .x( function( d, i ) {
@@ -110,8 +145,7 @@ fmscope.ChannelScope.prototype = {
         this.plotYAxis = d3.axisLeft( this.plotYScale );
 
         g.append( 'g' )
-            .attr( 'class', 'axis fm-scope-axis-x' )
-            .attr( 'transform', 'translate(' + 0 + ',' + height + ')' );
+            .attr( 'class', 'axis fm-scope-axis-x' );
 
         g.append( 'g' )
             .attr( 'class', 'axis fm-scope-axis-y' );
@@ -119,6 +153,9 @@ fmscope.ChannelScope.prototype = {
         // Line
         g.append( 'path' )
             .attr( 'class', 'line fm-scope-line' );
+
+        // Resize it!
+        this.autoResize();
 
     },
 
@@ -201,8 +238,6 @@ fmscope.ChannelScope.prototype = {
             return;
         }
 
-        console.log( 'Updating scope with new data.' );
-
         if ( newData !== undefined ) {
             // Incorporate new data into display buffer
             this._receiveSignal( newData );
@@ -235,7 +270,6 @@ fmscope.ChannelScope.prototype = {
 
     _updateScale: function() {
 
-        // Extent is a running min / max of the data as long as we're scoping
         var dataMin = this.data.reduce( function( acc, d ) {
             return Math.min( acc, d );
         } );
@@ -243,8 +277,20 @@ fmscope.ChannelScope.prototype = {
             return Math.max( acc, d );
         } );
 
-        this.dataExtent[0] = this.dataExtent[0] + this.extentSnap * ( dataMin - this.dataExtent[0] );
-        this.dataExtent[1] = this.dataExtent[1] + this.extentSnap * ( dataMax - this.dataExtent[1] );
+        var targetMin = 0;
+        var targetMax = 0;
+
+        if ( !this.targetExtent ) {
+            // Target extent is the min and max of the data
+            targetMin = dataMin;
+            targetMax = dataMax;
+        } else {
+            targetMin = ( this.targetExtent[0] === null ) ? dataMin : this.targetExtent[0];
+            targetMax = ( this.targetExtent[1] === null ) ? dataMax : this.targetExtent[1];
+        }
+
+        this.dataExtent[0] = this.dataExtent[0] + this.extentSnap * ( targetMin - this.dataExtent[0] );
+        this.dataExtent[1] = this.dataExtent[1] + this.extentSnap * ( targetMax - this.dataExtent[1] );
 
         // Update our plot to reflect the new extent
         this.plotYScale.domain( this.dataExtent );
@@ -277,6 +323,14 @@ fmscope.ChannelScope.prototype = {
         // Update our plottiing variables to reflect the new data
         this._updateScale();
 
+    },
+
+    setMinTarget: function( newTarget ) {
+        this.targetExtent[0] = newTarget;
+    },
+
+    setMaxTarget: function( newTarget ) {
+        this.targetExtent[1] = newTarget;
     }
 
 };

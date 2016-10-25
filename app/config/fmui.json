@@ -18,5 +18,8 @@
         "bottom": 0
     },
 
-    "chartDebounceDelay": 100
+    "rasterDebounceDelay": 100,
+    "scopeDebounceDelay":  200,
+
+    "cookieExpirationDays": 14
 }

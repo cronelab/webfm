@@ -10,6 +10,8 @@
 
 var $           = require( 'jquery' );
 
+var Cookies     = require( 'js-cookie' );
+
 // Hacky as Hell way to get browserify to work
 window.$ = window.jQuery = $;   // Bootstrap needs $ in global namespace
 require( 'bootstrap' );
@@ -50,6 +52,7 @@ fmui.InterfaceManager = function() {
     ];
 
     this.raster = new fmraster.ChannelRaster( '#fm' );
+    this.allChannels = [];  // TODO Can avoid?
 
     this.scope = new fmscope.ChannelScope( '#scope' );
 
@@ -111,7 +114,6 @@ fmui.InterfaceManager.prototype = {
         // Incorporate the defaults with whatever we've loaded
         this.config = this._mergeDefaultConfig( this.config );
 
-        this.resizeFM();
         this.rewireButtons();
         this.rewireForms();
 
@@ -124,11 +126,6 @@ fmui.InterfaceManager.prototype = {
 
         //this.scope.setup();
 
-    },
-
-    // TODO Accomplish this with CSS?
-    resizeFM: function() {
-        $( '#fm' ).height( $( window ).height() - ( this.config.fmMargin.top + this.config.fmMargin.bottom ) );
     },
 
     updateRecordDetails: function( subject, record ) {
@@ -165,9 +162,7 @@ fmui.InterfaceManager.prototype = {
             manager.showOptions( event );
         } );
         $( '.fm-options-tab-list a' ).on( 'click', function( event ) {
-            // Prevent auto-triggering
-            event.preventDefault();
-
+            event.preventDefault();     // Prevent auto-triggering
             manager.showOptionsTab( this, event );
         } );
 
@@ -177,16 +172,29 @@ fmui.InterfaceManager.prototype = {
 
         var manager = this;     // Capture this
 
-        // TODO Use classes?
+        // TODO Use classes rather than ids?
 
-        // TODO Elegant way to gate by enter key?
-        $( '#fm-option-scope-channel' ).on( 'keypress', function ( event ) {
-            var key = event.which;
-            if ( key == ENTER_KEY ) {
-                // Trigger scoping
-                manager.scope.start( $( '#fm-option-scope-channel' ).val() );
-            }
-        } );   
+        // Modal dialog
+
+        $( '#fm-options-modal' ).on( 'hidden.bs.modal', function( event ) {
+            manager.optionsHidden( event );
+        } );
+
+        // Options page
+        // ...
+
+        // Scope page
+
+        $( '#fm-option-scope-channel' ).on( 'change', function ( event ) {
+            manager.updateScopeChannel( this.value );
+        } );
+
+        $( '#fm-option-scope-min' ).on( 'change', function ( event ) {
+            manager.updateScopeMin( ( this.value == '' ) ? null : +this.value );
+        } );
+        $( '#fm-option-scope-max' ).on( 'change', function ( event ) {
+            manager.updateScopeMax( ( this.value == '' ) ? null : +this.value );
+        } );
 
     },
 
@@ -207,16 +215,6 @@ fmui.InterfaceManager.prototype = {
             $( '.fm-' + iconName + '-icon' ).hide( hideDuration );
         }, hideDelay );
     },
-
-    windowDidResize: function() {
-
-        this.resizeFM();
-
-        cronelib.debounce( this.updateCharts, this.config.chartDebounceDelay )();
-
-    },
-    
-    
 
     updateCharts: function() {
         
@@ -281,6 +279,10 @@ fmui.InterfaceManager.prototype = {
         $( '#fm-options-modal' ).modal( 'show' );
     },
 
+    optionsHidden: function( event ) {
+        this.scope.stop();
+    },
+
     showOptionsTab: function( caller, event ) {
 
         // Show the caller's tab
@@ -328,6 +330,24 @@ fmui.InterfaceManager.prototype = {
         return;
     },
 
+    updateScopeMin: function( newMin ) {
+        if ( isNaN( newMin ) ) {
+            return;
+        }
+        this.scope.setMinTarget( newMin );
+    },
+
+    updateScopeMax: function( newMax ) {
+        if ( isNaN( newMax ) ) {
+            return;
+        }
+        this.scope.setMaxTarget( newMax );
+    },
+
+    updateScopeChannel: function( newChannel ) {
+        this.scope.start( newChannel );
+    },
+
 
     /* GUI Update methods */
 
@@ -339,8 +359,115 @@ fmui.InterfaceManager.prototype = {
         $( '.fm-task-name' ).text( newTaskName );
     },
 
+    _populateMontageList: function( newChannelNames ) {
+
+        var manager = this;
+
+        var exclusion = this.getExclusion();
+
+        var montageBody = $( '.fm-montage-table tbody' );
+
+        // Clear out old montage
+        montageBody.empty();
+
+        // Build up new montage
+        // TODO Incorporate excluded channels
+        newChannelNames.forEach( function( ch ) {
+            var curRow = $( '<tr></tr>' );
+            curRow.append( $( '<th scope="row" class="fm-montage-cell-channelname">' + ch + '</th>' ) );
+            
+            var isExcludedText = exclusion[ch] ? 'Yes' : 'No';
+            curRow.append( $( '<td class="fm-montage-cell-isexcluded">' + isExcludedText + '</td>' ) );    // TODO Check if excluded
+
+            if ( exclusion[ch] ) {
+                curRow.addClass( 'danger' );
+            }
+
+            curRow.on( 'click', function( event ) {
+
+                var selection = $( this );
+                var shouldExclude = !selection.hasClass( 'danger' );
+
+                if ( shouldExclude ) {
+                    manager.exclude( ch );
+                } else {
+                    manager.unexclude( ch );
+                }
+
+                selection.toggleClass( 'danger' );
+                $( '.fm-montage-cell-isexcluded', this ).text( shouldExclude ? 'Yes' : 'No' );
+
+            } );
+
+            montageBody.append( curRow );
+        } );
+
+    },
+
+    getExclusion: function() {
+        // Get the excluded channels
+        var exclusion = Cookies.getJSON( 'exclusion' );
+
+        if ( exclusion === undefined ) {
+            // Cookie is not set, so generate default
+            exclusion = {};
+            // ... and set it so this doesn't happen again!
+            Cookies.set( 'exclusion', exclusion, {
+                expires: this.config.cookieExpirationDays
+            } );
+        }
+
+        return exclusion;
+    },
+
+    setExclusion: function( exclusion ) {
+        Cookies.set( 'exclusion', exclusion, {
+            expires: this.config.cookieExpirationDays
+        } );
+    },
+
+    exclude: function( channel ) {
+        // TODO Check if channel is in allChannels?
+        var exclusion = this.getExclusion();
+        exclusion[channel] = true;
+        this.setExclusion( exclusion );
+
+        // Update raster display
+        this.raster.setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
+    },
+
+    unexclude: function( channel ) {
+        // TODO Better behavior: Check if channel is in exclusion, then delete
+        var exclusion = this.getExclusion();
+        exclusion[channel] = false;
+        this.setExclusion( exclusion );
+
+        // Update raster display
+        this.raster.setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
+    },
+
+    channelFilter: function() {
+        var exclusion = this.getExclusion();
+        return function( ch ) {
+            if ( exclusion[ch] === undefined ) {
+                return true;
+            }
+            return !exclusion[ch];
+        };
+    },
+
     updateChannelNames: function( newChannelNames ) {
-        this.raster.setDisplayOrder( newChannelNames );
+
+        // Update our state
+        this.allChannels = newChannelNames;
+
+        // Update the GUI with the complete channel list
+        this._populateMontageList( this.allChannels );
+
+        // Update the raster with the filtered channel list
+        // TODO Support different ordering, or just exclusion?
+        this.raster.setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
+
     },
 
     didResize: function() {
@@ -351,7 +478,11 @@ fmui.InterfaceManager.prototype = {
 
         cronelib.debounce( function() {
             manager.raster.update();
-        }, 100 )();   // TODO
+        }, this.config.rasterDebounceDelay )();   // TODO
+
+        cronelib.debounce( function() {
+            manager.scope.autoResize();
+        }, this.config.scopeDebounceDelay )();
 
     }
 
