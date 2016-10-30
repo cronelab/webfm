@@ -17,6 +17,7 @@ var Promise = require( 'promise-polyfill' );
 
 
 // MODULE OBJECT
+
 var fmscope = {};
 
 
@@ -42,11 +43,13 @@ fmscope.ChannelScope = function( baseNodeId ) {
     this.targetExtent   = null;
 
     // TODO Config
-    this.extentSnap     = 0.20;
-    this.windowSamples  = 5000;     // TODO Make this in seconds
+    this.extentSnap     = 0.25;
+    this.windowSamples  = 2500;     // TODO Make this in seconds
+
+    this.plotHeight     = 250;      // TODO Config
 
     this.plotMargin = {
-        left: 25,
+        left: 30,
         right: 40,
         top: 10,
         bottom: 20
@@ -91,7 +94,10 @@ fmscope.ChannelScope.prototype = {
         // TODO This requires the base node to  be visible because of how
         // jQuery works; so, setup must occur when plot is visible!
         var width = $( this.baseNodeId ).width() - (this.plotMargin.left + this.plotMargin.right);
-        var height = $( this.baseNodeId ).height() - (this.plotMargin.top + this.plotMargin.bottom);
+        
+        // This was a dumb idea; drifts!
+        //var height = $( this.baseNodeId ).height() - (this.plotMargin.top + this.plotMargin.bottom);
+        var height = this.plotHeight;
 
         if ( width <= 0 || height <= 0 ) {
             // We're not visible so stfu and go away

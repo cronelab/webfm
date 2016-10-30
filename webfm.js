@@ -11,6 +11,8 @@
 var fs          = require( 'fs' );
 var path        = require( 'path' );
 
+var spawn       = require( 'child_process' ).spawn;
+
 var optimist    = require( 'optimist' )
                     .usage( 'Web-based functional map server.\nUsage: $0' )
                     .options( 'p', {
@@ -42,6 +44,7 @@ var optimist    = require( 'optimist' )
 var argv        = optimist.argv;
 
 var express     = require( 'express' );
+var bodyParser  = require( 'body-parser' );
 var async       = require( 'async' );
 var jsonfile    = require( 'jsonfile' );
 
@@ -58,6 +61,25 @@ var appDir  = path.resolve( argv.app );
 // Set up server
 
 var app = express();
+
+
+// App globals
+
+function rawBody( req, res, next ) {
+
+    req.setEncoding( 'utf8' );
+    req.rawBody = '';
+
+    req.on( 'data', function( chunk ) {
+        req.rawBody += chunk;
+    } );
+    req.on( 'end', function() {
+        next();
+    } );
+
+}
+
+// Base static routes
 
 // TODO Iffy re. html pages?
 app.use( '/', express.static( rootDir ) );
@@ -394,6 +416,57 @@ app.get( '/api/brain/:subject', function( req, res ) {
 
 } );
 
+// Get subject sensor geometry data from .metadata
+// TODO Having to call both this and the above seems like a lot of extra
+// serialization / deserialization work ...
+app.get( '/api/geometry/:subject', function( req, res ) {
+
+    var errOut = function( code, msg ) {
+        console.log( msg );
+        res.status( code ).send( msg );
+    }
+
+    var subject = req.params.subject;
+
+    // First check if subject exists
+    checkSubject( subject, function( err, isSubject ) {
+        
+        if ( err ) {
+            // Based on how checkSubject is defined, this shouldn't happen
+            errOut( 500, 'Error determining if ' + subject + ' is a subject: ' + JSON.stringify( err ) );
+            return;
+        }
+
+        if ( !isSubject ) {
+            // Not a subject
+            errOut( 404, 'Subject ' + subject + ' not found.' );
+            return;
+        }
+
+        // We know it's a valid subject, so check if we've got metadata
+        getSubjectMetadata( subject, function( err, metadata ) {
+
+            if ( err ) {
+                // TODO Be more granular with error codes based on err
+                errOut( 500, 'Error loading metadata for ' + subject + ': ' + JSON.stringify( err ) );
+                return;
+            }
+
+            // We've got metadata, so check that we've got a brain image
+            if ( metadata.sensorGeometry === undefined ) {
+                // TODO Better error code for this?
+                errOut( 404, 'Sensor geometry not specified for subject ' + subject );
+                return;
+            }
+
+            res.status( 200 ).send( metadata.sensorGeometry );
+
+        } );
+
+    } );
+
+} );
+
 // Get list of datasets in a specific record
 app.get( '/api/list/:subject/:record', function( req, res ) {
 
@@ -416,8 +489,30 @@ app.get( '/api/data/:subject/:record/:dataset', function( req, res ) {
 } );
 
 
+// Computation api
 
-// 
+app.post( '/api/compute/identity', rawBody, function( req, res ) {
+
+    // Spawn a child process for the compute utility
+    var pyProcess = spawn( './compute/identity' );
+    var outData = '';
+
+    // Set up event handlers for the process
+    pyProcess.stdout.on( 'data', function( data ) {
+        outData += data;
+    } );
+    pyProcess.stdout.on( 'end', function() {
+        // Finished processing; send it!
+        res.status( 200 ).send( outData );
+    } );
+
+    // Start the process computing by passing it input
+    // TODO Don't need to actually parse
+    //pyProcess.stdin.write( JSON.stringify( req.body ) );
+    pyProcess.stdin.write( req.rawBody );
+    pyProcess.stdin.end();
+
+} );
 
 
 

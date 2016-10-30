@@ -18,7 +18,6 @@ var d3          = require( 'd3' );
 d3.horizon      = require( '../lib/horizon' );             // New kludge
 
 var bci2k       = require( '../lib/bci2k' );
-
 var cronelib    = require( '../lib/cronelib' );
 
 var fmstat      = require( './fmstat' );
@@ -26,6 +25,7 @@ var fmonline    = require( './fmonline' );
 var fmui        = require( './fmui' );
 var fmgen       = require( './fmgen' );
 var fmdata      = require( './fmdata' );
+var fmfeature   = require( './fmfeature' );
 
 
 // MEAT
@@ -40,14 +40,14 @@ var modeString      = pathComponents[2] || 'online';
 var onlineMode      = modeString == 'online';
 var loadMode        = !onlineMode;
 
-var subjectID       = undefined;
+var subjectName     = undefined;
 var recordName      = undefined;
 
 if ( loadMode ) {
-    subjectID       = pathComponents[2] || undefined;
+    subjectName     = pathComponents[2] || undefined;
     recordName      = pathComponents[3] || undefined;
 } else {
-    subjectID       = pathComponents[3] || undefined;
+    subjectName     = pathComponents[3] || undefined;
     recordName      = pathComponents[4] || undefined;
 }
 
@@ -66,8 +66,8 @@ var uiManager       = new fmui.InterfaceManager();
 uiManager.loadConfig( path.join( configPath, 'ui' ) )
             .then( function() {
                 // TODO Not this way ...
-                if ( subjectID && recordName ) {
-                    uiManager.updateRecordDetails( subjectID, recordName );
+                if ( subjectName && recordName ) {
+                    uiManager.updateRecordDetails( subjectName, recordName );
                 }
             } )
             .catch( function( reason ) {    // TODO Respond intelligently.
@@ -115,7 +115,9 @@ var prepareOnlineDataSource = function() {
                     // Get subject name
                     dataSource.getParameter( 'SubjectName' )
                                 .then( function( result ) {
-                                    uiManager.updateSubjectName( result.output.trim() );
+                                    subjectName = result.output.trim();
+                                    uiManager.updateSubjectName( subjectName );
+                                    prepareSubjectDependencies( subjectName );
                                 } )
                                 .catch( function( reason ) {
                                     console.log( 'Could not obtain SubjectName: ' + reason );
@@ -135,6 +137,36 @@ var prepareOnlineDataSource = function() {
                     console.log( reason );
 
                 } );
+
+};
+
+// TODO KLUUUUUUUUDGEy
+var prepareSubjectDependencies = function( theSubject ) {
+
+    // First, load the brain
+    $.get( path.join( apiPath, 'brain', theSubject ) )
+        .done( function( imageData ) {
+
+            console.log( 'Obtained subject image data.' );
+
+            // Now that we've got the brain, load the sensor geometry
+            $.getJSON( path.join( apiPath, 'geometry', theSubject ) )
+                .done( function( sensorGeometry ) {
+
+                    console.log( 'Obtained subject sensor geometry.' );
+
+                    // We have what we need, make the brain plot!
+                    uiManager.brain.setup( imageData, sensorGeometry );
+
+                } )
+                .fail( function( req, reason, err ) {
+                    console.log( 'Could not load subject sensor geometry: ' + reason );
+                } );
+
+        } )
+        .fail( function( req, reason, err ) {
+            console.log( 'Could not load subject brain: ' + reason );
+        } );
 
 };
 
@@ -175,7 +207,7 @@ var unpackBundle = function( info ) {
 
 if ( loadMode ) {       // Using data loaded from the hive
 
-    getRecordInfo( subjectID, recordName )  // Get header info for the data
+    getRecordInfo( subjectName, recordName )  // Get header info for the data
         .then( unpackBundle )               // Unpack to get us a dataset URI
         .then( dataset.get );               // Get the dataset for that URI
 
@@ -186,6 +218,7 @@ if ( loadMode ) {       // Using data loaded from the hive
 
 // TODO Move into an fmdata.Dataset object ...
 var channelStats = {};
+var meanData = {};
 
 // Property registration
 
@@ -218,8 +251,12 @@ var startTrial = function() {
 
     // We're starting to transfer a trial
     uiManager.showIcon( 'transfer' );
+    uiManager.activateTrialCount();
 
 };
+
+// TODO Testing
+var identityFeature = new fmfeature.RemoteFeature( path.join( apiPath, 'compute', 'identity' ) );
 
 var ingestTrial = function( trialData ) {
     
@@ -229,30 +266,41 @@ var ingestTrial = function( trialData ) {
     // Now we're working
     uiManager.showIcon( 'working' );
 
-    // TODO
+    updateStatistics( trialData );
+
+    // TODO Testing
+    // identityFeature.compute( trialData )
+    //                 .then( function( computedData ) {
+    //                     updateStatistics( computedData );
+    //                 } )
+    //                 .catch( function( reason ) {
+    //                     console.log( 'Error computing features on remote: ' + reason );
+    //                 } );
+
+};
+
+var updateStatistics = function( trialData ) {
+
     cronelib.forEachAsync( Object.keys( channelStats ), function( ch ) {
-
-        var chValues = trialData[ch];
-        var chBaseline = chValues.slice( 0, 10 );
-
-        channelStats[ch].updateBaseline( chBaseline );
-        channelStats[ch].updateValues( chValues );
-
+        channelStats[ch].ingest( trialData[ch] );
+        meanData[ch] = channelStats[ch].fdrCorrectedValues( 0.05 );
     }, {
         batchSize: 5
     } ).then( function() {
 
         // TODO
-        var meanData = {};
-        Object.keys( channelStats ).forEach( function( ch ) {
-            //meanData[ch] = channelStats[ch].meanValues();
-            //meanData[ch] = channelStats[ch].baselineNormalizedValues();
-            //meanData[ch] = channelStats[ch].bonferroniCorrectedValues( 0.05, true );
-            meanData[ch] = channelStats[ch].fdrCorrectedValues( 0.05 );
-        } )
-        uiManager.raster.update( meanData );
+        var trialCount = 0;
+        Object.keys( channelStats ).every( function( ch ) {
+            trialCount = channelStats[ch].valueTrials.length;
+            return false;
+        } );
 
+        updatePlotsPostData();
+
+        // GUI stuff
         uiManager.hideIcon( 'working' );
+        uiManager.updateTrialCount( trialCount );
+        uiManager.deactivateTrialCount();
 
     } );
 
@@ -260,6 +308,93 @@ var ingestTrial = function( trialData ) {
 
 
 // EVENT HOOKS
+
+// TODO Super kludgey to put here, but need data
+
+var dataForTime = function( time ) {
+
+    // TODO Kludge; cache this, since it doesn't change
+    var dataSamples = 0;
+    Object.keys( meanData ).every( function( ch ) {
+        dataSamples = meanData[ch].length;
+        return false;
+    } );
+
+    var trialWindow = dataSource.getTrialWindow();
+    var totalTime = trialWindow.end - trialWindow.start;
+
+    var timeIndexFloat = ((time - trialWindow.start) / totalTime) * dataSamples;
+    var timeIndex = Math.floor( timeIndexFloat );
+    var timeFrac = timeIndexFloat - timeIndex;
+
+    return Object.keys( meanData ).reduce( function( obj, ch ) {
+        obj[ch] = (1.0 - timeFrac) * meanData[ch][timeIndex] + (timeFrac) * meanData[ch][timeIndex + 1];
+        return obj
+    }, {} );
+
+};
+
+// TODO AAAAAAH I'M AN IDIOT
+var updatePlotsPostData = function() {
+
+    uiManager.raster.update( meanData );
+
+    // TODO Kludge: dataForTime is the only thing keeping routine in main
+    var meanDataSlice = dataForTime( uiManager.raster.getCursorTime() );
+    uiManager.brain.update( meanDataSlice );
+
+    // TODO Super kludge; should only need to update once ever ...
+    var trialWindow = dataSource.getTrialWindow();
+    uiManager.raster.updateTimeRange( [trialWindow.start, trialWindow.end] );
+
+};
+
+uiManager.raster.oncursormove = function( newTime ) {
+
+    uiManager.updateSelectedTime( newTime );
+
+    var meanDataSlice = dataForTime( newTime );
+    uiManager.brain.update( meanDataSlice );
+
+};
+
+uiManager.onOptionChange = function( option, newValue ) {
+
+    if ( option == 'stim-trial-start' ) {
+        update
+    }
+    if ( option == 'stim-trial-end' ) {
+        // ?
+    }
+
+    if ( option == 'stim-baseline-start' ) {
+        updateBaselineWindow( { start: newValue } );
+    }
+    if ( option == 'stim-baseline-end' ) {
+        updateBaselineWindow( { end: newValue } );
+    }
+
+};
+
+var updateTrialWindow = function( newWindow ) {
+
+};
+
+var updateBaselineWindow = function( newWindow ) {
+
+    uiManager.showIcon( 'working' );
+
+    cronelib.forEachAsync( Object.keys( channelStats ), function( ch ) {
+        channelStats[ch].recompute( newWindow );
+    }, {
+        batchSize: 5
+    } ).then( function() {
+        updatePlotsPostData();
+        uiManager.hideIcon( 'working' );
+    } );
+
+};
+
 
 $( window ).on( 'resize', function() {
 

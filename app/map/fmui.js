@@ -9,6 +9,7 @@
 // REQUIRES
 
 var $           = require( 'jquery' );
+var d3          = require( 'd3' );
 
 var Cookies     = require( 'js-cookie' );
 
@@ -44,6 +45,8 @@ var fmui = {};
 
 fmui.InterfaceManager = function() {
 
+    var manager = this;
+
     this.config = {};
 
     this.icons = [
@@ -51,10 +54,23 @@ fmui.InterfaceManager = function() {
         'working'
     ];
 
-    this.raster = new fmraster.ChannelRaster( '#fm' );
     this.allChannels = [];  // TODO Can avoid?
 
-    this.scope = new fmscope.ChannelScope( '#scope' );
+    // Allocate members
+
+    this.raster = new fmraster.ChannelRaster( '#fm' );
+    this.brain = new fmbrain.BrainVisualizer( '#fm-brain' );
+    this.scope = new fmscope.ChannelScope( '#fm-scope' );
+
+    // Event hooks
+
+    this.raster.onselectchannel = function( newChannel ) {
+        manager.brain.setSelectedChannel( newChannel );
+    };
+
+    // Events
+
+    this.onoptionchange = function( option, newValue ) {};
 
 };
 
@@ -81,23 +97,28 @@ fmui.InterfaceManager.prototype = {
 
     },
 
+    _syncRasterConfig: function() {
+        this.raster.setRowHeight( this.getRowHeight() );
+        this.raster.setExtent( this.getRasterExtent() );
+    },
+
     _mergeDefaultConfig: function( config ) {
     
         // Copy over any extras that might not be merged here
         var mergedConfig = config;
 
         // For required config items, specify a default if nothing is provided
-        mergedConfig.rowHeight          = config.rowHeight          || 5;
-        mergedConfig.maxRowHeight       = config.maxRowHeight       || 10;
-        mergedConfig.pxPerRowHeight     = config.pxPerRowHeight     || 5;
+        mergedConfig.rowHeight              = config.rowHeight              || 5;
+        mergedConfig.maxRowHeight           = config.maxRowHeight           || 10;
+        mergedConfig.pxPerRowHeight         = config.pxPerRowHeight         || 5;
 
-        mergedConfig.plotExtent         = config.plotExtent         || 5;
-        mergedConfig.maxPlotExtent      = config.maxPlotExtent      || 10;
-        mergedConfig.unitsPerPlotExtent = config.unitsPerPlotExtent || 1;
+        mergedConfig.rasterExtent           = config.rasterExtent           || 5;
+        mergedConfig.maxRasterExtent        = config.maxRasterExtent        || 10;
+        mergedConfig.unitsPerRasterExtent   = config.unitsPerRasterExtent   || 1;
 
-        mergedConfig.iconShowDuration   = config.iconShowDuration   || 100;
-        mergedConfig.iconHideDelay      = config.iconHideDelay      || 1000;
-        mergedConfig.iconHideDuration   = config.iconHideDuration   || 100;
+        mergedConfig.iconShowDuration       = config.iconShowDuration       || 100;
+        mergedConfig.iconHideDelay          = config.iconHideDelay          || 1000;
+        mergedConfig.iconHideDuration       = config.iconHideDuration       || 100;
 
         mergedConfig.fmMargin = config.fmMargin || { 'left': 0, 'right': 0, 'top': 0, 'bottom': 0 };
 
@@ -121,10 +142,16 @@ fmui.InterfaceManager.prototype = {
             manager.hideIcon( icon );
         } );
 
-        // TODO Get this to work
-        //this.raster.setup();
+        
+        this.raster.setup();    // TODO Always will fail for charts until
+                                // data arrives; necessary?
 
         //this.scope.setup();
+
+        // Populate options with the current cookie-set values
+        this._populateOptions( this.getOptions() );
+        
+        this._syncRasterConfig();
 
     },
 
@@ -142,27 +169,37 @@ fmui.InterfaceManager.prototype = {
         var manager = this;
 
         $( '.fm-zoom-in' ).on( 'click', function( event ) {
+            event.preventDefault();
+            if ( $( this ).hasClass( 'disabled' ) ) { return; }
             manager.zoomIn( event );
         } );
         $( '.fm-zoom-out' ).on( 'click', function( event ) {
+            event.preventDefault();
+            if ( $( this ).hasClass( 'disabled' ) ) { return; }
             manager.zoomOut( event );
         } );
         $( '.fm-gain-up' ).on( 'click', function( event ) {
+            event.preventDefault();
+            if ( $( this ).hasClass( 'disabled' ) ) { return; }
             manager.gainUp( event );
         } );
         $( '.fm-gain-down' ).on( 'click', function( event ) {
+            event.preventDefault();
+            if ( $( this ).hasClass( 'disabled' ) ) { return; }
             manager.gainDown( event );
         } );
 
         $( '.fm-toggle-fullscreen' ).on( 'click', function( event ) {
+            event.preventDefault();
             manager.toggleFullscreen( event );
         } );
 
         $( '.fm-show-options' ).on( 'click', function( event ) {
+            event.preventDefault();
             manager.showOptions( event );
         } );
         $( '.fm-options-tab-list a' ).on( 'click', function( event ) {
-            event.preventDefault();     // Prevent auto-triggering
+            event.preventDefault();
             manager.showOptionsTab( this, event );
         } );
 
@@ -216,49 +253,171 @@ fmui.InterfaceManager.prototype = {
         }, hideDelay );
     },
 
-    updateCharts: function() {
-        
-        // ...
+    updateRaster: function( guarantee ) {
+
+        var manager = this;
+
+        var updater = function() {
+            manager.raster.update();
+        };
+
+        if ( guarantee ) {
+            // Guarantee the update happens now
+            updater();
+        } else {
+            // Debounce the update calls to prevent overload
+            cronelib.debounce( updater, this.config.rasterDebounceDelay, true )();
+        }
+
+    },
+
+    updateScope: function( guarantee ) {
+
+        var manager = this;
+
+        var updater = function() {
+            manager.scope.autoResize();
+            manager.scope.update();
+        };
+
+        if ( guarantee ) {
+            // Guarantee the update happens now
+            updater();
+        } else {
+            // Debounce the update calls to prevent overload
+            cronelib.debounce( updater, this.config.scopeDebounceDelay, true )();
+        }
+
+    },
+
+    updateBrain: function() {
+
+        var manager = this;
+
+        cronelib.debounce( function() {
+            manager.brain.autoResize();
+            manager.brain.update();
+        }, this.config.brainDebounceDelay )();
 
     },
 
 
     /* Button handlers */
 
+    _updateZoomClasses: function() {
+        if ( this.config.rowHeight >= this.config.maxRowHeight ) {
+            $( '.fm-zoom-in' ).addClass( 'disabled' );
+        } else {
+            $( '.fm-zoom-in' ).removeClass( 'disabled' );
+        }
+        if ( this.config.rowHeight <= 1 ) {
+            $( '.fm-zoom-out' ).addClass( 'disabled' );
+        } else {
+            $( '.fm-zoom-out' ).removeClass( 'disabled' );
+        }
+    },
+
+    _updateGainClasses: function() {
+        if ( this.config.rasterExtent >= this.config.maxRasterExtent ) {
+            $( '.fm-gain-down' ).addClass( 'disabled' );
+        } else {
+            $( '.fm-gain-down' ).removeClass( 'disabled' );
+        }
+        if ( this.config.rasterExtent <= 1 ) {
+            $( '.fm-gain-up' ).addClass( 'disabled' );
+        } else {
+            $( '.fm-gain-up' ).removeClass( 'disabled' );
+        }
+    },
+
     zoomIn: function( event ) {
-        this.rowHeight = this.rowHeight + 1;
-        if ( this.rowHeight > this.config.maxRowHeight ) {
-            this.rowHeight = this.config.maxRowHeight;
+
+        // Update UI-internal gain measure
+        this.config.rowHeight = this.config.rowHeight + 1;
+        if ( this.config.rowHeight > this.config.maxRowHeight ) {
+            this.config.rowHeight = this.config.maxRowHeight;
             return;                         // Only update if we actually change
         }
-        this.updateCharts();
+
+        this._updateZoomClasses();
+
+        // Cache the scroll state before our manipulations
+        // TODO Use row in middle of viewport, not fraction of scrolling
+        var prevScrollFraction = this._getScrollFraction();
+        // Alter raster parameters
+        this.raster.setRowHeight( this.getRowHeight() );
+        // Redraw the raster with a guarantee
+        this.updateRaster( true );
+        //Restore the scroll state
+        $( document ).scrollTop( this._topForScrollFraction( prevScrollFraction ) );
+
     },
     
     zoomOut: function( event ) {
-        this.rowHeight = this.rowHeight - 1;
-        if ( this.rowHeight < 1 ) {
-            this.rowHeight = 1;
+
+        // Update UI-internal gain measure
+        this.config.rowHeight = this.config.rowHeight - 1;
+        if ( this.config.rowHeight < 1 ) {
+            this.config.rowHeight = 1;
             return;
         }
-        this.updateCharts();
+        this._updateZoomClasses();
+
+        // Cache the scroll state before our manipulations
+        // TODO Use row in middle of viewport, not fraction of scrolling
+        var prevScrollFraction = this._getScrollFraction();
+        // Alter raster parameters
+        this.raster.setRowHeight( this.getRowHeight() );
+        // Redraw the raster with a guarantee
+        this.updateRaster( true );
+        // Restore the scroll state
+        $( document ).scrollTop( this._topForScrollFraction( prevScrollFraction ) );
+
     },
 
     gainDown: function( event ) {
-        this.plotExtent = this.plotExtent + 1;
-        if ( this.plotExtent > this.config.maxPlotExtent ) {
-            this.plotExtent = this.config.maxPlotExtent;
+
+        // Update UI-internal gain measure
+        this.config.rasterExtent = this.config.rasterExtent + 1;
+        if ( this.config.rasterExtent > this.config.maxPlotExtent ) {
+            this.config.rasterExtent = this.config.maxPlotExtent;
             return;
         }
-        this.updateCharts();
+
+        this._updateGainClasses();
+
+        // Alter raster parameters
+        this.raster.setExtent( this.getRasterExtent() );
+
+        // Redraw the raster with a guarantee
+        this.updateRaster( true );
+
     },
 
     gainUp: function( event ) {
-        this.plotExtent = this.plotExtent - 1;
-        if ( this.plotExtent < 1 ) {
-            this.plotExtent = 1;
+
+        // Update UI-internal gain measure
+        this.config.rasterExtent = this.config.rasterExtent - 1;
+        if ( this.config.rasterExtent < 1 ) {
+            this.config.rasterExtent = 1;
             return;
         }
-        this.updateCharts();
+        this._updateGainClasses();
+
+        // Alter raster parameters
+        this.raster.setExtent( this.getRasterExtent() );
+
+        // Redraw the raster with a guarantee
+        this.updateRaster( true );
+
+    },
+
+    _getScrollFraction: function() {
+        return $( window ).scrollTop() / ( $( document ).height() - $( window ).height() );
+    },
+
+    _topForScrollFraction: function( frac ) {
+        return frac * ( $( document ).height() - $( window ).height() );
     },
 
     toggleFullscreen: function( event ) {
@@ -359,6 +518,55 @@ fmui.InterfaceManager.prototype = {
         $( '.fm-task-name' ).text( newTaskName );
     },
 
+    // TODO nomenclature
+    updateSelectedTime: function( newTime ) {
+        $( '.fm-time-selected' ).text( ( newTime > 0 ? '+' : '' ) + newTime.toFixed( 3 ) + ' s' );
+    },
+
+    _populateOptions: function( options ) {
+
+        // Stimulus windows
+        $( '#fm-option-stim-trial-start' ).val( options.stimulus.window.start );
+        $( '#fm-option-stim-trial-end' ).val( options.stimulus.window.end );
+        $( '#fm-option-stim-baseline-start' ).val( options.stimulus.baselineWindow.start );
+        $( '#fm-option-stim-baseline-end' ).val( options.stimulus.baselineWindow.end );
+
+        // Response windows
+        $( '#fm-option-resp-trial-start' ).val( options.response.window.start );
+        $( '#fm-option-resp-trial-end' ).val( options.response.window.end );
+        $( '#fm-option-resp-baseline-start' ).val( options.response.baselineWindow.start );
+        $( '#fm-option-resp-baseline-end' ).val( options.response.baselineWindow.end );
+        
+        // Timing strategy
+        $( '#fm-option-stim-timing-state' ).prop( 'checked', true );
+        $( '#fm-option-stim-timing-signal' ).prop( 'checked', false );
+        if ( options.stimulus.timingStrategy == 'state' ) {
+            $( '#fm-option-stim-timing-state' ).prop( 'checked', true );
+        }
+        if ( options.stimulus.timingStrategy == 'signal' ) {
+            $( '#fm-option-stim-timing-signal' ).prop( 'checked', true );
+        }
+
+        // Stimulus thresholding
+        $( '#fm-option-stim-channel' ).val( options.stimulus.signal.channel );
+        $( '#fm-option-stim-off' ).val( options.stimulus.signal.offValue );
+        $( '#fm-option-stim-on' ).val( options.stimulus.signal.onValue );
+
+        $( '#fm-option-stim-state' ).val( options.stimulus.state.name );
+        $( '#fm-option-stim-state-off' ).val( options.stimulus.state.offValue );
+        $( '#fm-option-stim-state-on' ).val( options.stimulus.state.onValue );
+
+        // Response thresholding
+        $( '#fm-option-resp-channel' ).val( options.response.signal.channel );
+        $( '#fm-option-resp-off' ).val( options.response.signal.offValue );
+        $( '#fm-option-resp-on' ).val( options.response.signal.onValue );
+
+        $( '#fm-option-resp-state' ).val( options.response.state.name );
+        $( '#fm-option-resp-state-off' ).val( options.response.state.offValue );
+        $( '#fm-option-resp-state-on' ).val( options.response.state.onValue );
+
+    },
+
     _populateMontageList: function( newChannelNames ) {
 
         var manager = this;
@@ -402,6 +610,84 @@ fmui.InterfaceManager.prototype = {
             montageBody.append( curRow );
         } );
 
+    },
+
+    getRasterExtent: function() {
+        return this.config.rasterExtent * this.config.unitsPerRasterExtent;
+    },
+
+    getRowHeight: function() {
+        return this.config.rowHeight * this.config.pxPerRowHeight;
+    },
+
+    getOptions: function() {
+        // Get the set options
+        var options = Cookies.getJSON( 'options' );
+
+        if ( options === undefined ) {
+            // Cookie isn't set, so generate default
+            options = {};
+
+            // TODO Move default options into config
+
+            options.stimulus = {};
+
+            // Stimulus-based alignment config
+
+            options.stimulus.window = {
+                start   : -1.0,
+                end     : 3.0
+            };
+            options.stimulus.baselineWindow = {
+                start   : -1.0,
+                end     : -0.2
+            };
+
+            options.stimulus.timingStrategy = 'state';
+
+            options.stimulus.signal = {};
+            options.stimulus.signal.channel      = 'ainp1';
+            options.stimulus.signal.offValue     = 0;
+            options.stimulus.signal.onValue      = 1;
+            options.stimulus.signal.threshold    = 0.2;
+
+            options.stimulus.state = {};
+            options.stimulus.state.name          = 'StimulusCode';
+            options.stimulus.state.offValue      = 0;
+            options.stimulus.state.onValue       = 'x';
+
+            // Response-based alignment config
+
+            options.response = {};
+            options.response.window = {
+                start   : -2.0,
+                end     : 2.0
+            };
+            options.response.baselineWindow = {
+                start   : -2.0,
+                end     : -1.6
+            };
+
+            options.response.timingStrategy = 'state';
+
+            options.response.signal = {};
+            options.response.signal.channel      = 'ainp2';
+            options.response.signal.offValue     = 0;
+            options.response.signal.onValue      = 1;
+            options.response.signal.threshold    = 0.2;
+
+            options.response.state = {};
+            options.response.state.name          = 'RespCode';
+            options.response.state.offValue      = 0;
+            options.response.state.onValue       = 'x';
+
+            // Set the cookie so this doesn't happen again!
+            Cookies.set( 'options', options, {
+                expires: this.config.cookieExpirationDays
+            } );
+        }
+
+        return options
     },
 
     getExclusion: function() {
@@ -470,19 +756,26 @@ fmui.InterfaceManager.prototype = {
 
     },
 
+    activateTrialCount: function() {
+        $( '.fm-trial-label' ).addClass( 'fm-trial-label-active' );
+    },
+
+    deactivateTrialCount: function() {
+        $( '.fm-trial-label' ).removeClass( 'fm-trial-label-active' );
+    },
+
+    updateTrialCount: function( newCount ) {
+        $( '.fm-trial-label' ).text( 'n = ' + newCount );
+    },
+
     didResize: function() {
 
-        // TODO Better way?
+        this.updateRaster();
 
-        var manager = this;
+        this.updateScope();
 
-        cronelib.debounce( function() {
-            manager.raster.update();
-        }, this.config.rasterDebounceDelay )();   // TODO
-
-        cronelib.debounce( function() {
-            manager.scope.autoResize();
-        }, this.config.scopeDebounceDelay )();
+        //this.updateBrain();
+        this.brain.autoResize();
 
     }
 

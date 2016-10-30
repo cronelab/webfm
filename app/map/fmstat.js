@@ -45,11 +45,17 @@ fmstat.Gaussian.prototype = {
 
 };
 
-fmstat.ChannelStat = function() {
+fmstat.ChannelStat = function( options ) {
 
-    this.baseline = new fmstat.Gaussian();
+    if ( !options ) {   // To streamline later code
+        options = {};
+    }
 
-    this.values = null;
+    this.baseline       = new fmstat.Gaussian();
+    this.values         = null;
+
+    this.baselineWindow = options.baselineWindow || { start: 0, end: 10 };
+    this.valueTrials    = [];
 
 };
 
@@ -57,7 +63,42 @@ fmstat.ChannelStat.prototype = {
 
     constructor: fmstat.ChannelStat,
 
-    updateBaseline: function( data ) {
+    recompute: function( baselineWindow ) {
+
+        var stat = this;
+
+        // Handle arguments
+        if ( baselineWindow ) {
+            if ( baselineWindow.start ) {
+                this.baselineWindow.start = baselineWindow.start;
+            }
+            if ( baselineWindow.end ) {
+                this.baselineWindow.end = baselineWindow.end;
+            }
+        }
+
+        // Recompute all the data anew
+        this.valueTrials.forEach( function( trialData ) {
+            // To recompute, we just re-ingest all the trials!
+            stat.ingest( trialData );
+        } );
+
+    },
+
+    ingest: function( data ) {
+
+        var baselineData = data.slice( this.baselineWindow.start, this.baselineWindow.end + 1 );
+
+        // Compute summary statistics
+        this.ingestValues( data );
+        this.ingestBaseline( baselineData );
+
+        // Aggregate new trial data
+        this.valueTrials.push( data );
+
+    },
+
+    ingestBaseline: function( data ) {
 
         var stat = this;
 
@@ -68,7 +109,7 @@ fmstat.ChannelStat.prototype = {
 
     },
 
-    updateValues: function( data ) {
+    ingestValues: function( data ) {
 
         var stat = this;
 
@@ -134,15 +175,38 @@ fmstat.ChannelStat.prototype = {
         return this._thresholdedValues( threshold );
     },
 
+    baselineComparisonPValues: function() {
+
+        var stat = this;
+
+        var tValues = this.values.map( function( v ) {
+
+            if ( stat.baseline.variance === undefined ) {
+                // Can't compare against a singular baseline
+                return 0.0;
+            }
+
+            var num = v.mean - stat.baseline.mean;
+            // Don't include value's variance if it is singular
+            var den = den = Math.sqrt( ( stat.baseline.variance / stat.baseline.count )
+                + ( ( v.variance === undefined ) ? 0.0 : ( v.variance / v.count ) ) );
+
+            return num / den;
+
+        } );
+
+        // TODO Using asymptotic normal theory; should allow non-asymptotic case
+        return tValues.map( function( t ) {
+             // TODO Support two-tailed
+             return 2.0 * ( 1.0 - fmstat.cdfn( Math.abs( t ), 0.0, 1.0 ) );
+        } );
+
+    },
+
     fdrCorrectedValues: function( fdr ) {
 
-        // Consider everything relative to standard normal
-        var normValues = this.baselineNormalizedValues();
-
         // Compute p-values
-        var pValues = normValues.map( function( v ) {
-            return 2.0 * ( 1.0 - fmstat.cdfn( Math.abs( v ), 0.0, 1.0 ) );
-        } );
+        var pValues = this.baselineComparisonPValues();
 
         // Sort p-values
         var sortResult = fmstat.argsort( pValues );
@@ -151,8 +215,8 @@ fmstat.ChannelStat.prototype = {
         var kGood = -1;
         var nTests = sortResult.values.length;
         sortResult.values.every( function( p, k ) {
-            if ( p > (k / nTests) * fdr ) {
-                return false;
+            if ( p > ((k+1) / nTests) * fdr ) {
+                return false;       // Breaks out
             }
             kGood = k;
             return true;
@@ -162,14 +226,14 @@ fmstat.ChannelStat.prototype = {
         var canReject = pValues.map( function( p ) { return false; } );
         sortResult.indices.every( function( i, k ) {
             if ( k > kGood ) {      // k = index in sort
-                return false;
+                return false;       // Breaks out
             }
             canReject[i] = true;    // i = original index
             return true;
         } );
 
-        // Return the thresholded values
-        return normValues.map( function( v, i ) {
+        // Return the thresholded normalized values
+        return this.baselineNormalizedValues().map( function( v, i ) {
             return canReject[i] ? v : 0.0;
         } );
 

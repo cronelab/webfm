@@ -490,7 +490,7 @@ module.exports = BCI2K;
 
 //
 
-},{"jdataview":39}],2:[function(require,module,exports){
+},{"jdataview":40}],2:[function(require,module,exports){
 'use strict';
 
 // ======================================================================== //
@@ -629,10 +629,10 @@ cronelib.parseQuery = function (qstr) {
     return query;
 };
 
-// cronelib.debounce
+// cronelib.debounce_old
 // For, e.g., preventing excessive resize() calls
 
-cronelib.debounce = function (func, timeout) {
+cronelib.debounce_old = function (func, timeout) {
     var timeoutID,
         timeout = timeout || 200;
     return function () {
@@ -645,13 +645,36 @@ cronelib.debounce = function (func, timeout) {
     };
 };
 
+// cronelib.debounce
+// taken from underscore( _.debounce )
+// Returns a function, that, as long as it continues to be invoked, will not
+// be triggered. The function will be called after it stops being called for
+// N milliseconds. If `immediate` is passed, trigger the function on the
+// leading edge, instead of the trailing.
+
+cronelib.debounce = function (func, wait, immediate) {
+    var timeout;
+    return function () {
+        var context = this,
+            args = arguments;
+        var later = function later() {
+            timeout = null;
+            if (!immediate) func.apply(context, args);
+        };
+        var callNow = immediate && !timeout;
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+        if (callNow) func.apply(context, args);
+    };
+};
+
 // EXPORT MODULE
 
 module.exports = cronelib;
 
 //
 
-},{"promise-polyfill":42,"setimmediate":43}],3:[function(require,module,exports){
+},{"promise-polyfill":43,"setimmediate":44}],3:[function(require,module,exports){
 'use strict';
 
 // =
@@ -789,7 +812,7 @@ module.exports = fullscreen;
 
 //
 
-},{"promise-polyfill":42,"setimmediate":43}],4:[function(require,module,exports){
+},{"promise-polyfill":43,"setimmediate":44}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1031,7 +1054,7 @@ var _d3Axis = require('d3-axis');
 
 var _d3Array = require('d3-array');
 
-},{"d3-array":28,"d3-axis":29,"d3-scale":34,"d3-selection":35}],5:[function(require,module,exports){
+},{"d3-array":29,"d3-axis":30,"d3-scale":35,"d3-selection":36}],5:[function(require,module,exports){
 "use strict";
 
 var d3 = require('d3');
@@ -1228,15 +1251,15 @@ function d3_horizonTransform(bands, h, mode) {
 
 module.exports = d3_horizon;
 
-},{"d3":38}],6:[function(require,module,exports){
+},{"d3":39}],6:[function(require,module,exports){
 'use strict';
 
-// =
+// ======================================================================== //
 //
 // fmbrain
 // Manager for brain visualization
 //
-// =
+// ======================================================================== //
 
 
 // REQUIRES
@@ -1250,96 +1273,159 @@ var fmbrain = {};
 
 // MAIN CLASS
 
-fmbrain.BrainVisualizer = function () {
+fmbrain.BrainVisualizer = function (baseNodeId) {
+
+    this.baseNodeId = baseNodeId;
 
     this.imageData = null;
     this.sensorGeometry = null;
-
-    this.baseNode = null;
-    this.brainSvg = null;
-    this.brainImage = null;
-
     this.selectedChannel = null;
     this.data = null;
 
-    // TODO Possible to handle resizing properly with just CSS?
+    this.dotRadiusScale = null;
+    this.dotColorScale = null;
+    this.dotXScale = null;
+    this.dotYScale = null;
+
+    this.brainSvg = null;
+
+    this.aspect = null;
     this.size = {
         width: 0,
         height: 0
     };
+
     // TODO Put these in a config-file
     this.margin = {
         top: 10,
         right: 10,
-        bottom: 0,
-        left: 0
+        bottom: 10,
+        left: 10
     };
     this.dotMinRadius = 0.003; // u (horizontal) units
-    this.dotScale = 0.008;
+    this.dotMaxRadius = 0.040;
 
-    // TODO Handle this with CSS for quick style interchange 
-    this.dotStrokeInactive = '#000000';
-    this.dotStrokeWidthInactive = 1;
-    this.dotStrokeActive = '#ffff00';
-    this.dotStrokeWidthActive = 3;
-
-    this.dotFillNeutral = '#ffffff';
-    this.dotFillPositive = '#f46d43';
-    this.dotFillNegative = '#74add1';
+    this.extent = 10.0; // TODO Expose
 
     /*
-    this.dotColors = [
-        "#313695",
-        "#4575b4",
-        "#74add1",
-        "#abd9e9",
-        "#fee090",
-        "#fdae61",
-        "#f46d43",
-        "#d73027"
-    ];
+    this.dotFillNeutral     = '#ffffff';
+    this.dotFillPositive    = '#f46d43';
+    this.dotFillNegative    = '#74add1';
     */
+
+    this.dotColors = ["#313695", "#4575b4", "#74add1", "#abd9e9", "#000000", "#fee090", "#fdae61", "#f46d43", "#d73027"];
+    this.dotColorsDomain = [-9, -5, -2, -0.01, 0.0, 0.01, 2, 5, 9];
 };
 
 fmbrain.BrainVisualizer.prototype = {
 
     constructor: fmbrain.BrainVisualizer,
 
-    _defaultData: function _defaultData() {
-        // TODO Return a data array giving zeros for each channel
+    _defaultData: function _defaultData(channels) {
+        // Return a data map giving zeros for each channel
+        return channels.reduce(function (obj, ch) {
+            obj[ch] = 0.0;
+            return obj;
+        }, {});
     },
 
-    setupFromDataset: function setupFromDataset(dataset, baseNode) {
+    _reformatForDisplay: function _reformatForDisplay(data) {
+
+        var brain = this;
+
+        // Takes a channel -> value map and turns it into an array of objects
+        return Object.keys(data).filter(function (ch) {
+            if (Object.keys(brain.sensorGeometry).indexOf(ch) < 0) {
+                // Ignore if the channel isn't in our geometry
+                return false;
+            }
+            if (brain.sensorGeometry[ch].u === undefined || brain.sensorGeometry[ch].v === undefined) {
+                // Ignore if the provided geometry is unhelpful
+                return false;
+            }
+            // Don't ignore
+            return true;
+        }).map(function (ch) {
+            return {
+                channel: ch,
+                value: data[ch]
+            };
+        });
+    },
+
+    setupFromDataset: function setupFromDataset(dataset) {
         // TODO Error handling
-        this.setup(dataset.metadata.brainImage, dataset.metadata.sensorGeometry, baseNode);
+        this.setup(dataset.metadata.brainImage, dataset.metadata.sensorGeometry);
     },
 
-    setup: function setup(imageData, sensorGeometry, baseNode) {
+    _getDimensionsForData: function _getDimensionsForData(data) {
+
+        return new Promise(function (resolve, reject) {
+
+            var image = document.createElement('img');
+
+            image.addEventListener('load', function () {
+                // Proceed to resolution with new dimensions
+                resolve({
+                    width: image.width,
+                    height: image.height
+                });
+                // Remove itself so we don't need to deal with it
+                this.remove();
+            });
+
+            // This will trigger the load
+            image.src = data;
+        });
+    },
+
+    setup: function setup(imageData, sensorGeometry) {
+
+        var brain = this;
 
         // TODO Format checking
-        this.imageData = brainImage;
+        this.imageData = imageData;
         this.sensorGeometry = sensorGeometry;
 
-        this.data = this._defaultData();
+        this.data = this._defaultData(Object.keys(this.sensorGeometry));
 
-        // TODO Should substitute this with baseId (need different nodes for d3 and jQuery)
-        this.baseNode = baseNode || d3.select('#brain');
+        // Width of *brain* from DOM
+        this.size.width = $(this.baseNodeId).width() - (this.margin.left + this.margin.right);
 
-        // DOMination
+        // Setup default scale functions
+        this.dotXScale = d3.scaleLinear() // u -> x
+        .domain([0, 1]).range([0, this.size.width]);
+        this.dotYScale = d3.scaleLinear() // v -> y
+        .domain([0, 1]).range([1, 0]); // Placeholder until logic
+        // below comes back with a value
 
-        // TODO Sizing is somewhat opaque, clean up pls
-        this.brainSvg = d3.select('#brain').append('svg').attr('width', this.size.width + this.margin.left + this.margin.right).attr('height', this.size.height + this.margin.top + this.margin.bottom);
-        // TODO ???? Transform should be on the element that brainImage is under?
-        this.brainSvg.append('g').attr('transform', 'translate(' + this.marginn.left + ',' + this.margin.top + ')');
+        this.dotRadiusScale = d3.scaleSqrt() // data -> u
+        .domain([0, this.extent]).range([this.dotMinRadius, this.dotMaxRadius]).clamp(true);
 
-        // TODO Could need to set width and height for data URI to work
-        this.brainImage = brainSvg.append('g').append('image').attr('xlink:href', this.imageData).attr('x', '0').attr('y', '0');
+        this.dotColorScale = d3.scaleLinear().domain(this.dotColorsDomain).range(this.dotColors).clamp(true);
 
-        this.brainDots = brainSvg.append('g').attr('class', 'brain-dots').selectAll('.brain-dot').data(this.data).enter().append('circle').filter(this._dotFilter) // TODO Necessary?
-        .attr('class', 'dot').style('fill', this._dotFill).style('stroke', this._dotStroke).style('stroke-width', this._dotStrokeWidth).call(this._dotPosition).sort(this._dotOrder);
+        // To get height to work, we're going to need to do some magic.
+        this._getDimensionsForData(this.imageData).then(function (dimensions) {
+            // Determine proper aspect ratio from loaded image
+            brain.aspect = dimensions.width / dimensions.height;
+            // Use new aspect to get size
+            brain.autoResize();
+            // Call update to get dots
+            brain.update();
+        });
 
-        // Now that we've added everything we need, do an initial update to make everything pretty
-        this.update();
+        // Base SVG fills entire baseNode when possible.
+        this.brainSvg = d3.select(this.baseNodeId).append('svg').attr('class', 'fm-brain-svg');
+
+        // Group that holds everything
+        var g = this.brainSvg.append('g').attr('transform', 'translate(' + this.margin.left + ',' + this.margin.top + ')');
+
+        // Image element for brain
+        // TODO Need to set width / height based on imageData?
+        g.append('image').attr('class', 'fm-brain-image').attr('xlink:href', this.imageData).attr('x', '0').attr('y', '0');
+
+        // Group that holds dots
+        g.append('g').attr('class', 'fm-brain-dots');
     },
 
     _dotFilter: function _dotFilter(d) {
@@ -1352,56 +1438,59 @@ fmbrain.BrainVisualizer.prototype = {
 
     _dotFill: function _dotFill(d) {
         // TODO Very naive way of coloring based on old d3_horizon_chart API
-        if (d.value == 0.0) {
+        /*
+        if ( d.value == 0.0 ) {
             return this.dotFillNeutral;
-        } else if (d.value > 0.0) {
+        } else if ( d.value > 0.0 ) {
             return this.dotFillPositive;
         }
         return this.dotFillNegative;
+        */
+        return this.dotColorScale(d.value);
     },
 
-    _dotStroke: function _dotStroke(d) {
-        if (this.selectedChannel == null) {
-            return this.dotStrokeInactive; // Nothing is active
+    _dotVisibility: function _dotVisibility(d) {
+        if (d.channel == this.selectedChannel) {
+            return 'visible';
         }
-        if (d.name == this.selectedChannel) {
-            return this.dotStrokeActive; // This datum is active
+        if (d.value == 0) {
+            return 'hidden';
         }
-        return this.dotStrokeInactive; // " " isn't
+        return 'visible';
     },
-
-    _dotStrokeWidth: function _dotStrokeWidth(d) {
-        if (this.selectedChannel == null) {
-            return this.dotStrokeWidthInactive;
-        }
-        if (d.name == this.selectedChannel) {
-            return this.dotStrokeWidthActive;
-        }
-        return this.dotStrokeWidthInactive;
-    },
-
     _dotX: function _dotX(d) {
-        var pos = this.sensorGeometry[d.name];
-        return pos ? pos.u * this.size.width : undefined;
+        var pos = this.sensorGeometry[d.channel];
+        // TODO Bad way to handle errors
+        if (isNaN(pos.u)) {
+            return -this.dotXScale(this.dotMaxRadius);
+        }
+        return this.dotXScale(pos.u);
     },
     _dotY: function _dotY(d) {
-        var pos = this.sensorGeometry[d.name];
-        // TODO Should v-coordinate be reversed like this?
-        return pos ? (1 - pos.v) * this.size.height : undefined;
+        var pos = this.sensorGeometry[d.channel];
+        // TODO Bad way to handle errors
+        if (isNaN(pos.u)) {
+            return -this.dotXScale(this.dotMaxRadius);
+        }
+        return this.dotYScale(pos.v);
     },
     _dotRadius: function _dotRadius(d) {
-        return (this.dotMinRadius + this.dotScale * Math.abs(d.value)) * this.size.width;
+        // TODO Bad way to handle errors
+        if (isNaN(d.value)) {
+            return this.dotXScale(this.dotRadiusScale(Math.abs(0.0)));
+        }
+        return this.dotXScale(this.dotRadiusScale(Math.abs(d.value)));
     },
     _dotPosition: function _dotPosition(dot) {
-        dot.attr('cx', this._dotX).attr('cy', this._dotY).attr('r', this._dotRadius);
+        dot.attr('visibility', this._dotVisibility.bind(this)).attr('cx', this._dotX.bind(this)).attr('cy', this._dotY.bind(this)).attr('r', this._dotRadius.bind(this));
     },
 
     _dotOrder: function _dotOrder(a, b) {
         // Selected channel is always on top
-        if (a.name == this.selectedChannel) {
+        if (a.channel == this.selectedChannel) {
             return +1;
         }
-        if (b.name == this.SelectedChannel) {
+        if (b.channel == this.SelectedChannel) {
             return -1;
         }
 
@@ -1409,17 +1498,51 @@ fmbrain.BrainVisualizer.prototype = {
         return this._dotRadius(b) - this._dotRadius(a);
     },
 
-    updateContainerSize: function updateContainerSize(newContainerSize) {
-        if (newContainerSize === undefined) {
-            // TODO Should this be a supported behavior?
-            newContainerSize = {
-                'width': $('#brain').parent().width(),
-                'height': $('#brain').parent().width()
-            };
+    resize: function resize(width, height) {
+
+        if (!this.brainSvg) {
+            // TODO Error?
+            return;
         }
 
-        this.size.width = newContainerSize.width - (this.margin.left + this.margin.right);
-        this.size.height = newContainerSize.height - (this.margin.top + this.margin.bottom);
+        this.size.width = width;
+        this.size.height = height;
+
+        // Update scales
+
+        this.dotXScale.range([0, this.size.width]);
+        this.dotYScale.range([this.size.height, 0]);
+
+        // Update display
+
+
+        var baseSelection = d3.select(this.baseNodeId);
+
+        baseSelection.select('.fm-brain-svg').attr('width', this.size.width + this.margin.left + this.margin.right).attr('height', this.size.height + this.margin.top + this.margin.bottom);
+
+        baseSelection.select('.fm-brain-image').attr('width', this.size.width).attr('height', this.size.height);
+
+        baseSelection.selectAll('.fm-brain-dot').call(this._dotPosition.bind(this)).sort(this._dotOrder.bind(this));
+    },
+
+    autoResize: function autoResize() {
+
+        if (!this.aspect) {
+            // Can't determine proper size without aspect ratio
+            return;
+        }
+
+        // TODO This requires the base node to  be visible because of how
+        // jQuery works; so, setup must occur when plot is visible!
+        var width = $(this.baseNodeId).width() - (this.margin.left + this.margin.right);
+        var height = width / this.aspect;
+
+        if (width <= 0 || height <= 0) {
+            // We're not visible so stfu and go away
+            return;
+        }
+
+        this.resize(width, height);
     },
 
     update: function update(newData) {
@@ -1428,13 +1551,31 @@ fmbrain.BrainVisualizer.prototype = {
             this.data = newData;
         }
 
-        // TODO Update size manually here, or leave to client?
+        if (!this.brainSvg) {
+            // TODO Error?
+            return;
+        }
 
-        this.brainSvg.attr('width', this.size.width + this.margin.left + this.margin.right).attr('height', this.size.height + this.margin.top + this.margin.bottom);
+        var brain = this;
 
-        this.brainImage.attr('width', this.size.width).attr('height', this.size.height);
+        var brainDots = d3.select(this.baseNodeId).select('.fm-brain-dots').selectAll('.fm-brain-dot').data(this._reformatForDisplay(this.data), function (d) {
+            return d.channel;
+        });
 
-        this.brainDots.data(this.data).style('fill', this._dotFill).style('stroke', this._dotStroke).style('stroke-width', dotStrokeWidth).call(dotPosition).sort(dotOrder);
+        brainDots.enter().append('circle').attr('class', 'fm-brain-dot').merge(brainDots).classed('fm-brain-dot-selected', function (d) {
+            return d.channel == brain.selectedChannel;
+        }).style('fill', this._dotFill.bind(this)).call(this._dotPosition.bind(this)).sort(this._dotOrder.bind(this));
+    },
+
+    setSelectedChannel: function setSelectedChannel(newChannel) {
+        if (newChannel == this.selectedChannel) {
+            // No update needed
+            return;
+        }
+        // Update internal state
+        this.selectedChannel = newChannel;
+        // Call graphical update
+        this.update();
     }
 
 };
@@ -1444,7 +1585,7 @@ module.exports = fmbrain;
 
 //
 
-},{"d3":38,"jquery":40}],7:[function(require,module,exports){
+},{"d3":39,"jquery":41}],7:[function(require,module,exports){
 'use strict';
 
 // ======================================================================== //
@@ -1605,7 +1746,106 @@ module.exports = fmdata;
 
 //
 
-},{"jquery":40,"promise-polyfill":42,"setimmediate":43}],8:[function(require,module,exports){
+},{"jquery":41,"promise-polyfill":43,"setimmediate":44}],8:[function(require,module,exports){
+'use strict';
+
+// ======================================================================== //
+//
+// fmfeature
+// Abstraction of data feature computations
+//
+// ======================================================================== //
+
+
+// REQUIRES
+
+var $ = require('jquery');
+
+require('setimmediate'); // Needed to fix promise
+// polyfill on non-IE
+var Promise = require('promise-polyfill'); // Needed for IE Promise
+// support
+
+var cronelib = require('../lib/cronelib');
+
+// MODULE OBJECT
+
+var fmfeature = {};
+
+// HELPERS
+
+// ...
+
+
+// MAIN CLASS
+
+fmfeature.Feature = function () {
+
+    // Default feature is the "identity" feature; idea is for end-user to
+    // overwrite with another appropriate computation function
+    this.compute = function (trialData) {
+        return new Promise(function (resolve, reject) {
+            resolve(trialData);
+        });
+    };
+};
+
+fmfeature.Feature.prototype = {
+
+    constructor: fmfeature.Feature
+
+};
+
+// RELATED CLASSES
+// TODO Figure out subclassing in JS. It fucking SUCKS.
+
+fmfeature.RemoteFeature = function (route) {
+
+    var feature = this;
+
+    this.route = route;
+
+    // Create an appropriate compute for our remote pattern
+    this.compute = function (trialData) {
+
+        return new Promise(function (resolve, reject) {
+
+            $.ajax(route, {
+                type: 'post',
+                data: JSON.stringify(trialData),
+                contentType: 'application/json'
+            }).done(function (result) {
+                // Result is a string, presumably, so decode it
+                var resultData = null;
+                try {
+                    resultData = JSON.parse(result);
+                } catch (err) {
+                    // Whoops, the server made a boo-boo
+                    reject(err);
+                    return;
+                }
+                // We made it!
+                resolve(resultData);
+            }).fail(function (req, reason, err) {
+                reject(reason);
+            });
+        });
+    };
+};
+
+fmfeature.RemoteFeature.prototype = {
+
+    constructor: fmfeature.RemoteFeature
+
+};
+
+// EXPORT MODULE
+
+module.exports = fmfeature;
+
+//
+
+},{"../lib/cronelib":2,"jquery":41,"promise-polyfill":43,"setimmediate":44}],9:[function(require,module,exports){
 'use strict';
 
 // =
@@ -1725,7 +1965,7 @@ module.exports = fmgen;
 
 //
 
-},{"./fmstat":12}],9:[function(require,module,exports){
+},{"./fmstat":13}],10:[function(require,module,exports){
 'use strict';
 
 // ======================================================================== //
@@ -1801,17 +2041,17 @@ fmonline.OnlineDataSource = function () {
     // Cached to prevent excess execute calls when true
     this._bciRunning = false;
 
-    this._dataFormatter = new fmonline.DataFormatter();
-    this._dataFormatter.onSourceSignal = function (rawSignal) {
+    this.dataFormatter = new fmonline.DataFormatter();
+    this.dataFormatter.onSourceSignal = function (rawSignal) {
         manager.onRawSignal(rawSignal);
     };
-    this._dataFormatter.ontrial = function (trialData) {
+    this.dataFormatter.ontrial = function (trialData) {
         manager.ontrial(trialData);
     };
-    this._dataFormatter.onStartTrial = function () {
+    this.dataFormatter.onStartTrial = function () {
         manager.onStartTrial();
     };
-    this._dataFormatter.onFeatureProperties = function (properties) {
+    this.dataFormatter.onFeatureProperties = function (properties) {
         manager.onproperties(properties);
     };
 
@@ -1952,6 +2192,10 @@ fmonline.OnlineDataSource.prototype = {
         });
     },
 
+    getTrialWindow: function getTrialWindow() {
+        return this.dataFormatter.trialWindow;
+    },
+
     _appendSystemProperties: function _appendSystemProperties(properties) {
 
         var manager = this; // Cache this for inline functions
@@ -2005,7 +2249,7 @@ fmonline.OnlineDataSource.prototype = {
                 console.log('Source tapped.');
             }
 
-            manager._dataFormatter._connectSource(dataConnection);
+            manager.dataFormatter._connectSource(dataConnection);
         }, function (err) {
 
             console.log('Could not connect to Source: ' + JSON.stringify(err));
@@ -2018,7 +2262,7 @@ fmonline.OnlineDataSource.prototype = {
                 console.log('SpectralOutput tapped.');
             }
 
-            manager._dataFormatter._connectFeature(dataConnection);
+            manager.dataFormatter._connectFeature(dataConnection);
         }, function (err) {
 
             console.log('Could not connect to SpectralOutput: ' + JSON.stringify(err));
@@ -2040,13 +2284,23 @@ fmonline.DataFormatter = function () {
     this._timingChannel = 'ainp1';
     this._timingState = 'StimulusCode';
 
-    this._featureBand = [70.0, 110.0];
-    this._frameWindow = [-2.0, 5.0];
+    this.featureBand = {
+        low: 70.0,
+        high: 110.0
+    };
 
-    this.trialWindow = [-1.5, 4.5];
+    this.trialWindow = {
+        start: -1.0,
+        end: 3.0
+    };
+    this._bufferPadding = 0.5;
+    this._bufferWindow = {
+        start: this.trialWindow.start - this._bufferPadding,
+        end: this.trialWindow.end + this._bufferPadding
+    };
 
     // TODO Magic
-    this._featureWindow = null;
+    this._featureKernel = null;
 
     this._frameBlocks = null;
     this._trialBlocks = null;
@@ -2082,6 +2336,52 @@ fmonline.DataFormatter = function () {
 fmonline.DataFormatter.prototype = {
 
     constructor: fmonline.DataFormatter,
+
+    updateTrialWindow: function updateTrialWindow(newWindow) {
+
+        if (!newWindow) {
+            // No new window provided
+            return;
+        }
+
+        // Handle new argument values
+        if (newWindow.start !== undefined) {
+            this.trialWindow.start = newWindow.start;
+            this._bufferWindow.start = newWindow.start - this._bufferPadding;
+        }
+        if (newWindow.end !== undefined) {
+            this.trialWindow.end = newWindow.end;
+            this._bufferWindow.end = newWindow.end + this._bufferPadding;
+        }
+
+        // Update everything that depends on the trial and buffer windows
+        // TODO We can do this very intelligently with a bunch of time, but
+        // for this release we're just going to nuke everything.
+
+        // ...
+    },
+
+    updateFeatureBand: function updateFeatureBand(newBand) {
+
+        if (!newBand) {
+            // No new band provided
+            return;
+        }
+
+        // Handle new argument values
+        if (newBand.low !== undefined) {
+            // 0.0 is a valid value
+            this.featureBand.low = newBand.low;
+        }
+        if (newBand.high !== undefined) {
+            this.featureBand.high = newBand.high;
+        }
+
+        // Update our knowledge depending on the feature band
+        this._setupFeatureKernel();
+
+        // TODO Should we zero out the feature buffer?
+    },
 
     _connectSource: function _connectSource(dataConnection) {
 
@@ -2155,7 +2455,7 @@ fmonline.DataFormatter.prototype = {
     },
 
     _allPropertiesReceived: function _allPropertiesReceived() {
-        this._setupFeatureWindow();
+        this._setupFeatureKernel();
         this._setupBuffers();
     },
 
@@ -2164,7 +2464,7 @@ fmonline.DataFormatter.prototype = {
         // Determine number of blocks in the buffer
         // TODO Assumes elementunit in seconds
         var blockLengthSeconds = this.sourceProperties.numelements * this.sourceProperties.elementunit.gain;
-        var windowLengthSeconds = this._frameWindow[1] - this._frameWindow[0];
+        var windowLengthSeconds = this._bufferWindow.end - this._bufferWindow.start;
         var windowLengthBlocks = Math.ceil(windowLengthSeconds / blockLengthSeconds);
 
         // Initialize feature buffer
@@ -2173,27 +2473,22 @@ fmonline.DataFormatter.prototype = {
             return arr;
         }, []);
 
-        var trialLengthSeconds = this.trialWindow[1] - this.trialWindow[0];
+        var trialLengthSeconds = this.trialWindow.end - this.trialWindow.start;
         this._trialBlocks = Math.ceil(trialLengthSeconds / blockLengthSeconds);
-        this._postTrialBlocks = Math.ceil(this.trialWindow[1] / blockLengthSeconds);
+        this._postTrialBlocks = Math.ceil(this.trialWindow.end / blockLengthSeconds);
 
         // TODO Debug
         console.log('Created feature buffer: ' + this.featureChannels.length + ' channels x ' + windowLengthBlocks + ' samples.');
     },
 
-    _windowForFrequencies: function _windowForFrequencies(fv) {
+    _kernelForFrequencies: function _kernelForFrequencies(fv) {
 
         // TODO Replace with more nuanced window
-
-        // TODO Second to last bin
-        return fv.map(function (f, i) {
-            return i == fv.length - 2 ? 1.0 : 0.0;
-        });
 
         var formatter = this;
 
         var isInBand = function isInBand(x) {
-            return formatter._featureBand[0] <= x && x <= formatter._featureBand[1];
+            return formatter.featureBand.low <= x && x <= formatter.featureBand.high;
         };
 
         var windowRaw = fv.map(function (f) {
@@ -2209,7 +2504,7 @@ fmonline.DataFormatter.prototype = {
         });
     },
 
-    _setupFeatureWindow: function _setupFeatureWindow() {
+    _setupFeatureKernel: function _setupFeatureKernel() {
 
         var formatter = this; // Capture this
         var transform = this.featureProperties.elementunit;
@@ -2220,14 +2515,20 @@ fmonline.DataFormatter.prototype = {
         });
 
         // Compute the window vector
-        this._featureWindow = this._windowForFrequencies(featureFreqs);
+        this._featureKernel = this._kernelForFrequencies(featureFreqs);
     },
 
     _computeFeature: function _computeFeature(data) {
         // data is an array of arrays; outer array is over channels, inner array
         // is over feature elements
 
-        // TODO Error checking
+        if (!this._featureKernel) {
+            // No feature window, so cannot provide meaningful information
+            // TODO Better way to handle errors?
+            return data.map(function (dv) {
+                return 0.0; // TODO Should be undefined, and caller should deal
+            });
+        }
 
         var formatter = this; // Capture this
 
@@ -2235,7 +2536,7 @@ fmonline.DataFormatter.prototype = {
         return data.map(function (dv) {
             // Window the feature elements
             return dv.reduce(function (acc, el, iel) {
-                return acc + el * formatter._featureWindow[iel];
+                return acc + el * formatter._featureKernel[iel];
             }, 0.0);
         });
     },
@@ -2388,7 +2689,7 @@ module.exports = fmonline;
 
 //
 
-},{"../lib/bci2k":1,"promise-polyfill":42,"setimmediate":43}],10:[function(require,module,exports){
+},{"../lib/bci2k":1,"promise-polyfill":43,"setimmediate":44}],11:[function(require,module,exports){
 'use strict';
 
 // =
@@ -2424,16 +2725,19 @@ fmraster.ChannelRaster = function (baseNodeId) {
     this.displayOrder = null;
     this.data = null;
 
+    this.timeScale = null;
+
+    // Events
+
+    this.oncursormove = function (newTime) {};
+    this.onselectchannel = function (newChannel) {};
+
     // Cursor
 
-    this.cursorSvg = null;
-    this.cursorLine = null;
-    this.cursorLineOrigin = null;
-    this.cursorTimescale = null;
-    this.cursorTimescaleBorder = null;
-    this.cursorText = null;
+    this.selectedChannel = null;
 
-    this.cursorPosition = null;
+    this.cursorSvg = null;
+    this.cursorTime = null;
     this.cursorLocked = false;
 
     // TODO Config
@@ -2444,20 +2748,16 @@ fmraster.ChannelRaster = function (baseNodeId) {
 
     // Charts
 
-    this.chartSvg = null;
-    this.chartXScale = null;
-    this.chartYScale = null;
-    this.chartColorScale = null;
-
     this.chartMin = 0.0; // TODO Expose to manager
-    this.chartMax = 10.0;
+    this.chartMax = 7.5;
 
     // TODO Config
     this.channelHeight = 15;
+    this.channelHeightCutoff = 14;
     this.chartMargin = {
         top: 100,
         right: 0,
-        bottom: 37,
+        bottom: 0,
         left: 0
     };
     this.rangeColors = ["#313695", "#4575b4", "#74add1", "#abd9e9", "#ffffff", "#fee090", "#fdae61", "#f46d43", "#d73027"];
@@ -2470,28 +2770,103 @@ fmraster.ChannelRaster.prototype = {
 
     setup: function setup() {
 
-        if (!this.displayOrder) {
-            console.log('Cannot setup ChannelRaster without display order.');
-            return;
-        }
+        this.setupCharts();
 
         this.setupCursor();
-        this.setupCharts();
     },
 
     setupCursor: function setupCursor() {
 
-        // TODO Put style calls into the CSS, not the JS
-        this.cursorSvg = d3.select(this.baseNodeId).append('svg').attr('class', 'cursor-svg').style('position', 'fixed').style('z-index', '100').style('pointer-events', 'none').attr('width', this.cursorSize.width).attr('height', this.cursorSize.height);
+        var raster = this;
 
-        // ...
+        this.cursorSvg = d3.select(this.baseNodeId).append('svg').attr('class', 'fm-cursor-svg');
+
+        // TODO Why?
+        $(this.baseNodeId).on('click', function (event) {
+            raster._cursorClick(event);
+        });
+
+        this.cursorTime = 0.0;
+        this.cursorSvg.append('line').attr('class', 'fm-cursor-line');
+        this.cursorSvg.append('line').attr('class', 'fm-cursor-origin-line');
+
+        this.updateCursor();
+    },
+
+    updateCursor: function updateCursor(newTime) {
+
+        if (newTime !== undefined) {
+            this.cursorTime = newTime;
+        }
+
+        var raster = this;
+
+        var width = $(this.baseNodeId).width();
+        var height = $(this.baseNodeId).height();
+
+        d3.select(this.baseNodeId).select('.fm-cursor-svg').attr('width', width).attr('height', height);
+
+        if (!this.timeScale) {
+            // Can't update the rest, because doing so would require the time scale
+            return;
+        }
+
+        var cursorX = this.timeScale.invert(this.cursorTime);
+
+        d3.select(this.baseNodeId).select('.fm-cursor-svg').select('.fm-cursor-line').classed('fm-cursor-locked', function () {
+            return raster.cursorLocked;
+        }).attr('x1', cursorX).attr('y1', 0).attr('x2', cursorX).attr('y2', height);
+
+        var originX = this.timeScale.invert(0.0);
+
+        d3.select(this.baseNodeId).select('.fm-cursor-svg').select('.fm-cursor-origin-line').attr('x1', originX).attr('y1', 0).attr('x2', originX).attr('y2', height);
+    },
+
+    _cursorClick: function _cursorClick(event) {
+        this.toggleCursor();
+    },
+
+    lockCursor: function lockCursor() {
+        this.cursorLocked = true;
+        this.updateCursor();
+    },
+
+    unlockCursor: function unlockCursor() {
+        this.cursorLocked = false;
+        this.updateCursor();
+    },
+
+    toggleCursor: function toggleCursor() {
+
+        if (this.cursorLocked) {
+            this.unlockCursor();
+            return;
+        }
+
+        this.lockCursor();
+    },
+
+    getCursorTime: function getCursorTime() {
+        return this.cursorTime;
+    },
+
+    _dummyData: function _dummyData(channels) {
+        return channels.reduce(function (obj, ch) {
+            obj[ch] = [0.0];
+            return obj;
+        });
     },
 
     setupCharts: function setupCharts() {
 
-        if (!this.data) {
-            console.log('WARNING Cannot setup charts without data.');
+        if (!this.displayOrder) {
+            // Can't.
             return;
+        }
+
+        if (!this.data) {
+            // Create some dummy data
+            this.data = this._dummyData(this.displayOrder);
         }
 
         var raster = this; // Capture this.
@@ -2503,6 +2878,13 @@ fmraster.ChannelRaster.prototype = {
         var n = this.data.length;
         var step = width / this.data[0].values.length;
 
+        // Set up x axis time scale with placeholder values
+        if (!this.timeScale) {
+            this.timeScale = d3.scaleLinear().domain([0, width]).range([0, 1]);
+        } else {
+            this.updateTimeDomain([0, width]);
+        }
+
         // Set up horizon chart maker
         var horizonChart = d3.horizonChart();
 
@@ -2511,11 +2893,37 @@ fmraster.ChannelRaster.prototype = {
             return d.channel;
         });
 
+        // Prepare a mousemove function for the horizon charts
+        var horizonMouseMove = function horizonMouseMove(event) {
+
+            var newChannel = d3.select(event.currentTarget).datum().channel;
+            raster.selectChannel(newChannel);
+
+            if (raster.cursorLocked) {
+                // No need to update cursor, cause it's locked
+                return;
+            }
+
+            // Compute new time
+            var offset = $(this).offset();
+            var cursorX = event.pageX - offset.left; // Works because this is parent element
+            var newTime = raster.timeScale(cursorX);
+
+            // Update cursor rendering, etc etc.
+            raster.updateCursor(newTime);
+
+            // Call cursor event
+            raster.oncursormove(newTime);
+        };
+
         // And new horizons
-        horizons.enter().append('div').attr('class', 'fm-horizon').style('margin-bottom', function (d, i) {
-            // TODO Shitty.
-            return i < n - 1 ? '0px' : '40px';
-        }).merge(horizons).each(function (d, i) {
+        horizons.enter().append('div').attr('class', 'fm-horizon').each(function (d, i) {
+            // Setup jQuery mouse events
+            $(this).on('mousemove', horizonMouseMove);
+        }).merge(horizons).classed('fm-horizon-small', function () {
+            return raster.channelHeight <= raster.channelHeightCutoff;
+        }).each(function (d, i) {
+            // Call Horizon chart rendering
             horizonChart.title(d.channel).height(raster.channelHeight).step(step).extent([raster.chartMin, raster.chartMax]).call(this, d.values);
         });
 
@@ -2523,16 +2931,23 @@ fmraster.ChannelRaster.prototype = {
         horizons.exit().remove();
     },
 
-    updateCursorSize: function updateCursorSize(newSize) {
-        // TODO Should this be supported behavior?
-        if (newSize === undefined) {
-            newSize = {
-                'width': baseNode.width(),
-                'height': baseNode.height()
-            };
+    updateTimeDomain: function updateTimeDomain(newDomain) {
+
+        if (!this.timeScale) {
+            return;
         }
-        // TODO Error checking
-        cursorSize = newSize;
+
+        this.timeScale.domain(newDomain);
+    },
+
+    updateTimeRange: function updateTimeRange(newRange) {
+
+        if (!this.timeScale) {
+            // Can't update time extent if scale doesn't yet exist
+            return;
+        }
+
+        this.timeScale.range(newRange);
     },
 
     update: function update(newData) {
@@ -2543,6 +2958,8 @@ fmraster.ChannelRaster.prototype = {
 
         // TODO
         this.setupCharts();
+
+        this.updateCursor();
     },
 
     _updateData: function _updateData(newData) {
@@ -2581,6 +2998,29 @@ fmraster.ChannelRaster.prototype = {
 
         // Compute the new data with the updated display order
         this._updateData(dictData);
+    },
+
+    setExtent: function setExtent(newExtent) {
+        this.chartMax = newExtent;
+    },
+
+    setRowHeight: function setRowHeight(newHeight) {
+        this.channelHeight = newHeight;
+    },
+
+    setSelectedChannel: function setSelectedChannel(newChannel) {
+        this.selectedChannel = newChannel;
+    },
+
+    selectChannel: function selectChannel(newChannel) {
+
+        if (newChannel == this.selectedChannel) {
+            return;
+        }
+
+        this.setSelectedChannel(newChannel);
+
+        this.onselectchannel(newChannel);
     }
 
 };
@@ -2591,7 +3031,7 @@ module.exports = fmraster;
 
 //
 
-},{"../lib/horizon-chart-custom.js":4,"d3":38,"jquery":40,"promise-polyfill":42,"setimmediate":43}],11:[function(require,module,exports){
+},{"../lib/horizon-chart-custom.js":4,"d3":39,"jquery":41,"promise-polyfill":43,"setimmediate":44}],12:[function(require,module,exports){
 'use strict';
 
 // ======================================================================== //
@@ -2612,6 +3052,7 @@ require('setimmediate');
 var Promise = require('promise-polyfill');
 
 // MODULE OBJECT
+
 var fmscope = {};
 
 // HELPERS
@@ -2635,11 +3076,13 @@ fmscope.ChannelScope = function (baseNodeId) {
     this.targetExtent = null;
 
     // TODO Config
-    this.extentSnap = 0.20;
-    this.windowSamples = 5000; // TODO Make this in seconds
+    this.extentSnap = 0.25;
+    this.windowSamples = 2500; // TODO Make this in seconds
+
+    this.plotHeight = 250; // TODO Config
 
     this.plotMargin = {
-        left: 25,
+        left: 30,
         right: 40,
         top: 10,
         bottom: 20
@@ -2680,7 +3123,10 @@ fmscope.ChannelScope.prototype = {
         // TODO This requires the base node to  be visible because of how
         // jQuery works; so, setup must occur when plot is visible!
         var width = $(this.baseNodeId).width() - (this.plotMargin.left + this.plotMargin.right);
-        var height = $(this.baseNodeId).height() - (this.plotMargin.top + this.plotMargin.bottom);
+
+        // This was a dumb idea; drifts!
+        //var height = $( this.baseNodeId ).height() - (this.plotMargin.top + this.plotMargin.bottom);
+        var height = this.plotHeight;
 
         if (width <= 0 || height <= 0) {
             // We're not visible so stfu and go away
@@ -2904,7 +3350,7 @@ module.exports = fmscope;
 
 //
 
-},{"d3":38,"jquery":40,"promise-polyfill":42,"setimmediate":43}],12:[function(require,module,exports){
+},{"d3":39,"jquery":41,"promise-polyfill":43,"setimmediate":44}],13:[function(require,module,exports){
 "use strict";
 
 // ======================================================================== //
@@ -2951,18 +3397,58 @@ fmstat.Gaussian.prototype = {
 
 };
 
-fmstat.ChannelStat = function () {
+fmstat.ChannelStat = function (options) {
+
+    if (!options) {
+        // To streamline later code
+        options = {};
+    }
 
     this.baseline = new fmstat.Gaussian();
-
     this.values = null;
+
+    this.baselineWindow = options.baselineWindow || { start: 0, end: 10 };
+    this.valueTrials = [];
 };
 
 fmstat.ChannelStat.prototype = {
 
     constructor: fmstat.ChannelStat,
 
-    updateBaseline: function updateBaseline(data) {
+    recompute: function recompute(baselineWindow) {
+
+        var stat = this;
+
+        // Handle arguments
+        if (baselineWindow) {
+            if (baselineWindow.start) {
+                this.baselineWindow.start = baselineWindow.start;
+            }
+            if (baselineWindow.end) {
+                this.baselineWindow.end = baselineWindow.end;
+            }
+        }
+
+        // Recompute all the data anew
+        this.valueTrials.forEach(function (trialData) {
+            // To recompute, we just re-ingest all the trials!
+            stat.ingest(trialData);
+        });
+    },
+
+    ingest: function ingest(data) {
+
+        var baselineData = data.slice(this.baselineWindow.start, this.baselineWindow.end + 1);
+
+        // Compute summary statistics
+        this.ingestValues(data);
+        this.ingestBaseline(baselineData);
+
+        // Aggregate new trial data
+        this.valueTrials.push(data);
+    },
+
+    ingestBaseline: function ingestBaseline(data) {
 
         var stat = this;
 
@@ -2972,7 +3458,7 @@ fmstat.ChannelStat.prototype = {
         });
     },
 
-    updateValues: function updateValues(data) {
+    ingestValues: function ingestValues(data) {
 
         var stat = this;
 
@@ -2996,6 +3482,9 @@ fmstat.ChannelStat.prototype = {
     },
 
     baselineNormalizedValues: function baselineNormalizedValues() {
+
+        // TODO Wrong form of baseline normalization; should use SEM units?
+        // TODO Check limit description in maxcog demo notebook.
 
         var stat = this;
 
@@ -3033,15 +3522,35 @@ fmstat.ChannelStat.prototype = {
         return this._thresholdedValues(threshold);
     },
 
+    baselineComparisonPValues: function baselineComparisonPValues() {
+
+        var stat = this;
+
+        var tValues = this.values.map(function (v) {
+
+            if (stat.baseline.variance === undefined) {
+                // Can't compare against a singular baseline
+                return 0.0;
+            }
+
+            var num = v.mean - stat.baseline.mean;
+            // Don't include value's variance if it is singular
+            var den = den = Math.sqrt(stat.baseline.variance / stat.baseline.count + (v.variance === undefined ? 0.0 : v.variance / v.count));
+
+            return num / den;
+        });
+
+        // TODO Using asymptotic normal theory; should allow non-asymptotic case
+        return tValues.map(function (t) {
+            // TODO Support two-tailed
+            return 2.0 * (1.0 - fmstat.cdfn(Math.abs(t), 0.0, 1.0));
+        });
+    },
+
     fdrCorrectedValues: function fdrCorrectedValues(fdr) {
 
-        // Consider everything relative to standard normal
-        var normValues = this.baselineNormalizedValues();
-
         // Compute p-values
-        var pValues = normValues.map(function (v) {
-            return 2.0 * (1.0 - fmstat.cdfn(Math.abs(v), 0.0, 1.0));
-        });
+        var pValues = this.baselineComparisonPValues();
 
         // Sort p-values
         var sortResult = fmstat.argsort(pValues);
@@ -3050,8 +3559,8 @@ fmstat.ChannelStat.prototype = {
         var kGood = -1;
         var nTests = sortResult.values.length;
         sortResult.values.every(function (p, k) {
-            if (p > k / nTests * fdr) {
-                return false;
+            if (p > (k + 1) / nTests * fdr) {
+                return false; // Breaks out
             }
             kGood = k;
             return true;
@@ -3064,14 +3573,14 @@ fmstat.ChannelStat.prototype = {
         sortResult.indices.every(function (i, k) {
             if (k > kGood) {
                 // k = index in sort
-                return false;
+                return false; // Breaks out
             }
             canReject[i] = true; // i = original index
             return true;
         });
 
-        // Return the thresholded values
-        return normValues.map(function (v, i) {
+        // Return the thresholded normalized values
+        return this.baselineNormalizedValues().map(function (v, i) {
             return canReject[i] ? v : 0.0;
         });
     }
@@ -3281,7 +3790,7 @@ module.exports = fmstat;
 
 //
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 'use strict';
 
 // =
@@ -3295,6 +3804,7 @@ module.exports = fmstat;
 // REQUIRES
 
 var $ = require('jquery');
+var d3 = require('d3');
 
 var Cookies = require('js-cookie');
 
@@ -3328,14 +3838,29 @@ var fmui = {};
 
 fmui.InterfaceManager = function () {
 
+    var manager = this;
+
     this.config = {};
 
     this.icons = ['transfer', 'working'];
 
-    this.raster = new fmraster.ChannelRaster('#fm');
     this.allChannels = []; // TODO Can avoid?
 
-    this.scope = new fmscope.ChannelScope('#scope');
+    // Allocate members
+
+    this.raster = new fmraster.ChannelRaster('#fm');
+    this.brain = new fmbrain.BrainVisualizer('#fm-brain');
+    this.scope = new fmscope.ChannelScope('#fm-scope');
+
+    // Event hooks
+
+    this.raster.onselectchannel = function (newChannel) {
+        manager.brain.setSelectedChannel(newChannel);
+    };
+
+    // Events
+
+    this.onoptionchange = function (option, newValue) {};
 };
 
 fmui.InterfaceManager.prototype = {
@@ -3358,6 +3883,11 @@ fmui.InterfaceManager.prototype = {
         });
     },
 
+    _syncRasterConfig: function _syncRasterConfig() {
+        this.raster.setRowHeight(this.getRowHeight());
+        this.raster.setExtent(this.getRasterExtent());
+    },
+
     _mergeDefaultConfig: function _mergeDefaultConfig(config) {
 
         // Copy over any extras that might not be merged here
@@ -3368,9 +3898,9 @@ fmui.InterfaceManager.prototype = {
         mergedConfig.maxRowHeight = config.maxRowHeight || 10;
         mergedConfig.pxPerRowHeight = config.pxPerRowHeight || 5;
 
-        mergedConfig.plotExtent = config.plotExtent || 5;
-        mergedConfig.maxPlotExtent = config.maxPlotExtent || 10;
-        mergedConfig.unitsPerPlotExtent = config.unitsPerPlotExtent || 1;
+        mergedConfig.rasterExtent = config.rasterExtent || 5;
+        mergedConfig.maxRasterExtent = config.maxRasterExtent || 10;
+        mergedConfig.unitsPerRasterExtent = config.unitsPerRasterExtent || 1;
 
         mergedConfig.iconShowDuration = config.iconShowDuration || 100;
         mergedConfig.iconHideDelay = config.iconHideDelay || 1000;
@@ -3397,10 +3927,15 @@ fmui.InterfaceManager.prototype = {
             manager.hideIcon(icon);
         });
 
-        // TODO Get this to work
-        //this.raster.setup();
+        this.raster.setup(); // TODO Always will fail for charts until
+        // data arrives; necessary?
 
         //this.scope.setup();
+
+        // Populate options with the current cookie-set values
+        this._populateOptions(this.getOptions());
+
+        this._syncRasterConfig();
     },
 
     updateRecordDetails: function updateRecordDetails(subject, record) {
@@ -3416,27 +3951,45 @@ fmui.InterfaceManager.prototype = {
         var manager = this;
 
         $('.fm-zoom-in').on('click', function (event) {
+            event.preventDefault();
+            if ($(this).hasClass('disabled')) {
+                return;
+            }
             manager.zoomIn(event);
         });
         $('.fm-zoom-out').on('click', function (event) {
+            event.preventDefault();
+            if ($(this).hasClass('disabled')) {
+                return;
+            }
             manager.zoomOut(event);
         });
         $('.fm-gain-up').on('click', function (event) {
+            event.preventDefault();
+            if ($(this).hasClass('disabled')) {
+                return;
+            }
             manager.gainUp(event);
         });
         $('.fm-gain-down').on('click', function (event) {
+            event.preventDefault();
+            if ($(this).hasClass('disabled')) {
+                return;
+            }
             manager.gainDown(event);
         });
 
         $('.fm-toggle-fullscreen').on('click', function (event) {
+            event.preventDefault();
             manager.toggleFullscreen(event);
         });
 
         $('.fm-show-options').on('click', function (event) {
+            event.preventDefault();
             manager.showOptions(event);
         });
         $('.fm-options-tab-list a').on('click', function (event) {
-            event.preventDefault(); // Prevent auto-triggering
+            event.preventDefault();
             manager.showOptionsTab(this, event);
         });
     },
@@ -3488,48 +4041,163 @@ fmui.InterfaceManager.prototype = {
         }, hideDelay);
     },
 
-    updateCharts: function updateCharts() {
+    updateRaster: function updateRaster(guarantee) {
 
-        // ...
+        var manager = this;
 
+        var updater = function updater() {
+            manager.raster.update();
+        };
+
+        if (guarantee) {
+            // Guarantee the update happens now
+            updater();
+        } else {
+            // Debounce the update calls to prevent overload
+            cronelib.debounce(updater, this.config.rasterDebounceDelay, true)();
+        }
+    },
+
+    updateScope: function updateScope(guarantee) {
+
+        var manager = this;
+
+        var updater = function updater() {
+            manager.scope.autoResize();
+            manager.scope.update();
+        };
+
+        if (guarantee) {
+            // Guarantee the update happens now
+            updater();
+        } else {
+            // Debounce the update calls to prevent overload
+            cronelib.debounce(updater, this.config.scopeDebounceDelay, true)();
+        }
+    },
+
+    updateBrain: function updateBrain() {
+
+        var manager = this;
+
+        cronelib.debounce(function () {
+            manager.brain.autoResize();
+            manager.brain.update();
+        }, this.config.brainDebounceDelay)();
     },
 
     /* Button handlers */
 
+    _updateZoomClasses: function _updateZoomClasses() {
+        if (this.config.rowHeight >= this.config.maxRowHeight) {
+            $('.fm-zoom-in').addClass('disabled');
+        } else {
+            $('.fm-zoom-in').removeClass('disabled');
+        }
+        if (this.config.rowHeight <= 1) {
+            $('.fm-zoom-out').addClass('disabled');
+        } else {
+            $('.fm-zoom-out').removeClass('disabled');
+        }
+    },
+
+    _updateGainClasses: function _updateGainClasses() {
+        if (this.config.rasterExtent >= this.config.maxRasterExtent) {
+            $('.fm-gain-down').addClass('disabled');
+        } else {
+            $('.fm-gain-down').removeClass('disabled');
+        }
+        if (this.config.rasterExtent <= 1) {
+            $('.fm-gain-up').addClass('disabled');
+        } else {
+            $('.fm-gain-up').removeClass('disabled');
+        }
+    },
+
     zoomIn: function zoomIn(event) {
-        this.rowHeight = this.rowHeight + 1;
-        if (this.rowHeight > this.config.maxRowHeight) {
-            this.rowHeight = this.config.maxRowHeight;
+
+        // Update UI-internal gain measure
+        this.config.rowHeight = this.config.rowHeight + 1;
+        if (this.config.rowHeight > this.config.maxRowHeight) {
+            this.config.rowHeight = this.config.maxRowHeight;
             return; // Only update if we actually change
         }
-        this.updateCharts();
+
+        this._updateZoomClasses();
+
+        // Cache the scroll state before our manipulations
+        // TODO Use row in middle of viewport, not fraction of scrolling
+        var prevScrollFraction = this._getScrollFraction();
+        // Alter raster parameters
+        this.raster.setRowHeight(this.getRowHeight());
+        // Redraw the raster with a guarantee
+        this.updateRaster(true);
+        //Restore the scroll state
+        $(document).scrollTop(this._topForScrollFraction(prevScrollFraction));
     },
 
     zoomOut: function zoomOut(event) {
-        this.rowHeight = this.rowHeight - 1;
-        if (this.rowHeight < 1) {
-            this.rowHeight = 1;
+
+        // Update UI-internal gain measure
+        this.config.rowHeight = this.config.rowHeight - 1;
+        if (this.config.rowHeight < 1) {
+            this.config.rowHeight = 1;
             return;
         }
-        this.updateCharts();
+        this._updateZoomClasses();
+
+        // Cache the scroll state before our manipulations
+        // TODO Use row in middle of viewport, not fraction of scrolling
+        var prevScrollFraction = this._getScrollFraction();
+        // Alter raster parameters
+        this.raster.setRowHeight(this.getRowHeight());
+        // Redraw the raster with a guarantee
+        this.updateRaster(true);
+        // Restore the scroll state
+        $(document).scrollTop(this._topForScrollFraction(prevScrollFraction));
     },
 
     gainDown: function gainDown(event) {
-        this.plotExtent = this.plotExtent + 1;
-        if (this.plotExtent > this.config.maxPlotExtent) {
-            this.plotExtent = this.config.maxPlotExtent;
+
+        // Update UI-internal gain measure
+        this.config.rasterExtent = this.config.rasterExtent + 1;
+        if (this.config.rasterExtent > this.config.maxPlotExtent) {
+            this.config.rasterExtent = this.config.maxPlotExtent;
             return;
         }
-        this.updateCharts();
+
+        this._updateGainClasses();
+
+        // Alter raster parameters
+        this.raster.setExtent(this.getRasterExtent());
+
+        // Redraw the raster with a guarantee
+        this.updateRaster(true);
     },
 
     gainUp: function gainUp(event) {
-        this.plotExtent = this.plotExtent - 1;
-        if (this.plotExtent < 1) {
-            this.plotExtent = 1;
+
+        // Update UI-internal gain measure
+        this.config.rasterExtent = this.config.rasterExtent - 1;
+        if (this.config.rasterExtent < 1) {
+            this.config.rasterExtent = 1;
             return;
         }
-        this.updateCharts();
+        this._updateGainClasses();
+
+        // Alter raster parameters
+        this.raster.setExtent(this.getRasterExtent());
+
+        // Redraw the raster with a guarantee
+        this.updateRaster(true);
+    },
+
+    _getScrollFraction: function _getScrollFraction() {
+        return $(window).scrollTop() / ($(document).height() - $(window).height());
+    },
+
+    _topForScrollFraction: function _topForScrollFraction(frac) {
+        return frac * ($(document).height() - $(window).height());
     },
 
     toggleFullscreen: function toggleFullscreen(event) {
@@ -3624,6 +4292,54 @@ fmui.InterfaceManager.prototype = {
         $('.fm-task-name').text(newTaskName);
     },
 
+    // TODO nomenclature
+    updateSelectedTime: function updateSelectedTime(newTime) {
+        $('.fm-time-selected').text((newTime > 0 ? '+' : '') + newTime.toFixed(3) + ' s');
+    },
+
+    _populateOptions: function _populateOptions(options) {
+
+        // Stimulus windows
+        $('#fm-option-stim-trial-start').val(options.stimulus.window.start);
+        $('#fm-option-stim-trial-end').val(options.stimulus.window.end);
+        $('#fm-option-stim-baseline-start').val(options.stimulus.baselineWindow.start);
+        $('#fm-option-stim-baseline-end').val(options.stimulus.baselineWindow.end);
+
+        // Response windows
+        $('#fm-option-resp-trial-start').val(options.response.window.start);
+        $('#fm-option-resp-trial-end').val(options.response.window.end);
+        $('#fm-option-resp-baseline-start').val(options.response.baselineWindow.start);
+        $('#fm-option-resp-baseline-end').val(options.response.baselineWindow.end);
+
+        // Timing strategy
+        $('#fm-option-stim-timing-state').prop('checked', true);
+        $('#fm-option-stim-timing-signal').prop('checked', false);
+        if (options.stimulus.timingStrategy == 'state') {
+            $('#fm-option-stim-timing-state').prop('checked', true);
+        }
+        if (options.stimulus.timingStrategy == 'signal') {
+            $('#fm-option-stim-timing-signal').prop('checked', true);
+        }
+
+        // Stimulus thresholding
+        $('#fm-option-stim-channel').val(options.stimulus.signal.channel);
+        $('#fm-option-stim-off').val(options.stimulus.signal.offValue);
+        $('#fm-option-stim-on').val(options.stimulus.signal.onValue);
+
+        $('#fm-option-stim-state').val(options.stimulus.state.name);
+        $('#fm-option-stim-state-off').val(options.stimulus.state.offValue);
+        $('#fm-option-stim-state-on').val(options.stimulus.state.onValue);
+
+        // Response thresholding
+        $('#fm-option-resp-channel').val(options.response.signal.channel);
+        $('#fm-option-resp-off').val(options.response.signal.offValue);
+        $('#fm-option-resp-on').val(options.response.signal.onValue);
+
+        $('#fm-option-resp-state').val(options.response.state.name);
+        $('#fm-option-resp-state-off').val(options.response.state.offValue);
+        $('#fm-option-resp-state-on').val(options.response.state.onValue);
+    },
+
     _populateMontageList: function _populateMontageList(newChannelNames) {
 
         var manager = this;
@@ -3665,6 +4381,84 @@ fmui.InterfaceManager.prototype = {
 
             montageBody.append(curRow);
         });
+    },
+
+    getRasterExtent: function getRasterExtent() {
+        return this.config.rasterExtent * this.config.unitsPerRasterExtent;
+    },
+
+    getRowHeight: function getRowHeight() {
+        return this.config.rowHeight * this.config.pxPerRowHeight;
+    },
+
+    getOptions: function getOptions() {
+        // Get the set options
+        var options = Cookies.getJSON('options');
+
+        if (options === undefined) {
+            // Cookie isn't set, so generate default
+            options = {};
+
+            // TODO Move default options into config
+
+            options.stimulus = {};
+
+            // Stimulus-based alignment config
+
+            options.stimulus.window = {
+                start: -1.0,
+                end: 3.0
+            };
+            options.stimulus.baselineWindow = {
+                start: -1.0,
+                end: -0.2
+            };
+
+            options.stimulus.timingStrategy = 'state';
+
+            options.stimulus.signal = {};
+            options.stimulus.signal.channel = 'ainp1';
+            options.stimulus.signal.offValue = 0;
+            options.stimulus.signal.onValue = 1;
+            options.stimulus.signal.threshold = 0.2;
+
+            options.stimulus.state = {};
+            options.stimulus.state.name = 'StimulusCode';
+            options.stimulus.state.offValue = 0;
+            options.stimulus.state.onValue = 'x';
+
+            // Response-based alignment config
+
+            options.response = {};
+            options.response.window = {
+                start: -2.0,
+                end: 2.0
+            };
+            options.response.baselineWindow = {
+                start: -2.0,
+                end: -1.6
+            };
+
+            options.response.timingStrategy = 'state';
+
+            options.response.signal = {};
+            options.response.signal.channel = 'ainp2';
+            options.response.signal.offValue = 0;
+            options.response.signal.onValue = 1;
+            options.response.signal.threshold = 0.2;
+
+            options.response.state = {};
+            options.response.state.name = 'RespCode';
+            options.response.state.offValue = 0;
+            options.response.state.onValue = 'x';
+
+            // Set the cookie so this doesn't happen again!
+            Cookies.set('options', options, {
+                expires: this.config.cookieExpirationDays
+            });
+        }
+
+        return options;
     },
 
     getExclusion: function getExclusion() {
@@ -3732,19 +4526,26 @@ fmui.InterfaceManager.prototype = {
         this.raster.setDisplayOrder(this.allChannels.filter(this.channelFilter()));
     },
 
+    activateTrialCount: function activateTrialCount() {
+        $('.fm-trial-label').addClass('fm-trial-label-active');
+    },
+
+    deactivateTrialCount: function deactivateTrialCount() {
+        $('.fm-trial-label').removeClass('fm-trial-label-active');
+    },
+
+    updateTrialCount: function updateTrialCount(newCount) {
+        $('.fm-trial-label').text('n = ' + newCount);
+    },
+
     didResize: function didResize() {
 
-        // TODO Better way?
+        this.updateRaster();
 
-        var manager = this;
+        this.updateScope();
 
-        cronelib.debounce(function () {
-            manager.raster.update();
-        }, this.config.rasterDebounceDelay)(); // TODO
-
-        cronelib.debounce(function () {
-            manager.scope.autoResize();
-        }, this.config.scopeDebounceDelay)();
+        //this.updateBrain();
+        this.brain.autoResize();
     }
 
     /* Animation */
@@ -3759,7 +4560,7 @@ module.exports = fmui;
 
 //
 
-},{"../lib/cronelib":2,"../lib/fullscreen":3,"./fmbrain":6,"./fmraster":10,"./fmscope":11,"bootstrap":15,"jquery":40,"js-cookie":41,"promise-polyfill":42,"setimmediate":43}],14:[function(require,module,exports){
+},{"../lib/cronelib":2,"../lib/fullscreen":3,"./fmbrain":6,"./fmraster":11,"./fmscope":12,"bootstrap":16,"d3":39,"jquery":41,"js-cookie":42,"promise-polyfill":43,"setimmediate":44}],15:[function(require,module,exports){
 'use strict';
 
 // ======================================================================== //
@@ -3782,7 +4583,6 @@ var d3 = require('d3');
 d3.horizon = require('../lib/horizon'); // New kludge
 
 var bci2k = require('../lib/bci2k');
-
 var cronelib = require('../lib/cronelib');
 
 var fmstat = require('./fmstat');
@@ -3790,6 +4590,7 @@ var fmonline = require('./fmonline');
 var fmui = require('./fmui');
 var fmgen = require('./fmgen');
 var fmdata = require('./fmdata');
+var fmfeature = require('./fmfeature');
 
 // MEAT
 
@@ -3803,14 +4604,14 @@ var modeString = pathComponents[2] || 'online';
 var onlineMode = modeString == 'online';
 var loadMode = !onlineMode;
 
-var subjectID = undefined;
+var subjectName = undefined;
 var recordName = undefined;
 
 if (loadMode) {
-    subjectID = pathComponents[2] || undefined;
+    subjectName = pathComponents[2] || undefined;
     recordName = pathComponents[3] || undefined;
 } else {
-    subjectID = pathComponents[3] || undefined;
+    subjectName = pathComponents[3] || undefined;
     recordName = pathComponents[4] || undefined;
 }
 
@@ -3826,8 +4627,8 @@ var uiManager = new fmui.InterfaceManager();
 // TODO Handle rejection
 uiManager.loadConfig(path.join(configPath, 'ui')).then(function () {
     // TODO Not this way ...
-    if (subjectID && recordName) {
-        uiManager.updateRecordDetails(subjectID, recordName);
+    if (subjectName && recordName) {
+        uiManager.updateRecordDetails(subjectName, recordName);
     }
 }).catch(function (reason) {
     // TODO Respond intelligently.
@@ -3871,7 +4672,9 @@ var prepareOnlineDataSource = function prepareOnlineDataSource() {
 
         // Get subject name
         dataSource.getParameter('SubjectName').then(function (result) {
-            uiManager.updateSubjectName(result.output.trim());
+            subjectName = result.output.trim();
+            uiManager.updateSubjectName(subjectName);
+            prepareSubjectDependencies(subjectName);
         }).catch(function (reason) {
             console.log('Could not obtain SubjectName: ' + reason);
         });
@@ -3886,6 +4689,29 @@ var prepareOnlineDataSource = function prepareOnlineDataSource() {
         // TODO Something intelligent
 
         console.log(reason);
+    });
+};
+
+// TODO KLUUUUUUUUDGEy
+var prepareSubjectDependencies = function prepareSubjectDependencies(theSubject) {
+
+    // First, load the brain
+    $.get(path.join(apiPath, 'brain', theSubject)).done(function (imageData) {
+
+        console.log('Obtained subject image data.');
+
+        // Now that we've got the brain, load the sensor geometry
+        $.getJSON(path.join(apiPath, 'geometry', theSubject)).done(function (sensorGeometry) {
+
+            console.log('Obtained subject sensor geometry.');
+
+            // We have what we need, make the brain plot!
+            uiManager.brain.setup(imageData, sensorGeometry);
+        }).fail(function (req, reason, err) {
+            console.log('Could not load subject sensor geometry: ' + reason);
+        });
+    }).fail(function (req, reason, err) {
+        console.log('Could not load subject brain: ' + reason);
     });
 };
 
@@ -3923,7 +4749,7 @@ var unpackBundle = function unpackBundle(info) {
 if (loadMode) {
     // Using data loaded from the hive
 
-    getRecordInfo(subjectID, recordName) // Get header info for the data
+    getRecordInfo(subjectName, recordName) // Get header info for the data
     .then(unpackBundle) // Unpack to get us a dataset URI
     .then(dataset.get); // Get the dataset for that URI
 }
@@ -3932,6 +4758,7 @@ if (loadMode) {
 
 // TODO Move into an fmdata.Dataset object ...
 var channelStats = {};
+var meanData = {};
 
 // Property registration
 
@@ -3962,7 +4789,11 @@ var startTrial = function startTrial() {
 
     // We're starting to transfer a trial
     uiManager.showIcon('transfer');
+    uiManager.activateTrialCount();
 };
+
+// TODO Testing
+var identityFeature = new fmfeature.RemoteFeature(path.join(apiPath, 'compute', 'identity'));
 
 var ingestTrial = function ingestTrial(trialData) {
 
@@ -3972,33 +4803,123 @@ var ingestTrial = function ingestTrial(trialData) {
     // Now we're working
     uiManager.showIcon('working');
 
-    // TODO
+    updateStatistics(trialData);
+
+    // TODO Testing
+    // identityFeature.compute( trialData )
+    //                 .then( function( computedData ) {
+    //                     updateStatistics( computedData );
+    //                 } )
+    //                 .catch( function( reason ) {
+    //                     console.log( 'Error computing features on remote: ' + reason );
+    //                 } );
+};
+
+var updateStatistics = function updateStatistics(trialData) {
+
     cronelib.forEachAsync(Object.keys(channelStats), function (ch) {
-
-        var chValues = trialData[ch];
-        var chBaseline = chValues.slice(0, 10);
-
-        channelStats[ch].updateBaseline(chBaseline);
-        channelStats[ch].updateValues(chValues);
+        channelStats[ch].ingest(trialData[ch]);
+        meanData[ch] = channelStats[ch].fdrCorrectedValues(0.05);
     }, {
         batchSize: 5
     }).then(function () {
 
         // TODO
-        var meanData = {};
-        Object.keys(channelStats).forEach(function (ch) {
-            //meanData[ch] = channelStats[ch].meanValues();
-            //meanData[ch] = channelStats[ch].baselineNormalizedValues();
-            //meanData[ch] = channelStats[ch].bonferroniCorrectedValues( 0.05, true );
-            meanData[ch] = channelStats[ch].fdrCorrectedValues(0.05);
+        var trialCount = 0;
+        Object.keys(channelStats).every(function (ch) {
+            trialCount = channelStats[ch].valueTrials.length;
+            return false;
         });
-        uiManager.raster.update(meanData);
 
+        updatePlotsPostData();
+
+        // GUI stuff
         uiManager.hideIcon('working');
+        uiManager.updateTrialCount(trialCount);
+        uiManager.deactivateTrialCount();
     });
 };
 
 // EVENT HOOKS
+
+// TODO Super kludgey to put here, but need data
+
+var dataForTime = function dataForTime(time) {
+
+    // TODO Kludge; cache this, since it doesn't change
+    var dataSamples = 0;
+    Object.keys(meanData).every(function (ch) {
+        dataSamples = meanData[ch].length;
+        return false;
+    });
+
+    var trialWindow = dataSource.getTrialWindow();
+    var totalTime = trialWindow.end - trialWindow.start;
+
+    var timeIndexFloat = (time - trialWindow.start) / totalTime * dataSamples;
+    var timeIndex = Math.floor(timeIndexFloat);
+    var timeFrac = timeIndexFloat - timeIndex;
+
+    return Object.keys(meanData).reduce(function (obj, ch) {
+        obj[ch] = (1.0 - timeFrac) * meanData[ch][timeIndex] + timeFrac * meanData[ch][timeIndex + 1];
+        return obj;
+    }, {});
+};
+
+// TODO AAAAAAH I'M AN IDIOT
+var updatePlotsPostData = function updatePlotsPostData() {
+
+    uiManager.raster.update(meanData);
+
+    // TODO Kludge: dataForTime is the only thing keeping routine in main
+    var meanDataSlice = dataForTime(uiManager.raster.getCursorTime());
+    uiManager.brain.update(meanDataSlice);
+
+    // TODO Super kludge; should only need to update once ever ...
+    var trialWindow = dataSource.getTrialWindow();
+    uiManager.raster.updateTimeRange([trialWindow.start, trialWindow.end]);
+};
+
+uiManager.raster.oncursormove = function (newTime) {
+
+    uiManager.updateSelectedTime(newTime);
+
+    var meanDataSlice = dataForTime(newTime);
+    uiManager.brain.update(meanDataSlice);
+};
+
+uiManager.onOptionChange = function (option, newValue) {
+
+    if (option == 'stim-trial-start') {
+        update;
+    }
+    if (option == 'stim-trial-end') {
+        // ?
+    }
+
+    if (option == 'stim-baseline-start') {
+        updateBaselineWindow({ start: newValue });
+    }
+    if (option == 'stim-baseline-end') {
+        updateBaselineWindow({ end: newValue });
+    }
+};
+
+var updateTrialWindow = function updateTrialWindow(newWindow) {};
+
+var updateBaselineWindow = function updateBaselineWindow(newWindow) {
+
+    uiManager.showIcon('working');
+
+    cronelib.forEachAsync(Object.keys(channelStats), function (ch) {
+        channelStats[ch].recompute(newWindow);
+    }, {
+        batchSize: 5
+    }).then(function () {
+        updatePlotsPostData();
+        uiManager.hideIcon('working');
+    });
+};
 
 $(window).on('resize', function () {
 
@@ -4007,7 +4928,7 @@ $(window).on('resize', function () {
 
 //
 
-},{"../lib/bci2k":1,"../lib/cronelib":2,"../lib/horizon":5,"./fmdata":7,"./fmgen":8,"./fmonline":9,"./fmstat":12,"./fmui":13,"d3":38,"jquery":40,"path":48}],15:[function(require,module,exports){
+},{"../lib/bci2k":1,"../lib/cronelib":2,"../lib/horizon":5,"./fmdata":7,"./fmfeature":8,"./fmgen":9,"./fmonline":10,"./fmstat":13,"./fmui":14,"d3":39,"jquery":41,"path":49}],16:[function(require,module,exports){
 // This file is autogenerated via the `commonjs` Grunt task. You can require() this file in a CommonJS environment.
 require('../../js/transition.js')
 require('../../js/alert.js')
@@ -4021,7 +4942,7 @@ require('../../js/popover.js')
 require('../../js/scrollspy.js')
 require('../../js/tab.js')
 require('../../js/affix.js')
-},{"../../js/affix.js":16,"../../js/alert.js":17,"../../js/button.js":18,"../../js/carousel.js":19,"../../js/collapse.js":20,"../../js/dropdown.js":21,"../../js/modal.js":22,"../../js/popover.js":23,"../../js/scrollspy.js":24,"../../js/tab.js":25,"../../js/tooltip.js":26,"../../js/transition.js":27}],16:[function(require,module,exports){
+},{"../../js/affix.js":17,"../../js/alert.js":18,"../../js/button.js":19,"../../js/carousel.js":20,"../../js/collapse.js":21,"../../js/dropdown.js":22,"../../js/modal.js":23,"../../js/popover.js":24,"../../js/scrollspy.js":25,"../../js/tab.js":26,"../../js/tooltip.js":27,"../../js/transition.js":28}],17:[function(require,module,exports){
 /* ========================================================================
  * Bootstrap: affix.js v3.3.7
  * http://getbootstrap.com/javascript/#affix
@@ -4185,7 +5106,7 @@ require('../../js/affix.js')
 
 }(jQuery);
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 /* ========================================================================
  * Bootstrap: alert.js v3.3.7
  * http://getbootstrap.com/javascript/#alerts
@@ -4281,7 +5202,7 @@ require('../../js/affix.js')
 
 }(jQuery);
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 /* ========================================================================
  * Bootstrap: button.js v3.3.7
  * http://getbootstrap.com/javascript/#buttons
@@ -4408,7 +5329,7 @@ require('../../js/affix.js')
 
 }(jQuery);
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 /* ========================================================================
  * Bootstrap: carousel.js v3.3.7
  * http://getbootstrap.com/javascript/#carousel
@@ -4647,7 +5568,7 @@ require('../../js/affix.js')
 
 }(jQuery);
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 /* ========================================================================
  * Bootstrap: collapse.js v3.3.7
  * http://getbootstrap.com/javascript/#collapse
@@ -4861,7 +5782,7 @@ require('../../js/affix.js')
 
 }(jQuery);
 
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 /* ========================================================================
  * Bootstrap: dropdown.js v3.3.7
  * http://getbootstrap.com/javascript/#dropdowns
@@ -5028,7 +5949,7 @@ require('../../js/affix.js')
 
 }(jQuery);
 
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 /* ========================================================================
  * Bootstrap: modal.js v3.3.7
  * http://getbootstrap.com/javascript/#modals
@@ -5369,7 +6290,7 @@ require('../../js/affix.js')
 
 }(jQuery);
 
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 /* ========================================================================
  * Bootstrap: popover.js v3.3.7
  * http://getbootstrap.com/javascript/#popovers
@@ -5479,7 +6400,7 @@ require('../../js/affix.js')
 
 }(jQuery);
 
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 /* ========================================================================
  * Bootstrap: scrollspy.js v3.3.7
  * http://getbootstrap.com/javascript/#scrollspy
@@ -5653,7 +6574,7 @@ require('../../js/affix.js')
 
 }(jQuery);
 
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 /* ========================================================================
  * Bootstrap: tab.js v3.3.7
  * http://getbootstrap.com/javascript/#tabs
@@ -5810,7 +6731,7 @@ require('../../js/affix.js')
 
 }(jQuery);
 
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 /* ========================================================================
  * Bootstrap: tooltip.js v3.3.7
  * http://getbootstrap.com/javascript/#tooltip
@@ -6332,7 +7253,7 @@ require('../../js/affix.js')
 
 }(jQuery);
 
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 /* ========================================================================
  * Bootstrap: transition.js v3.3.7
  * http://getbootstrap.com/javascript/#transitions
@@ -6393,7 +7314,7 @@ require('../../js/affix.js')
 
 }(jQuery);
 
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 // https://d3js.org/d3-array/ Version 1.0.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -6858,7 +7779,7 @@ require('../../js/affix.js')
   Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 // https://d3js.org/d3-axis/ Version 1.0.3. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -7050,7 +7971,7 @@ require('../../js/affix.js')
   Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
-},{}],30:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 // https://d3js.org/d3-collection/ Version 1.0.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -7268,7 +8189,7 @@ require('../../js/affix.js')
   Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 // https://d3js.org/d3-color/ Version 1.0.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -7786,7 +8707,7 @@ require('../../js/affix.js')
   Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
-},{}],32:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 // https://d3js.org/d3-format/ Version 1.0.2. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -8116,7 +9037,7 @@ require('../../js/affix.js')
   Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
-},{}],33:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 // https://d3js.org/d3-interpolate/ Version 1.1.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-color')) :
@@ -8659,7 +9580,7 @@ require('../../js/affix.js')
   Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
-},{"d3-color":31}],34:[function(require,module,exports){
+},{"d3-color":32}],35:[function(require,module,exports){
 // https://d3js.org/d3-scale/ Version 1.0.3. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array'), require('d3-collection'), require('d3-interpolate'), require('d3-format'), require('d3-time'), require('d3-time-format'), require('d3-color')) :
@@ -9562,7 +10483,7 @@ require('../../js/affix.js')
   Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
-},{"d3-array":28,"d3-collection":30,"d3-color":31,"d3-format":32,"d3-interpolate":33,"d3-time":37,"d3-time-format":36}],35:[function(require,module,exports){
+},{"d3-array":29,"d3-collection":31,"d3-color":32,"d3-format":33,"d3-interpolate":34,"d3-time":38,"d3-time-format":37}],36:[function(require,module,exports){
 // https://d3js.org/d3-selection/ Version 1.0.2. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -10536,7 +11457,7 @@ require('../../js/affix.js')
   Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
-},{}],36:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 // https://d3js.org/d3-time-format/ Version 2.0.2. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-time')) :
@@ -11119,7 +12040,7 @@ require('../../js/affix.js')
   Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
-},{"d3-time":37}],37:[function(require,module,exports){
+},{"d3-time":38}],38:[function(require,module,exports){
 // https://d3js.org/d3-time/ Version 1.0.4. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -11499,7 +12420,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],38:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 // https://d3js.org Version 4.2.6. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -27785,7 +28706,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],39:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 (function (Buffer){
 !function(factory) {
     var global = this;
@@ -28129,7 +29050,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
     return jDataView;
 });
 }).call(this,require("buffer").Buffer)
-},{"buffer":45}],40:[function(require,module,exports){
+},{"buffer":46}],41:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.1.1
  * https://jquery.com/
@@ -38351,7 +39272,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],41:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 /*!
  * JavaScript Cookie v2.1.3
  * https://github.com/js-cookie/js-cookie
@@ -38509,7 +39430,7 @@ return jQuery;
 	return init(function () {});
 }));
 
-},{}],42:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 (function (root) {
 
   // Store setTimeout reference so promise-polyfill will be unaffected by
@@ -38744,7 +39665,7 @@ return jQuery;
 
 })(this);
 
-},{}],43:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 (function (process,global){
 (function (global, undefined) {
     "use strict";
@@ -38934,7 +39855,7 @@ return jQuery;
 }(typeof self === "undefined" ? typeof global === "undefined" ? this : global : self));
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":49}],44:[function(require,module,exports){
+},{"_process":50}],45:[function(require,module,exports){
 'use strict'
 
 exports.byteLength = byteLength
@@ -39050,7 +39971,7 @@ function fromByteArray (uint8) {
   return parts.join('')
 }
 
-},{}],45:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 (function (global){
 /*!
  * The buffer module from node.js, for the browser.
@@ -40843,7 +41764,7 @@ function isnan (val) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"base64-js":44,"ieee754":46,"isarray":47}],46:[function(require,module,exports){
+},{"base64-js":45,"ieee754":47,"isarray":48}],47:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -40929,14 +41850,14 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],47:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 var toString = {}.toString;
 
 module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
 
-},{}],48:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -41164,7 +42085,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require('_process'))
-},{"_process":49}],49:[function(require,module,exports){
+},{"_process":50}],50:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -41346,4 +42267,4 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}]},{},[14]);
+},{}]},{},[15]);

@@ -145,10 +145,10 @@ cronelib.parseQuery = function( qstr ) {
     return query;
 }
 
-// cronelib.debounce
+// cronelib.debounce_old
 // For, e.g., preventing excessive resize() calls
 
-cronelib.debounce = function( func , timeout ) {
+cronelib.debounce_old = function( func , timeout ) {
     var timeoutID , timeout = timeout || 200;
     return function () {
         var scope = this , args = arguments;
@@ -158,6 +158,28 @@ cronelib.debounce = function( func , timeout ) {
         } , timeout );
     }
 }
+
+// cronelib.debounce
+// taken from underscore( _.debounce )
+// Returns a function, that, as long as it continues to be invoked, will not
+// be triggered. The function will be called after it stops being called for
+// N milliseconds. If `immediate` is passed, trigger the function on the
+// leading edge, instead of the trailing.
+
+cronelib.debounce = function( func, wait, immediate ) {
+    var timeout;
+    return function() {
+        var context = this, args = arguments;
+        var later = function() {
+            timeout = null;
+            if ( !immediate ) func.apply( context, args );
+        };
+        var callNow = immediate && !timeout;
+        clearTimeout( timeout );
+        timeout = setTimeout( later, wait );
+        if ( callNow ) func.apply( context, args );
+    };
+};
 
 
 // EXPORT MODULE

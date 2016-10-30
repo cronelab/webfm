@@ -72,17 +72,17 @@ fmonline.OnlineDataSource = function() {
     // Cached to prevent excess execute calls when true
     this._bciRunning = false;
 
-    this._dataFormatter = new fmonline.DataFormatter();
-    this._dataFormatter.onSourceSignal = function( rawSignal ) {
+    this.dataFormatter = new fmonline.DataFormatter();
+    this.dataFormatter.onSourceSignal = function( rawSignal ) {
         manager.onRawSignal( rawSignal );
     };
-    this._dataFormatter.ontrial = function( trialData ) {
+    this.dataFormatter.ontrial = function( trialData ) {
         manager.ontrial( trialData );
     };
-    this._dataFormatter.onStartTrial = function() {
+    this.dataFormatter.onStartTrial = function() {
         manager.onStartTrial();
     };
-    this._dataFormatter.onFeatureProperties = function( properties ) {
+    this.dataFormatter.onFeatureProperties = function( properties ) {
         manager.onproperties( properties );
     };
 
@@ -238,6 +238,10 @@ fmonline.OnlineDataSource.prototype = {
 
     },
 
+    getTrialWindow: function() {
+        return this.dataFormatter.trialWindow;
+    },
+
     _appendSystemProperties: function( properties ) {
         
         var manager = this;     // Cache this for inline functions
@@ -296,7 +300,7 @@ fmonline.OnlineDataSource.prototype = {
                 console.log( 'Source tapped.' );
             }
             
-            manager._dataFormatter._connectSource( dataConnection );
+            manager.dataFormatter._connectSource( dataConnection );
 
         }, function( err ) {
 
@@ -311,7 +315,7 @@ fmonline.OnlineDataSource.prototype = {
                 console.log( 'SpectralOutput tapped.' );
             }
 
-            manager._dataFormatter._connectFeature( dataConnection );
+            manager.dataFormatter._connectFeature( dataConnection );
 
         }, function( err ) {
 
@@ -337,13 +341,23 @@ fmonline.DataFormatter = function() {
     this._timingChannel         = 'ainp1';
     this._timingState           = 'StimulusCode';
 
-    this._featureBand           = [70.0, 110.0];
-    this._frameWindow           = [-2.0, 5.0];
+    this.featureBand = {
+        low: 70.0,
+        high: 110.0
+    };
 
-    this.trialWindow            = [-1.5, 4.5];
+    this.trialWindow = {
+        start: -1.0,
+        end: 3.0
+    };
+    this._bufferPadding         = 0.5;
+    this._bufferWindow = {
+        start: this.trialWindow.start - this._bufferPadding,
+        end: this.trialWindow.end + this._bufferPadding
+    };
 
     // TODO Magic
-    this._featureWindow         = null;
+    this._featureKernel         = null;
 
     this._frameBlocks           = null;
     this._trialBlocks           = null;
@@ -380,6 +394,53 @@ fmonline.DataFormatter = function() {
 fmonline.DataFormatter.prototype = {
 
     constructor: fmonline.DataFormatter,
+
+    updateTrialWindow: function( newWindow ) {
+
+        if ( !newWindow ) {
+            // No new window provided
+            return;
+        }
+
+        // Handle new argument values
+        if ( newWindow.start !== undefined ) {
+            this.trialWindow.start      = newWindow.start;
+            this._bufferWindow.start    = newWindow.start - this._bufferPadding;
+        }
+        if ( newWindow.end !== undefined ) {
+            this.trialWindow.end        = newWindow.end;
+            this._bufferWindow.end      = newWindow.end + this._bufferPadding;
+        }
+
+        // Update everything that depends on the trial and buffer windows
+        // TODO We can do this very intelligently with a bunch of time, but
+        // for this release we're just going to nuke everything.
+
+        // ...
+
+    },
+
+    updateFeatureBand: function( newBand ) {
+
+        if ( !newBand ) {
+            // No new band provided
+            return;
+        }
+
+        // Handle new argument values
+        if ( newBand.low !== undefined ) {  // 0.0 is a valid value
+            this.featureBand.low = newBand.low;
+        }
+        if ( newBand.high !== undefined ) {
+            this.featureBand.high = newBand.high;
+        }
+
+        // Update our knowledge depending on the feature band
+        this._setupFeatureKernel();
+
+        // TODO Should we zero out the feature buffer?
+
+    },
 
     _connectSource: function( dataConnection ) {
 
@@ -457,7 +518,7 @@ fmonline.DataFormatter.prototype = {
     },
 
     _allPropertiesReceived: function() {
-        this._setupFeatureWindow( );
+        this._setupFeatureKernel();
         this._setupBuffers();
     },
 
@@ -466,7 +527,7 @@ fmonline.DataFormatter.prototype = {
         // Determine number of blocks in the buffer
         // TODO Assumes elementunit in seconds
         var blockLengthSeconds      = this.sourceProperties.numelements * this.sourceProperties.elementunit.gain;
-        var windowLengthSeconds     = this._frameWindow[1] - this._frameWindow[0];
+        var windowLengthSeconds     = this._bufferWindow.end - this._bufferWindow.start;
         var windowLengthBlocks      = Math.ceil( windowLengthSeconds / blockLengthSeconds );
 
         // Initialize feature buffer
@@ -475,28 +536,23 @@ fmonline.DataFormatter.prototype = {
             return arr;
         }, [] );
 
-        var trialLengthSeconds  = this.trialWindow[1] - this.trialWindow[0];
+        var trialLengthSeconds  = this.trialWindow.end - this.trialWindow.start;
         this._trialBlocks       = Math.ceil( trialLengthSeconds / blockLengthSeconds );
-        this._postTrialBlocks   = Math.ceil( this.trialWindow[1] / blockLengthSeconds );
+        this._postTrialBlocks   = Math.ceil( this.trialWindow.end / blockLengthSeconds );
 
         // TODO Debug
         console.log( 'Created feature buffer: ' + this.featureChannels.length + ' channels x ' + windowLengthBlocks + ' samples.' );
 
     },
 
-    _windowForFrequencies: function( fv ) {
+    _kernelForFrequencies: function( fv ) {
         
         // TODO Replace with more nuanced window
-        
-        // TODO Second to last bin
-        return fv.map( function( f, i ) {
-            return ( i == fv.length - 2 ) ? 1.0 : 0.0;
-        } );
 
         var formatter = this;
 
         var isInBand = function( x ) {
-            return (formatter._featureBand[0] <= x && x <= formatter._featureBand[1])
+            return (formatter.featureBand.low <= x && x <= formatter.featureBand.high)
         };
 
         var windowRaw = fv.map( function( f ) {
@@ -511,7 +567,7 @@ fmonline.DataFormatter.prototype = {
 
     },
 
-    _setupFeatureWindow: function() {
+    _setupFeatureKernel: function() {
 
         var formatter = this;   // Capture this
         var transform = this.featureProperties.elementunit;
@@ -522,7 +578,7 @@ fmonline.DataFormatter.prototype = {
         } );
 
         // Compute the window vector
-        this._featureWindow = this._windowForFrequencies( featureFreqs );
+        this._featureKernel = this._kernelForFrequencies( featureFreqs );
 
     },
 
@@ -530,7 +586,13 @@ fmonline.DataFormatter.prototype = {
         // data is an array of arrays; outer array is over channels, inner array
         // is over feature elements
 
-        // TODO Error checking
+        if ( !this._featureKernel ) {
+            // No feature window, so cannot provide meaningful information
+            // TODO Better way to handle errors?
+            return data.map( function( dv ) {
+                return 0.0;     // TODO Should be undefined, and caller should deal
+            } );
+        }
 
         var formatter = this;   // Capture this
 
@@ -538,7 +600,7 @@ fmonline.DataFormatter.prototype = {
         return data.map( function( dv ) {
             // Window the feature elements
             return dv.reduce( function( acc, el, iel ) {
-                return acc + el * formatter._featureWindow[iel];
+                return acc + el * formatter._featureKernel[iel];
             }, 0.0 );      
         } );
 

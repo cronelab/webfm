@@ -33,16 +33,21 @@ fmraster.ChannelRaster = function( baseNodeId ) {
     this.displayOrder   = null;
     this.data           = null;
 
+    this.timeScale      = null;
+
+
+    // Events
+
+    this.oncursormove       = function( newTime ) {};
+    this.onselectchannel    = function( newChannel ) {};
+
+
     // Cursor
 
-    this.cursorSvg              = null;
-    this.cursorLine             = null;
-    this.cursorLineOrigin       = null;
-    this.cursorTimescale        = null;
-    this.cursorTimescaleBorder  = null;
-    this.cursorText             = null;
+    this.selectedChannel        = null;
 
-    this.cursorPosition         = null;
+    this.cursorSvg              = null;
+    this.cursorTime             = null;
     this.cursorLocked           = false;
 
     // TODO Config
@@ -54,20 +59,16 @@ fmraster.ChannelRaster = function( baseNodeId ) {
 
     // Charts
 
-    this.chartSvg               = null;
-    this.chartXScale            = null;
-    this.chartYScale            = null;
-    this.chartColorScale        = null;
-
     this.chartMin               = 0.0;      // TODO Expose to manager
-    this.chartMax               = 10.0;
+    this.chartMax               = 7.5;
 
     // TODO Config
     this.channelHeight          = 15;
+    this.channelHeightCutoff    = 14;
     this.chartMargin = {
         top: 100,
         right: 0,
-        bottom: 37,
+        bottom: 0,
         left: 0
     };
     this.rangeColors = [
@@ -91,35 +92,126 @@ fmraster.ChannelRaster.prototype = {
 
     setup: function() {
 
-        if ( !this.displayOrder ) {
-            console.log( 'Cannot setup ChannelRaster without display order.' );
-            return;
-        }
+        this.setupCharts();
 
         this.setupCursor();
-        this.setupCharts();
+
     },
 
     setupCursor: function() {
 
-        // TODO Put style calls into the CSS, not the JS
+        var raster = this;
+
         this.cursorSvg = d3.select( this.baseNodeId ).append( 'svg' )
-                                                        .attr( 'class', 'cursor-svg' )
-                                                        .style( 'position', 'fixed' )
-                                                        .style( 'z-index', '100' )
-                                                        .style( 'pointer-events', 'none' )
-                                                        .attr( 'width', this.cursorSize.width )
-                                                        .attr( 'height', this.cursorSize.height );
+                                                        .attr( 'class', 'fm-cursor-svg' );
 
-        // ...
+        // TODO Why?
+        $( this.baseNodeId ).on( 'click', function( event ) {
+            raster._cursorClick( event );
+        } );
 
+        this.cursorTime = 0.0;
+        this.cursorSvg.append( 'line' )
+                        .attr( 'class', 'fm-cursor-line' );
+        this.cursorSvg.append( 'line' )
+                        .attr( 'class', 'fm-cursor-origin-line' );
+
+        this.updateCursor();
+
+    },
+
+    updateCursor: function( newTime ) {
+
+        if ( newTime !== undefined ) {
+            this.cursorTime = newTime;
+        }
+
+        var raster = this;
+
+        var width = $( this.baseNodeId ).width();
+        var height = $( this.baseNodeId ).height();
+
+        d3.select( this.baseNodeId )
+            .select( '.fm-cursor-svg' )
+                .attr( 'width', width )
+                .attr( 'height', height );
+
+        if ( !this.timeScale ) {
+            // Can't update the rest, because doing so would require the time scale
+            return;
+        }
+
+        var cursorX = this.timeScale.invert( this.cursorTime );
+
+        d3.select( this.baseNodeId )
+            .select( '.fm-cursor-svg' )
+            .select( '.fm-cursor-line' )
+                .classed( 'fm-cursor-locked', function() {
+                    return raster.cursorLocked;
+                } )
+                .attr( 'x1', cursorX )
+                .attr( 'y1', 0 )
+                .attr( 'x2', cursorX )
+                .attr( 'y2', height );
+
+        var originX = this.timeScale.invert( 0.0 );
+
+        d3.select( this.baseNodeId )
+            .select( '.fm-cursor-svg' )
+            .select( '.fm-cursor-origin-line' )
+                .attr( 'x1', originX )
+                .attr( 'y1', 0 )
+                .attr( 'x2', originX )
+                .attr( 'y2', height );
+
+    },
+
+    _cursorClick: function( event ) {
+        this.toggleCursor();
+    },
+
+    lockCursor: function() {
+        this.cursorLocked = true;
+        this.updateCursor();
+    },
+
+    unlockCursor: function() {
+        this.cursorLocked = false;
+        this.updateCursor();
+    },
+
+    toggleCursor: function() {
+
+        if ( this.cursorLocked ) {
+            this.unlockCursor();
+            return;
+        }
+
+        this.lockCursor();
+
+    },
+
+    getCursorTime: function() {
+        return this.cursorTime;
+    },
+
+    _dummyData: function( channels ) {
+        return channels.reduce( function( obj, ch ) {
+            obj[ch] = [0.0];
+            return obj;
+        } );
     },
 
     setupCharts: function() {
 
-        if ( !this.data ) {
-            console.log( 'WARNING Cannot setup charts without data.' );
+        if ( !this.displayOrder ) {
+            // Can't.
             return;
+        }
+
+        if ( !this.data ) {
+            // Create some dummy data
+            this.data = this._dummyData( this.displayOrder );
         }
 
         var raster = this;  // Capture this.
@@ -131,6 +223,15 @@ fmraster.ChannelRaster.prototype = {
         var n = this.data.length;
         var step = width / this.data[0].values.length;
 
+        // Set up x axis time scale with placeholder values
+        if ( !this.timeScale ) {
+            this.timeScale = d3.scaleLinear()
+                                .domain( [0, width] )
+                                .range( [0, 1] );
+        } else {
+            this.updateTimeDomain( [0, width] );
+        }
+
         // Set up horizon chart maker
         var horizonChart = d3.horizonChart();
 
@@ -140,36 +241,74 @@ fmraster.ChannelRaster.prototype = {
                                 return d.channel;
                             } );
 
+        // Prepare a mousemove function for the horizon charts
+        var horizonMouseMove = function( event ) {
+
+            var newChannel = d3.select( event.currentTarget ).datum().channel;
+            raster.selectChannel( newChannel );
+
+            if ( raster.cursorLocked ) {
+                // No need to update cursor, cause it's locked
+                return;
+            }
+
+            // Compute new time
+            var offset = $( this ).offset();
+            var cursorX = event.pageX - offset.left;    // Works because this is parent element
+            var newTime = raster.timeScale( cursorX );
+
+            // Update cursor rendering, etc etc.
+            raster.updateCursor( newTime );
+
+            // Call cursor event
+            raster.oncursormove( newTime );
+
+        };
+
         // And new horizons
         horizons.enter().append( 'div' )
                             .attr( 'class', 'fm-horizon' )
-                            .style( 'margin-bottom', function( d, i ) { // TODO Shitty.
-                                return ( i < n - 1 ) ? '0px' : '40px';
+                            .each( function( d, i ) {
+                                // Setup jQuery mouse events
+                                $( this ).on( 'mousemove', horizonMouseMove );
                             } )
                 .merge( horizons )
-                        .each( function( d, i ) {
-                            horizonChart.title( d.channel )
-                                        .height( raster.channelHeight )
-                                        .step( step  )
-                                        .extent( [ raster.chartMin, raster.chartMax ] )
-                                        .call( this, d.values );
-                        } );
+                            .classed( 'fm-horizon-small', function() {
+                                return ( raster.channelHeight <= raster.channelHeightCutoff );
+                            } )
+                            .each( function( d, i ) {
+                                // Call Horizon chart rendering
+                                horizonChart.title( d.channel )
+                                            .height( raster.channelHeight )
+                                            .step( step  )
+                                            .extent( [ raster.chartMin, raster.chartMax ] )
+                                            .call( this, d.values );
+                            } );
 
         // Add unneeded horizons
         horizons.exit().remove();
 
     },
 
-    updateCursorSize: function( newSize ) {
-        // TODO Should this be supported behavior?
-        if ( newSize === undefined ) {
-            newSize = {
-                'width':    baseNode.width(),
-                'height':   baseNode.height()
-            };
+    updateTimeDomain: function( newDomain ) {
+
+        if ( !this.timeScale ) {
+            return;
         }
-        // TODO Error checking
-        cursorSize = newSize;
+
+        this.timeScale.domain( newDomain );
+
+    },
+
+    updateTimeRange: function( newRange ) {
+
+        if ( !this.timeScale ) {
+            // Can't update time extent if scale doesn't yet exist
+            return;
+        }
+
+        this.timeScale.range( newRange );
+
     },
 
     update: function( newData ) {
@@ -180,6 +319,8 @@ fmraster.ChannelRaster.prototype = {
 
         // TODO
         this.setupCharts();
+
+        this.updateCursor();
 
     },
 
@@ -219,7 +360,31 @@ fmraster.ChannelRaster.prototype = {
 
         // Compute the new data with the updated display order
         this._updateData( dictData );
-    }
+    },
+
+    setExtent: function( newExtent ) {
+        this.chartMax = newExtent;
+    },
+
+    setRowHeight: function( newHeight ) {
+        this.channelHeight = newHeight;
+    },
+
+    setSelectedChannel: function( newChannel ) {
+        this.selectedChannel = newChannel;
+    },
+
+    selectChannel: function( newChannel ) {
+
+        if ( newChannel == this.selectedChannel ) {
+            return;
+        }
+
+        this.setSelectedChannel( newChannel );
+
+        this.onselectchannel( newChannel );
+
+    },
 
 };
 

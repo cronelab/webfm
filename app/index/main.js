@@ -261,6 +261,10 @@ var loadBrain = function( subject ) {
 
 // Main logic
 
+var clearRecords = function() {
+    $( '#record-list' ).empty();
+}
+
 var loadRecords = function( subject ) {
 
     var listPath = path.join( apiPath, 'list', subject );
@@ -296,6 +300,9 @@ var selectSubject = function( subject ) {
 
     // Re-select current
     $( '#' + subject ).addClass( 'active' );
+
+    // Clear records for a clean slate
+    clearRecords();
 
     // Load the records from the server API
     loadRecords( subject );
