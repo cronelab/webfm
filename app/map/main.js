@@ -256,7 +256,8 @@ var startTrial = function() {
 };
 
 // TODO Testing
-var identityFeature = new fmfeature.RemoteFeature( path.join( apiPath, 'compute', 'identity' ) );
+// var identityFeature = new fmfeature.RemoteFeature( path.join( apiPath, 'compute', 'identity' ) );
+// var hgFeature = new fmfeature.RemoteFeature( path.join( apiPath, 'compute', 'hgfft' ) );
 
 var ingestTrial = function( trialData ) {
     

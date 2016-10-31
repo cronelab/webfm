@@ -567,6 +567,14 @@ fmonline.DataFormatter.prototype = {
 
     },
 
+    _dumbKernel: function( fv ) {
+
+        return fv.map( function( f ) {
+            return 1.0 / fv.length;
+        } );
+
+    },
+
     _setupFeatureKernel: function() {
 
         var formatter = this;   // Capture this
@@ -578,7 +586,8 @@ fmonline.DataFormatter.prototype = {
         } );
 
         // Compute the window vector
-        this._featureKernel = this._kernelForFrequencies( featureFreqs );
+        //this._featureKernel = this._kernelForFrequencies( featureFreqs );
+        this._featureKernel = this._dumbKernel( featureFreqs );
 
     },
 

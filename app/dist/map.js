@@ -2504,6 +2504,13 @@ fmonline.DataFormatter.prototype = {
         });
     },
 
+    _dumbKernel: function _dumbKernel(fv) {
+
+        return fv.map(function (f) {
+            return 1.0 / fv.length;
+        });
+    },
+
     _setupFeatureKernel: function _setupFeatureKernel() {
 
         var formatter = this; // Capture this
@@ -2515,7 +2522,8 @@ fmonline.DataFormatter.prototype = {
         });
 
         // Compute the window vector
-        this._featureKernel = this._kernelForFrequencies(featureFreqs);
+        //this._featureKernel = this._kernelForFrequencies( featureFreqs );
+        this._featureKernel = this._dumbKernel(featureFreqs);
     },
 
     _computeFeature: function _computeFeature(data) {
@@ -4793,7 +4801,8 @@ var startTrial = function startTrial() {
 };
 
 // TODO Testing
-var identityFeature = new fmfeature.RemoteFeature(path.join(apiPath, 'compute', 'identity'));
+// var identityFeature = new fmfeature.RemoteFeature( path.join( apiPath, 'compute', 'identity' ) );
+// var hgFeature = new fmfeature.RemoteFeature( path.join( apiPath, 'compute', 'hgfft' ) );
 
 var ingestTrial = function ingestTrial(trialData) {
 
