@@ -98,7 +98,7 @@ var serveIndex = function( req, res ) {
 }
 
 // TODO For debugging
-var onlineConfigName = 'fmonline_lennon.json'; // 'fmonline_griff.json';   // 'fmonline.json'
+var onlineConfigName = 'fmonline_emu.json'; // 'fmonline_lennon.json' 'fmonline_griff.json' 'fmonline.json'
 
 app.get( '/index/config/online',  serveConfig( onlineConfigName ) );
 
@@ -495,6 +495,29 @@ app.post( '/api/compute/identity', rawBody, function( req, res ) {
 
     // Spawn a child process for the compute utility
     var pyProcess = spawn( './compute/identity' );
+    var outData = '';
+
+    // Set up event handlers for the process
+    pyProcess.stdout.on( 'data', function( data ) {
+        outData += data;
+    } );
+    pyProcess.stdout.on( 'end', function() {
+        // Finished processing; send it!
+        res.status( 200 ).send( outData );
+    } );
+
+    // Start the process computing by passing it input
+    // TODO Don't need to actually parse
+    //pyProcess.stdin.write( JSON.stringify( req.body ) );
+    pyProcess.stdin.write( req.rawBody );
+    pyProcess.stdin.end();
+
+} );
+
+app.post( '/api/compute/hgfft', rawBody, function( req, res ) {
+
+    // Spawn a child process for the compute utility
+    var pyProcess = spawn( './compute/hgfft' );
     var outData = '';
 
     // Set up event handlers for the process
