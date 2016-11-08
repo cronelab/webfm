@@ -97,10 +97,7 @@ var serveIndex = function( req, res ) {
     res.sendFile( path.join( rootDir, 'index.html' ) );
 }
 
-// TODO For debugging
-var onlineConfigName = 'fmonline_emu.json'; // 'fmonline_lennon.json' 'fmonline_griff.json' 'fmonline.json'
-
-app.get( '/index/config/online',  serveConfig( onlineConfigName ) );
+app.get( '/index/config/online',  serveConfig( 'fmonline.json' ) );
 
 app.get( '/', serveIndex );
 app.get( '/index', serveIndex );
@@ -117,7 +114,7 @@ var serveMap = function( req, res ) {
 // Should use template engine. This is janky af.
 
 app.get( '/map/config/ui',      serveConfig( 'fmui.json' ) );
-app.get( '/map/config/online',  serveConfig( onlineConfigName ) );
+app.get( '/map/config/online',  serveConfig( 'fmonline.json' ) );
 
 // Generator
 app.get( '/map', serveMap );
