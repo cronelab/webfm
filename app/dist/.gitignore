@@ -1,0 +1,2 @@
+# Don't commit build output output
+*.js
