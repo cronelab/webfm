@@ -694,8 +694,6 @@ fmonline.DataFormatter.prototype = {
 
         if ( !this._stateTiming ) {
 
-            console.log( 'SIGNALLLLLL' );
-
             // Look for changes in the timing signal
             // TODO Assumes at most one change per sample block
             var timingIndex = this.sourceChannels.indexOf( this._timingChannel );
