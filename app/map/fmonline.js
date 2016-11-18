@@ -337,9 +337,13 @@ fmonline.DataFormatter = function() {
     this._featureConnection     = null;
 
     // TODO config
-    this._precisionTiming       = false;
+    this._stateTiming           = true;
     this._timingChannel         = 'ainp1';
     this._timingState           = 'StimulusCode';
+    this.threshold = {
+        offValue: 0.0,
+        onValue: 1.0
+    };
 
     this.featureBand = {
         low: 70.0,
@@ -363,6 +367,8 @@ fmonline.DataFormatter = function() {
     this._trialBlocks           = null;
     this._postTrialBlocks       = null;     // TODO Refactor
 
+    this.canProcess             = true;
+
     this.sourceChannels         = null;
     this.sourceProperties       = null;
     this.sourceBuffer           = null;
@@ -377,9 +383,8 @@ fmonline.DataFormatter = function() {
     this.previousState          = null;
     this.stateBlockNumber       = 0;
 
-    this.canProcess             = true;
-
     this.trialEndBlockNumber    = null;
+
 
     // Events
     this.onSourceSignal         = function( rawData ) {};
@@ -442,6 +447,46 @@ fmonline.DataFormatter.prototype = {
 
     },
 
+    updateThreshold: function( newThreshold ) {
+
+        if ( !newThreshold ) {
+            // No new threshold provided
+            return;
+        }
+
+        // Handle new argument values
+        if ( newThreshold.offValue !== undefined ) {
+            this.threshold.offValue = newThreshold.offValue;
+        }
+        if ( newThreshold.onValue !== undefined ) {
+            this.threshold.onValue = newThreshold.onValue;
+        }
+
+        // TODO Anything to update based on this change? ...
+
+    },
+
+    updateTimingMode: function( newMode ) {
+
+        if ( newMode == 'state' ) {
+            this._stateTiming = true;
+        } else {
+            this._stateTiming = false;
+        }
+
+    },
+
+    updateTimingChannel: function( newChannel ) {
+
+        if ( !newChannel ) {
+            // No new channel provided
+            return;
+        }
+
+        this._timingChannel = newChannel;
+
+    },
+
     _connectSource: function( dataConnection ) {
 
         var formatter = this;   // Capture this
@@ -452,12 +497,12 @@ fmonline.DataFormatter.prototype = {
             formatter.sourceProperties      = properties;
             formatter.sourceChannels        = properties.channels;
             
-            if ( formatter._precisionTiming ) {
+            if ( ! formatter._stateTiming ) {
 
                 // Check if timing channel is in the montage
                 if ( formatter.sourceChannels.indexOf( formatter._timingChannel ) < 0 ) {
                     console.log( 'Timing channel not detected; falling back to imprecise timing.' );
-                    formatter._precisionTiming = false;
+                    formatter._stateTiming = true;
                     formatter.sourceBufferChannels = [];
                 } else {
                     formatter.sourceBufferChannels = [ formatter._timingChannel ];
@@ -636,6 +681,8 @@ fmonline.DataFormatter.prototype = {
 
     _processSourceSignal: function( signal ) {
 
+        var formatter = this;   // Capture this
+
         if ( !this.canProcess ) {
             console.log( "Received source signal, but can't process it." );
             return;
@@ -644,6 +691,19 @@ fmonline.DataFormatter.prototype = {
         this.sourceBlockNumber += 1;
 
         // TODO Buffer precision timing channels
+
+        if ( !this._stateTiming ) {
+
+            console.log( 'SIGNALLLLLL' );
+
+            // Look for changes in the timing signal
+            // TODO Assumes at most one change per sample block
+            var timingIndex = this.sourceChannels.indexOf( this._timingChannel );
+            signal[timingIndex].some( function( s ) {
+                return formatter._updateTimingSignal( s );
+            } );
+
+        }
 
         // TODO Do more intelligently
         this.onSourceSignal( this._formatSourceData( signal  ));
@@ -682,11 +742,35 @@ fmonline.DataFormatter.prototype = {
 
         this.stateBlockNumber += 1;
 
-        // Look for changes in the timing state
-        // TODO Assumes at most one change per sample block
-        state[this._timingState].some( function( s ) {
-            return formatter._updateTimingState( s );
-        } );
+        if ( this._stateTiming ) {
+
+            // Look for changes in the timing state
+            // TODO Assumes at most one change per sample block
+            state[this._timingState].some( function( s ) {
+                return formatter._updateTimingState( s );
+            } );
+
+        }
+
+    },
+
+    _signalThresholdState: function( signalValue ) {
+        if ( this.threshold.offValue < this.threshold.onValue ) {
+            return ( signalValue >= this.threshold.onValue ) ? 1 : 0;
+        }
+        return ( signalValue <= this.threshold.onValue ) ? 1 : 0;
+    },
+
+    _updateTimingSignal: function( newValue ) {
+
+        // TODO Also shitty API nomenclature
+
+        // Threshold the signal as desired
+        var newState = this._signalThresholdState( newValue );
+
+        // Treat the thresholded signal as a timing state
+        // TODO More nuanced way?
+        return this._updateTimingState( newState );
 
     },
 
@@ -709,7 +793,7 @@ fmonline.DataFormatter.prototype = {
 
     _timingStateChanged: function( newState ) {
 
-        // TODO Only for StimulusCode
+        // TODO Make more general with parameters
         if ( newState == 0 ) {
             // Not a new trial; continue
             return;

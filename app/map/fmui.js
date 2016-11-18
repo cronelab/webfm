@@ -218,7 +218,61 @@ fmui.InterfaceManager.prototype = {
         } );
 
         // Options page
-        // ...
+
+        var updateOptions = function( updater ) {
+            var options = manager.getOptions();
+            updater( options );
+            manager.setOptions( options );
+        };
+
+        // TODO Manually handling radio because my markup is dumb
+        $( '#fm-option-stim-timing-state' ).on( 'click', function( event ) {
+            $( '#fm-option-stim-timing-state' ).prop( 'checked', true );
+            $( '#fm-option-stim-timing-signal' ).prop( 'checked', false );
+
+            updateOptions( function( options ) {
+                options.stimulus.timingStrategy = 'state';
+            } );
+            manager.onoptionchange( 'stim-timing', 'state' );
+        } );
+        $( '#fm-option-stim-timing-signal' ).on( 'click', function( event ) {
+            $( '#fm-option-stim-timing-state' ).prop( 'checked', false );
+            $( '#fm-option-stim-timing-signal' ).prop( 'checked', true );
+
+            updateOptions( function( options ) {
+                options.stimulus.timingStrategy = 'signal';
+            } );
+            manager.onoptionchange( 'stim-timing', 'signal' );
+        } );
+
+        $( '#fm-option-stim-channel' ).on( 'change', function( event ) {
+            var newValue = this.value;
+            updateOptions( function( options ) {
+                options.stimulus.signal.channel = newValue;
+            } );
+            manager.onoptionchange( 'stim-channel', newValue );
+        } );
+        $( '#fm-option-stim-off' ).on( 'change', function( event ) {
+            var newValue = +this.value;
+            updateOptions( function( options ) {
+                options.stimulus.signal.offValue = newValue;
+            } );
+            manager.onoptionchange( 'stim-off', newValue );
+        } );
+        $( '#fm-option-stim-on' ).on( 'change', function( event ) {
+            var newValue = +this.value;
+            updateOptions( function( options ) {
+                options.stimulus.signal.onValue = newValue;
+            } );
+            manager.onoptionchange( 'stim-on', newValue );
+        } );
+
+
+        $ ( '#fm-option-nuke-cookies' ).on( 'click', function( event ) {
+            manager.clearOptions();
+            manager.clearExclusion();
+        } );
+
 
         // Scope page
 
@@ -525,6 +579,8 @@ fmui.InterfaceManager.prototype = {
 
     _populateOptions: function( options ) {
 
+        // TODO We respond to option changes here; best time? Smarter way?
+
         // Stimulus windows
         $( '#fm-option-stim-trial-start' ).val( options.stimulus.window.start );
         $( '#fm-option-stim-trial-end' ).val( options.stimulus.window.end );
@@ -538,19 +594,17 @@ fmui.InterfaceManager.prototype = {
         $( '#fm-option-resp-baseline-end' ).val( options.response.baselineWindow.end );
         
         // Timing strategy
-        $( '#fm-option-stim-timing-state' ).prop( 'checked', true );
-        $( '#fm-option-stim-timing-signal' ).prop( 'checked', false );
-        if ( options.stimulus.timingStrategy == 'state' ) {
-            $( '#fm-option-stim-timing-state' ).prop( 'checked', true );
-        }
-        if ( options.stimulus.timingStrategy == 'signal' ) {
-            $( '#fm-option-stim-timing-signal' ).prop( 'checked', true );
-        }
+        $( '#fm-option-stim-timing-state' ).prop( 'checked', options.stimulus.timingStrategy == 'state' );
+        $( '#fm-option-stim-timing-signal' ).prop( 'checked', options.stimulus.timingStrategy == 'signal' );
+        this.onoptionchange( 'stim-timing', options.stimulus.timingStrategy );
 
         // Stimulus thresholding
         $( '#fm-option-stim-channel' ).val( options.stimulus.signal.channel );
+        this.onoptionchange( 'stim-channel', options.stimulus.signal.channel );
         $( '#fm-option-stim-off' ).val( options.stimulus.signal.offValue );
+        this.onoptionchange( 'stim-off', options.stimulus.signal.offValue );
         $( '#fm-option-stim-on' ).val( options.stimulus.signal.onValue );
+        this.onoptionchange( 'stim-on', options.stimulus.signal.onValue );
 
         $( '#fm-option-stim-state' ).val( options.stimulus.state.name );
         $( '#fm-option-stim-state-off' ).val( options.stimulus.state.offValue );
@@ -690,6 +744,17 @@ fmui.InterfaceManager.prototype = {
         return options
     },
 
+    setOptions: function( options ) {
+        Cookies.set( 'options', options, {
+            expires: this.config.cookieExpirationDays
+        } );
+    },
+
+    clearOptions: function() {
+        Cookies.remove( 'options' );
+        this.getOptions();
+    },
+
     getExclusion: function() {
         // Get the excluded channels
         var exclusion = Cookies.getJSON( 'exclusion' );
@@ -710,6 +775,11 @@ fmui.InterfaceManager.prototype = {
         Cookies.set( 'exclusion', exclusion, {
             expires: this.config.cookieExpirationDays
         } );
+    },
+
+    clearExclusion: function() {
+        Cookies.remove( 'exclusion' );
+        this.getExclusion();
     },
 
     exclude: function( channel ) {

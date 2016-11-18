@@ -359,13 +359,13 @@ uiManager.raster.oncursormove = function( newTime ) {
 
 };
 
-uiManager.onOptionChange = function( option, newValue ) {
+uiManager.onoptionchange = function( option, newValue ) {
 
     if ( option == 'stim-trial-start' ) {
-        update
+        // updateTrialWindow( { start: newValue } );
     }
     if ( option == 'stim-trial-end' ) {
-        // ?
+        // updateTrialWindow( { end: newValue } );
     }
 
     if ( option == 'stim-baseline-start' ) {
@@ -375,10 +375,28 @@ uiManager.onOptionChange = function( option, newValue ) {
         updateBaselineWindow( { end: newValue } );
     }
 
+    if ( option == 'stim-timing' ) {
+        dataSource.dataFormatter.updateTimingMode( newValue );
+    }
+    if ( option == 'stim-channel' ) {
+        dataSource.dataFormatter.updateTimingChannel( newValue );
+    }
+    if ( option == 'stim-off' ) {
+        dataSource.dataFormatter.updateThreshold( { offValue: newValue } );
+    }
+    if ( option == 'stim-on' ) {
+        dataSource.dataFormatter.updateThreshold( { onValue: newValue } );
+    }
+
 };
 
+var updateTiming = function( newMode ) {
+    dataSource.dataFormatter.update
+}
+var updateTrialThreshold = function( newThreshold ) {
+};
 var updateTrialWindow = function( newWindow ) {
-
+    // TODO ...
 };
 
 var updateBaselineWindow = function( newWindow ) {
