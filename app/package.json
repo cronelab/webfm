@@ -9,6 +9,7 @@
   "author": "Max Collard <collard@jhu.edu>",
   "license": "SEE LICENSE IN ../LICENSE.md",
   "dependencies": {
+    "bci2k": "^1.0.0",
     "bootstrap": "^3.3.7",
     "d3": "^4.2.2",
     "d3-horizon-chart": "0.0.6",

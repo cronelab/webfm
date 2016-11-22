@@ -50,8 +50,17 @@
         <div class="panel panel-default">
           <div class="panel-heading">
             <h3 class="panel-title">
-              Online <small>by <a href="https://github.com/griffinmilsap/bci2k.js">bci2k.js</a></small>
+              Online <span class="pull-right"><a class="toggle-online-options" href="#"><span class="glyphicon glyphicon-cog"></span></a></small>
             </h3>
+          </div>
+          <div id="online-options" class="panel-heading hidden">
+            <div class="input-group">
+              <span class="input-group-addon" id="basic-addon1">Source</span>
+              <input id="source-address" type="text" class="form-control" placeholder="Address">
+              <span class="input-group-btn">
+                <button id="source-address-ok" class="btn btn-default" type="button"><span class="glyphicon glyphicon-ok"></span></button>
+              </span>
+            </div><!-- /input-group -->
           </div>
           <div class="list-group">
             <li id="state-label" class="list-group-item text-center text-muted">
@@ -61,8 +70,11 @@
                 <span id="subject-label"></span><br />
                 <span id="task-label"></span>
             </li>
-            <a id="online-button" class="list-group-item list-group-item-info disabled" href="/map/online">
-              <span class="glyphicon glyphicon-map-marker"></span> <strong>Map it!</strong>
+            <a id="map-button" class="list-group-item list-group-item-info disabled" href="/map/online">
+              <span class="glyphicon glyphicon-map-marker"></span> <strong>Map it</strong>
+            </a>
+            <a id="live-button" class="list-group-item list-group-item-success disabled" href="/map/live">
+              <span class="glyphicon glyphicon-facetime-video"></span> <strong>Go live</strong>
             </a>
           </div>
           <!--
