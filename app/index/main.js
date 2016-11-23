@@ -89,31 +89,18 @@ var setupWatcher = function() {
 
     bciWatcher.loadConfig( path.join( configPath, 'online' ) )
                 .then( function() {
-
-                    // TODO Bad
-                    getSourceAddress()
-                        .then( function( localSourceAddress ) {
-
-                            // TODO Pick a damn pattern.
-                            bciWatcher.connect( localSourceAddress, function( err, event ) {
-
-                                if ( err ) {
-                                    console.log( err ); // TODO Respond intelligently
-                                    return;
-                                }
-
-                                bciWatcher.start();
-
-                            } );
-
-                        } );
-
+                    return getSourceAddress();
                 } )
-                .catch( function( reason ) {    // TODO Respond intelligently
-
-                    console.log( reason );
-
+                .then( function( localSourceAddress ) {
+                    return bciWatcher.connect( localSourceAddress );
+                } )
+                .then( function( connectionEvent ) {
+                    bciWatcher.start();
+                } )
+                .catch( function( reason ) {
+                    console.log( 'Could not set up BCI Watcher: ' + reason );      // TODO Respond intelligently
                 } );
+
 };
 
 // TODO
