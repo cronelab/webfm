@@ -150,7 +150,7 @@ var prepareOnlineDataSource = function() {
                             // Get subject name
                             dataSource.getParameter( 'SubjectName' )
                                         .then( function( result ) {
-                                            subjectName = result.output.trim();
+                                            subjectName = result.trim();
                                             uiManager.updateSubjectName( subjectName );
                                             prepareSubjectDependencies( subjectName );
                                         } )
@@ -162,15 +162,13 @@ var prepareOnlineDataSource = function() {
                             dataSource.getParameter( 'DataFile' )
                                         .then( function( result ) {
                                             // TODO Error checking
-                                            var taskName = result.output.trim().split( '/' )[1];
+                                            var taskName = result.trim().split( '/' )[1];
                                             uiManager.updateTaskName( taskName );
                                         } );
 
                         } )
                         .catch( function( reason ) {    // TODO Something intelligent
-
                             console.log( reason );
-
                         } );
 
         } );

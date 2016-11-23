@@ -99,7 +99,7 @@ BCI2K.Connection.prototype = {
             connection._socket.onerror = function( error ) {
                 // This will only execute if we err before connecting, since
                 // Promises can only get triggered once
-                reject( 'Error connecting to WebSocket at ' + connection.address );
+                reject( 'Error connecting to BCI2000 at ' + connection.address );
             }
 
             connection._socket.onopen = function( event ) {
@@ -128,49 +128,58 @@ BCI2K.Connection.prototype = {
          
         switch( opcode ) {
             case 'S': // START: Starting to execute command
-                if( connection._exec[ id ].onstart )
-                    connection._exec[ id ].onstart( connection._exec[ id ] );
+                if( this._exec[ id ].onstart )
+                    this._exec[ id ].onstart( this._exec[ id ] );
                 break;
             case 'O': // OUTPUT: Received output from command
-                connection._exec[ id ].output += msg + ' \n';
-                if( connection._exec[ id ].onoutput )
-                    connection._exec[ id ].onoutput( connection._exec[ id ] );
+                this._exec[ id ].output += msg + ' \n';
+                if( this._exec[ id ].onoutput )
+                    this._exec[ id ].onoutput( this._exec[ id ] );
                 break;
             case 'D': // DONE: Done executing command
-                connection._exec[ id ].exitcode = parseInt( msg );
-                if( connection._exec[ id ].ondone )
-                    connection._exec[ id ].ondone( connection._exec[ id ] );
-                delete connection._exec[ id ];
+                this._exec[ id ].exitcode = parseInt( msg );
+                if( this._exec[ id ].ondone )
+                    this._exec[ id ].ondone( this._exec[ id ] );
+                delete this._exec[ id ];
                 break;
         }
     },
 
-    // TODO Implement as a Promise
     tap: function( location, onSuccess, onFailure ) {
 
         var connection = this;      
 
         var locationParameter = "WS" + location + "Server";
 
-        this.execute( "Get Parameter " + locationParameter, function( result ) {
+        return this.execute( 'Get Parameter ' + locationParameter )
+                    .then( function( location ) {
 
-            if( result.output.indexOf( 'does not exist' ) >= 0 ) {
-                if( onFailure ) onFailure( result );
-                return;
-            }
-            if( result.output == '' ) {
-                // Parameter exists but isn't set
-                if( onFailure ) onFailure( result );
-                return;
-            }
+                        if ( location.indexOf( 'does not exist' ) >= 0 ) {
+                            return Promise.reject( 'Location parameter does not exist' );
+                        }
 
-            var dataConnection = new BCI2K.DataConnection();
-            if( onSuccess ) onSuccess( dataConnection );
+                        if ( location == '' ) {
+                            return Promise.reject( 'Location parameter not set' );
+                        }
 
-            // Use our address plus the port from the result
-            dataConnection.connect( connection.address + ':' + result.output.split( ':' )[1] );
+                        var dataConnection = new BCI2K.DataConnection();
 
-        } );
+                        // TODO We used to "resolve" here, before doiing the 
+                        // actual connecting bit, but I think it makes much
+                        // more sense to have tap "success" be actually
+                        // connecting to the source, rather than just getting
+                        // a sensical address
+
+                        // Use our address plus the port from the result
+                        return dataConnection.connect( connection.address + ':' + location.split( ':' )[1] )
+                                                .then( function( event ) {
+                                                    // To keep with our old API, we actually want to wrap the 
+                                                    // dataConnection, and not the connection event
+                                                    // TODO This means we can't get the connection event!
+                                                    return dataConnection;
+                                                } );
+
+                    } );
 
     },
 
@@ -179,18 +188,39 @@ BCI2K.Connection.prototype = {
     },
 
     execute: function( instruction, ondone, onstart, onoutput ) {
-        if( this.connected() ) {
-            var id = ( ++( this._execid ) ).toString();
-            this._exec[ id ] = {
-                onstart: onstart,
-                onoutput: onoutput,
-                ondone: ondone, 
-                output: "", 
-                exitcode: null
-            };
-            var msg = "E " + id + " " + instruction;
-            this._socket.send( msg );
+
+        var connection = this;
+
+        if ( this.connected() ) {
+
+            return new Promise( function( resolve, reject ) {
+
+                var id = ( ++( connection._execid ) ).toString();
+
+                // TODO Properly handle errors from BCI2000
+                connection._exec[ id ] = {
+                    onstart: onstart,
+                    onoutput: onoutput,
+                    ondone: function( exec ) {
+                        if ( ondone ) {
+                            ondone( exec );
+                        }
+                        resolve( exec.output );     // TODO Should pass whole thing?
+                    },
+                    output: '',
+                    exitcode: null
+                };
+
+                var msg = 'E ' + id + ' ' + instruction;
+                connection._socket.send( msg );
+
+            } );
+
         }
+
+        // Cannot execute if not connected
+        return Promise.reject( 'Cannot execute instruction: not connected to BCI2000' );
+
     },
 
     getVersion: function( fn ) {
@@ -200,31 +230,32 @@ BCI2K.Connection.prototype = {
     },
 
     showWindow: function() {
-        this.execute( "Show Window" );
+        return this.execute( "Show Window" );
     },
 
     hideWindow: function() {
-        this.execute( "Hide Window" );
+        return this.execute( "Hide Window" );
     },
 
     resetSystem: function() {
-        this.execute( "Reset System" );
+        return this.execute( "Reset System" );
     },
 
+    // TODO Is argument necessary now with Promise API?
     setConfig: function( fn ) {
-        this.execute( "Set Config", fn );
+        return this.execute( "Set Config", fn );
     },
 
     start: function() { 
-        this.execute( "Start" );
+        return this.execute( "Start" );
     },
 
     stop: function() {
-        this.execute( "Stop" );
+        return this.execute( "Stop" );
     },
 
     kill: function() {
-        this.execute( "Exit" );
+        return this.execute( "Exit" );
     }
 }
 
@@ -248,25 +279,46 @@ BCI2K.DataConnection.prototype = {
     constructor: BCI2K.DataConnection,
 
     connect: function( address ) {
-        this._socket = new WebSocket( "ws://" + address );
 
         var connection = this;
 
-        this._socket.onopen = function( event ) {
-            connection.onconnect( event );
-        };
+        return new Promise( function( resolve, reject ) {
 
-        this._socket.onmessage = function( event ) {
-            var messageInterpreter = new FileReader();
-            messageInterpreter.onload = function( e ) {
-                connection._decodeMessage( e.target.result );
-            }
-            messageInterpreter.readAsArrayBuffer( event.data );
-        };
+            connection._socket = new WebSocket( "ws://" + address );
 
-        this._socket.onclose = function( event ) {
-            connection.ondisconnect( event );
+            connection._socket.onerror = function( event ) {
+                // This will only execute if we err before connecting, since
+                // Promises can only get triggered once
+                reject( 'Error connecting to data source at ' + connection.address );
+            };
+
+            connection._socket.onopen = function( event ) {
+                connection.onconnect( event );
+                resolve( event );
+            };
+
+            connection._socket.onclose = function( event ) {
+                connection.ondisconnect( event );
+            };
+
+            connection._socket.onmessage = function( event ) {
+                connection._handleMessageEvent( event );
+            };
+
+        } );
+        
+    },
+
+    _handleMessageEvent: function( event ) {
+
+        var connection = this;
+
+        var messageInterpreter = new FileReader();
+        messageInterpreter.onload = function( e ) {
+            connection._decodeMessage( e.target.result );
         };
+        messageInterpreter.readAsArrayBuffer( event.data );
+
     },
 
     connected: function() {
@@ -281,15 +333,18 @@ BCI2K.DataConnection.prototype = {
     },
 
     _decodeMessage: function( data ) {
-        var dv = new BCI2K.DataView( data, 0, data.byteLength, true );
 
+        var dv = new BCI2K.DataView( data, 0, data.byteLength, true );
         var descriptor = dv.getUint8();
-        switch( descriptor ) {
+
+        switch ( descriptor ) {
+
             case 3:
                 this._decodeStateFormat( dv ); break;
+
             case 4:
                 var supplement = dv.getUint8();
-                switch( supplement ) {
+                switch ( supplement ) {
                     case 1:
                         this._decodeGenericSignal( dv ); break;
                     case 3:
@@ -298,11 +353,15 @@ BCI2K.DataConnection.prototype = {
                         console.error( "Unsupported Supplement: " + supplement.toString() );
                         break;
                 } break;
+
             case 5:
                 this._decodeStateVector( dv ); break;
+
             default:
                 console.error( "Unsupported Descriptor: " + descriptor.toString() ); break;
+
         }
+
     },
 
     _decodePhysicalUnits: function( unitstr ) {
