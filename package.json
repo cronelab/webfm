@@ -9,6 +9,7 @@
   "author": "Max Collard <collard@jhu.edu>",
   "license": "SEE LICENSE IN LICENSE.md",
   "dependencies": {
+    "async": "^2.1.4",
     "asyncjs": "0.0.10",
     "body-parser": "^1.15.2",
     "ejs": "^2.5.1",

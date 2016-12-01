@@ -13,11 +13,13 @@ var path        = require( 'path' );
 var $           = require( 'jquery' );
 var d3          = require( 'd3' );
 
+var Cookies     = require( 'js-cookie' );
+
 // var horizon  = require( '../lib/d3-horizon-chart.js' ); // Old way of doing
                                                            // horizon charts
 d3.horizon      = require( '../lib/horizon' );             // New kludge
 
-var bci2k       = require( '../lib/bci2k' );
+var bci2k       = require( 'bci2k' );
 var cronelib    = require( '../lib/cronelib' );
 
 var fmstat      = require( './fmstat' );
@@ -107,36 +109,69 @@ if ( onlineMode ) {     // Using BCI2000Web over the net
 
 }
 
+var getSourceAddress = function() {
+
+    return new Promise( function( resolve, reject ) {
+
+        var sourceAddress = Cookies.get( 'sourceAddress' );
+
+        if ( sourceAddress === undefined ) {
+
+            var configURI = path.join( configPath, 'online' );
+
+            $.getJSON( configURI )
+                .done( function( data ) {
+                    // Set the cookie for the future, so we can get it directly
+                    Cookies.set( 'sourceAddress', data.sourceAddress );
+                    // Resolve to the value
+                    resolve( data.sourceAddress );
+                } )
+                .fail( function( req, reason, err ) {
+                    // TODO Get error message from jquery object
+                    reject( 'Could not load watcher config from ' + configURI + ' : ' + reason );
+                } );
+
+        }
+
+        resolve( sourceAddress );
+
+    } );
+
+};
+
 var prepareOnlineDataSource = function() {
 
-    dataSource.connect()
-                .then( function() {
+    getSourceAddress()
+        .then( function( sourceAddress ) {
 
-                    // Get subject name
-                    dataSource.getParameter( 'SubjectName' )
-                                .then( function( result ) {
-                                    subjectName = result.output.trim();
-                                    uiManager.updateSubjectName( subjectName );
-                                    prepareSubjectDependencies( subjectName );
-                                } )
-                                .catch( function( reason ) {
-                                    console.log( 'Could not obtain SubjectName: ' + reason );
-                                } );
+            dataSource.connect( sourceAddress )
+                        .then( function() {
 
-                    // Get task name
-                    dataSource.getParameter( 'DataFile' )
-                                .then( function( result ) {
-                                    // TODO Error checking
-                                    var taskName = result.output.trim().split( '/' )[1];
-                                    uiManager.updateTaskName( taskName );
-                                } );
+                            // Get subject name
+                            dataSource.getParameter( 'SubjectName' )
+                                        .then( function( result ) {
+                                            subjectName = result.trim();
+                                            uiManager.updateSubjectName( subjectName );
+                                            prepareSubjectDependencies( subjectName );
+                                        } )
+                                        .catch( function( reason ) {
+                                            console.log( 'Could not obtain SubjectName: ' + reason );
+                                        } );
 
-                } )
-                .catch( function( reason ) {    // TODO Something intelligent
+                            // Get task name
+                            dataSource.getParameter( 'DataFile' )
+                                        .then( function( result ) {
+                                            // TODO Error checking
+                                            var taskName = result.trim().split( '/' )[1];
+                                            uiManager.updateTaskName( taskName );
+                                        } );
 
-                    console.log( reason );
+                        } )
+                        .catch( function( reason ) {    // TODO Something intelligent
+                            console.log( reason );
+                        } );
 
-                } );
+        } );
 
 };
 

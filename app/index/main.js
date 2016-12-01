@@ -15,6 +15,8 @@ var async       = require( 'async' );
 
 var bciwatch    = require( './bciwatch' );
 
+var Cookies     = require( 'js-cookie' );
+
 
 // INIT
 
@@ -39,6 +41,43 @@ var removeNewlines = function( s ) {
 
 // MEAT
 
+// Handling configuration cookies
+
+var getSourceAddress = function() {
+
+    return new Promise( function( resolve, reject ) {
+
+        var sourceAddress = Cookies.get( 'sourceAddress' );
+
+        if ( sourceAddress === undefined ) {
+
+            var configURI = path.join( configPath, 'online' );
+
+            $.getJSON( configURI )
+                .done( function( data ) {
+                    // Set the cookie for the future, so we can get it directly
+                    Cookies.set( 'sourceAddress', data.sourceAddress );
+                    // Resolve to the value
+                    resolve( data.sourceAddress );
+                } )
+                .fail( function( req, reason, err ) {
+                    // TODO Get error message from jquery object
+                    reject( 'Could not load watcher config from ' + configURI + ' : ' + reason );
+                } );
+
+        }
+
+        resolve( sourceAddress );
+
+    } );
+
+};
+
+var setSourceAddress = function( newSourceAddress ) {
+    Cookies.set( 'sourceAddress', newSourceAddress );
+};
+
+
 // Handling BCI2K
 
 var setupWatcher = function() {
@@ -50,30 +89,24 @@ var setupWatcher = function() {
 
     bciWatcher.loadConfig( path.join( configPath, 'online' ) )
                 .then( function() {
-
-                    // TODO Pick a damn pattern.
-                    bciWatcher.connect( undefined, function( err, event ) {
-
-                        if ( err ) {
-                            console.log( err ); // TODO Respond intelligently
-                            return;
-                        }
-
-                        bciWatcher.start();
-
-                    } );
-
+                    return getSourceAddress();
                 } )
-                .catch( function( reason ) {    // TODO Respond intelligently
-
-                    console.log( reason );
-
+                .then( function( localSourceAddress ) {
+                    return bciWatcher.connect( localSourceAddress );
+                } )
+                .then( function( connectionEvent ) {
+                    bciWatcher.start();
+                } )
+                .catch( function( reason ) {
+                    console.log( 'Could not set up BCI Watcher: ' + reason );      // TODO Respond intelligently
                 } );
+
 };
 
 // TODO
-var mapItStates     = [ 'Idle', 'Suspended', 'Running' ];
-// TODO
+var goLiveStates    = [ 'Suspended', 'Running' ];
+//var mapItStates     = [ 'Idle', 'Suspended', 'Running' ];
+var mapItStates     = [ 'Running' ];
 var infoStates      = [ 'Suspended', 'Running' ];
 
 // TODO Shouldn't have to edit JS to change look and feel ...
@@ -170,9 +203,15 @@ var bciStateChange = function( newState ) {
 
     // Encourage mapping when appropriate
     if ( mapItStates.indexOf( newState ) >= 0 ) {
-        $( '#online-button' ).removeClass( 'disabled' );
+        $( '#map-button' ).removeClass( 'disabled' );
     } else {
-        $( '#online-button' ).addClass( 'disabled' );
+        $( '#map-button' ).addClass( 'disabled' );
+    }
+
+    if ( goLiveStates.indexOf( newState ) >= 0 ) {
+        $( '#live-button' ).removeClass( 'disabled' );
+    } else {
+        $( '#live-button' ).addClass( 'disabled' );
     }
 
     // Attempt to get subject and task info if available
@@ -348,9 +387,60 @@ var selectFromHash = function( hash ) {
 
 };
 
+
+var setupOnlineOptions = function() {
+
+    // Setup form values
+    getSourceAddress()
+        .then( function( sourceAddress ) {
+            $( '#source-address' ).val( sourceAddress );
+        } )
+        .catch( function( reason ) {
+            console.log( 'Could not get source address for display: ' + reason );
+        } );
+
+};
+
+var showOnlineOptions = function() {
+    $( '#online-options' ).removeClass( 'hidden' );
+};
+var hideOnlineOptions = function() {
+    $( '#online-options' ).addClass( 'hidden' );
+};
+var toggleOnlineOptions = function() {
+    if ( $( '#online-options' ).hasClass( 'hidden' ) ) {
+        showOnlineOptions();
+    } else {
+        hideOnlineOptions();
+    }
+};
+
+
+var updateSourceAddress = function() {
+    // Get new value from form
+    var newSourceAddress = $( '#source-address' ).val();
+    // Update cookie with new value
+    setSourceAddress( newSourceAddress );
+    // Reset our connection
+    bciWatcher.stop();
+    setupWatcher();
+}
+
+
+$( '#source-address-ok' ).on( 'click', function() {
+    updateSourceAddress();
+    hideOnlineOptions();
+} );
+
+$( '.toggle-online-options' ).on( 'click', function() {
+    toggleOnlineOptions();
+} );
+
 $( window ).on( 'load', function() {
 
     loadSubjects();
+
+    setupOnlineOptions();
 
     setupWatcher();
 

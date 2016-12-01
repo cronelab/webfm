@@ -8,7 +8,7 @@
 
 // REQUIRES
 
-var bci2k = require( '../lib/bci2k' );
+var bci2k = require( '../lib/bci2k-dev' );
 
 require( 'setimmediate' );                      // Needed to fix promise
                                                 // polyfill on non-IE
@@ -65,9 +65,6 @@ fmonline.OnlineDataSource = function() {
 
     // Connection for interfacing with the BCI2K system
     this._bciConnection = new bci2k.Connection(); 
-    this._bciConnection.onconnect = function( event ) {
-        manager._bciDidConnect( event );
-    };
 
     // Cached to prevent excess execute calls when true
     this._bciRunning = false;
@@ -106,22 +103,11 @@ fmonline.OnlineDataSource.prototype = {
             console.log( 'Connecting to: ' + address );
         }
 
-        // TODO Incorporate this Promise-based API for connect() elsewhere
-        return new Promise( function( resolve, reject ) {
+        return this._bciConnection.connect( address )
+                                    .then( function( event ) {
+                                        manager._bciDidConnect( event );
+                                    } );
 
-            // Setup callback to resolve promise
-            manager._bciConnection.onconnect = function( event ) {
-                resolve( event );
-            };
-
-            // Connect to the main BCI2K system
-            manager._bciConnection.connect( address );
-
-        } ).then( function( event ) {
-
-            manager._bciDidConnect( event );
-
-        } );
     },
 
     loadConfig: function( configURI ) {
@@ -226,66 +212,11 @@ fmonline.OnlineDataSource.prototype = {
     },
 
     getParameter: function( parameter ) {
-
-        var manager = this; // Capture this
-
-        return new Promise( function( resolve, reject ) {
-            manager._bciConnection.execute( 'Get Parameter ' + parameter, function( result ) {
-                // TODO Error handling
-                resolve( result );
-            } );
-        } );
-
+        return this._bciConnection.execute( 'Get Parameter ' + parameter );
     },
 
     getTrialWindow: function() {
         return this.dataFormatter.trialWindow;
-    },
-
-    _appendSystemProperties: function( properties ) {
-        
-        var manager = this;     // Cache this for inline functions
-
-        // Make promises for system calls to add on dataset properties
-        var subjectNamePromise = promisify( function( cb ) {
-            manager._bciConnection.execute( 'Get Parameter SubjectName', function( result ) {
-                cb( null, result );
-            } );
-        } );
-
-        var dataFilePromise = promisify( function( cb ) {
-            manager._bciConnection.execute( 'Get Parameter DataFile', function( result ) {
-                cb( null, result );
-            } );
-        } );
-
-        // Promise the merged properties if all system calls finish
-        return Promise.all( [subjectNamePromise, dataFilePromise] )
-            .then( function( results ) {
-
-                // Process results and add them to properties
-                properties.subjectName = results[0].output.trim();
-
-                // TODO Parse out task name from DataFile
-                properties.taskName = results[1].output.trim();
-
-                // Returned promise resolves to the merged properties
-                return properties;
-
-            } )
-            .catch( function( reason ) {
-                
-                console.log( 'Could not obtain additional system properties: ' + reason );
-                
-                // Fill in defaults to avoid undefined's for user
-                properties.subjectName = '';
-                properties.taskName = '';
-
-                // Returned promise resolves to merged "null" properties if system calls fail
-                return properties;
-
-            } );
-
     },
 
     _connectToData: function() {
@@ -294,34 +225,28 @@ fmonline.OnlineDataSource.prototype = {
         var manager = this;
 
         // Tap raw data stream
-        this._bciConnection.tap( 'Source', function( dataConnection ) {
-
-            if ( manager.config.debug ) {
-                console.log( 'Source tapped.' );
-            }
-            
-            manager.dataFormatter._connectSource( dataConnection );
-
-        }, function( err ) {
-
-            console.log( 'Could not connect to Source: ' + JSON.stringify( err ) );
-
-        } );
+        this._bciConnection.tap( 'Source' )
+                .then( function( dataConnection ) {
+                    if ( manager.config.debug ) {
+                        console.log( 'Source tapped.' );
+                    }
+                    manager.dataFormatter._connectSource( dataConnection );
+                } )
+                .catch( function( reason ) {
+                    console.log( 'Could not connect to Source: ' + reason );
+                } );
 
         // Tap spectral feature stream
-        this._bciConnection.tap( 'SpectralOutput', function( dataConnection ) {
-
-            if ( manager.config.debug ) {
-                console.log( 'SpectralOutput tapped.' );
-            }
-
-            manager.dataFormatter._connectFeature( dataConnection );
-
-        }, function( err ) {
-
-            console.log( 'Could not connect to SpectralOutput: ' + JSON.stringify( err ) );
-
-        } );
+        this._bciConnection.tap( 'SpectralOutput' )
+                .then( function( dataConnection ) {
+                    if ( manager.config.debug ) {
+                        console.log( 'SpectralOutput tapped.' );
+                    }
+                    manager.dataFormatter._connectFeature( dataConnection );
+                } )
+                .catch( function( reason ) {
+                    console.log( 'Could not connect to SpectralOutput: ' + reason );
+                } );
 
     }
 

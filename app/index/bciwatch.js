@@ -8,7 +8,7 @@
 
 // REQUIRES
 
-var bci2k = require( '../lib/bci2k' );
+var bci2k = require( '../lib/bci2k-dev' );
 
 require( 'setimmediate' );                      // Needed to fix promise
                                                 // polyfill on non-IE
@@ -53,10 +53,7 @@ bciwatch.BCI2KWatcher = function() {
     this.onstatechange = function( newState ) {};
 
     // Connection for interfacing with the BCI2K system
-    this._bciConnection = new bci2k.Connection(); 
-    this._bciConnection.onconnect = function( event ) {
-        watcher._bciDidConnect( event );
-    };
+    this._bciConnection = new bci2k.Connection();
 
     this.watching   = false;
     this.state      = 'Not Connected';
@@ -69,8 +66,7 @@ bciwatch.BCI2KWatcher.prototype = {
 
     constructor: bciwatch.BCI2KWatcher,
 
-    connect: function( address, cb ) {
-        // TODO Better API
+    connect: function( address ) {
 
         // For nested functions
         var watcher = this;
@@ -79,20 +75,15 @@ bciwatch.BCI2KWatcher.prototype = {
             address = this.config.sourceAddress;
         }
 
-        if ( cb !== undefined ) {
-            // TODO A somewhat indirect way to get callback execution
-            // TODO Connection errors never get handled ...
-            this._bciConnection.onconnect = function( event ) {
-                watcher._bciDidConnect( event, cb );
-            }
-        }
-
         if ( this.config.debug ) {
             console.log( 'Connecting to: ' + address );
         }
 
-        // Connect to the main BCI2K system
-        this._bciConnection.connect( address );
+        return this._bciConnection.connect( address )
+                                    .then( function( event ) {
+                                        watcher._bciDidConnect( event );
+                                        return event;
+                                    } );
 
     },
 
@@ -114,18 +105,13 @@ bciwatch.BCI2KWatcher.prototype = {
 
     },
 
-    _bciDidConnect: function( event, cb ) {
+    _bciDidConnect: function( event ) {
 
         if ( this.config.debug ) {
             console.log( 'Connected to BCI2K.' );
         }
 
         this._updateState( 'Connected' );
-
-        // Trigger callback from .connect, if it exists
-        if ( cb !== undefined ) {
-            cb( null, event );
-        }
 
     },
 
