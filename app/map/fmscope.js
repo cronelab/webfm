@@ -49,7 +49,7 @@ fmscope.ChannelScope = function( baseNodeId ) {
     this.plotHeight     = 250;      // TODO Config
 
     this.plotMargin = {
-        left: 30,
+        left: 50,
         right: 40,
         top: 10,
         bottom: 20
@@ -74,7 +74,7 @@ fmscope.ChannelScope.prototype = {
         this.data           = zeroArray( this.windowSamples );
 
         if ( !this.channel ) {
-            this.dataExtent     = [-100, 100];
+            this.dataExtent     = [-32768, 32767];
             this.targetExtent   = [null, null];
         } else {
             if ( !this.dataExtent ) {
