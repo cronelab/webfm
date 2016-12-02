@@ -56,7 +56,7 @@ fmdata.Dataset.prototype = {
 
     _executeImports: function( imports ) {
 
-        // Put all kinds imports on the same footing by array-izing them
+        // Put all kinds of imports on the same footing by array-izing them
         imports = [].concat( imports );
 
         // _ingegrateMetadata gives precedence to what's currently in this.metadata,

@@ -8,6 +8,8 @@
 
 // Requires
 
+var assets      = require( './assets' );
+
 var fs          = require( 'fs' );
 var path        = require( 'path' );
 
@@ -30,6 +32,11 @@ var optimist    = require( 'optimist' )
                         describe: 'Directory for data hive',
                         default: './data'
                     } )
+                    .options( 'u', {
+                        alias: 'uploads',
+                        describe: 'Directory for storing file uploads',
+                        default: './uploads'
+                    } )
                     .options( 'a', {
                         alias: 'app',
                         describe: 'Directory for application scripts',
@@ -43,19 +50,29 @@ var optimist    = require( 'optimist' )
                     } );
 var argv        = optimist.argv;
 
+if ( argv.help ) {
+    optimist.showHelp();
+    process.exit( 0 );
+}
+
 var express     = require( 'express' );
 var bodyParser  = require( 'body-parser' );
+var formidable  = require( 'formidable' );
+
 var async       = require( 'async' );
+
 var jsonfile    = require( 'jsonfile' );
+var base64      = require( 'node-base64-image' );
 
 
 // Process argv
 
-var port    = argv.port;
+var port        = argv.port;
 
-var rootDir = path.resolve( argv.root );
-var dataDir = path.resolve( argv.data );
-var appDir  = path.resolve( argv.app );
+var rootDir     = path.resolve( argv.root );
+var dataDir     = path.resolve( argv.data );
+var uploadsDir  = path.resolve( argv.uploads );
+var appDir      = path.resolve( argv.app );
 
 
 // Set up server
@@ -86,6 +103,7 @@ app.use( '/', express.static( rootDir ) );
 
 var serveConfig = function( configName ) {
     return function( req, res ) {
+        // TODO Front-end config shouldn't be served from app source dir
         res.sendFile( path.join( appDir, 'config', configName ) );
     }
 }
@@ -145,7 +163,7 @@ var dataPath = function( subject, record, dataset, kind ) {
 
 var getSubjectMetadata = function( subject, cb ) {
 
-    var metaPath = path.join( dataDir, subject, '.metadata' );
+    var metaPath = path.join( dataDir, subject, metadataFilename );
 
     // Try to open and parse the metadata file
     jsonfile.readFile( metaPath, function( err, metadata ) {
@@ -368,7 +386,12 @@ app.get( '/api/list/:subject', function( req, res ) {
 app.get( '/api/brain/:subject', function( req, res ) {
 
     var errOut = function( code, msg ) {
-        console.log( msg );
+        // TODO Special case cause 418s are huge; must fix
+        if ( code == 418 ) {
+            console.log( "I'm a teapot." );
+        } else {
+            console.log( msg );
+        }
         res.status( code ).send( msg );
     }
 
@@ -401,11 +424,116 @@ app.get( '/api/brain/:subject', function( req, res ) {
             // We've got metadata, so check that we've got a brain image
             if ( metadata.brainImage === undefined ) {
                 // TODO Better error code for this?
-                errOut( 404, 'Brain image not specified for subject ' + subject );
+                errOut( 418, assets.noBrainImage );
                 return;
             }
 
             res.status( 200 ).send( metadata.brainImage );
+
+        } );
+
+    } );
+
+} );
+
+// Put a brain image to 
+app.put( '/api/brain/:subject', function( req, res ) {
+
+    var errOut = function( code, msg ) {
+        // TODO Special case cause 418s are huge; must fix
+        if ( code == 418 ) {
+            console.log( "I'm a teapot." );
+        } else {
+            console.log( msg );
+        }
+        res.status( code ).send( msg );
+    }
+
+    var subject = req.params.subject;
+
+    // First check if subject exists
+    checkSubject( subject, function( err, isSubject ) {
+
+        if ( err ) {
+            // Based on how checkSubject is defined, this shouldn't happen
+            errOut( 500, 'Error determining if "' + subject + '" is a subject: ' + JSON.stringify( err ) );
+            return;
+        }
+
+        if ( !isSubject ) {
+            // Not a subject
+            errOut( 404, 'Subject "' + subject + '" not found.' );
+            return;
+        }
+
+        // Next get the existing metadata
+        getSubjectMetadata( subject, function( err, metadata ) {
+
+            var oldMetadata = metadata;
+
+            if ( err ) {
+                // TODO Check err details to determine if we failed because
+                // file doesn't exist or for some other reason; other reasons
+                // should probably return errors
+                oldMetadata = {};
+            }
+
+            var newMetadata = Object.assign( {}, oldMetadata );
+
+            // Prepare form parser to update the metadata
+
+            var form = formidable.IncomingForm();
+            form.uploadDir = uploadsDir;
+
+            form.on( 'file', function( field, file ) {
+                
+                console.log( 'Received file "' + file.name + '" for field "' + field + '" at path: ' + file.path );
+                
+                // Process the file
+                base64.encode( file.path, {
+                    string: true,
+                    local: true
+                }, function( err, imageData ) {
+
+                    if ( err ) {
+                        // Could not be serialized
+                        errOut( 500, 'Could not serialize uploaded image.' );
+                        return;
+                    }
+
+                    // Generate the new metadata entry
+                    var imageExtension = path.extname( file.path );
+                    newMetadata.brainImage = 'data:image/' + imageExtension + ';base64,' + imageData;
+
+                    // Save the new metadata
+                    var metadataPath = path.join( dataDir, subject, metadataFilename );
+                    jsonfile.writeFile( metadataPath, newMetadata, function( err ) {
+
+                        if ( err ) {
+                            // Could not create record file
+                            errOut( 500, 'Could not update metadata for "' + subject + '": ' + JSON.stringify( err ) );
+                            return;
+                        }
+
+                        // Everything worked, and we made something!
+                        // res.sendStatus( 201 );
+
+                    } );
+
+                } );
+
+            } );
+
+            form.on( 'error', function( err ) {
+                console.log( 'Error uploading brain image files: ' + JSON.stringify( err ) );
+            } );
+
+            form.on( 'end', function() {
+                // TODO Check if end only gets called when successful
+                res.sendStatus( 201 );
+            } );
+
+            form.parse( req );
 
         } );
 
@@ -471,6 +599,95 @@ app.get( '/api/list/:subject/:record', function( req, res ) {
 
 } );
 
+// TODO Get entire subject metadata?
+// Unsure what correct behavior is
+/*
+api.get( '/api/data/:subject', function( req, res ) {
+
+} );
+*/
+
+// Add a new subject
+// TODO Perhaps change this route; this is what comes to mind to start
+app.put( '/api/data/:subject', rawBody, function( req, res ) {
+
+    var errOut = function( code, msg ) {
+        console.log( msg );
+        res.status( code ).send( msg );
+    }
+
+    var subject = req.params.subject;
+
+    // Check if this subject already exists
+    checkSubject( subject, function( err, isSubject ) {
+
+        if ( err ) {
+            // Based on how checkSubject is defined, this shouldn't happen
+            errOut( 500, 'Error determining if "' + subject + '" is a subject: ' + JSON.stringify( err ) );
+            return;
+        }
+
+        if ( isSubject ) {
+            // Subject already exists!
+            errOut( 405, 'Subject "' + subject + '" already exists.' );
+            return;
+        }
+
+        // Subject doesn't exist, so let's create it!
+        var newSubjectDir = path.join( dataDir, subject );
+
+        fs.mkdir( newSubjectDir, function( err ) {
+
+            if ( err ) {
+                errOut( 500, 'Error creating new directory for ' + subject + ': ' + JSON.stringify( err ) );
+                return;
+            }
+
+            // We've created the directory, so let's create a metadata file
+
+            var metadata = {
+                'subject': subject
+            };
+
+            if ( req.rawBody != '' ) {
+                // We were given some default metadata to include, so let's add it
+
+                var bodyData = {};
+                try {
+                    bodyData = JSON.parse( req.rawBody );
+                } catch ( err ) {
+                    errOut( 400, 'Metadata could not be parsed: ' + JSON.stringify( err ) );
+                    return;
+                }
+
+                // Copy bodyData into metadata
+                // NOTE Object properties of bodyData are copied by reference,
+                // so we'll be alright as long as bodyData isn't modified
+                Object.assign( metadata, bodyData );
+
+            }
+
+            // Write it!
+            var metadataPath = path.join( dataDir, subject, metadataFilename );
+            jsonfile.writeFile( metadataPath, metadata, function( err ) {
+
+                if ( err ) {
+                    // Could not create record file
+                    errOut( 500, 'Could not create new metadata for "' + subject + '": ' + JSON.stringify( err ) );
+                    return;
+                }
+
+                // Everything worked, and we made something!
+                res.sendStatus( 201 );
+
+            } );
+
+        } );
+
+    } );
+
+} )
+
 // Get entire record
 app.get( '/api/data/:subject/:record', function( req, res ) {
 
@@ -482,6 +699,131 @@ app.get( '/api/data/:subject/:record', function( req, res ) {
 app.get( '/api/data/:subject/:record/:dataset', function( req, res ) {
 
     // TODO ...
+
+} );
+
+// Save a single-dataset record
+// TODO or bundle
+app.put( '/api/data/:subject/:record', rawBody, function( req, res ) {
+
+    var errOut = function( code, msg ) {
+        console.log( msg );
+        res.status( code ).send( msg );
+    }
+
+    // TODO Should use a JSON body parser instead of this
+    var bodyData = {};
+    try {
+        bodyData = JSON.parse( req.rawBody );
+    } catch ( err ) {
+        errOut( 400, 'Record data could not be parsed: ' + JSON.stringify( err ) );
+        return;
+    }
+
+    var subject = req.params.subject;
+    var record = req.params.record;
+
+    // First check if subject exists
+    checkSubject( subject, function( err, isSubject ) {
+        
+        if ( err ) {
+            // Based on how checkSubject is defined, this shouldn't happen
+            errOut( 500, 'Error determining if ' + subject + ' is a subject: ' + JSON.stringify( err ) );
+            return;
+        }
+
+        var checkMetadata = function() {
+
+            // If metadata exists, we want to reference it in our new record
+            getSubjectMetadata( subject, function( err, metadata ) {
+
+                var createRecord = function( includeImport ) {
+
+                    // Handle import inclusion
+
+                    if ( includeImport ) {
+
+                        if ( !bodyData.hasOwnProperty( 'metadata' ) ) {
+                            // Need to create a metadata field
+                            bodyData['metadata'] = {};
+                        }
+
+                        // TODO Metadata location hardcoded (ok?)
+                        // TODO We're assuming no imports were already set. Should check.
+                        // TODO Should check that metadata field is an object
+                        bodyData['metadata']['_import'] = './' + metadataFilename;
+                    }
+
+                    // Check and see if there's already a record here
+                    // TODO RESTful guidelines says overwrite, but that has sketchy consequences here
+                    checkRecord( subject, record, function( err, recordType ) {
+
+                        if ( err ) {
+                            // Based on how checkRecord is defined, this shouldn't happen
+                            errOut( 500, 'Error determining if ' + subject + '/' + record + ' is a record: ' + JSON.stringify( err ) );
+                            return;
+                        }
+
+                        if ( recordType != 'none' ) {
+                            // Record already exists, so we have a problem
+                            errOut( 405, 'Record ' + subject + '/' + record + ' already exists.' );
+                            return;
+                        }
+
+                        // Record doesn't exist, so we can make it!
+                        var recordPath = path.join( dataDir, subject, record + mapExtension );
+                        jsonfile.writeFile( recordPath, bodyData, function( err ) {
+
+                            if ( err ) {
+                                // Could not create record file
+                                errOut( 500, 'Could not create new record: ' + JSON.stringify( err ) );
+                                return;
+                            }
+
+                            // Everything worked, and we made something!
+                            res.sendStatus( 201 );
+
+                        } );
+
+                    } );
+
+                };
+
+                if ( err ) {
+                    // No metadata, so don't link
+                    createRecord( false );
+                    return;
+                }
+
+                // We have metadata, so link
+                createRecord( true );
+
+            } );
+
+        };
+
+        if ( !isSubject ) {
+            // Not a subject; need to create new subject directory
+            // TODO This could cause problems because of lack of metadata; should handle
+            var newSubjectDir = path.join( dataDir, subject );
+
+            fs.mkdir( newSubjectDir, function( err ) {
+
+                if ( err ) {
+                    errOut( 500, 'Error creating new directory for ' + subject + ': ' + JSON.stringify( err ) );
+                    return;
+                }
+
+                checkMetadata();
+
+            } );
+
+            return;
+        }
+
+        checkMetadata();
+
+    } );
 
 } );
 

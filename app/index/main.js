@@ -288,10 +288,17 @@ var loadBrain = function( subject ) {
             updateMainBrain( removeNewlines( brainData ) );
 
         } )
-        .fail( function( req, textStatus, err ) {
+        .fail( function( req, status, err ) {
 
-            // TODO Handle errors
             console.log( err );
+
+            if ( req.status == 418 ) {  // I'm a teapot (subject exists, but not brain)
+
+                // On 418 we still get a brain back
+                var brainData = req.responseText;
+                updateMainBrain( removeNewlines( brainData ) );
+
+            }
 
         } );
 
@@ -401,6 +408,9 @@ var setupOnlineOptions = function() {
 
 };
 
+
+// TODO Duplication
+
 var showOnlineOptions = function() {
     $( '#online-options' ).removeClass( 'hidden' );
 };
@@ -415,26 +425,118 @@ var toggleOnlineOptions = function() {
     }
 };
 
+var showNewSubject = function() {
+    $( '#new-subject-options' ).removeClass( 'hidden' );
+};
+var hideNewSubject = function() {
+    $( '#new-subject-options' ).addClass( 'hidden' );
+};
+var toggleNewSubject = function() {
+    if ( $( '#new-subject-options' ).hasClass( 'hidden' ) ) {
+        showNewSubject();
+    } else {
+        hideNewSubject();
+    }
+};
 
-var updateSourceAddress = function() {
-    // Get new value from form
-    var newSourceAddress = $( '#source-address' ).val();
+
+var updateSourceAddress = function( newSourceAddress ) {
     // Update cookie with new value
     setSourceAddress( newSourceAddress );
     // Reset our connection
     bciWatcher.stop();
     setupWatcher();
-}
+};
+
+var addSubject = function( subjectId ) {
+    // Make call 
+    $.ajax( {
+        url: path.join( apiPath, 'data', subjectId ),
+        method: 'PUT'
+    } ).done( function( data, status, xhr ) {
+        console.log( status );
+        console.log( data );
+    } ).fail( function( xhr, status, err ) {
+        console.log( status );
+        console.log( xhr.responseText );
+    } );
+};
 
 
 $( '#source-address-ok' ).on( 'click', function() {
-    updateSourceAddress();
+    // Get new value from form
+    var newSourceAddress = $( '#source-address' ).val();
+    updateSourceAddress( newSourceAddress );
+    // 
     hideOnlineOptions();
 } );
 
 $( '.toggle-online-options' ).on( 'click', function() {
     toggleOnlineOptions();
 } );
+
+$( '#new-subject-ok' ).on( 'click', function() {
+    var newSubjectId = $( '#new-subject-id' ).val();
+    addSubject( newSubjectId );
+} );
+
+$( '.toggle-new-subject' ).on( 'click', function() {
+    toggleNewSubject();
+} );
+
+
+$( '.upload-brain-image' ).on( 'click', function() {
+
+    // Trigger the file uploader element
+    $( '#upload-brain-image-input' ).click();
+
+    // TODO GUI Changes
+
+} );
+
+$( '#upload-brain-image-input' ).on( 'change', function() {
+
+    var files = $( this ).get( 0 ).files;
+
+    // TODO This will fail in certain obvious cases; should be caching a
+    // current subject state variable
+    var subject = window.location.hash.slice( 1 );
+
+    if ( files.length > 0 ) {
+
+        var file = files[0];
+
+        // FormData carries the payload for our PUT request
+        var formData = new FormData();
+
+        // We only care about the first file
+        // TODO Get name from jquery element somehow?
+        formData.append( 'brainImage', file, file.name );
+
+        // Make an AJAX request
+
+        $.ajax( {
+            url: path.join( apiPath, 'brain', subject ),
+            method: 'PUT',
+            data: formData,
+            processData: false,
+            contentType: false
+        } ).done( function( data, status, xhr ) {
+
+            // Reload the newly uploaded brain
+            selectSubject( subject );
+
+        } ).fail( function( xhr, status, err ) {
+
+            // TODO GUI for error
+            console.log( 'Upload failed :( ' + JSON.stringify( err ) );
+
+        } );
+
+    }
+
+} );
+
 
 $( window ).on( 'load', function() {
 

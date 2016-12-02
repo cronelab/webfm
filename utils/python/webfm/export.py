@@ -371,7 +371,7 @@ def main():
         'label'         : 'SignalGenerator',
         'displayOrder'  : [ 'data1', 'data2' ],
         '_export' : {
-            'brainImage'        : './test/kitten.jpg',
+            'brainImage'        : './test/kitten.png',
             'sensorGeometry'    : './test/sensors.csv'
         }
     }
