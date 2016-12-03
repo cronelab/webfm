@@ -436,16 +436,11 @@ app.get( '/api/brain/:subject', function( req, res ) {
 
 } );
 
-// Put a brain image to 
+// Put new brain image data into .metadata
 app.put( '/api/brain/:subject', function( req, res ) {
 
     var errOut = function( code, msg ) {
-        // TODO Special case cause 418s are huge; must fix
-        if ( code == 418 ) {
-            console.log( "I'm a teapot." );
-        } else {
-            console.log( msg );
-        }
+        console.log( msg );
         res.status( code ).send( msg );
     }
 
@@ -502,7 +497,7 @@ app.put( '/api/brain/:subject', function( req, res ) {
                     }
 
                     // Generate the new metadata entry
-                    var imageExtension = path.extname( file.path );
+                    var imageExtension = path.extname( file.name );
                     newMetadata.brainImage = 'data:image/' + imageExtension + ';base64,' + imageData;
 
                     // Save the new metadata
@@ -515,8 +510,10 @@ app.put( '/api/brain/:subject', function( req, res ) {
                             return;
                         }
 
-                        // Everything worked, and we made something!
-                        // res.sendStatus( 201 );
+                        // We're going to delay sending success until the
+                        // form parser triggers an 'end' event.
+
+                        // TODO Good idea?
 
                     } );
 
@@ -591,6 +588,254 @@ app.get( '/api/geometry/:subject', function( req, res ) {
     } );
 
 } );
+
+// Put new subject sensor geometry data into .metadata
+app.put( '/api/geometry/:subject', rawBody, function( req, res ) {
+
+    var errOut = function( code, msg ) {
+        console.log( msg );
+        res.status( code ).send( msg );
+    }
+
+    var subject = req.params.subject;
+
+    // First check if subject exists
+    checkSubject( subject, function( err, isSubject ) {
+        
+        if ( err ) {
+            // Based on how checkSubject is defined, this shouldn't happen
+            errOut( 500, 'Error determining if ' + subject + ' is a subject: ' + JSON.stringify( err ) );
+            return;
+        }
+
+        if ( !isSubject ) {
+            // Not a subject
+            errOut( 404, 'Subject ' + subject + ' not found.' );
+            return;
+        }
+
+        // Next attempt to get the old metadata
+        getSubjectMetadata( subject, function( err, metadata ) {
+
+            var oldMetadata = metadata;
+
+            if ( err ) {
+                // TODO Check err details to determine if we failed because
+                // file doesn't exist or for some other reason; other reasons
+                // should probably return errors
+                oldMetadata = {};
+            }
+
+            var newMetadata = Object.assign( {}, oldMetadata );
+
+            // Determine how to proceed with metadata based on what kind of
+            // data the client gave us
+
+            if ( req.headers['content-type'] === undefined ) {
+                // No content-type specified; we're kind of out of luck
+                errOut( 400, 'No geometry content-type specified; cannot interpret.' );
+                return;
+            }
+
+            var reqContentType = req.headers['content-type'].split( ';' )[0];
+
+            var writeMetadata = function( dataToWrite, onSuccess ) {
+
+                var metadataPath = path.join( dataDir, subject, metadataFilename );
+                jsonfile.writeFile( metadataPath, dataToWrite, function( err ) {
+
+                    if ( err ) {
+                        // Could not create record file
+                        errOut( 500, 'Could not update metadata for "' + subject + '": ' + JSON.stringify( err ) );
+                        return;
+                    }
+
+                    if ( onSuccess !== undefined ) {
+                        onSuccess();
+                    }
+
+                } );
+
+            };
+
+            var handleJSONData = function( data, cb ) {
+
+                // We're given the new metadata straight in the body as JSON;
+                // just incorporate it 
+
+                try {
+                    newMetadata.sensorGeometry = JSON.parse( data );
+                } catch( err ) {
+                    errOut( 400, 'New geometry JSON could not be parsed: ' + JSON.stringify( err ) );
+                    return;
+                }
+
+                writeMetadata( newMetadata, cb );
+
+            };
+
+            var handleCSVData = function( data, cb ) {
+
+                // We need to reformat the CSV data into JSON
+
+                var newGeometry = {};
+
+                // Split according to the CSV format
+                var lines = data.split( '\n' );
+                var entries = lines.map( function( line ) {
+                    return line.split( ',' );
+                } );
+
+                // TODO Implement support for non-UV CSV coordinates
+                // var isUV = true;
+
+                // For each line
+                for ( var i = 0; i < entries.length; i++ ) {
+
+                    var lineEntries = entries[i];
+
+                    // Ensure that we have the correct number of datapoints
+                    if ( lineEntries.length < 3 ) {
+                        continue;
+                    }
+
+                    // Ensure that entries are the proper type
+                    var channelName = lineEntries[0];
+                    var channelU = +lineEntries[1];
+                    var channelV = +lineEntries[2];
+                    if ( isNaN( channelU ) || isNaN( channelV ) ) {
+                        continue;
+                    }
+
+                    // Add the new entry
+                    newGeometry[channelName] = {
+                        u: channelU,
+                        v: channelV
+                    };
+
+                }
+
+                // Write the newly parsed geometry
+                newMetadata.sensorGeometry = newGeometry;
+                writeMetadata( newMetadata, cb );
+
+            };
+
+            var handleMATFile = function( filePath, cb ) {
+
+                // We need to throw it out to the system to deal with MAT files
+
+                // TODO
+                errOut( 400, 'MAT-files not yet supported.' );
+
+            };
+
+            if ( reqContentType == 'application/json' ) {
+                // Our body is raw JSON, which we know how to handle
+                handleJSONData( req.rawBody, function() {
+                    // On success ...
+                    res.sendStatus( 201 );
+                } );
+                return;
+            }
+
+            if ( reqContentType == 'text/csv' ) {
+                // Our body is raw CSV, which we know how to handle
+                handleCSVData( req.rawBody, function() {
+                    // On success ...
+                    res.sendStatus( 201 );
+                } );
+                return;
+            }
+
+            if ( reqContentType == 'multipart/form-data' ) {
+
+                // We need to load up the file, then deal with the contents
+
+                var form = formidable.IncomingForm();
+                form.uploadDir = uploadsDir;
+
+                form.on( 'file', function( field, file ) {
+                    
+                    // TODO Remove log?
+                    console.log( 'Received file "' + file.name + '" for field "' + field + '" at path: ' + file.path );
+                    
+                    // How we process the file depends on the extension
+                    var fileExtension = path.extname( file.name );
+
+                    if ( fileExtension == '.json' ) {
+                        // Our file data is just JSON, which we can handle
+                        
+                        // TODO Should move parsing out of called method, so that
+                        // it can be handled by jsonfile?
+                        fs.readFile( file.path, function( err, data ) {
+
+                            if ( err ) {
+                                errOut( 500, 'Could not process uploaded JSON file: ' + JSON.stringify( err ) );
+                                return;
+                            }
+
+                            // Now, just call our normal handler
+                            handleJSONData( data );
+
+                        } );
+
+                        return;
+
+                    }
+
+                    if ( fileExtension == '.csv' ) {
+                        // Similar to above: our file is just CSV, which we can handle
+
+                        fs.readFile( file.path, function( err, data ) {
+
+                            if ( err ) {
+                                errOut( 500, 'Could not process uploaded CSV file: ' + JSON.stringify( err ) );
+                                return;
+                            }
+
+                            // Now, just call our normal handler
+                            handleCSVData( data );
+
+                        } );
+
+                        return;
+
+                    }
+
+                    if ( fileExtension == '.mat' ) {
+                        // We need to pass to a Python helper script to handle this
+                        handleMATFile( file.path );
+                        return;
+                    }
+
+                    // We don't support whatever they submitted
+                    errOut( 400, 'Unsupported geometry file type: "' + fileExtension + '".' );
+
+                } );
+
+                form.on( 'error', function( err ) {
+                    console.log( 'Error uploading geometry files: ' + JSON.stringify( err ) );
+                } );
+
+                form.on( 'end', function() {
+                    // TODO Need to verify that onend only gets called when successful
+                    res.sendStatus( 201 );
+                } );
+
+                form.parse( req );
+
+            }
+
+            // Unsupported content-type
+            errOut( 400, 'Request content-type, "' + reqContentType + '", is not supported.' );
+
+        } );
+
+    } );
+
+} );
+
 
 // Get list of datasets in a specific record
 app.get( '/api/list/:subject/:record', function( req, res ) {

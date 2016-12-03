@@ -2,9 +2,13 @@ var http = require( 'http' );
 
 var options = {
     host: 'localhost',
-    path: '/api/data/TEST_SUBJECT_2',
+    //path: '/api/data/TEST_SUBJECT_2',
+    path: '/api/geometry/TEST_SUBJECT',
     port: '54321',
-    method: 'PUT'
+    method: 'PUT',
+    headers: {
+        'Content-Type': 'text/csv'
+    }
 };
 
 callback = function( response ) {
@@ -20,6 +24,7 @@ callback = function( response ) {
     } );
 }
 
+/*
 var data = {
     metadata: {
         feature: 'ERP',
@@ -35,7 +40,10 @@ var data = {
         times: [0, 0.2, 0.4, 0.6, 0.8]
     }
 };
+*/
+var data = 'CH01,0.1,0.2\nCH02,0.3,0.4\nCH03,0.5,0.6';
 
 var req = http.request( options, callback );
 //req.write( JSON.stringify( data ) );
+req.write( data );
 req.end();
