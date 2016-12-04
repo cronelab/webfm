@@ -85,9 +85,7 @@ of information that give the data needed (or useful) context; and
 
 | Key | Example | Details |
 | --- | --- | --- |
-| `_import` | `./.metadata` | A string (or array of strings) specifying files to
-import and use as additional metadata. If an array, files will be loaded in
-the specified order |
+| `_import` | `./.metadata` | A string (or array of strings) specifying files to import and use as additional metadata. If an array, files will be loaded in the specified order |
 | `feature` | `event related potential` | Test. |
 
 
