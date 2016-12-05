@@ -77,6 +77,8 @@ fmstat.ChannelStat.prototype = {
             }
         }
 
+        // TODO This is broken
+
         // Recompute all the data anew
         this.valueTrials.forEach( function( trialData ) {
             // To recompute, we just re-ingest all the trials!
