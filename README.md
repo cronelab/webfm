@@ -212,7 +212,8 @@ Example:
 {
     "CH01": [0.0, 0.01, ... ],
     ...
-}`
+}
+```
 
 Raw values to be plotted as-is, formatted as an object mapping channel names
 to values. When this field is present, it is implied that no statistical
