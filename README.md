@@ -114,7 +114,7 @@ example values:
 
 ####`_import`
 
-Examples: `"./.metadata"`, `["/path/number/1", "/path/number/2", ... ]
+Examples: `"./.metadata"`, `["/path/number/1", "/path/number/2", ... ]`
 
 A string (or array of strings) specifying files to import and incorporate as
 additional metadata. If an array, files will be loaded in the specified order.
@@ -172,7 +172,9 @@ each axis) for placing electrodes on the `brainImage`
 Example: `["CH01", "CH02", "CH03", ... ]`
 
 A list of channel names, specifying both *which* channels should be displayed
-and, when relevant, *in what order*.
+and, when relevant, *in what order*. The WebFM frontend automatically
+populates this from whatever other details are available if it is not
+specified.
 
 ####`setting`
 
@@ -265,6 +267,7 @@ Example:
 Each `distribution` implies its own set of fields that should be present in `estimators`. The following distributions are supported:
 
 | `distribution` value | Meaning | `estimators` fields |
+| --- | --- | --- |
 | `"gaussian"` | Normal distributions | `"mean"`, `"variance"`, `"count"` |
 | `"p-value"` | Raw *p*-values from some unspecified hypothesis test | `"value"` (to be displayed), `"p"` |
 
@@ -274,10 +277,30 @@ Each `distribution` implies its own set of fields that should be present in `est
 
 Each trial has the following fields:
 
-| Field | Example | Details |
-| --- | --- | --- |
-| `setting` | `{"stimulusCode": 0}` | ... |
-| `values` | `{"CH01": [0.0, 0.01, ... ], ... }` | 
+####`setting`
+
+Example:
+
+```json
+{
+    "stimulusCode": 0
+}
+```
+
+...
+
+####`values`
+
+Example:
+
+```json
+{
+    "CH01": [0.0, 0.01, ... ],
+    ...
+}
+```
+
+...
 
 
 ## Bundle
