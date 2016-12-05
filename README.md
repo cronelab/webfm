@@ -117,8 +117,8 @@ The following are the (presently) meaningful metadata fields:
 | `_export` | `{"brainImage": "./PYXXNXXX-Brain.png", "sensorGeometry": "./PYXXNXXX-Sensors.csv"}` | The `_export` field is used to denote operations that should be performed by the export utility to produce a final dataset—for example, base64-encoding an image, or converting a spreadsheet to a *u*-*v* map. This field should not be present in a fully formed dataset. |
 | `subject` | `"PYXXNXXX"` | The identifier of the subject from whom this data originated |
 | `brainImage` | `"data:image/.png;base64,iVBORw0KG..."` | A string containing the base64-encoded binary image data to be used when displaying the data spatially |
-| `sensorGeometry` | `{"CH1": {"u": 0.1, "v": 0.4}, ...}` | A mapping from channel names to *u*-*v* coordinates for placing electrodes on the `brainImage` |
-| `montage ` | `["CH01", "CH02", "CH03", ...]` | A list of channel names, specifying both *which* channels should be displayed and, when relevant, *in what order*. |
+| `sensorGeometry` | `{"CH1": {"u": 0.1, "v": 0.4}, ... }` | A mapping from channel names to *u*-*v* coordinates for placing electrodes on the `brainImage` |
+| `montage ` | `["CH01", "CH02", "CH03", ... ]` | A list of channel names, specifying both *which* channels should be displayed and, when relevant, *in what order*. |
 | `setting` | `{"task": "PictureNaming", "stimulusType": "animals"}` | An object providing details on the context in which the data were collected |
 | `kind` | `"event related potential"` | A human-readable description of what kind of data is in this dataset |
 | `labels` | `["timeseries", "potential", "bipolar"]` | An array of strings providing information about how the data should be displayed or interpreted |
@@ -129,15 +129,63 @@ The following are the (presently) meaningful metadata fields:
 
 | Field | Example | Details |
 | --- | --- | --- |
-| `values` | `{"CH01": [0.0, 0.01, ...], ...}` | Raw values to be plotted as-is; it is implied that no statistical computations should be performed |
-| `stats` | ... | Statistical  |
+| `values` | `{"CH01": [0.0, 0.01, ... ], ... }` | Raw values to be plotted as-is; when this field is present, it is implied that no statistical computations should be performed before displaying the data |
+| `stats` | `{ ... }` | An object describing the statistical properties of the data, allowing the WebFM frontend to perform its own statistical work (*e.g.*, multiple comparison correction). The structure of this object is described in more detail [below](#stats). |
+| `trials` | `[ ... ]` | An array of objects, each depicting one realization of the data encapsulated by the dataset. The structure of these objects is described in more detail [below](#trials). |
+
+#### Stats
 
 ...
+
+| Field | Example | Details |
+| --- | --- | --- |
+| `distribution` | `"gaussian"` | The kind of distribution described by the entry in the `estimators` field |
+| `estimators` | `{"mean": {"CH01": [ ... ], ... }, "variance": ... }` | |
+
+Each `distribution` implies its own set of fields that should be present in `estimators`. The following distributions are supported:
+
+| `distribution` value | Meaning | `estimators` fields |
+| `"gaussian"` | Normal distributions | `"mean"`, `"variance"`, `"count"` |
+| `"p-value"` | Raw *p*-values from some unspecified hypothesis test | `"value"` (to be displayed), `"p"` |
+
+#### Trials
+
+...
+
+Each trial has the following fields:
+
+| Field | Example | Details |
+| --- | --- | --- |
+| `setting` | `{"stimulusCode": 0}` | ... |
+| `values` | `{"CH01": [0.0, 0.01, ... ], ... }` | 
+
 
 ### Bundle
 
 Bundles, which have the `.fmbundle` extension, are simply directories with a
-designated structure. 
+designated structure.
+
+...
+
+### Common data layouts
+
+...
+
+#### Event-related band power
+
+...
+
+#### Resting state connectivity
+
+...
+
+#### Event-related connectivity
+
+...
+
+#### Event-related potential
+
+...
 
 
 ## License
