@@ -202,6 +202,20 @@ Example: `["timeseries", "potential", "bipolar"]`
 An array of strings providing information about how the data should be
 displayed or interpreted
 
+####`baselineWindow`
+
+Example:
+
+```json
+{
+    start: -0.8,
+    end: -0.2
+}
+```
+
+For timeseries data, tart and end, in seconds, of the epoch used as the
+statistical "null" period; should correspond to `contents.times`
+
 ### Contents
 
 ...
@@ -220,6 +234,13 @@ Example:
 Raw values to be plotted as-is, formatted as an object mapping channel names
 to values. When this field is present, it is implied that no statistical
 computations should be performed before displaying the data.
+
+####`times`
+
+Example: `[0.0, 0.001, 0.002, ...]`
+
+For timeseries data, an array containing the time (in seconds) corresponding
+to each sample in the arrays of `values` or `stats.estimators.{estimator}`.
 
 ####`stats`
 
@@ -242,7 +263,8 @@ by the dataset. The structure of these objects is described in more detail
 
 Meaningful values: `"gaussian"`, `"p-value"`
 
-The kind of distribution described by the entry in the `estimators` field
+The kind of distribution described by the entry in the `estimators` and
+`baseline` fields
 
 ####`estimators`
 
@@ -255,7 +277,7 @@ Example:
         ...
     },
     "variance": {
-        "CH01": [ ... ]
+        "CH01": [ ... ],
         ...
     },
     ...
@@ -270,6 +292,26 @@ Each `distribution` implies its own set of fields that should be present in `est
 | --- | --- | --- |
 | `"gaussian"` | Normal distributions | `"mean"`, `"variance"`, `"count"` |
 | `"p-value"` | Raw *p*-values from some unspecified hypothesis test | `"value"` (to be displayed), `"p"` |
+
+####`baseline`
+
+Example:
+
+```json
+{
+    "mean": {
+        "CH01": 0.58,
+        ...
+    },
+    "variance": {
+        "CH01": 1.60,
+        ...
+    },
+    ...
+}
+```
+
+..
 
 ### Trials
 
@@ -306,9 +348,10 @@ Example:
 ## Bundle
 
 Bundles, which have the `.fmbundle` extension, are simply directories with a
-designated structure.
+designated structure to allow grouping of related `.fm` files.
 
-...
+Bundles are currently under development, and will be available in a future
+release.
 
 ## Common data layouts
 
