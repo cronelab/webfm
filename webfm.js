@@ -591,7 +591,7 @@ app.get( '/api/geometry/:subject', function( req, res ) {
 } );
 
 // Put new subject sensor geometry data into .metadata
-app.put( '/api/geometry/:subject', rawBody, function( req, res ) {
+app.put( '/api/geometry/:subject', function( req, res ) {
 
     var errOut = function( code, msg ) {
         console.log( msg );
@@ -599,10 +599,10 @@ app.put( '/api/geometry/:subject', rawBody, function( req, res ) {
     }
 
     var subject = req.params.subject;
-
+    
     // First check if subject exists
     checkSubject( subject, function( err, isSubject ) {
-        
+
         if ( err ) {
             // Based on how checkSubject is defined, this shouldn't happen
             errOut( 500, 'Error determining if ' + subject + ' is a subject: ' + JSON.stringify( err ) );
@@ -777,7 +777,7 @@ app.put( '/api/geometry/:subject', rawBody, function( req, res ) {
                             }
 
                             // Now, just call our normal handler
-                            handleJSONData( data );
+                            handleJSONData( data.toString() );
 
                         } );
 
@@ -796,7 +796,7 @@ app.put( '/api/geometry/:subject', rawBody, function( req, res ) {
                             }
 
                             // Now, just call our normal handler
-                            handleCSVData( data );
+                            handleCSVData( data.toString() );
 
                         } );
 
@@ -816,7 +816,7 @@ app.put( '/api/geometry/:subject', rawBody, function( req, res ) {
                 } );
 
                 form.on( 'error', function( err ) {
-                    console.log( 'Error uploading geometry files: ' + JSON.stringify( err ) );
+                    console.log( 'Error processing geometry files: ' + JSON.stringify( err ) );
                 } );
 
                 form.on( 'end', function() {
@@ -825,6 +825,8 @@ app.put( '/api/geometry/:subject', rawBody, function( req, res ) {
                 } );
 
                 form.parse( req );
+
+                return;
 
             }
 
