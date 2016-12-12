@@ -72,6 +72,8 @@ fmui.InterfaceManager = function() {
 
     this.onoptionchange = function( option, newValue ) {};
 
+    this.onsave = function( saveName ) {};
+
 };
 
 fmui.InterfaceManager.prototype = {
@@ -155,6 +157,7 @@ fmui.InterfaceManager.prototype = {
 
     },
 
+    /*
     updateRecordDetails: function( subject, record ) {
 
         // Use straight href for back button
@@ -163,6 +166,7 @@ fmui.InterfaceManager.prototype = {
         // TODO ...
 
     },
+    */
 
     rewireButtons: function() {
 
@@ -201,6 +205,12 @@ fmui.InterfaceManager.prototype = {
         $( '.fm-options-tab-list a' ).on( 'click', function( event ) {
             event.preventDefault();
             manager.showOptionsTab( this, event );
+        } );
+
+        $( '.fm-save-cloud' ).on( 'click', function( event ) {
+            event.preventDefault();
+            // TODO Bad.
+            manager.onsave( $( '#fm-option-save-name' ).val() );
         } );
 
     },
@@ -566,10 +576,36 @@ fmui.InterfaceManager.prototype = {
 
     updateSubjectName: function( newSubjectName ) {
         $( '.fm-subject-name' ).text( newSubjectName );
+        $( '.fm-back' ).attr( 'href', '/#' + newSubjectName );
     },
 
     updateTaskName: function( newTaskName ) {
         $( '.fm-task-name' ).text( newTaskName );
+        $( '#fm-option-save-name' ).val( newTaskName );
+    },
+
+    updateSubjectRecords: function( newRecords ) {
+
+        // Clear list before populating it
+        $( '#fm-cloud-records-table' ).empty();
+
+        var addRecordCell = function( record ) {
+            // TODO Need to incorporate number of members for badge
+            // TODO Could fail if record is badly named
+
+            var outer = $( '<tr/>' );
+
+            var inner = $( '<td/>', {
+                text: record
+            } );
+
+            inner.appendTo( outer );
+            outer.appendTo( '#fm-cloud-records-table' );
+
+        };
+
+        newRecords.forEach( addRecordCell );
+
     },
 
     // TODO nomenclature

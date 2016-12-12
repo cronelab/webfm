@@ -20,7 +20,7 @@ fmstat.Gaussian = function( mu, s2, n ) {
     this.count      = n;
 
     // TODO Unit tests
-    this._m2        = ( this.count > 1 && this.variance !== undefined ) ? this.variance * ( this.count - 1 );
+    this._m2        = ( this.count > 1 && this.variance !== undefined ) ? this.variance * ( this.count - 1 ) : undefined;
 
 };
 
@@ -79,7 +79,9 @@ fmstat.ChannelStat.prototype = {
             }
         }
 
-        // TODO This is broken
+        // Reset the stat values to defaults
+        this.baseline = new fmstat.Gaussian();
+        this.values = null;
 
         // Recompute all the data anew
         this.valueTrials.forEach( function( trialData ) {

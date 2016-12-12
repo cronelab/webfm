@@ -182,7 +182,7 @@
                 <a href="#fm-options-content-scope" class="list-group-item">
                   <span class="glyphicon glyphicon-eye-open"></span>&emsp;Scope
                 </a>
-                <a class="list-group-item disabled">
+                <a href="#fm-options-content-save" class="list-group-item">
                   <span class="glyphicon glyphicon-cloud-upload"></span>&emsp;Save
                 </a>
                 <a class="list-group-item disabled">
@@ -458,6 +458,45 @@
 
                 </div> <!-- tabpanel (scope) -->
 
+                <div id="fm-options-content-save" role="tabpanel" class="tab-pane">
+
+                  <h3 style="margin-top: 6px;">Save</h3>
+                  
+                  <div class="row">
+
+                    <div class="col-md-6">
+
+                      <p>
+                        <strong>Enter</strong> a name below to save your map to the
+                        WebFM cloud.
+                      </p>
+
+                      <!-- TODO Janky AF -->
+                      <form class="form-inline">
+                        <input type="text" class="form-control" id="fm-option-save-name" value="[Task]">
+                        <button type="button" class="btn btn-default fm-save-cloud"><span class="glyphicon glyphicon-cloud-upload"></span> Save</button>
+                      </form>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                      <table class="table table-hover table-condensed">
+                        <thead>
+                          <tr>
+                            <th>Saved records for <span class="fm-subject-name">[subject]</span></th>
+                          </tr>
+                        </thead>
+                        <tbody id="fm-cloud-records-table">
+                        </tbody>
+                      </table>
+
+                    </div>
+
+                  </div>
+
+                </div> <!-- tabpanel (montage) -->
+
                 <div id="fm-options-content-about" role="tabpanel" class="tab-pane">
 
                   <h1>WebFM <small>v1.0-alpha</small></h1>
@@ -475,7 +514,7 @@
                   <p>
                     <dl class="dl-horizontal">
                       <dt>Max Collard</dt>
-                      <dd>Web frontend, Map, Server</dd>
+                      <dd>Web frontend, Map, Server, bci2k.js</dd>
 
                       <dt>Griffin Milsap</dt>
                       <dd>BCI2000Web, bci2k.js</dd>

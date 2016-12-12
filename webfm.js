@@ -133,6 +133,7 @@ var serveMap = function( req, res ) {
 
 app.get( '/map/config/ui',      serveConfig( 'fmui.json' ) );
 app.get( '/map/config/online',  serveConfig( 'fmonline.json' ) );
+app.get( '/map/config/tasks',   serveConfig( 'tasks.json' ) );
 
 // Generator
 app.get( '/map', serveMap );
@@ -936,7 +937,93 @@ app.put( '/api/data/:subject', rawBody, function( req, res ) {
 // Get entire record
 app.get( '/api/data/:subject/:record', function( req, res ) {
 
-    // TODO ...
+    var subject = req.params.subject;
+    var record = req.params.record;
+
+    var errOut = function( code, msg ) {
+        console.log( '[GET ' + req.originalUrl + '] ' + msg );
+        res.status( code ).send( msg );
+    }
+
+    checkRecord( subject, record, function( err, recordType ) {
+
+        if ( err ) {
+            errOut( 500, 'Error determining if ' + subject + '/' + record + ' is a record: ' + err );
+            return;
+        }
+
+        if ( recordType == 'none' ) {
+            errOut( 404, 'Record not found: ' + subject + '/' + record );
+            return;
+        }
+
+        if ( recordType == 'bundle' ) {
+            errOut( 501, 'Bundle server not yet implemented.' );
+            return;
+        }
+
+        // recordType == 'map'
+
+        // Load the record
+        var recordPath = path.join( dataDir, subject, record + mapExtension );
+        jsonfile.readFile( recordPath, function( err, recordData ) {
+
+            // Make a deep copy
+            var sendData = JSON.parse( JSON.stringify( recordData ) );
+
+            // Check for metadata imports
+            if ( recordData.metadata !== undefined ) {
+                if ( recordData.metadata['_import'] !== undefined ) {
+
+                    // Execute metadata imports
+                    
+                    var imports = recordData.metadata['_import'];
+
+                    // Put all imports on the same footing
+                    if ( !Array.isArray( imports ) ) {
+                        imports = [imports];
+                    }
+
+                    // Create promises
+                    var importPromise = function( relPath ) {
+                        
+                        // Absolut-ize import path
+                        var absPath = path.normalize( path.join( dataDir, subject, relPath ) );
+
+                        return new Promise( function( resolve, reject ) {
+                            jsonfile.readFile( absPath, function( err, data ) {
+                                if ( err ) {
+                                    reject( err );
+                                    return;
+                                }
+                                resolve( data );
+                            } );
+                        } );
+
+                    };
+
+                    Promise.all( imports.map( importPromise ) )
+                        .then( function( importData ) {                            
+                            
+                            // Execute the imports on the metadata being sent
+                            for ( var i = 0; i < importData.length; i++ ) {
+                                Object.assign( sendData.metadata, importData[i] );
+                            }
+
+                            // Unset the _import field
+                            sendData.metadata['_import'] = undefined;
+
+                            // Send the data!
+                            res.status( 200 ).send( JSON.stringify( sendData ) );
+
+                        } );
+
+                }
+            }
+
+        } );
+
+    } );
 
 } );
 
@@ -984,20 +1071,24 @@ app.put( '/api/data/:subject/:record', rawBody, function( req, res ) {
 
                 var createRecord = function( includeImport ) {
 
-                    // Handle import inclusion
+                    // TODO This procedure should be done if the client passes
+                    // in a flag in the HTTP header. For now, I'm entrusting
+                    // it to the client.
 
-                    if ( includeImport ) {
+                    // // Handle import inclusion
 
-                        if ( !bodyData.hasOwnProperty( 'metadata' ) ) {
-                            // Need to create a metadata field
-                            bodyData['metadata'] = {};
-                        }
+                    // if ( includeImport ) {
 
-                        // TODO Metadata location hardcoded (ok?)
-                        // TODO We're assuming no imports were already set. Should check.
-                        // TODO Should check that metadata field is an object
-                        bodyData['metadata']['_import'] = './' + metadataFilename;
-                    }
+                    //     if ( !bodyData.hasOwnProperty( 'metadata' ) ) {
+                    //         // Need to create a metadata field
+                    //         bodyData['metadata'] = {};
+                    //     }
+
+                    //     // TODO Metadata location hardcoded (ok?)
+                    //     // TODO We're assuming no imports were already set. Should check.
+                    //     // TODO Should check that metadata field is an object
+                    //     bodyData['metadata']['_import'] = '../' + metadataFilename;
+                    // }
 
                     // Check and see if there's already a record here
                     // TODO RESTful guidelines says overwrite, but that has sketchy consequences here

@@ -33,8 +33,13 @@ fmdata.Dataset = function() {
     this.contents = {};
 
     // What interfaces with the application
+    this.displayData = {};
+
+    // What's used internally
     this._channelStats = {};
-    this._displayData = {};
+
+    // Whether the data are in sync with what was saved
+    this._clean = true;
 
 };
 
@@ -50,11 +55,13 @@ fmdata.Dataset.prototype = {
                     .then( function( validatedData ) {
                         dataset.metadata = validatedData.metadata;
                         dataset.contents = validatedData.contents;
-
                         dataset._setupChannelStats();
-                        dataset._setupDisplayData();
-
-                        return dataset;
+                    } )
+                    .then( function() {
+                        return dataset._updateDisplayData()
+                                        .then( function() {
+                                            console.log('Finished display update' );
+                                        });
                     } );
 
     },
@@ -206,19 +213,19 @@ fmdata.Dataset.prototype = {
 
                     // Convenience
                     var mean = stats.estimators.mean[ch];
-                    var variance = stats.estimators.variances[ch];
-                    var count = stats.estimators.counts[ch];
+                    var variance = stats.estimators.variance[ch];
+                    var count = stats.estimators.count[ch];
 
                     // Wrap the estimators for each time point into
 
-                    if ( this.isTimeseries() ) {
+                    if ( dataset.isTimeseries() ) {
 
                         // TODO Error checking
                         var baselineMean = stats.baseline.mean[ch];
                         var baselineVariance = stats.baseline.variance[ch];
                         var baselineCount = stats.baseline.count[ch];
 
-                        var statValues = mean.forEach( function( d, i ) {
+                        var statValues = mean.map( function( d, i ) {
                             return new fmstat.Gaussian( mean[i], variance[i], count[i] );
                         } );
 
@@ -257,13 +264,14 @@ fmdata.Dataset.prototype = {
             // TODO Error checking
             var channels = Object.keys( trials[0] );
 
+            // Global setup
+            var newChannelOpts = {};
+
+            if ( dataset.isTimeseries() ) {
+                newChannelOpts.baselineWindow = this._windowInSamples( dataset.metadata.baselineWindow );
+            }
+
             channels.forEach( function( ch ) {
-
-                var newChannelOpts = {};
-
-                if ( dataset.isTimeseries() ) {
-                    newChannelOpts.baselineWindow = dataset.metadata.baselineWindow;
-                }
 
                 var newChannel = new fmstat.ChannelStat( newChannelOpts );
 
@@ -284,12 +292,48 @@ fmdata.Dataset.prototype = {
 
     },
 
+    _windowInSamples: function( windowInSeconds ) {
+
+        // Guards
+
+        if ( !this.isTimeseries() ) {
+            return undefined;
+        }
+        if ( this.contents === undefined ) {
+            return undefined;
+        }
+        if ( !Array.isArray( this.contents.times ) ) {
+            return undefined;
+        }
+
+        var totalSamples = this.contents.times.length;
+        var dataWindow = {
+            start: this.contents.times[0],
+            end: this.contents.times[this.contents.times.length - 1]
+        };
+        var totalTime = dataWindow.end - dataWindow.start;
+
+        var windowFloat = {
+            start: ( ( windowInSeconds.start - dataWindow.start ) / totalTime ) * totalSamples,
+            end: ( ( windowInSeconds.end - dataWindow.start ) / totalTime ) * totalSamples
+        }
+
+        // TODO Should it be conservative like this, or more liberal?
+        return {
+            start: Math.ceil( windowFloat.start ),
+            end: Math.floor( windowFloat.end )
+        };
+
+    },
+
     _updateDisplayData: function() {
+
+        var dataset = this;
 
         if ( this.contents.values !== undefined ) {
 
             // We have values, so just use them for display
-            this._displayData = this.contents.values;
+            this.displayData = this.contents.values;
             return Promise.resolve();
 
         }
@@ -297,9 +341,79 @@ fmdata.Dataset.prototype = {
         if ( this.contents.stats !== undefined ) {
             
             // TODO Make configurable
-            return 
+            return cronelib.forEachAsync( Object.keys( this._channelStats ), function( ch ) {
+                dataset.displayData[ch] = dataset._channelStats[ch].fdrCorrectedValues( 0.05 );
+            }, {
+                batchSize: 5
+            } );
 
         }
+
+    },
+
+    _updateContentsStats: function() {
+
+        var dataset = this;
+
+        // TODO This notation may not be strict enough ...
+        this.contents.stats = this.contents.stats || {};
+        // TODO ... may require this
+        // if ( this.contents.stats === undefined ) {
+        //     this.contents.stats = {};
+        // }
+
+        // TODO Hard-coded to be Gaussian at present
+        this.contents.stats.distribution        = 'gaussian';
+
+        this.contents.stats.baseline            = this.contents.stats.baseline || {};
+        this.contents.stats.baseline.mean       = this.contents.stats.baseline.mean || {};
+        this.contents.stats.baseline.variance   = this.contents.stats.baseline.variance || {};
+        this.contents.stats.baseline.count      = this.contents.stats.baseline.count || {};
+
+        this.contents.stats.estimators          = this.contents.stats.estimators || {};
+        this.contents.stats.estimators.mean     = this.contents.stats.estimators.mean || {};
+        this.contents.stats.estimators.variance = this.contents.stats.estimators.variance || {};
+        this.contents.stats.estimators.count    = this.contents.stats.estimators.count || {};
+
+        Object.keys( this._channelStats ).forEach( function( ch ) {
+
+            dataset.contents.stats.baseline.mean[ch]        = dataset._channelStats[ch].baseline.mean;
+            dataset.contents.stats.baseline.variance[ch]    = dataset._channelStats[ch].baseline.variance;
+            dataset.contents.stats.baseline.count[ch]       = dataset._channelStats[ch].baseline.count;
+
+            var values = dataset._channelStats[ch].values;
+
+            if ( !values ) {
+
+                dataset.contents.stats.estimators.mean[ch]       = undefined;
+                dataset.contents.stats.estimators.variance[ch]   = undefined;
+                dataset.contents.stats.estimators.count[ch]      = undefined;
+
+                return;
+
+            }
+
+            var extractor = function( estimator ) {
+                return function( v ) {
+                    return v[estimator];
+                };
+            };
+
+            if ( !Array.isArray( values ) ) {
+
+                dataset.contents.stats.estimators.mean[ch]       = extractor( 'mean' )( values );
+                dataset.contents.stats.estimators.variance[ch]   = extractor( 'variance' )(values );
+                dataset.contents.stats.estimators.count[ch]      = extractor( 'count' )( values );
+
+                return;
+
+            }
+
+            dataset.contents.stats.estimators.mean[ch]       = values.map( extractor( 'mean' ) );
+            dataset.contents.stats.estimators.variance[ch]   = values.map( extractor( 'variance' ) );
+            dataset.contents.stats.estimators.count[ch]      = values.map( extractor( 'count' ) );
+
+        } );
 
     },
 
@@ -316,12 +430,13 @@ fmdata.Dataset.prototype = {
                     reject( 'Error requesting WebFM file: ' + uri );
                 } );
         } ).then( function( data ) {    // Once we've got the data, initialize
-            dataset._initialize( data );
+            dataset._clean = true;      // We've just loaded, so we're clean
+            return dataset._initialize( data );
         } );
 
     },
 
-    put: function( uri, opts ) {
+    put: function( url, opts ) {
 
         // Merge defaults
         var options = {
@@ -335,27 +450,64 @@ fmdata.Dataset.prototype = {
 
         return new Promise( function( resolve, reject ) {
 
-            var dataToSend = {}; // ... Need deep copy
+            // Deep copy
+            var dataToSend = JSON.parse( JSON.stringify( {
+                metadata: dataset.metadata,
+                contents: dataset.contents
+            } ) );
 
             if ( options.import ) {
                 dataToSend.metadata['_import'] = options.import;
             }
 
+            // TODO Doing two stringifys to support re-writing of _import
+            // Better way?
+
             $.ajax( {
-                uri: uri,
+                url: url,
                 method: 'PUT',
-                contentType: 'application/json'
+                data: JSON.stringify( dataToSend )
             } )
-                .done( resolve )
-                .fail( function() {
-                    reject( 'Error putting WebFM file to: ' + uri );
+                .done( function( data ) {
+                    dataset._clean = true;  // We just put, so everything is clean
+                    resolve( data );
+                } )
+                .fail( function( req, reason, err ) {
+                    reject( 'Error putting WebFM file to ' + url + ': ' + reason );
                 } );
 
-        } ).then( function( response ) {
+        } );
 
-            // TODO handle
+    },
+
+    setupChannels: function( channels ) {
+
+        var dataset = this;
+
+        // Setup metadata
+
+        this.metadata.montage = channels;
+
+        // Setup _channelStats
+
+        if ( this._channelStats === undefined ) {
+            this._channelStats = {};
+        }
+
+        channels.forEach( function( ch ) {
+            
+            var newBaselineWindow = undefined;
+            if ( dataset.metadata ) {
+                newBaselineWindow = dataset.metadata.baselineWindow;
+            }
+
+            dataset._channelStats[ch] = new fmstat.ChannelStat( {
+                baselineWindow: dataset._windowInSamples( newBaselineWindow )
+            } );
 
         } );
+
+        this._clean = false;
 
     },
 
@@ -398,6 +550,75 @@ fmdata.Dataset.prototype = {
 
     },
 
+    isClean: function() {
+        return this._clean;
+    },
+
+    getTimeBounds: function() {
+
+        if ( !this.isTimeseries() ) {
+            return undefined;
+        }
+
+        if ( !this.contents.times ) {
+            return undefined;
+        }
+
+        return {
+            start: this.contents.times[0],
+            end: this.contents.times[this.contents.times.length - 1]
+        };
+
+    },
+
+    updateTimes: function( times ) {
+        this.contents.times = times;
+    },
+
+    updateTimesFromWindow: function( timeWindow, nTimes ) {
+
+        var newTimes = [];
+        for ( var i = 0; i < nTimes; i++ ) {
+            newTimes.push( timeWindow.start + (i / (nTimes - 1)) * ( timeWindow.end - timeWindow.start ) );
+        }
+
+        this.updateTimes( newTimes );
+
+    },
+
+    getTrialCount: function() {
+
+        if ( this.contents.trials !== undefined ) {
+            // We have trials, so count them
+            return this.contents.trials.length;
+        }
+
+        if ( this.contents.stats !== undefined ) {
+            // Attempt to extract trial count from the stats
+
+            if ( this.contents.stats.distribution.toLowerCase() == "gaussian" ) {
+                // Gaussians have a "count" parameter, so take the minimum
+                // of the available values
+                // TODO Reasonable?
+
+                var counts = this.contents.stats.estimators.count;
+
+                var allCounts = Object.keys( counts ).reduce( function( acc, ch ) {
+                    return acc.concat( counts[ch] );
+                }, [] );
+
+                return allCounts.reduce( function( a, b ) {
+                    return Math.min( a, b );
+                } );
+            }
+
+        }
+
+        // No other way to get trial count
+        return undefined;
+
+    },
+
     dataForTime: function( time ) {
 
         if ( !this.isTimeseries() ) {
@@ -405,16 +626,18 @@ fmdata.Dataset.prototype = {
             return undefined;
         }
 
+        var dataset = this;
+
         // TODO Bit of a kludge to get length of first element of an object
         var dataSamples = 0;
-        Object.keys( this._displayData ).every( function( ch ) {
-            dataSamples = this._displayData[ch].length;
+        Object.keys( this.displayData ).every( function( ch ) {
+            dataSamples = dataset.displayData[ch].length;
             return false;   // Makes it so we only execute once
         } );
 
         var dataWindow = {
             start: this.contents.times[0],
-            end: this.contents.times[this.contents.times.length - 1];
+            end: this.contents.times[this.contents.times.length - 1]
         };
         var totalTime = dataWindow.end - dataWindow.start;
 
@@ -422,10 +645,65 @@ fmdata.Dataset.prototype = {
         var timeIndex = Math.floor( timeIndexFloat );
         var timeFrac = timeIndexFloat - timeIndex;
 
-        return Object.keys( this._displayData ).reduce( function( obj, ch ) {
-            obj[ch] = (1.0 - timeFrac) * this._displayData[ch][timeIndex] + (timeFrac) * this._displayData[ch][timeIndex + 1];
+        return Object.keys( this.displayData ).reduce( function( obj, ch ) {
+            obj[ch] = (1.0 - timeFrac) * dataset.displayData[ch][timeIndex] + (timeFrac) * dataset.displayData[ch][timeIndex + 1];
             return obj
         }, {} );
+
+    },
+
+    updateMetadata: function( newMetadata ) {
+
+        // Merge the new metadata over the top of what we currently have
+        Object.assign( this.metadata, newMetadata );
+
+    },
+
+    updateBaselineWindow: function( newWindow ) {
+
+        // Change our metadata to reflect the new window
+        this.metadata.baselineWindow = newWindow;
+
+        // Update our ChannelStats objects' internals
+        var newWindowSamples = this._windowInSamples( newWindow );
+        if ( newWindowSamples === undefined ) {
+            return Promise.resolve();
+        }
+
+        return cronelib.forEachAsync( Object.keys( this._channelStats ), function( ch ) {
+            this._channelStats[ch].recompute( newWindowSamples );
+        }, {
+            batchSize: 5
+        } );
+
+    },
+
+    ingest: function( trialData ) {
+
+        var dataset = this;
+
+        return cronelib.forEachAsync( Object.keys( this._channelStats ), function( ch ) {
+            dataset._channelStats[ch].ingest( trialData[ch] );
+        }, {
+            batchSize: 5
+        } ).then( function() {
+                
+                // Update the stats structure in contents
+                dataset._updateContentsStats();
+                
+                // Update the trials structure " "
+                if ( dataset.contents.trials === undefined ) {
+                    dataset.contents.trials = [];
+                }
+                dataset.contents.trials.push( trialData );
+
+                // We're dirty. So dirty.
+                dataset._clean = false;
+
+            } )
+            .then( function() {
+                return dataset._updateDisplayData();
+            } );
 
     }
 
