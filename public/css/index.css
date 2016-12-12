@@ -27,6 +27,13 @@ body {
 }
 
 
+/* Hide file upload elements
+-------------------------------------------------- */
+.upload-input {
+  display: none !important;
+}
+
+
 /* Other styles
 -------------------------------------------------- */
 

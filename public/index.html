@@ -50,7 +50,7 @@
         <div class="panel panel-default">
           <div class="panel-heading">
             <h3 class="panel-title">
-              Online <span class="pull-right"><a class="toggle-online-options" href="#"><span class="glyphicon glyphicon-cog"></span></a></small>
+              Online <span class="pull-right"><a class="toggle-online-options"><span class="glyphicon glyphicon-cog"></span></a></span>
             </h3>
           </div>
           <div id="online-options" class="panel-heading hidden">
@@ -88,7 +88,18 @@
 
         <div class="panel panel-default">
           <div class="panel-heading">
-            <h3 class="panel-title">Offline</h3>
+            <h3 class="panel-title">
+              Subjects <span class="pull-right"><a class="toggle-new-subject"><span class="glyphicon glyphicon-plus"></span></a></span>
+            </h3>
+          </div>
+          <div id="new-subject-options" class="panel-heading hidden">
+            <div class="input-group">
+              <span class="input-group-addon" id="basic-addon1">ID</span>
+              <input id="new-subject-id" type="text" class="form-control" placeholder="PYXXNXXX">
+              <span class="input-group-btn">
+                <button id="new-subject-ok" class="btn btn-default" type="button"><span class="glyphicon glyphicon-ok"></span></button>
+              </span>
+            </div><!-- /input-group -->
           </div>
           <ul id="subject-list" class="list-group">
             <!-- <a href="#" class="list-group-item">
@@ -105,15 +116,32 @@
       </div>
 
       <div class="col-md-3 col-sm-6">
+
         <div class="panel panel-default">
           <div class="panel-heading">
-            <h3 class="panel-title">Record</h3>
+            <h3 class="panel-title">Metadata</h3>
+          </div>
+
+          <ul class="list-group">
+            <li class="list-group-item">
+              Brain image <span class="pull-right"><a class="upload-brain-image toggle-online-options"><span class="glyphicon glyphicon-cloud-upload"></span></a></span>
+            </li>
+            <li class="list-group-item">
+              Sensor geometry <span class="pull-right"><a class="edit-sensor-geometry"><span class="glyphicon glyphicon-pencil"></span></a>&emsp;<a class="upload-sensor-geometry"><span class="glyphicon glyphicon-cloud-upload"></span></a></span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">Records</h3>
           </div>
 
           <ul id="record-list" class="list-group">
             <!-- <a href="#" class="list-group-item">PictureNaming</a> -->
           </ul>
         </div>
+
       </div>
 
     </div>
@@ -125,6 +153,12 @@
       <p class="text-muted">Fork me on <a href="http://github.com/cronelab/webfm">GitHub</a>. Powered by <a href="#">Bootstrap</a> and <a href="#">node.js</a>.</p>
     </div>
   </footer>
+
+
+  <!-- ===================================================== -->
+  <!-- File uploaders -->
+  <input id="upload-brain-image-input" class="upload-input" type="file" name="brainImage">
+  <input id="upload-sensor-geometry-input" class="upload-input" type="file" name="sensorGeometry">
 
 
   <!-- ===================================================== -->

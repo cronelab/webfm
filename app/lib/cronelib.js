@@ -8,6 +8,8 @@
 
 // REQUIRES
 
+var $ = require( 'jquery' );
+
 // Promise compatibility
 require( 'setimmediate' );
 var Promise = require( 'promise-polyfill' );
@@ -19,6 +21,23 @@ var cronelib = {};
 
 
 // METHODS
+
+// cronelib.promiseJSON
+// Wrap $.
+
+cronelib.promiseJSON = function( url ) {
+
+    return new Promise( function( resolve, reject ) {
+        $.getJSON( url )
+            .done( resolve )
+            .fail( function( req, reason, err ) {
+                // TODO Get more descriptive error from jquery result
+                reject( 'Could not get JSON from "' + configURI + '": ' + reason );
+            } );
+    } );
+
+}
+
 
 // cronelib.forEachAsync
 // Allows breaks in the computation to do other stuff

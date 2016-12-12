@@ -57,6 +57,9 @@ fmonline.OnlineDataSource = function() {
     // Event callbacks
     this.onproperties           = function( properties ) {};
 
+    // TODO Only needed to pull out certain properties ...
+    this.onBufferCreated        = function() {};
+
     this.onRawSignal            = function( rawSignal ) {};
     this.onStartTrial           = function() {};
     this.ontrial                = function( trialData ) {};
@@ -70,6 +73,9 @@ fmonline.OnlineDataSource = function() {
     this._bciRunning = false;
 
     this.dataFormatter = new fmonline.DataFormatter();
+    this.dataFormatter.onBufferCreated = function() {
+        manager.onBufferCreated();
+    }
     this.dataFormatter.onSourceSignal = function( rawSignal ) {
         manager.onRawSignal( rawSignal );
     };
@@ -110,23 +116,28 @@ fmonline.OnlineDataSource.prototype = {
 
     },
 
-    loadConfig: function( configURI ) {
-        
-        var manager = this;     // Cache this for nested functions
-
-        // Wrap $.getJSON in a standard Promise
-        return new Promise( function( resolve, reject ) {
-            $.getJSON( configURI )
-                .done( resolve )
-                .fail( function( req, reason, err ) {
-                    // TODO Get error message from jquery object
-                    reject( 'Could not load online config from ' + configURI + ' : ' + reason );
-                } );
-        } ).then( function( data ) {
-            manager.config = data;
-        } );
-
+    setConfig: function( config ) {
+        this.config = config;
     },
+
+    // TODO moved JSON loading to app logic, not submodules
+    // loadConfig: function( configURI ) {
+        
+    //     var manager = this;     // Cache this for nested functions
+
+    //     // Wrap $.getJSON in a standard Promise
+    //     return new Promise( function( resolve, reject ) {
+    //         $.getJSON( configURI )
+    //             .done( resolve )
+    //             .fail( function( req, reason, err ) {
+    //                 // TODO Get error message from jquery object
+    //                 reject( 'Could not load config from ' + configURI + ' : ' + reason );
+    //             } );
+    //     } ).then( function( data ) {
+    //         manager.config = data;
+    //     } );
+
+    // },
 
     _bciDidConnect: function( event ) {
         
@@ -219,6 +230,11 @@ fmonline.OnlineDataSource.prototype = {
         return this.dataFormatter.trialWindow;
     },
 
+    getTrialLength: function() {
+        // TODO Private member?
+        return this.dataFormatter._trialBlocks;
+    },
+
     _connectToData: function() {
 
         // Capture this for inline functions
@@ -292,7 +308,7 @@ fmonline.DataFormatter = function() {
     this._trialBlocks           = null;
     this._postTrialBlocks       = null;     // TODO Refactor
 
-    this.canProcess             = true;
+    this.canProcess             = false;
 
     this.sourceChannels         = null;
     this.sourceProperties       = null;
@@ -312,6 +328,8 @@ fmonline.DataFormatter = function() {
 
 
     // Events
+    this.onBufferCreated        = function() {};
+
     this.onSourceSignal         = function( rawData ) {};
     this.onStartTrial           = function() {};
     this.ontrial                = function( trialData ) {};
@@ -346,7 +364,11 @@ fmonline.DataFormatter.prototype = {
         // TODO We can do this very intelligently with a bunch of time, but
         // for this release we're just going to nuke everything.
 
-        // ...
+        this.trialEndBlockNumber = null;    // Reset trial
+        // TODO Nomenclature
+        if ( this.canProcess ) {
+            this._setupBuffers();               // Make new buffers
+        }
 
     },
 
@@ -512,6 +534,9 @@ fmonline.DataFormatter.prototype = {
 
         // TODO Debug
         console.log( 'Created feature buffer: ' + this.featureChannels.length + ' channels x ' + windowLengthBlocks + ' samples.' );
+
+        this.canProcess = true;
+        this.onBufferCreated();
 
     },
 
@@ -740,7 +765,10 @@ fmonline.DataFormatter.prototype = {
 
         var formatter = this;
 
-        var deltaBlocks = this.trialEndBlockNumber - this.featureBlockNumber;
+        // OLD WAY
+        // var deltaBlocks = this.trialEndBlockNumber - this.featureBlockNumber;
+        // TODO I think this is right, since this is called with this.featureBlockNumber >= this.trialEndBlockNumber
+        var deltaBlocks = this.featureBlockNumber - this.trialEndBlockNumber;
 
         // Map across channels ...
         var trialData = this.featureBuffer.map( function( dv ) { 

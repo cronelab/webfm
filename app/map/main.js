@@ -14,6 +14,7 @@ var $           = require( 'jquery' );
 var d3          = require( 'd3' );
 
 var Cookies     = require( 'js-cookie' );
+var minimatch   = require( 'minimatch' );
 
 // var horizon  = require( '../lib/d3-horizon-chart.js' ); // Old way of doing
                                                            // horizon charts
@@ -67,10 +68,11 @@ var uiManager       = new fmui.InterfaceManager();
 // TODO Handle rejection
 uiManager.loadConfig( path.join( configPath, 'ui' ) )
             .then( function() {
+                // TODO NOT NEEDED
                 // TODO Not this way ...
-                if ( subjectName && recordName ) {
-                    uiManager.updateRecordDetails( subjectName, recordName );
-                }
+                // if ( subjectName && recordName ) {
+                //     uiManager.updateRecordDetails( subjectName, recordName );
+                // }
             } )
             .catch( function( reason ) {    // TODO Respond intelligently.
                 console.log( reason );
@@ -87,7 +89,16 @@ if ( onlineMode ) {     // Using BCI2000Web over the net
 
     // Wire to common routines
     dataSource.onproperties = function( properties ) {
+
+        // TODO More elegant placement?
+        dataset.setupChannels( properties.channels );
+
         updateProperties( properties );
+
+    };
+    dataSource.onBufferCreated = function() {
+        // TODO HELLA DUMB TO DO THIS WAY
+        dataset.updateTimesFromWindow( dataSource.getTrialWindow(), dataSource.getTrialLength() );
     };
     dataSource.onStartTrial = function() {
         startTrial();
@@ -99,13 +110,22 @@ if ( onlineMode ) {     // Using BCI2000Web over the net
         ingestSignal( rawSignal );
     };
 
-    dataSource.loadConfig( path.join( configPath, 'online' ) )
-                .then( function() {
-                    prepareOnlineDataSource();
-                } )
-                .catch( function( reason ) {    // TODO Respond intelligently
-                    console.log( reason );
-                } );
+    cronelib.promiseJSON( path.join( configPath, 'online' ) )
+            .then( function( onlineConfig ) {
+                dataSource.setConfig( onlineConfig );
+                prepareOnlineDataSource();
+            } )
+            .catch( function( reason ) {    // TODO Respond intelligently
+                console.log( reason );
+            } )
+
+    // dataSource.loadConfig( onlineConfig, taskConfig )
+    //             .then( function() {
+    //                 prepareOnlineDataSource();
+    //             } )
+    //             .catch( function( reason ) {    // TODO Respond intelligently
+    //                 console.log( reason );
+    //             } );
 
 }
 
@@ -147,11 +167,19 @@ var prepareOnlineDataSource = function() {
             dataSource.connect( sourceAddress )
                         .then( function() {
 
+                            // Set some base metadata
+                            // TODO Hard-coded for now
+                            dataset.updateMetadata( {
+                                kind: 'high gamma power',
+                                labels: ['timeseries']
+                            } );
+
                             // Get subject name
                             dataSource.getParameter( 'SubjectName' )
                                         .then( function( result ) {
+                                            // Postprocess result
                                             subjectName = result.trim();
-                                            uiManager.updateSubjectName( subjectName );
+                                            // Do everything that needs subjectName
                                             prepareSubjectDependencies( subjectName );
                                         } )
                                         .catch( function( reason ) {
@@ -163,7 +191,11 @@ var prepareOnlineDataSource = function() {
                                         .then( function( result ) {
                                             // TODO Error checking
                                             var taskName = result.trim().split( '/' )[1];
-                                            uiManager.updateTaskName( taskName );
+                                            // Do everything that needs taskName
+                                            prepareTaskDependencies( taskName );
+                                        } )
+                                        .catch( function( reason ) {
+                                            console.log( 'Could not obtain DataFile: ' + reason );
                                         } );
 
                         } )
@@ -175,33 +207,188 @@ var prepareOnlineDataSource = function() {
 
 };
 
-// TODO KLUUUUUUUUDGEy
+var updateRecordListForSubject = function( theSubject ) {
+
+    cronelib.promiseJSON( path.join( apiPath, 'list', theSubject ) )
+            .then( function( records ) {
+                // Ensure consistent ordering
+                records.sort();
+                // Update the save page with the records
+                uiManager.updateSubjectRecords( records );
+            } )
+            .catch( function( reason ) {
+                // TODO Handle errors
+                console.log( err );
+            } );
+
+    // // Get a list of the existing datasets
+    // $.getJSON( path.join( apiPath, 'list', theSubject ) )
+    //     .done( function( records ) {
+    //         // Ensure consistent ordering
+    //         records.sort();
+    //         // Update the save page with the records
+    //         uiManager.updateSubjectRecords( records );
+    //     } )
+    //     .fail( function( req, textStatus, err ) {
+    //         // TODO Handle errors
+    //         console.log( err );
+    //     } );
+
+};
+
 var prepareSubjectDependencies = function( theSubject ) {
 
-    // First, load the brain
-    $.get( path.join( apiPath, 'brain', theSubject ) )
-        .done( function( imageData ) {
+    // Update UI elements that depend on subject
+    uiManager.updateSubjectName( subjectName );
 
-            console.log( 'Obtained subject image data.' );
+    // Update our data's knowledge of subject
+    dataset.updateMetadata( {
+        subject: subjectName
+    } );
 
-            // Now that we've got the brain, load the sensor geometry
-            $.getJSON( path.join( apiPath, 'geometry', theSubject ) )
-                .done( function( sensorGeometry ) {
-
-                    console.log( 'Obtained subject sensor geometry.' );
-
-                    // We have what we need, make the brain plot!
-                    uiManager.brain.setup( imageData, sensorGeometry );
-
+    // First we'll load the brain
+    var loadSubjectBrain = function() {
+        return new Promise( function( resolve, reject ) {
+            $.get( path.join( apiPath, 'brain', theSubject ) )
+                .done( function( imageData ) {
+                    // Put the imageData into our metadata
+                    dataset.updateMetadata( {
+                        brainImage: imageData
+                    } );
+                    // Pass the data down the chain
+                    resolve( imageData );
                 } )
                 .fail( function( req, reason, err ) {
-                    console.log( 'Could not load subject sensor geometry: ' + reason );
+                    reject( 'Could not load subject brain: ' + reason );
                 } );
+        } );
+    };
+
+    // Next we'll load the sensor geometry
+    var loadSubjectGeometry = function() {
+        return new Promise( function( resolve, reject ) {
+            $.get( path.join( apiPath, 'geometry', theSubject ) )
+                .done( function( sensorGeometry ) {
+                    // Put the geometry into our metadata
+                    dataset.updateMetadata( {
+                        'sensorGeometry': sensorGeometry
+                    } );
+                    // Pass the data down the chain
+                    resolve( sensorGeometry );
+                } )
+                .fail( function( req, reason, err ) {
+                    reject( 'Could not load subject sensor geometry: ' + reason );
+                } );
+        } );
+    };
+
+    // Execute both, and collate the results
+    Promise.all( [
+        loadSubjectBrain(),
+        loadSubjectGeometry()
+    ] )
+        .then( function( data ) {
+
+            var imageData = data[0];
+            var sensorGeometry = data[1];
+            
+            // We have what we need, make the brain plot!
+            uiManager.brain.setup( imageData, sensorGeometry );
 
         } )
-        .fail( function( req, reason, err ) {
-            console.log( 'Could not load subject brain: ' + reason );
+        .catch( function( reason ) {
+            console.log( reason );
         } );
+
+    updateRecordListForSubject( theSubject );
+
+
+    // Old method
+
+    // // First, load the brain
+    // $.get( path.join( apiPath, 'brain', theSubject ) )
+    //     .done( function( imageData ) {
+
+    //         console.log( 'Obtained subject image data.' );
+
+    //         // Now that we've got the brain, load the sensor geometry
+    //         $.getJSON( path.join( apiPath, 'geometry', theSubject ) )
+    //             .done( function( sensorGeometry ) {
+
+    //                 console.log( 'Obtained subject sensor geometry.' );
+
+    //                 // We have what we need, make the brain plot!
+    //                 uiManager.brain.setup( imageData, sensorGeometry );
+
+    //             } )
+    //             .fail( function( req, reason, err ) {
+    //                 console.log( 'Could not load subject sensor geometry: ' + reason );
+    //             } );
+
+    //     } )
+    //     .fail( function( req, reason, err ) {
+    //         console.log( 'Could not load subject brain: ' + reason );
+    //     } );
+
+};
+
+var matchTaskConfig = function( taskName, config ) {
+
+    // Start off with deep copy of default
+    var taskConfig = JSON.parse( JSON.stringify( config.default || {} ) );
+
+    // Attempt to match patterns
+    Object.keys( config ).every( function( configTask ) {
+        // Do a glob match against the pattern in config
+        if ( minimatch( taskName, configTask ) ) {
+            Object.assign( taskConfig, config[configTask] );
+            return false;   // "break"
+        }
+        return true;
+    } );
+
+    return taskConfig;
+
+}
+
+var prepareTaskDependencies = function( taskName ) {
+
+    // Update task-specific config
+    cronelib.promiseJSON( path.join( configPath, 'tasks' ) )
+        .then( function( config ) {
+            return new Promise( function( resolve, reject ) {
+
+                var taskConfig = matchTaskConfig( taskName, config );
+
+                if ( taskConfig === undefined ) {
+                    reject( 'No suitable task config present.' );
+                    return;
+                }
+
+                if ( taskConfig.trialWindow !== undefined ) {
+                    // TODO Kludgey?
+                    dataSource.dataFormatter.updateTrialWindow( taskConfig.trialWindow );
+                }
+
+                if ( taskConfig.baselineWindow !== undefined ) {
+                    dataset.updateBaselineWindow( taskConfig.baselineWindow );
+                }
+
+            } );
+        } )
+        .catch( function( reason ) {
+            console.log( 'Could not load task config: ' + reason );
+        } );
+
+    // Update UI elements that depend on task
+    uiManager.updateTaskName( taskName );
+
+    // Update our data's knowledge of task
+    dataset.updateMetadata( {
+        setting: {
+            task: taskName
+        }
+    } );
 
 };
 
@@ -238,56 +425,106 @@ var unpackBundle = function( info ) {
         // If we're just a dataset, can simply resolve to datast URI
         return Promise.resolve( info.uri );
     }
-}; 
+};
+
+// TODO Naming semantics imply it takes dataset as argument (better design anyway)
+var prepareFromDataset = function() {
+
+    // Update subject name
+    uiManager.updateSubjectName( dataset.metadata.subject );
+
+    // Update brain image & sensor geometry
+    var brainImage = dataset.metadata.brainImage;
+    var sensorGeometry = dataset.metadata.sensorGeometry;
+
+    if ( brainImage === undefined ) {
+        console.log( 'No brain image in specified dataset.' );
+        // TODO Should have a neutral default image to use; perhaps all white.
+
+        if ( sensorGeometry === undefined ) {
+            // TODO If neither are provided, should create a "standardized" layout
+        }
+    } else {
+        if ( sensorGeometry === undefined ) {
+            console.log( 'No sensor geometry in specified dataset.' );
+            // TODO What can I do??
+        } else {
+            // Everything good!
+            uiManager.brain.setup( brainImage, sensorGeometry );
+        }
+    }
+
+    // Update task name
+    // TODO Improve logic
+    if ( dataset.metadata.setting !== undefined ) {
+        if ( dataset.metadata.setting.task !== undefined ) {
+            uiManager.updateTaskName( dataset.metadata.setting.task );
+        } else {
+            uiManager.updateTaskName( '(unknown)' );
+        }
+    } else {
+        uiManager.updateTaskName( '(unknown)' );
+    }
+
+    updateProperties( {
+        channels: dataset.metadata.montage
+    } );
+
+};
 
 if ( loadMode ) {       // Using data loaded from the hive
 
-    getRecordInfo( subjectName, recordName )  // Get header info for the data
-        .then( unpackBundle )               // Unpack to get us a dataset URI
-        .then( dataset.get );               // Get the dataset for that URI
+    getRecordInfo( subjectName, recordName )    // Get header info for the data
+        .then( function( recordInfo ) {
+            return unpackBundle( recordInfo );  // Unpack to get us a dataset URI
+        } )
+        .then( function( recordUrl ) {
+            return dataset.get( recordUrl );           // Get the dataset for that URI
+        } )
+        .then( function() {
+            prepareFromDataset();
+            updateDataDisplay();
+        } );
 
 }
 
 
 // COMMON ROUTINES
 
-// TODO Move into an fmdata.Dataset object ...
-var channelStats = {};
-var meanData = {};
-
 // Property registration
 
 var updateProperties = function( properties ) {
     
-    uiManager.showIcon( 'transfer' );
+    // TODO Since this code is synchronous these calls won't do anything?
+    // uiManager.showIcon( 'transfer' );
 
+    // OLD This is only needed for online mode.
     // Allocate data
+    /*
     properties.channels.forEach( function( ch ) {
         channelStats[ch] = new fmstat.ChannelStat();
     } );
+    */
 
     // Update GUI
     uiManager.updateChannelNames( properties.channels );
 
-    uiManager.hideIcon( 'transfer' );
+    // uiManager.hideIcon( 'transfer' );
 
 };
 
 // Data ingestion
 
 var ingestSignal = function( signal ) {
-
     // Update scope view
     uiManager.scope.update( signal );
-
 };
 
 var startTrial = function() {
-
-    // We're starting to transfer a trial
+    // We're starting to transfer a trial, so engage the transfer icon
     uiManager.showIcon( 'transfer' );
+    // Makes the trial count bold, to indicate we're in a trial
     uiManager.activateTrialCount();
-
 };
 
 // TODO Testing
@@ -302,7 +539,22 @@ var ingestTrial = function( trialData ) {
     // Now we're working
     uiManager.showIcon( 'working' );
 
+    // Update our statistics
+    dataset.ingest( trialData )
+        .then( function() {
+
+            updateDataDisplay();
+
+            uiManager.hideIcon( 'working' );
+
+            uiManager.updateTrialCount( dataset.getTrialCount() );
+            uiManager.deactivateTrialCount();
+
+        } );
+
+    /*
     updateStatistics( trialData );
+    */
 
     // TODO Testing
     // identityFeature.compute( trialData )
@@ -315,8 +567,29 @@ var ingestTrial = function( trialData ) {
 
 };
 
+var updateDataDisplay = function() {
+
+    uiManager.raster.update( dataset.displayData );
+
+    uiManager.brain.update( dataset.dataForTime( uiManager.raster.getCursorTime() ) );
+
+    // KLUDGE
+    // TODO Can't think of a good way to deal with combined async of
+    // loading UI config and setting up data source
+    // TODO Need to make compatible with dataset
+    //var trialWindow = dataSource.getTrialWindow();
+
+    var timeBounds = dataset.getTimeBounds();
+
+    uiManager.raster.updateTimeRange( [timeBounds.start, timeBounds.end] );
+    // END KLUDGE
+
+}
+
+/*
 var updateStatistics = function( trialData ) {
 
+    
     cronelib.forEachAsync( Object.keys( channelStats ), function( ch ) {
         channelStats[ch].ingest( trialData[ch] );
         meanData[ch] = channelStats[ch].fdrCorrectedValues( 0.05 );
@@ -341,12 +614,13 @@ var updateStatistics = function( trialData ) {
     } );
 
 };
-
+*/
 
 // EVENT HOOKS
 
 // TODO Super kludgey to put here, but need data
 
+/*
 var dataForTime = function( time ) {
 
     // TODO Kludge; cache this, since it doesn't change
@@ -369,8 +643,10 @@ var dataForTime = function( time ) {
     }, {} );
 
 };
+*/
 
 // TODO AAAAAAH I'M AN IDIOT
+/*
 var updatePlotsPostData = function() {
 
     uiManager.raster.update( meanData );
@@ -384,13 +660,44 @@ var updatePlotsPostData = function() {
     uiManager.raster.updateTimeRange( [trialWindow.start, trialWindow.end] );
 
 };
+*/
 
 uiManager.raster.oncursormove = function( newTime ) {
 
     uiManager.updateSelectedTime( newTime );
 
+    /*
     var meanDataSlice = dataForTime( newTime );
     uiManager.brain.update( meanDataSlice );
+    */
+
+    uiManager.brain.update( dataset.dataForTime( newTime ) );
+
+};
+
+uiManager.onsave = function( saveName ) {
+
+    var putUrl = path.join( apiPath, 'data', subjectName, saveName );
+    // TODO Not so happy to have this be hard-coded like this
+    var standardImport = './.metadata';
+
+    dataset.put( putUrl, {
+        import: standardImport
+    } )
+        .then( function( response ) {
+
+            updateRecordListForSubject( subjectName );
+
+            // TODO Give user feedback
+            console.log( response );
+
+        } )
+        .catch( function( reason ) {
+
+            // TODO Give user feedback
+            console.log( reason );
+
+        } );
 
 };
 
@@ -411,22 +718,30 @@ uiManager.onoptionchange = function( option, newValue ) {
     }
 
     if ( option == 'stim-timing' ) {
-        dataSource.dataFormatter.updateTimingMode( newValue );
+        if ( onlineMode ) {
+            dataSource.dataFormatter.updateTimingMode( newValue );
+        }
     }
     if ( option == 'stim-channel' ) {
-        dataSource.dataFormatter.updateTimingChannel( newValue );
+        if ( onlineMode ) {
+            dataSource.dataFormatter.updateTimingChannel( newValue );
+        }
     }
     if ( option == 'stim-off' ) {
-        dataSource.dataFormatter.updateThreshold( { offValue: newValue } );
+        if ( onlineMode ) {
+            dataSource.dataFormatter.updateThreshold( { offValue: newValue } );
+        }
     }
     if ( option == 'stim-on' ) {
-        dataSource.dataFormatter.updateThreshold( { onValue: newValue } );
+        if ( onlineMode ) {
+            dataSource.dataFormatter.updateThreshold( { onValue: newValue } );
+        }
     }
 
 };
 
 var updateTiming = function( newMode ) {
-    dataSource.dataFormatter.update
+    // dataSource.dataFormatter.update
 }
 var updateTrialThreshold = function( newThreshold ) {
 };
@@ -438,6 +753,16 @@ var updateBaselineWindow = function( newWindow ) {
 
     uiManager.showIcon( 'working' );
 
+    dataset.updateBaselineWindow( newWindow )
+        .then( function() {
+
+            updateDataDisplay();
+
+            uiManager.hideIcon( 'working' );
+
+        } );
+
+    /*
     cronelib.forEachAsync( Object.keys( channelStats ), function( ch ) {
         channelStats[ch].recompute( newWindow );
     }, {
@@ -446,6 +771,7 @@ var updateBaselineWindow = function( newWindow ) {
         updatePlotsPostData();
         uiManager.hideIcon( 'working' );
     } );
+    */
 
 };
 
@@ -454,6 +780,17 @@ $( window ).on( 'resize', function() {
 
     uiManager.didResize();
     
+} );
+
+
+$( window ).on( 'beforeunload', function() {
+
+    if ( !dataset.isClean() ) {
+
+        return "There are unsaved changes to your map. Are you sure you want to leave?";
+
+    }
+
 } );
 
 

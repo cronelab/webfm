@@ -19,7 +19,8 @@ fmstat.Gaussian = function( mu, s2, n ) {
     this.variance   = s2;
     this.count      = n;
 
-    this._m2        = undefined;
+    // TODO Unit tests
+    this._m2        = ( this.count > 1 && this.variance !== undefined ) ? this.variance * ( this.count - 1 ) : undefined;
 
 };
 
@@ -45,16 +46,17 @@ fmstat.Gaussian.prototype = {
 
 };
 
+
 fmstat.ChannelStat = function( options ) {
 
     if ( !options ) {   // To streamline later code
         options = {};
     }
 
-    this.baseline       = new fmstat.Gaussian();
-    this.values         = null;
+    this.baseline       = options.baseline          || new fmstat.Gaussian();
+    this.values         = options.values            || null;
 
-    this.baselineWindow = options.baselineWindow || { start: 0, end: 10 };
+    this.baselineWindow = options.baselineWindow    || { start: 0, end: 10 };
     this.valueTrials    = [];
 
 };
@@ -76,6 +78,10 @@ fmstat.ChannelStat.prototype = {
                 this.baselineWindow.end = baselineWindow.end;
             }
         }
+
+        // Reset the stat values to defaults
+        this.baseline = new fmstat.Gaussian();
+        this.values = null;
 
         // Recompute all the data anew
         this.valueTrials.forEach( function( trialData ) {
