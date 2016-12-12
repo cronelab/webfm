@@ -64,6 +64,9 @@ var async       = require( 'async' );
 var jsonfile    = require( 'jsonfile' );
 var base64      = require( 'node-base64-image' );
 
+// Promise compatibility
+var Promise = require( 'promise-polyfill' );
+
 
 // Object.assign polyfill
 

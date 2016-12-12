@@ -17,6 +17,7 @@
     "formidable": "^1.0.17",
     "jsonfile": "^2.4.0",
     "node-base64-image": "^1.0.3",
-    "optimist": "^0.6.1"
+    "optimist": "^0.6.1",
+    "promise-polyfill": "^6.0.2"
   }
 }
