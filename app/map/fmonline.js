@@ -475,9 +475,9 @@ fmonline.DataFormatter.prototype = {
 
         };
 
-        this._sourceConnection.onStateVector = function( stateVector ) {
-            formatter._processStateVector( stateVector );
-        };
+        // this._sourceConnection.onStateVector = function( stateVector ) {
+        //     formatter._processStateVector( stateVector );
+        // };
 
     },
 
@@ -498,6 +498,10 @@ fmonline.DataFormatter.prototype = {
 
         this._featureConnection.onGenericSignal = function( genericSignal ) {
             formatter._processFeatureSignal( genericSignal );
+        };
+
+        this._featureConnection.onStateVector = function( stateVector ) {
+            formatter._processStateVector( stateVector );
         };
 
     },
