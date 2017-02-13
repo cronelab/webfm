@@ -208,8 +208,8 @@ Example:
 
 ```json
 {
-    start: -0.8,
-    end: -0.2
+    "start": -0.8,
+    "end": -0.2
 }
 ```
 
