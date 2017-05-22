@@ -61,6 +61,7 @@ fmonline.OnlineDataSource = function() {
     this.onBufferCreated        = function() {};
 
     this.onRawSignal            = function( rawSignal ) {};
+    this.onFeatureSignal        = function( featureSignal ) {};
     this.onStartTrial           = function() {};
     this.ontrial                = function( trialData ) {};
 
@@ -78,6 +79,9 @@ fmonline.OnlineDataSource = function() {
     }
     this.dataFormatter.onSourceSignal = function( rawSignal ) {
         manager.onRawSignal( rawSignal );
+    };
+    this.dataFormatter.onFeatureSignal = function( featureSignal ) {
+        manager.onFeatureSignal( featureSignal );
     };
     this.dataFormatter.ontrial = function( trialData ) {
         manager.ontrial( trialData );
@@ -331,6 +335,7 @@ fmonline.DataFormatter = function() {
     this.onBufferCreated        = function() {};
 
     this.onSourceSignal         = function( rawData ) {};
+    this.onFeatureSignal        = function( featureData ) {};
     this.onStartTrial           = function() {};
     this.ontrial                = function( trialData ) {};
 
@@ -681,6 +686,8 @@ fmonline.DataFormatter.prototype = {
                 this._sendTrial();
             }
         }
+
+        this.onFeatureSignal( computedFeatures );
 
     },
 
