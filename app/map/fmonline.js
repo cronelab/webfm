@@ -663,7 +663,7 @@ fmonline.DataFormatter.prototype = {
         }
 
         // TODO Do more intelligently
-        this.onSourceSignal( this._formatSourceData( signal  ));
+        this.onSourceSignal( this._formatSourceData( signal ) );
 
     },
 
@@ -687,7 +687,7 @@ fmonline.DataFormatter.prototype = {
             }
         }
 
-        this.onFeatureSignal( computedFeatures );
+        this.onFeatureSignal( this._formatFeatureData( computedFeatures ) );
 
     },
 
