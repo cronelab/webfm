@@ -27,7 +27,6 @@ var cronelib    = require( '../lib/cronelib' );
 var fullscreen  = require( '../lib/fullscreen' );
 
 var fmbrain     = require( './fmbrain' );
-var fmraster    = require( './fmraster' );
 var fmscope     = require( './fmscope' );
 
 
@@ -58,15 +57,8 @@ fmui.InterfaceManager = function() {
 
     // Allocate members
 
-    this.raster = new fmraster.ChannelRaster( '#fm' );
     this.brain = new fmbrain.BrainVisualizer( '#fm-brain' );
     this.scope = new fmscope.ChannelScope( '#fm-scope' );
-
-    // Event hooks
-
-    this.raster.onselectchannel = function( newChannel ) {
-        manager.brain.setSelectedChannel( newChannel );
-    };
 
     // Events
 
@@ -98,12 +90,7 @@ fmui.InterfaceManager.prototype = {
         } );
 
     },
-
-    _syncRasterConfig: function() {
-        this.raster.setRowHeight( this.getRowHeight() );
-        this.raster.setExtent( this.getRasterExtent() );
-    },
-
+    
     _mergeDefaultConfig: function( config ) {
     
         // Copy over any extras that might not be merged here
@@ -113,10 +100,6 @@ fmui.InterfaceManager.prototype = {
         mergedConfig.rowHeight              = config.rowHeight              || 5;
         mergedConfig.maxRowHeight           = config.maxRowHeight           || 10;
         mergedConfig.pxPerRowHeight         = config.pxPerRowHeight         || 5;
-
-        mergedConfig.rasterExtent           = config.rasterExtent           || 5;
-        mergedConfig.maxRasterExtent        = config.maxRasterExtent        || 10;
-        mergedConfig.unitsPerRasterExtent   = config.unitsPerRasterExtent   || 1;
 
         mergedConfig.iconShowDuration       = config.iconShowDuration       || 100;
         mergedConfig.iconHideDelay          = config.iconHideDelay          || 1000;
@@ -145,15 +128,10 @@ fmui.InterfaceManager.prototype = {
         } );
 
         
-        this.raster.setup();    // TODO Always will fail for charts until
-                                // data arrives; necessary?
-
         //this.scope.setup();
 
         // Populate options with the current cookie-set values
         this._populateOptions( this.getOptions() );
-        
-        this._syncRasterConfig();
 
     },
 
@@ -317,24 +295,6 @@ fmui.InterfaceManager.prototype = {
         }, hideDelay );
     },
 
-    updateRaster: function( guarantee ) {
-
-        var manager = this;
-
-        var updater = function() {
-            manager.raster.update();
-        };
-
-        if ( guarantee ) {
-            // Guarantee the update happens now
-            updater();
-        } else {
-            // Debounce the update calls to prevent overload
-            cronelib.debounce( updater, this.config.rasterDebounceDelay, true )();
-        }
-
-    },
-
     updateScope: function( guarantee ) {
 
         var manager = this;
@@ -362,117 +322,6 @@ fmui.InterfaceManager.prototype = {
             manager.brain.autoResize();
             manager.brain.update();
         }, this.config.brainDebounceDelay )();
-
-    },
-
-
-    /* Button handlers */
-
-    _updateZoomClasses: function() {
-        if ( this.config.rowHeight >= this.config.maxRowHeight ) {
-            $( '.fm-zoom-in' ).addClass( 'disabled' );
-        } else {
-            $( '.fm-zoom-in' ).removeClass( 'disabled' );
-        }
-        if ( this.config.rowHeight <= 1 ) {
-            $( '.fm-zoom-out' ).addClass( 'disabled' );
-        } else {
-            $( '.fm-zoom-out' ).removeClass( 'disabled' );
-        }
-    },
-
-    _updateGainClasses: function() {
-        if ( this.config.rasterExtent >= this.config.maxRasterExtent ) {
-            $( '.fm-gain-down' ).addClass( 'disabled' );
-        } else {
-            $( '.fm-gain-down' ).removeClass( 'disabled' );
-        }
-        if ( this.config.rasterExtent <= 1 ) {
-            $( '.fm-gain-up' ).addClass( 'disabled' );
-        } else {
-            $( '.fm-gain-up' ).removeClass( 'disabled' );
-        }
-    },
-
-    zoomIn: function( event ) {
-
-        // Update UI-internal gain measure
-        this.config.rowHeight = this.config.rowHeight + 1;
-        if ( this.config.rowHeight > this.config.maxRowHeight ) {
-            this.config.rowHeight = this.config.maxRowHeight;
-            return;                         // Only update if we actually change
-        }
-
-        this._updateZoomClasses();
-
-        // Cache the scroll state before our manipulations
-        // TODO Use row in middle of viewport, not fraction of scrolling
-        var prevScrollFraction = this._getScrollFraction();
-        // Alter raster parameters
-        this.raster.setRowHeight( this.getRowHeight() );
-        // Redraw the raster with a guarantee
-        this.updateRaster( true );
-        //Restore the scroll state
-        $( document ).scrollTop( this._topForScrollFraction( prevScrollFraction ) );
-
-    },
-    
-    zoomOut: function( event ) {
-
-        // Update UI-internal gain measure
-        this.config.rowHeight = this.config.rowHeight - 1;
-        if ( this.config.rowHeight < 1 ) {
-            this.config.rowHeight = 1;
-            return;
-        }
-        this._updateZoomClasses();
-
-        // Cache the scroll state before our manipulations
-        // TODO Use row in middle of viewport, not fraction of scrolling
-        var prevScrollFraction = this._getScrollFraction();
-        // Alter raster parameters
-        this.raster.setRowHeight( this.getRowHeight() );
-        // Redraw the raster with a guarantee
-        this.updateRaster( true );
-        // Restore the scroll state
-        $( document ).scrollTop( this._topForScrollFraction( prevScrollFraction ) );
-
-    },
-
-    gainDown: function( event ) {
-
-        // Update UI-internal gain measure
-        this.config.rasterExtent = this.config.rasterExtent + 1;
-        if ( this.config.rasterExtent > this.config.maxPlotExtent ) {
-            this.config.rasterExtent = this.config.maxPlotExtent;
-            return;
-        }
-
-        this._updateGainClasses();
-
-        // Alter raster parameters
-        this.raster.setExtent( this.getRasterExtent() );
-
-        // Redraw the raster with a guarantee
-        this.updateRaster( true );
-
-    },
-
-    gainUp: function( event ) {
-
-        // Update UI-internal gain measure
-        this.config.rasterExtent = this.config.rasterExtent - 1;
-        if ( this.config.rasterExtent < 1 ) {
-            this.config.rasterExtent = 1;
-            return;
-        }
-        this._updateGainClasses();
-
-        // Alter raster parameters
-        this.raster.setExtent( this.getRasterExtent() );
-
-        // Redraw the raster with a guarantee
-        this.updateRaster( true );
 
     },
 
@@ -702,10 +551,6 @@ fmui.InterfaceManager.prototype = {
 
     },
 
-    getRasterExtent: function() {
-        return this.config.rasterExtent * this.config.unitsPerRasterExtent;
-    },
-
     getRowHeight: function() {
         return this.config.rowHeight * this.config.pxPerRowHeight;
     },
@@ -823,9 +668,6 @@ fmui.InterfaceManager.prototype = {
         var exclusion = this.getExclusion();
         exclusion[channel] = true;
         this.setExclusion( exclusion );
-
-        // Update raster display
-        this.raster.setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
     },
 
     unexclude: function( channel ) {
@@ -833,9 +675,6 @@ fmui.InterfaceManager.prototype = {
         var exclusion = this.getExclusion();
         exclusion[channel] = false;
         this.setExclusion( exclusion );
-
-        // Update raster display
-        this.raster.setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
     },
 
     channelFilter: function() {
@@ -856,10 +695,6 @@ fmui.InterfaceManager.prototype = {
         // Update the GUI with the complete channel list
         this._populateMontageList( this.allChannels );
 
-        // Update the raster with the filtered channel list
-        // TODO Support different ordering, or just exclusion?
-        this.raster.setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
-
     },
 
     activateTrialCount: function() {
@@ -875,8 +710,6 @@ fmui.InterfaceManager.prototype = {
     },
 
     didResize: function() {
-
-        this.updateRaster();
 
         this.updateScope();
 
