@@ -109,6 +109,9 @@ if ( onlineMode ) {     // Using BCI2000Web over the net
     dataSource.onRawSignal = function( rawSignal ) {
         ingestSignal( rawSignal );
     };
+    dataSource.onFeatureSignal = function( featureSignal ) {
+        ingestFeatureSignal( featureSignal );
+    };
 
     cronelib.promiseJSON( path.join( configPath, 'online' ) )
             .then( function( onlineConfig ) {
@@ -520,6 +523,11 @@ var ingestSignal = function( signal ) {
     uiManager.scope.update( signal );
 };
 
+var ingestFeatureSignal = function( featureSignal ) {
+    // Update scope view
+    uiManager.brain.update( featureSignal );
+};
+
 var startTrial = function() {
     // We're starting to transfer a trial, so engage the transfer icon
     uiManager.showIcon( 'transfer' );
@@ -571,7 +579,7 @@ var updateDataDisplay = function() {
 
     uiManager.raster.update( dataset.displayData );
 
-    uiManager.brain.update( dataset.dataForTime( uiManager.raster.getCursorTime() ) );
+    //uiManager.brain.update( dataset.dataForTime( uiManager.raster.getCursorTime() ) );
 
     // KLUDGE
     // TODO Can't think of a good way to deal with combined async of
@@ -671,7 +679,7 @@ uiManager.raster.oncursormove = function( newTime ) {
     uiManager.brain.update( meanDataSlice );
     */
 
-    uiManager.brain.update( dataset.dataForTime( newTime ) );
+    //uiManager.brain.update( dataset.dataForTime( newTime ) );
 
 };
 

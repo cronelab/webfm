@@ -2,6 +2,7 @@
 
 browserify ./index/main.js -t babelify -o ../public/js/app/index.js
 browserify ./map/main.js -t babelify -o ../public/js/app/map.js
+browserify ./live/main.js -t babelify -o ../public/js/app/live.js
 browserify ./clicker/main.js -t babelify -o ../public/js/app/clicker.js
 cp ./node_modules/jquery/dist/* ../public/js/jquery
 cp ./node_modules/bootstrap/dist/js/* ../public/js/bootstrap

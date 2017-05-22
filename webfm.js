@@ -158,6 +158,12 @@ var serveMap = function( req, res ) {
     res.sendFile( path.join( rootDir, 'map.html' ) );
 }
 
+// Live functional map routes
+
+var serveLive = function( req, res ) {
+    res.sendFile( path.join( rootDir, 'live.html' ) );
+}
+
 
 // TODO Bad practice to have map.html just figure it out from path
 // Should use template engine. This is janky af.
@@ -166,17 +172,31 @@ app.get( '/map/config/ui',      serveConfig( 'fmui.json' ) );
 app.get( '/map/config/online',  serveConfig( 'fmonline.json' ) );
 app.get( '/map/config/tasks',   serveConfig( 'tasks.json' ) );
 
+app.get( '/live/config/ui',      serveConfig( 'fmui.json' ) );
+app.get( '/live/config/online',  serveConfig( 'fmonline.json' ) );
+app.get( '/live/config/tasks',   serveConfig( 'tasks.json' ) );
+
 // Generator
 app.get( '/map', serveMap );
 app.get( '/map/generate', serveMap );
 
+app.get( '/live', serveLive );
+app.get( '/live/generate', serveLive);
+
 // Load
 app.get( '/map/:subject/:record', serveMap );
+
+app.get( '/live/:subject/:record', serveLive );
 
 // Online
 app.get( '/map/online', serveMap );
 app.get( '/map/online/:subject', serveMap );            // TODO Necessary?
 app.get( '/map/online/:subject/:record', serveMap );    // We get this from
+                                                        // bci2k.js ...
+
+app.get( '/live/online', serveLive );
+app.get( '/live/online/:subject', serveLive );            // TODO Necessary?
+app.get( '/live/online/:subject/:record', serveLive );    // We get this from
                                                         // bci2k.js ...
 
 
