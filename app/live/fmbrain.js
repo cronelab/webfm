@@ -48,10 +48,11 @@ fmbrain.BrainVisualizer = function( baseNodeId ) {
         bottom: 10,
         left: 10
     };
-    this.dotMinRadius   = 0.001;        // u (horizontal) units
+    this.dotMinRadius   = 0.003;        // u (horizontal) units
     this.dotMaxRadius   = 0.040;
 
-    this.extent         = 200.0;         // TODO Expose
+
+    this.extent             = 200.0;         // TODO Expose
 
     /*
     this.dotFillNeutral     = '#ffffff';
@@ -60,8 +61,9 @@ fmbrain.BrainVisualizer = function( baseNodeId ) {
     */
 
     this.dotColors          = ["#313695","#4575b4","#74add1","#abd9e9","#ffffff","#fee090","#fdae61","#f46d43","#d73027"];
-    this.dotColorsDomain    = [ -50,       -40,       -30,       -20,    0.0,      20,     30,        40,        50];
-
+    this.dotColorsDomain    = [ -50,       -40,       -30,       -20,    0.0,      20,     30,        40,        50 ];
+    this.dotPowerThreshold  = [ this.dotColorsDomain[3], this.dotColorsDomain[5] ];
+    
 };
 
 fmbrain.BrainVisualizer.prototype = {
@@ -219,7 +221,7 @@ fmbrain.BrainVisualizer.prototype = {
         if ( d.channel == this.selectedChannel ) {
             return 'visible';
         }
-        if ( d.value == 0 ) {
+        if ( d.value > this.dotPowerThreshold[0] & d.value < this.dotPowerThreshold[1] ) {
             return 'hidden';
         }
         return 'visible';
