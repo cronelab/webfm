@@ -55,7 +55,8 @@ fmonline.OnlineDataSource = function() {
     var manager = this;
 
     // Event callbacks
-    this.onproperties           = function( properties ) {};
+    this.onSourceProperties     = function( properties ) {};
+    this.onFeatureProperties    = function( properties ) {};
 
     // TODO Only needed to pull out certain properties ...
     this.onBufferCreated        = function() {};
@@ -89,8 +90,11 @@ fmonline.OnlineDataSource = function() {
     this.dataFormatter.onStartTrial = function() {
         manager.onStartTrial();
     };
+    this.dataFormatter.onSourceProperties = function( properties ) {
+        manager.onSourceProperties( properties );
+    };
     this.dataFormatter.onFeatureProperties = function( properties ) {
-        manager.onproperties( properties );
+        manager.onFeatureProperties( properties );
     };
 
     this.config = {};
