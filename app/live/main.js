@@ -88,7 +88,7 @@ if ( onlineMode ) {     // Using BCI2000Web over the net
     dataSource = new fmonline.OnlineDataSource();
 
     // Wire to common routines
-    dataSource.onproperties = function( properties ) {
+    dataSource.onFeatureProperties = function( properties ) {
 
         // TODO More elegant placement?
         dataset.setupChannels( properties.channels );
