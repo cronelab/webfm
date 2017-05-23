@@ -48,7 +48,7 @@ fmbrain.BrainVisualizer = function( baseNodeId ) {
         bottom: 10,
         left: 10
     };
-    this.dotMinRadius   = 0.003;        // u (horizontal) units
+    this.dotMinRadius   = 0.006;        // u (horizontal) units
     this.dotMaxRadius   = 0.040;
 
 
@@ -154,7 +154,7 @@ fmbrain.BrainVisualizer.prototype = {
                                                 // below comes back with a value
 
         this.dotRadiusScale = d3.scaleSqrt()    // data -> u
-                                    .domain( [0, this.extent] )
+                                    .domain( [this.dotPowerThreshold[1], this.extent] )
                                     .range( [this.dotMinRadius, this.dotMaxRadius] )
                                     .clamp( true );
 
