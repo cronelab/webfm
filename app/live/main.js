@@ -78,6 +78,12 @@ uiManager.loadConfig( path.join( configPath, 'ui' ) )
                 console.log( reason );
             } );
 
+// Feature signal buffer setup
+var featureSignalBufferManager = {};
+featureSignalBufferManager.featureSignalBuffer         = null;
+featureSignalBufferManager.useFeatureSignalBuffer      = true;
+// Buffer length with be obtained from "onSourceProperties"
+
 // DATA SOURCE SET-UP
 
 var dataSource = null;
@@ -94,6 +100,9 @@ if ( onlineMode ) {     // Using BCI2000Web over the net
 
         updateProperties( properties );
 
+    };
+    dataSource.onSourceProperties = function( properties ) {
+        featureSignalBufferManager.featureSignalBufferLength = properties.elementunit.gain*properties.numelements;
     };
     dataSource.onBufferCreated = function() {
         // TODO HELLA DUMB TO DO THIS WAY
@@ -130,12 +139,6 @@ if ( onlineMode ) {     // Using BCI2000Web over the net
     //             } );
 
 }
-
-// Feature signal buffer setup
-var featureSignalBufferManager = {};
-featureSignalBufferManager.featureSignalBuffer         = null;
-featureSignalBufferManager.useFeatureSignalBuffer      = true;
-featureSignalBufferManager.featureSignalBufferLength   = 10/0.1;
 
 var getSourceAddress = function() {
 
