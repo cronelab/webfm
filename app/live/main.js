@@ -78,7 +78,6 @@ uiManager.loadConfig( path.join( configPath, 'ui' ) )
                 console.log( reason );
             } );
 
-
 // DATA SOURCE SET-UP
 
 var dataSource = null;
@@ -131,6 +130,12 @@ if ( onlineMode ) {     // Using BCI2000Web over the net
     //             } );
 
 }
+
+// Feature signal buffer setup
+var featureSignalBufferManager = {};
+featureSignalBufferManager.featureSignalBuffer         = null;
+featureSignalBufferManager.useFeatureSignalBuffer      = true;
+featureSignalBufferManager.featureSignalBufferLength   = 10/0.1;
 
 var getSourceAddress = function() {
 
@@ -524,8 +529,70 @@ var ingestSignal = function( signal ) {
 
 var ingestFeatureSignal = function( featureSignal ) {
     // Update scope view
-    uiManager.brain.update( featureSignal );
+    if ( featureSignalBufferManager.useFeatureSignalBuffer ) {
+        uiManager.brain.update( bufferFeatureSignal( featureSignal ) );
+    }
+    else {
+       uiManager.brain.update( featureSignal );
+    }
 };
+
+var bufferFeatureSignal = function( featureSignal ) {
+    var bufferedFeatureSignal = {};
+    // Math
+    var average = function( data ) {
+      var sum = data.reduce( function( sum, value ) {
+        return sum + value;
+      }, 0);
+
+      var avg = sum / data.length;
+      return avg;
+    }
+
+    var standardDeviation = function ( values ) {
+      var avg = average( values );
+
+      var squareDiffs = values.map( function( value ) {
+        var diff = value - avg;
+        var sqrDiff = diff * diff;
+        return sqrDiff;
+      });
+
+      var avgSquareDiff = average( squareDiffs );
+
+      var stdDev = Math.sqrt( avgSquareDiff );
+      return stdDev;
+    }
+    // Get channels
+    var chans = uiManager.allChannels;
+    // Initialize buffer if needed
+    if (featureSignalBufferManager.featureSignalBuffer === null){
+        featureSignalBufferManager.featureSignalBuffer = {};
+        for ( var c = 0; c < chans.length; c++ ) {
+            featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ] = [ ];
+        }
+    }
+    // Add to buffer
+    for ( var c = 0; c < chans.length; c++ ) {
+        if ( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].length == featureSignalBufferManager.featureSignalBufferLength ) {
+            featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].shift();
+        }
+        featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].push( featureSignal[ chans[ c ] ] );
+    }
+    // Create buffered signal
+    for ( var c = 0; c < chans.length; c++ ) {
+        if ( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].length == 1) {
+            bufferedFeatureSignal[ chans[ c ] ] = 0; 
+        }
+        else {
+            bufferedFeatureSignal[ chans[ c ] ] = ( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ][ featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].length - 1 ]
+            - average( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ] ) )
+            / standardDeviation( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ] );
+        }
+    }
+    // Return buffered signal
+    return bufferedFeatureSignal
+}
 
 var startTrial = function() {
     // We're starting to transfer a trial, so engage the transfer icon

@@ -52,7 +52,7 @@ fmbrain.BrainVisualizer = function( baseNodeId ) {
     this.dotMaxRadius   = 0.040;
 
 
-    this.extent             = 200.0;         // TODO Expose
+    this.extent             = 10.0;         // TODO Expose
 
     /*
     this.dotFillNeutral     = '#ffffff';
@@ -60,9 +60,11 @@ fmbrain.BrainVisualizer = function( baseNodeId ) {
     this.dotFillNegative    = '#74add1';
     */
 
-    this.dotColors          = ["#313695","#4575b4","#74add1","#abd9e9","#ffffff","#fee090","#fdae61","#f46d43","#d73027"];
-    this.dotColorsDomain    = [ -50,       -40,       -30,       -20,    0.0,      20,     30,        40,        50 ];
-    this.dotPowerThreshold  = [ this.dotColorsDomain[3], this.dotColorsDomain[5] ];
+    this.dotColors           = ["#313695","#4575b4","#74add1","#abd9e9","#ffffff","#fee090","#fdae61","#f46d43","#d73027"];
+    this.dotColorsDomain     = [ -50,       -40,       -30,       -20,    0.0,      20,     30,        40,        50 ];
+    this.dotColorsDomain     = [ -5,       -3.5,       -2,       -0.5,    0.0,      0.5,     2,        3.5,        5 ];
+    this.dotPowerThreshold   = [ this.dotColorsDomain[3], this.dotColorsDomain[5] ];
+    this.doDotPowerThreshold = true;
     
 };
 
@@ -152,11 +154,17 @@ fmbrain.BrainVisualizer.prototype = {
                             .domain( [0, 1] )
                             .range( [1, 0] );   // Placeholder until logic
                                                 // below comes back with a value
-
-        this.dotRadiusScale = d3.scaleSqrt()    // data -> u
-                                    .domain( [this.dotPowerThreshold[1], this.extent] )
-                                    .range( [this.dotMinRadius, this.dotMaxRadius] )
-                                    .clamp( true );
+        if ( this.doDotPowerThreshold ) {
+            this.dotRadiusScale = d3.scaleSqrt()    // data -> u
+                                        .domain( [this.dotPowerThreshold[1], this.extent] )
+                                        .range( [this.dotMinRadius, this.dotMaxRadius] )
+                                        .clamp( true );
+        } else {
+            this.dotRadiusScale = d3.scaleSqrt()    // data -> u
+                                        .domain( [0, this.extent] )
+                                        .range( [this.dotMinRadius, this.dotMaxRadius] )
+                                        .clamp( true );
+        }
 
         this.dotColorScale = d3.scaleLinear()
                                 .domain( this.dotColorsDomain )
@@ -221,8 +229,14 @@ fmbrain.BrainVisualizer.prototype = {
         if ( d.channel == this.selectedChannel ) {
             return 'visible';
         }
-        if ( d.value > this.dotPowerThreshold[0] & d.value < this.dotPowerThreshold[1] ) {
-            return 'hidden';
+        if ( this.doDotPowerThreshold ){
+            if ( d.value > this.dotPowerThreshold[0] & d.value < this.dotPowerThreshold[1] ) {
+                return 'hidden';
+            }
+        } else {
+            if ( d.value == 0 ) {
+                return 'hidden';
+            }
         }
         return 'visible';
     },
