@@ -82,7 +82,8 @@ uiManager.loadConfig( path.join( configPath, 'ui' ) )
 var featureSignalBufferManager = {};
 featureSignalBufferManager.featureSignalBuffer         = null;
 featureSignalBufferManager.useFeatureSignalBuffer      = true;
-// Buffer length with be obtained from "onSourceProperties"
+featureSignalBufferManager.featureSignalBufferTime     = 10;
+// Buffer length with be obtained from "onSourceProperties" and intended buffer time
 
 // DATA SOURCE SET-UP
 
@@ -102,7 +103,8 @@ if ( onlineMode ) {     // Using BCI2000Web over the net
 
     };
     dataSource.onSourceProperties = function( properties ) {
-        featureSignalBufferManager.featureSignalBufferLength = properties.elementunit.gain*properties.numelements;
+        featureSignalBufferManager.featureSignalBufferLength = featureSignalBufferManager.featureSignalBufferTime
+        / (properties.elementunit.gain * properties.numelements);
     };
     dataSource.onBufferCreated = function() {
         // TODO HELLA DUMB TO DO THIS WAY
