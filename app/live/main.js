@@ -29,7 +29,7 @@ var fmui        = require( './fmui' );
 var fmgen       = require( './fmgen' );
 var fmdata      = require( './fmdata' );
 var fmfeature   = require( './fmfeature' );
-
+var fmbrain     = require( './fmbrain' );
 
 // MEAT
 
@@ -82,6 +82,9 @@ uiManager.loadConfig( path.join( configPath, 'ui' ) )
 var featureSignalBufferManager = {};
 featureSignalBufferManager.featureSignalBuffer         = null;
 featureSignalBufferManager.useFeatureSignalBuffer      = true;
+if ( featureSignalBufferManager.useFeatureSignalBuffer ){
+    uiManager.brain.colorsDomain = uiManager.brain.colorsDomainBuffer;
+}
 featureSignalBufferManager.featureSignalBufferTime     = 10;
 // Buffer length with be obtained from "onSourceProperties" and intended buffer time
 
