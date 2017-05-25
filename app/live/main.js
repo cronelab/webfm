@@ -81,11 +81,21 @@ uiManager.loadConfig( path.join( configPath, 'ui' ) )
 // Feature signal buffer setup
 var featureSignalBufferManager = {};
 featureSignalBufferManager.featureSignalBuffer         = null;
+featureSignalBufferManager.runningAverage              = null;
+featureSignalBufferManager.runningStandardDeviation    = null;
 featureSignalBufferManager.useFeatureSignalBuffer      = true;
+featureSignalBufferManager.featureSignalBufferTime     = Infinity; // In seconds
 if ( featureSignalBufferManager.useFeatureSignalBuffer ){
-    uiManager.brain.colorsDomain = uiManager.brain.colorsDomainBuffer;
+    if ( featureSignalBufferManager.featureSignalBufferTime === Infinity ){
+        uiManager.brain.dotColorsDomain = uiManager.brain.dotColorsDomainBufferInfinity;
+        uiManager.brain.dotPowerThreshold = uiManager.brain.dotPowerThresholdBufferInfinity;
+        uiManager.brain.extent = uiManager.brain.extentBufferInfinity;
+    } else {
+        uiManager.brain.dotColorsDomain = uiManager.brain.dotColorsDomainBuffer;
+        uiManager.brain.dotPowerThreshold = uiManager.brain.dotPowerThresholdBuffer;
+        uiManager.brain.extent = uiManager.brain.extentBuffer;
+    } 
 }
-featureSignalBufferManager.featureSignalBufferTime     = 10;
 // Buffer length with be obtained from "onSourceProperties" and intended buffer time
 
 // DATA SOURCE SET-UP
@@ -548,54 +558,107 @@ var ingestFeatureSignal = function( featureSignal ) {
 var bufferFeatureSignal = function( featureSignal ) {
     var bufferedFeatureSignal = {};
     // Math
-    var average = function( data ) {
-      var sum = data.reduce( function( sum, value ) {
-        return sum + value;
-      }, 0);
-
-      var avg = sum / data.length;
-      return avg;
+    var runningAverage = function( newMeasurement, numOldMeasurements, oldAverage ) {
+        return (oldAverage * numOldMeasurements + newMeasurement) / (numOldMeasurements + 1);
     }
-
+    var runningStandardDeviation = function( newMeasurement, numOldMeasurements, oldAvg, newAvg, oldStdev ) {
+        var numNewMeasurements = numOldMeasurements + 1;
+        return Math.sqrt( ( oldStdev^2 * ( numOldMeasurements - 1 )
+        +  ( newMeasurement - oldAvg ) * ( newMeasurement - newAvg ) ) / ( numNewMeasurements - 1 ) )
+    }
+    var average = function( data ) {
+        var sum = data.reduce( function( sum, value ) {
+            return sum + value;
+        }, 0);
+        var avg = sum / data.length;
+        return avg;
+    }
     var standardDeviation = function ( values ) {
-      var avg = average( values );
-
-      var squareDiffs = values.map( function( value ) {
-        var diff = value - avg;
-        var sqrDiff = diff * diff;
-        return sqrDiff;
-      });
-
-      var avgSquareDiff = average( squareDiffs );
-
-      var stdDev = Math.sqrt( avgSquareDiff );
-      return stdDev;
+        var avg = average( values );
+        var squareDiffs = values.map( function( value ) {
+            var diff = value - avg;
+            var sqrDiff = diff * diff;
+            return sqrDiff;
+        });
+        var avgSquareDiff = average( squareDiffs );
+        var stdDev = Math.sqrt( avgSquareDiff );
+        return stdDev;
     }
     // Get channels
     var chans = uiManager.allChannels;
     // Initialize buffer if needed
-    if (featureSignalBufferManager.featureSignalBuffer === null){
+    if ( featureSignalBufferManager.featureSignalBuffer === null ){
         featureSignalBufferManager.featureSignalBuffer = {};
         for ( var c = 0; c < chans.length; c++ ) {
             featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ] = [ ];
         }
     }
-    // Add to buffer
-    for ( var c = 0; c < chans.length; c++ ) {
-        if ( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].length == featureSignalBufferManager.featureSignalBufferLength ) {
-            featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].shift();
+    if ( featureSignalBufferManager.runningAverage === null ){
+        featureSignalBufferManager.runningAverage = {};
+        for ( var c = 0; c < chans.length; c++ ) {
+            featureSignalBufferManager.runningAverage[ chans[ c ] ] = [ ];
         }
-        featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].push( featureSignal[ chans[ c ] ] );
     }
+    if ( featureSignalBufferManager.runningStandardDeviation === null ){
+        featureSignalBufferManager.runningStandardDeviation = {};
+        for ( var c = 0; c < chans.length; c++ ) {
+            featureSignalBufferManager.runningStandardDeviation[ chans[ c ] ] = [ ];
+        }
+    }
+    if ( featureSignalBufferManager.featureSignalBufferLength === Infinity ){
+        // Add to buffer
+       for ( var c = 0; c < chans.length; c++ ) {
+           if ( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].length == 2 ) {
+               featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].shift();
+           }
+           featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].push( featureSignal[ chans[ c ] ] );
+       }
+    } else {
+       // Add to buffer
+       for ( var c = 0; c < chans.length; c++ ) {
+           if ( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].length == featureSignalBufferManager.featureSignalBufferLength ) {
+               featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].shift();
+           }
+           featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].push( featureSignal[ chans[ c ] ] );
+       }
+    }
+    
     // Create buffered signal
     for ( var c = 0; c < chans.length; c++ ) {
         if ( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].length == 1) {
-            bufferedFeatureSignal[ chans[ c ] ] = 0; 
+            featureSignalBufferManager.numBufferPoints = 1;
+            // Calculate running average
+            featureSignalBufferManager.runningAverage[ chans[ c ] ] = 0;
+            // Calculate running standard deviation
+            featureSignalBufferManager.runningStandardDeviation[ chans[ c ] ] = 0;
+
+            bufferedFeatureSignal[ chans[ c ] ] = 0;
         }
         else {
-            bufferedFeatureSignal[ chans[ c ] ] = ( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ][ featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].length - 1 ]
-            - average( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ] ) )
-            / standardDeviation( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ] );
+            featureSignalBufferManager.numBufferPoints += 1;
+            if ( featureSignalBufferManager.featureSignalBufferLength === Infinity ){
+                // Calulate running average
+                var oldAvg = featureSignalBufferManager.runningAverage[ chans[ c ] ];
+                featureSignalBufferManager.runningAverage[ chans[ c ] ] = 
+                runningAverage( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ][ 1 ],
+                featureSignalBufferManager.numBufferPoints - 1,
+                featureSignalBufferManager.runningAverage[ chans[ c ] ] );
+                // Calculate running standard deviation
+                featureSignalBufferManager.runningStandardDeviation[ chans[ c ] ] =
+                runningStandardDeviation( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ][ 1 ],
+                featureSignalBufferManager.numBufferPoints - 1,
+                oldAvg,
+                featureSignalBufferManager.runningAverage[ chans[ c ] ],
+                featureSignalBufferManager.runningStandardDeviation[ chans[ c ] ] );
+
+                bufferedFeatureSignal[ chans[ c ] ] = ( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ][ featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].length - 1 ]
+                -  featureSignalBufferManager.runningAverage[ chans[ c ] ])
+                / featureSignalBufferManager.runningStandardDeviation[ chans[ c ] ];
+            } else {
+                bufferedFeatureSignal[ chans[ c ] ] = ( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ][ featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].length - 1 ]
+                - average( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ] ) )
+                / standardDeviation( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ] );
+            }
         }
     }
     // Return buffered signal

@@ -52,7 +52,10 @@ fmbrain.BrainVisualizer = function( baseNodeId ) {
     this.dotMaxRadius   = 0.040;
 
 
-    this.extent             = 10.0;         // TODO Expose
+    //this.extent             = 200.0;         // TODO Expose
+    this.extent               = 600.0;         // TODO Expose
+    this.extentBuffer         = 10.0;         // TODO Expose
+    this.extentBufferInfinity = 180.0;        // TODO Expose
 
     /*
     this.dotFillNeutral     = '#ffffff';
@@ -60,10 +63,14 @@ fmbrain.BrainVisualizer = function( baseNodeId ) {
     this.dotFillNegative    = '#74add1';
     */
 
-    this.dotColors           = ["#313695","#4575b4","#74add1","#abd9e9","#ffffff","#fee090","#fdae61","#f46d43","#d73027"];
-    this.dotColorsDomain     = [ -50,       -40,       -30,       -20,    0.0,      20,     30,        40,        50 ];
-    this.dotColorsDomain     = [ -5,       -3.5,       -2,       -0.5,    0.0,      0.5,     2,        3.5,        5 ];
-    this.dotPowerThreshold   = [ this.dotColorsDomain[3], this.dotColorsDomain[5] ];
+    this.dotColors                       = ["#313695","#4575b4","#74add1","#abd9e9","#ffffff","#fee090","#fdae61","#f46d43","#d73027"];
+    //this.dotColorsDomain                 = [ -50,     -40,      -30,      -20,      0.0,      20,       30,       40,       50  ];
+    this.dotColorsDomain                 = [ -450,    -350,     -100,     -30,      0.0,      30,       100,      350,      450 ];
+    this.dotColorsDomainBuffer           = [ -5,      -3.5,     -2,       -1,       0.0,      1,        2,        3.5,      5   ];
+    this.dotColorsDomainBufferInfinity   = [ -120,    -80,      -50,      -20,       0.0,     20,       50,       80,       120 ];
+    this.dotPowerThreshold               = [ this.dotColorsDomain[3], this.dotColorsDomain[5] ];
+    this.dotPowerThresholdBuffer         = [ this.dotColorsDomainBuffer[3], this.dotColorsDomainBuffer[5] ];
+    this.dotPowerThresholdBufferInfinity = [ this.dotColorsDomainBufferInfinity[3], this.dotColorsDomainBufferInfinity[5] ];
     this.doDotPowerThreshold = true;
     
 };
