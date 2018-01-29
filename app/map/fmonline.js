@@ -107,8 +107,7 @@ fmonline.OnlineDataSource.prototype = {
 
         if ( address === undefined ) {
             address = this.config.sourceAddress;
-        }
-
+}
         if ( this.config.debug ) {
             console.log( 'Connecting to: ' + address );
         }
@@ -171,7 +170,6 @@ fmonline.OnlineDataSource.prototype = {
     },
 
     ensureRunning: function ensureRunning() {
-      var executed = false;
 
         // Capture this for inline functions
         var manager = this;
@@ -186,6 +184,7 @@ fmonline.OnlineDataSource.prototype = {
             }
 
             var checkRunning = function checkRunning() {
+              var executed = false;
 
                 if (!manager._bciConnection.connected()) {
                     // Can't check system state if not connected
@@ -207,24 +206,19 @@ fmonline.OnlineDataSource.prototype = {
                     }
 
                     if (result.output.search('Running') >= 0) {
+
                         // System state includes 'Running', so we're now good to go
                         // Cache this fact to speed subsequent calls
-                        manager._bciRunning = true;
-
                         resolve(true);
-                        return;
-                    }
-                    else if (result.output.search('Resting') >=0 && executed == false) {
-                      executed = true;
-                      manager._connectToData();
-
+                        //return;
+                    } else if (result.output.search('Resting') >= 0 && executed == false) {
+                        executed = true;
+                        manager._connectToData();
                     }
 
                     // Not running; try again later
                     setTimeout(checkRunning, manager.config.checkRunningInterval);
                 });
-                setTimeout(checkRunning, 2000);
-
             };
 
             setTimeout(checkRunning, manager.config.checkRunningInterval);
