@@ -29,6 +29,7 @@ var fmui        = require( './fmui' );
 var fmgen       = require( './fmgen' );
 var fmdata      = require( './fmdata' );
 var fmfeature   = require( './fmfeature' );
+var fmraster    = require( './fmraster' );
 
 
 // MEAT
@@ -65,6 +66,7 @@ var dataset         = new fmdata.Dataset();
 
 // UI
 var uiManager       = new fmui.InterfaceManager();
+
 // TODO Handle rejection
 uiManager.loadConfig( path.join( configPath, 'ui' ) )
             .then( function() {
@@ -94,6 +96,16 @@ if ( onlineMode ) {     // Using BCI2000Web over the net
         dataset.setupChannels( properties.channels );
 
         updateProperties( properties );
+        //This is really not good, and probably won't work in all cases.
+        dataSource._bciConnection.execute('List Parameter Sequence', function (result) {
+            //var sequenceList = []
+            var sequenceList = result.output.substring(result.output.indexOf("=") + 2, result.output.indexOf(" // Sequence in which stimuli")).split(" ");
+            for (var i = 0; i < sequenceList.length; i++) {
+                sequenceList[i] = parseInt(sequenceList[i]);
+            }
+            sequenceList.shift();
+            console.log(Math.max.apply(Math, sequenceList));
+        });
 
     };
     dataSource.onBufferCreated = function() {
@@ -291,7 +303,7 @@ var prepareSubjectDependencies = function( theSubject ) {
 
             var imageData = data[0];
             var sensorGeometry = data[1];
-            
+
             // We have what we need, make the brain plot!
             uiManager.brain.setup( imageData, sensorGeometry );
 
@@ -494,7 +506,7 @@ if ( loadMode ) {       // Using data loaded from the hive
 // Property registration
 
 var updateProperties = function( properties ) {
-    
+
     // TODO Since this code is synchronous these calls won't do anything?
     // uiManager.showIcon( 'transfer' );
 
@@ -518,6 +530,10 @@ var updateProperties = function( properties ) {
 var ingestSignal = function( signal ) {
     // Update scope view
     uiManager.scope.update( signal );
+
+
+
+
 };
 
 var startTrial = function() {
@@ -525,6 +541,28 @@ var startTrial = function() {
     uiManager.showIcon( 'transfer' );
     // Makes the trial count bold, to indicate we're in a trial
     uiManager.activateTrialCount();
+
+
+    //Probably not the best place to put this. but this will update the .stim-display to show what stimulusCode was just presented via BCI2000
+    dataSource._bciConnection.execute('Get StimulusCode').then(function (result) {
+      var newFmDiv = '<div id="fmX" class="stim-displayX"><br><br></div>'.replace(/X/g, result.toString().trim());
+      var fmDiv = "fmX".replace("X", result.toString().trim());
+      var fmNum = $('#fmX'.replace("X", result.toString()));
+
+        if (fmNum.length == 0) {
+            $('#fmContainer').append(newFmDiv);
+            var pTag = document.createElement("P");
+            pTag.appendChild(document.createTextNode("Stimulus Code is: X".replace("X", result.toString().trim())));
+            document.getElementById(fmDiv).appendChild(pTag).style.paddingLeft = "275px";
+            pTag.style.fontWeight="900";
+    }
+    // if(result%2==0)
+         $('.stim-display').text(result);
+        // console.log(uiManager.raster)
+        console.log(dataset)
+        console.log(fmdata)
+
+});
 };
 
 // TODO Testing
@@ -532,7 +570,7 @@ var startTrial = function() {
 // var hgFeature = new fmfeature.RemoteFeature( path.join( apiPath, 'compute', 'hgfft' ) );
 
 var ingestTrial = function( trialData ) {
-    
+
     // We're done transferring
     uiManager.hideIcon( 'transfer' );
 
@@ -549,6 +587,7 @@ var ingestTrial = function( trialData ) {
 
             uiManager.updateTrialCount( dataset.getTrialCount() );
             uiManager.deactivateTrialCount();
+
 
         } );
 
@@ -567,21 +606,29 @@ var ingestTrial = function( trialData ) {
 
 };
 
-var updateDataDisplay = function() {
+var updateDataDisplay = function updateDataDisplay() {
 
-    uiManager.raster.update( dataset.displayData );
+    var timeBounds = dataset.getTimeBounds();
+    var stimCode = $('.stim-display').text();
 
-    uiManager.brain.update( dataset.dataForTime( uiManager.raster.getCursorTime() ) );
+    //For whatever stimulus code is presented to the user
+    if(!uiManager.raster[parseInt(stimCode)] == null)
+    {
+      uiManager.raster[parseInt(stimCode)].update( dataset.displayData );
+      uiManager.brain.update( dataset.dataForTime( uiManager.raster[parseInt(stimCode)].getCursorTime() ) );
+      uiManager.raster[parseInt(stimCode)].updateTimeRange( [timeBounds.start, timeBounds.end] );
+    }
+    //For the combined average of all stimulus codes
+    uiManager.raster[0].update( dataset.displayData );
+    uiManager.brain.update( dataset.dataForTime( uiManager.raster[0].getCursorTime() ) );
+    uiManager.raster[0].updateTimeRange( [timeBounds.start, timeBounds.end] );
+
 
     // KLUDGE
     // TODO Can't think of a good way to deal with combined async of
     // loading UI config and setting up data source
     // TODO Need to make compatible with dataset
     //var trialWindow = dataSource.getTrialWindow();
-
-    var timeBounds = dataset.getTimeBounds();
-
-    uiManager.raster.updateTimeRange( [timeBounds.start, timeBounds.end] );
     // END KLUDGE
 
 }
@@ -589,7 +636,7 @@ var updateDataDisplay = function() {
 /*
 var updateStatistics = function( trialData ) {
 
-    
+
     cronelib.forEachAsync( Object.keys( channelStats ), function( ch ) {
         channelStats[ch].ingest( trialData[ch] );
         meanData[ch] = channelStats[ch].fdrCorrectedValues( 0.05 );
@@ -662,16 +709,18 @@ var updatePlotsPostData = function() {
 };
 */
 
-uiManager.raster.oncursormove = function( newTime ) {
-
-    uiManager.updateSelectedTime( newTime );
+    for(var i=0;i<uiManager.raster.length;i++)
+    {
+      uiManager.raster[i].oncursormove = function( newTime ) {
+        uiManager.updateSelectedTime( newTime );
+        uiManager.brain.update( dataset.dataForTime( newTime ) );
+      }
 
     /*
     var meanDataSlice = dataForTime( newTime );
     uiManager.brain.update( meanDataSlice );
     */
 
-    uiManager.brain.update( dataset.dataForTime( newTime ) );
 
 };
 
@@ -779,7 +828,7 @@ var updateBaselineWindow = function( newWindow ) {
 $( window ).on( 'resize', function() {
 
     uiManager.didResize();
-    
+
 } );
 
 
@@ -792,7 +841,3 @@ $( window ).on( 'beforeunload', function() {
     }
 
 } );
-
-
-
-//

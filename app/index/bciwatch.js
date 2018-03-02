@@ -8,7 +8,7 @@
 
 // REQUIRES
 
-var bci2k = require( '../lib/bci2k-dev' );
+var bci2k = require( 'bci2k' );
 
 require( 'setimmediate' );                      // Needed to fix promise
                                                 // polyfill on non-IE
@@ -88,7 +88,7 @@ bciwatch.BCI2KWatcher.prototype = {
     },
 
     loadConfig: function( configURI ) {
-        
+
         var watcher = this;     // Cache this for nested functions
 
         // Wrap $.getJSON in a standard Promise
@@ -171,7 +171,7 @@ bciwatch.BCI2KWatcher.prototype = {
         var watcher = this;
 
         this.watching = true;
-        
+
         // Check Now!
         setTimeout( function() {
             watcher._checkState();

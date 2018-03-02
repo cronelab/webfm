@@ -58,15 +58,46 @@ fmui.InterfaceManager = function() {
 
     // Allocate members
 
-    this.raster = new fmraster.ChannelRaster( '#fm' );
+    this.rasters = new fmraster.ChannelRaster( '#fm' );
+    this.rasters1 = new fmraster.ChannelRaster( '#fm1' );
+    this.rasters2 = new fmraster.ChannelRaster( '#fm2' );
+    this.rasters3 = new fmraster.ChannelRaster( '#fm3' );
+    this.rasters4 = new fmraster.ChannelRaster( '#fm4' );
+    this.rasters5 = new fmraster.ChannelRaster( '#fm5' );
+    this.rasters6 = new fmraster.ChannelRaster( '#fm6' );
+    this.rasters7 = new fmraster.ChannelRaster( '#fm7' );
+    this.rasters8 = new fmraster.ChannelRaster( '#fm8' );
+    this.rasters9 = new fmraster.ChannelRaster( '#fm9' );
+    this.rasters10 = new fmraster.ChannelRaster( '#fm10' );
+    this.rasters11 = new fmraster.ChannelRaster( '#fm11' );
+    this.rasters12 = new fmraster.ChannelRaster( '#fm12' );
+
     this.brain = new fmbrain.BrainVisualizer( '#fm-brain' );
     this.scope = new fmscope.ChannelScope( '#fm-scope' );
-
-    // Event hooks
-
-    this.raster.onselectchannel = function( newChannel ) {
+    this.raster = []
+    this.raster.push(this.rasters);
+    this.raster.push(this.rasters1);
+    this.raster.push(this.rasters2);
+    this.raster.push(this.rasters3);
+    this.raster.push(this.rasters4);
+    this.raster.push(this.rasters5);
+    this.raster.push(this.rasters6);
+    this.raster.push(this.rasters7);
+    this.raster.push(this.rasters8);
+    this.raster.push(this.rasters9);
+    this.raster.push(this.rasters10);
+    this.raster.push(this.rasters11);
+    this.raster.push(this.rasters12);
+        // Event hooks
+for(var i =0; i<this.raster.length; i++)
+{
+    this.raster[i].onselectchannel = function( newChannel ) {
         manager.brain.setSelectedChannel( newChannel );
     };
+  }
+    // this.raster1.onselectchannel = function( newChannel ) {
+    //     manager.brain.setSelectedChannel( newChannel );
+    // };
 
     // Events
 
@@ -81,7 +112,7 @@ fmui.InterfaceManager.prototype = {
     constructor: fmui.InterfaceManager,
 
     loadConfig: function( configURI ) {
-        
+
         var manager = this;     // Cache this for nested functions
 
         // Wrap $.getJSON in a standard Promise
@@ -100,12 +131,16 @@ fmui.InterfaceManager.prototype = {
     },
 
     _syncRasterConfig: function() {
-        this.raster.setRowHeight( this.getRowHeight() );
-        this.raster.setExtent( this.getRasterExtent() );
+
+      for(var i =0; i<this.raster.length; i++)
+      {
+        this.raster[i].setRowHeight( this.getRowHeight() );
+        this.raster[i].setExtent( this.getRasterExtent() );
+      }
     },
 
     _mergeDefaultConfig: function( config ) {
-    
+
         // Copy over any extras that might not be merged here
         var mergedConfig = config;
 
@@ -127,7 +162,7 @@ fmui.InterfaceManager.prototype = {
         mergedConfig.chartDebounceDelay = config.chartDebounceDelay || 100;
 
         return mergedConfig;
-        
+
     },
 
     setup: function() {
@@ -144,15 +179,14 @@ fmui.InterfaceManager.prototype = {
             manager.hideIcon( icon );
         } );
 
-        
-        this.raster.setup();    // TODO Always will fail for charts until
-                                // data arrives; necessary?
-
-        //this.scope.setup();
+        for(var i =0; i<this.raster.length; i++)
+        {
+          this.raster[i].setup();    // TODO Always will fail for charts until
+        }            // data arrives; necessary?
 
         // Populate options with the current cookie-set values
         this._populateOptions( this.getOptions() );
-        
+
         this._syncRasterConfig();
 
     },
@@ -211,6 +245,19 @@ fmui.InterfaceManager.prototype = {
             event.preventDefault();
             // TODO Bad.
             manager.onsave( $( '#fm-option-save-name' ).val() );
+        } );
+
+        $( '.dropdown-menu' ).children().on( 'click', function( event ) {
+          if (!$(this).hasClass("active")) {
+
+          // Remove the class from anything that is active
+          //$("li.active").removeClass("active");
+          // And make this active
+          $(this).addClass("active");
+          }
+          else{
+            $(this).removeClass("active");
+          }
         } );
 
     },
@@ -322,7 +369,10 @@ fmui.InterfaceManager.prototype = {
         var manager = this;
 
         var updater = function() {
-            manager.raster.update();
+          for(var i =0; i<manager.raster.length; i++)
+          {
+            manager.raster[i].update();
+          }
         };
 
         if ( guarantee ) {
@@ -332,7 +382,6 @@ fmui.InterfaceManager.prototype = {
             // Debounce the update calls to prevent overload
             cronelib.debounce( updater, this.config.rasterDebounceDelay, true )();
         }
-
     },
 
     updateScope: function( guarantee ) {
@@ -351,7 +400,6 @@ fmui.InterfaceManager.prototype = {
             // Debounce the update calls to prevent overload
             cronelib.debounce( updater, this.config.scopeDebounceDelay, true )();
         }
-
     },
 
     updateBrain: function() {
@@ -409,14 +457,18 @@ fmui.InterfaceManager.prototype = {
         // TODO Use row in middle of viewport, not fraction of scrolling
         var prevScrollFraction = this._getScrollFraction();
         // Alter raster parameters
-        this.raster.setRowHeight( this.getRowHeight() );
+        for(var i =0; i<this.raster.length; i++)
+        {
+        this.raster[i].setRowHeight( this.getRowHeight() );
+}
+  //      this.raster1.setRowHeight( this.getRowHeight() );
         // Redraw the raster with a guarantee
         this.updateRaster( true );
         //Restore the scroll state
         $( document ).scrollTop( this._topForScrollFraction( prevScrollFraction ) );
 
     },
-    
+
     zoomOut: function( event ) {
 
         // Update UI-internal gain measure
@@ -431,7 +483,8 @@ fmui.InterfaceManager.prototype = {
         // TODO Use row in middle of viewport, not fraction of scrolling
         var prevScrollFraction = this._getScrollFraction();
         // Alter raster parameters
-        this.raster.setRowHeight( this.getRowHeight() );
+        this.raster[0].setRowHeight( this.getRowHeight() );
+    //    this.raster1.setRowHeight( this.getRowHeight() );
         // Redraw the raster with a guarantee
         this.updateRaster( true );
         // Restore the scroll state
@@ -451,7 +504,8 @@ fmui.InterfaceManager.prototype = {
         this._updateGainClasses();
 
         // Alter raster parameters
-        this.raster.setExtent( this.getRasterExtent() );
+        this.raster[0].setExtent( this.getRasterExtent() );
+        // this.raster1.setExtent( this.getRasterExtent() );
 
         // Redraw the raster with a guarantee
         this.updateRaster( true );
@@ -469,7 +523,8 @@ fmui.InterfaceManager.prototype = {
         this._updateGainClasses();
 
         // Alter raster parameters
-        this.raster.setExtent( this.getRasterExtent() );
+        this.raster[0].setExtent( this.getRasterExtent() );
+        // this.raster1.setExtent( this.getRasterExtent() );
 
         // Redraw the raster with a guarantee
         this.updateRaster( true );
@@ -628,7 +683,7 @@ fmui.InterfaceManager.prototype = {
         $( '#fm-option-resp-trial-end' ).val( options.response.window.end );
         $( '#fm-option-resp-baseline-start' ).val( options.response.baselineWindow.start );
         $( '#fm-option-resp-baseline-end' ).val( options.response.baselineWindow.end );
-        
+
         // Timing strategy
         $( '#fm-option-stim-timing-state' ).prop( 'checked', options.stimulus.timingStrategy == 'state' );
         $( '#fm-option-stim-timing-signal' ).prop( 'checked', options.stimulus.timingStrategy == 'signal' );
@@ -673,7 +728,7 @@ fmui.InterfaceManager.prototype = {
         newChannelNames.forEach( function( ch ) {
             var curRow = $( '<tr></tr>' );
             curRow.append( $( '<th scope="row" class="fm-montage-cell-channelname">' + ch + '</th>' ) );
-            
+
             var isExcludedText = exclusion[ch] ? 'Yes' : 'No';
             curRow.append( $( '<td class="fm-montage-cell-isexcluded">' + isExcludedText + '</td>' ) );    // TODO Check if excluded
 
@@ -825,7 +880,11 @@ fmui.InterfaceManager.prototype = {
         this.setExclusion( exclusion );
 
         // Update raster display
-        this.raster.setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
+        for(var i =0; i<this.raster.length; i++)
+        {
+          this.raster[i].setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
+        }
+        // this.raster1.setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
     },
 
     unexclude: function( channel ) {
@@ -835,7 +894,10 @@ fmui.InterfaceManager.prototype = {
         this.setExclusion( exclusion );
 
         // Update raster display
-        this.raster.setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
+        for(var i =0; i<this.raster.length; i++)
+        {
+          this.raster[i].setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
+        }
     },
 
     channelFilter: function() {
@@ -858,7 +920,10 @@ fmui.InterfaceManager.prototype = {
 
         // Update the raster with the filtered channel list
         // TODO Support different ordering, or just exclusion?
-        this.raster.setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
+        for(var i =0; i<this.raster.length; i++)
+        {
+          this.raster[i].setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
+        }
 
     },
 
@@ -885,11 +950,11 @@ fmui.InterfaceManager.prototype = {
 
     }
 
-    
+
     /* Animation */
 
     // TODO
-    
+
 };
 
 

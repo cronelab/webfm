@@ -8,7 +8,7 @@
 
 // REQUIRES
 
-var bci2k = require( '../lib/bci2k-dev' );
+var bci2k = require( 'bci2k' );
 
 require( 'setimmediate' );                      // Needed to fix promise
                                                 // polyfill on non-IE
@@ -217,7 +217,8 @@ fmonline.OnlineDataSource.prototype = {
                     }
 
                     // Not running; try again later
-                    setTimeout(checkRunning, manager.config.checkRunningInterval);
+                    // Not sure if this is properly closing the ports before reconnecting
+                    setTimeout(checkRunning, manager.config.checkRunningIntervalReconnect);
                 });
             };
 

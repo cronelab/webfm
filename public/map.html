@@ -16,6 +16,10 @@
   <!-- Styles -->
   <link rel="stylesheet" type="text/css" href="/css/bootstrap/bootstrap.css">
   <link rel="stylesheet" type="text/css" href="/css/map.css">
+  <link rel="stylesheet" href="/webGLBrainz/TemplateData/style.css">
+
+  <script src="/webGLBrainz/Build/UnityLoader.js"></script>
+  <script src="/webGLBrainz/TemplateData/UnityProgress.js"></script>
 
   <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
   <!--[if lt IE 9]>
@@ -34,7 +38,7 @@
 
   <nav class="navbar navbar-inverse navbar-fixed-top">
     <div class="container-fluid">
-      
+
       <div class="navbar-header">
         <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
           <span class="sr-only">Toggle navigation</span>
@@ -45,7 +49,7 @@
       </div>
 
       <div class="collapse navbar-collapse">
-        
+
         <a class="navbar-brand"><span class="fm-subject-name">[subject]</span> - <span class="fm-task-name">[task]</span></a>
 
         <ul class="nav navbar-nav">
@@ -105,12 +109,15 @@
           <li class="fm-gain-down">
             <a class="glyphicon-button" href="#"><span class="glyphicon glyphicon-volume-down"></span></a>
           </li>
+          <li class="fm-stim-select">
+            <a class="glyphicon-button" href="#"><span class="glyphicon glyphicon-book"></span></a>
+          </li>
         </ul>
 
         <ul class="nav navbar-nav navbar-right">
 
           <li class="dropdown fm-dataset-list">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">High gamma (70–110 Hz) <span class="caret"></span></a>
+            <a href="#" id="bandDropdown" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">High gamma (70–110 Hz) <span class="caret"></span></a>
             <ul class="dropdown-menu">
               <li class="dropdown-header">CCEP</li>
               <li><a href="#">LTG77 <span class="glyphicon glyphicon-arrow-right"></span> LTG78</a></li>
@@ -121,6 +128,24 @@
               <li><a href="#">LTG77 <span class=""></span> LTG78</a></li>
             </ul>
           </li>
+          <li class="dropdown fm-dataset-list">
+
+          <a href="#" id="stimDropdown" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Stimulus selection <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="#">Stimulus Code 1</a></li>
+            <li><a href="#">Stimulus Code 2</a></li>
+            <li><a href="#">Stimulus Code 3</a></li>
+            <li><a href="#">Stimulus Code 4</a></li>
+            <li><a href="#">Stimulus Code 5</a></li>
+            <li><a href="#">Stimulus Code 6</a></li>
+            <li><a href="#">Stimulus Code 7</a></li>
+            <li><a href="#">Stimulus Code 8</a></li>
+            <li><a href="#">Stimulus Code 9</a></li>
+            <li><a href="#">Stimulus Code 10</a></li>
+            <li><a href="#">Stimulus Code 11</a></li>
+            <li><a href="#">Stimulus Code 12</a></li>
+          </ul>
+        </li>
           <li class="fm-show-options">
             <a class="glyphicon-button" href="#"><span class="glyphicon glyphicon-cog"></span></a>
           </li>
@@ -132,21 +157,43 @@
 
 
   <!-- Main content -->
-      
+
   <div class="container-fluid">
 
     <div class="row">
 
-      <div class="col-md-5 col-sm-5">
-
-          <div id="fm"></div>
-
+      <div class="col-md-5 col-sm-5" id="fmContainer">
+        <div id="fm"></div>
+        Stimulus Code is currently:<p class = "stim-display"></p>
       </div>
-
+      <script>
+        var gameInstance = UnityLoader.instantiate("gameContainer", "/webGLBrainz/Build/webGLBrainz.json", {onProgress: UnityProgress});
+      </script>
+      <style>
+        #fmContainer { display: flex; flex-direction: column; }
+        #fm1 { order: 1; }
+        #fm2 { order: 2; }
+        #fm3 { order: 3; }
+        #fm4 { order: 4; }
+        #fm5 { order: 5; }
+        #fm6 { order: 6; }
+        #fm7 { order: 7; }
+        #fm8 { order: 8; }
+        #fm9 { order: 9; }
+        #fm10 { order: 10; }
+        #fm11 { order: 11; }
+        #fm12 { order: 12; }
+      </style>
       <div class="col-md-7 col-sm-7 hidden-xs" style="position:fixed; right:0px;">
           <!-- TODO Add aspect ratio button -->
-
-          <div id="fm-brain"></div>
+          <!-- <div id="fm-brain"></div> -->
+          <div class="webgl-content">
+            <div id="gameContainer"></div>
+            <div class="footer1">
+              <div class="fullscreen" onclick="gameInstance.SetFullscreen(1)"></div>
+              <div class="title">ReconGL</div>
+            </div>
+          </div>
 
       </div>
 
@@ -461,7 +508,7 @@
                 <div id="fm-options-content-save" role="tabpanel" class="tab-pane">
 
                   <h3 style="margin-top: 6px;">Save</h3>
-                  
+
                   <div class="row">
 
                     <div class="col-md-6">
@@ -551,7 +598,7 @@
     </div>
   </div>
 
-  
+
   <!-- Footer -->
 
   <footer class="footer navbar-fixed-bottom">
@@ -568,9 +615,10 @@
 	<!-- Scripts -->
 	<!-- <script data-main="webfm" src="lib/require.js"></script> -->
   <script src="/js/jquery/jquery.min.js"></script>
-  <script src="/js/bootstrap/bootstrap.min.js"></script>
+  <!-- <script src="/js/bootstrap/bootstrap.min.js"></script> -->
 
   <script src="/js/app/map.js"></script>
+
 </body>
 
 </html>

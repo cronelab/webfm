@@ -164,6 +164,15 @@ var serveLive = function( req, res ) {
     res.sendFile( path.join( rootDir, 'live.html' ) );
 }
 
+// Experimental AMI Views
+
+var serveAmiView_quad = function( req, res ) {
+    res.sendFile( path.join( rootDir, 'amiView_quad.html' ) );
+}
+var serveAmiView_singlepass = function( req, res ) {
+    res.sendFile( path.join( rootDir, 'amiView_singlepass.html' ) );
+}
+
 
 // TODO Bad practice to have map.html just figure it out from path
 // Should use template engine. This is janky af.
@@ -177,6 +186,10 @@ app.get( '/live/config/online',  serveConfig( 'fmonline.json' ) );
 app.get( '/live/config/tasks',   serveConfig( 'tasks.json' ) );
 
 // Generator
+
+app.get( '/amiView_singlepass', serveAmiView_singlepass );
+app.get( '/amiView_quad', serveAmiView_quad );
+
 app.get( '/map', serveMap );
 app.get( '/map/generate', serveMap );
 
@@ -230,7 +243,7 @@ var getSubjectMetadata = function( subject, cb ) {
 }
 
 var checkSubject = function( subject, cb ) {
-    
+
     var checkPath = path.join( dataDir, subject );
 
     fs.stat( checkPath, function( err, stats ) {
@@ -451,7 +464,7 @@ app.get( '/api/brain/:subject', function( req, res ) {
 
     // First check if subject exists
     checkSubject( subject, function( err, isSubject ) {
-        
+
         if ( err ) {
             // Based on how checkSubject is defined, this shouldn't happen
             errOut( 500, 'Error determining if ' + subject + ' is a subject: ' + JSON.stringify( err ) );
@@ -533,9 +546,9 @@ app.put( '/api/brain/:subject', function( req, res ) {
             form.uploadDir = uploadsDir;
 
             form.on( 'file', function( field, file ) {
-                
+
                 console.log( 'Received file "' + file.name + '" for field "' + field + '" at path: ' + file.path );
-                
+
                 // Process the file
                 base64.encode( file.path, {
                     string: true,
@@ -604,7 +617,7 @@ app.get( '/api/geometry/:subject', function( req, res ) {
 
     // First check if subject exists
     checkSubject( subject, function( err, isSubject ) {
-        
+
         if ( err ) {
             // Based on how checkSubject is defined, this shouldn't happen
             errOut( 500, 'Error determining if ' + subject + ' is a subject: ' + JSON.stringify( err ) );
@@ -650,7 +663,7 @@ app.put( '/api/geometry/:subject', function( req, res ) {
     }
 
     var subject = req.params.subject;
-    
+
     // First check if subject exists
     checkSubject( subject, function( err, isSubject ) {
 
@@ -713,7 +726,7 @@ app.put( '/api/geometry/:subject', function( req, res ) {
             var handleJSONData = function( data, cb ) {
 
                 // We're given the new metadata straight in the body as JSON;
-                // just incorporate it 
+                // just incorporate it
 
                 try {
                     newMetadata.sensorGeometry = JSON.parse( data );
@@ -808,16 +821,16 @@ app.put( '/api/geometry/:subject', function( req, res ) {
                 form.uploadDir = uploadsDir;
 
                 form.on( 'file', function( field, file ) {
-                    
+
                     // TODO Remove log?
                     console.log( 'Received file "' + file.name + '" for field "' + field + '" at path: ' + file.path );
-                    
+
                     // How we process the file depends on the extension
                     var fileExtension = path.extname( file.name );
 
                     if ( fileExtension == '.json' ) {
                         // Our file data is just JSON, which we can handle
-                        
+
                         // TODO Should move parsing out of called method, so that
                         // it can be handled by jsonfile?
                         fs.readFile( file.path, function( err, data ) {
@@ -1029,7 +1042,7 @@ app.get( '/api/data/:subject/:record', function( req, res ) {
                 if ( recordData.metadata['_import'] !== undefined ) {
 
                     // Execute metadata imports
-                    
+
                     var imports = recordData.metadata['_import'];
 
                     // Put all imports on the same footing
@@ -1039,7 +1052,7 @@ app.get( '/api/data/:subject/:record', function( req, res ) {
 
                     // Create promises
                     var importPromise = function( relPath ) {
-                        
+
                         // Absolut-ize import path
                         var absPath = path.normalize( path.join( dataDir, subject, relPath ) );
 
@@ -1056,8 +1069,8 @@ app.get( '/api/data/:subject/:record', function( req, res ) {
                     };
 
                     Promise.all( imports.map( importPromise ) )
-                        .then( function( importData ) {                            
-                            
+                        .then( function( importData ) {
+
                             // Execute the imports on the metadata being sent
                             for ( var i = 0; i < importData.length; i++ ) {
                                 Object.assign( sendData.metadata, importData[i] );
@@ -1110,7 +1123,7 @@ app.put( '/api/data/:subject/:record', rawBody, function( req, res ) {
 
     // First check if subject exists
     checkSubject( subject, function( err, isSubject ) {
-        
+
         if ( err ) {
             // Based on how checkSubject is defined, this shouldn't happen
             errOut( 500, 'Error determining if ' + subject + ' is a subject: ' + JSON.stringify( err ) );
