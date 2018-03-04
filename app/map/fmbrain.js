@@ -138,7 +138,7 @@ fmbrain.BrainVisualizer.prototype = {
         this.sensorGeometry = sensorGeometry;
 
         this.data = this._defaultData( Object.keys( this.sensorGeometry ) );
-        
+
         // Width of *brain* from DOM
         this.size.width = $( this.baseNodeId ).width() - ( this.margin.left + this.margin.right );
 
@@ -175,7 +175,7 @@ fmbrain.BrainVisualizer.prototype = {
         // Base SVG fills entire baseNode when possible.
         this.brainSvg = d3.select( this.baseNodeId ).append( 'svg' )
                                                         .attr( 'class', 'fm-brain-svg' );
-        
+
         // Group that holds everything
         var g = this.brainSvg.append( 'g' )
                                 .attr( 'transform', 'translate(' + this.margin.left + ',' + this.margin.top + ')' );
@@ -334,7 +334,22 @@ fmbrain.BrainVisualizer.prototype = {
         }
 
         var brain = this;
-
+        var num = 128;
+        for(let i = 1;i<=128;i++)
+        {
+          if(i<=9)
+          {
+            gameInstance.SendMessage("LTG00"+i.toString(), "testFunction", eval("brain.data.LTG00"+i.toString()))
+          }
+          else if(i>9 && i <=99)
+          {
+            gameInstance.SendMessage("LTG0"+i.toString(), "testFunction", eval("brain.data.LTG0"+i.toString()))
+          }
+          else if(i>99 && i <=129)
+          {
+            gameInstance.SendMessage("LTG"+i.toString(), "testFunction", eval("brain.data.LTG"+i.toString()))
+          }
+        }
         var brainDots = d3.select( this.baseNodeId ).select( '.fm-brain-dots' ).selectAll( '.fm-brain-dot' )
                             .data( this._reformatForDisplay( this.data ), function( d ) {
                                 return d.channel;
