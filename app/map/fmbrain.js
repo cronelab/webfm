@@ -245,6 +245,7 @@ fmbrain.BrainVisualizer.prototype = {
         if ( isNaN( d.value ) ) {
             return this.dotXScale( this.dotRadiusScale( Math.abs( 0.0 ) ) );
         }
+        console.log(this.dotXScale( this.dotRadiusScale( Math.abs( d.value ) ) ));
         return this.dotXScale( this.dotRadiusScale( Math.abs( d.value ) ) );
     },
     _dotPosition: function( dot ) {
@@ -276,7 +277,6 @@ fmbrain.BrainVisualizer.prototype = {
 
         this.size.width = width;
         this.size.height = height;
-
         // Update scales
 
         this.dotXScale.range( [0, this.size.width] );

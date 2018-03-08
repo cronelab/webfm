@@ -28,7 +28,7 @@ var fullscreen  = require( '../lib/fullscreen' );
 
 var fmbrain     = require( './fmbrain' );
 var fmraster    = require( './fmraster' );
-var fmscope     = require( './fmscope' );
+var fmscope     = require( '../shared/fmscope' );
 
 
 // GLOBALS

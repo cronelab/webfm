@@ -27,7 +27,7 @@ var cronelib    = require( '../lib/cronelib' );
 var fullscreen  = require( '../lib/fullscreen' );
 
 var fmbrain     = require( './fmbrain' );
-var fmscope     = require( './fmscope' );
+var fmscope     = require( '../shared/fmscope' );
 
 
 // GLOBALS
@@ -73,7 +73,7 @@ fmui.InterfaceManager.prototype = {
     constructor: fmui.InterfaceManager,
 
     loadConfig: function( configURI ) {
-        
+
         var manager = this;     // Cache this for nested functions
 
         // Wrap $.getJSON in a standard Promise
@@ -90,9 +90,9 @@ fmui.InterfaceManager.prototype = {
         } );
 
     },
-    
+
     _mergeDefaultConfig: function( config ) {
-    
+
         // Copy over any extras that might not be merged here
         var mergedConfig = config;
 
@@ -110,7 +110,7 @@ fmui.InterfaceManager.prototype = {
         mergedConfig.chartDebounceDelay = config.chartDebounceDelay || 100;
 
         return mergedConfig;
-        
+
     },
 
     setup: function() {
@@ -127,7 +127,7 @@ fmui.InterfaceManager.prototype = {
             manager.hideIcon( icon );
         } );
 
-        
+
         //this.scope.setup();
 
         // Populate options with the current cookie-set values
@@ -477,7 +477,7 @@ fmui.InterfaceManager.prototype = {
         $( '#fm-option-resp-trial-end' ).val( options.response.window.end );
         $( '#fm-option-resp-baseline-start' ).val( options.response.baselineWindow.start );
         $( '#fm-option-resp-baseline-end' ).val( options.response.baselineWindow.end );
-        
+
         // Timing strategy
         $( '#fm-option-stim-timing-state' ).prop( 'checked', options.stimulus.timingStrategy == 'state' );
         $( '#fm-option-stim-timing-signal' ).prop( 'checked', options.stimulus.timingStrategy == 'signal' );
@@ -522,7 +522,7 @@ fmui.InterfaceManager.prototype = {
         newChannelNames.forEach( function( ch ) {
             var curRow = $( '<tr></tr>' );
             curRow.append( $( '<th scope="row" class="fm-montage-cell-channelname">' + ch + '</th>' ) );
-            
+
             var isExcludedText = exclusion[ch] ? 'Yes' : 'No';
             curRow.append( $( '<td class="fm-montage-cell-isexcluded">' + isExcludedText + '</td>' ) );    // TODO Check if excluded
 
@@ -718,11 +718,11 @@ fmui.InterfaceManager.prototype = {
 
     }
 
-    
+
     /* Animation */
 
     // TODO
-    
+
 };
 
 

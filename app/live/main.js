@@ -23,12 +23,12 @@ d3.horizon      = require( '../lib/horizon' );             // New kludge
 var bci2k       = require( 'bci2k' );
 var cronelib    = require( '../lib/cronelib' );
 
-var fmstat      = require( './fmstat' );
+var fmstat      = require( '../shared/fmstat' );
 var fmonline    = require( './fmonline' );
 var fmui        = require( './fmui' );
-var fmgen       = require( './fmgen' );
-var fmdata      = require( './fmdata' );
-var fmfeature   = require( './fmfeature' );
+var fmgen       = require( '../shared/fmgen' );
+var fmdata      = require( '../shared/fmdata' );
+var fmfeature   = require( '../shared/fmfeature' );
 var fmbrain     = require( './fmbrain' );
 
 // MEAT
@@ -94,7 +94,7 @@ if ( featureSignalBufferManager.useFeatureSignalBuffer ){
         uiManager.brain.dotColorsDomain = uiManager.brain.dotColorsDomainBuffer;
         uiManager.brain.dotPowerThreshold = uiManager.brain.dotPowerThresholdBuffer;
         uiManager.brain.extent = uiManager.brain.extentBuffer;
-    } 
+    }
 }
 // Buffer length with be obtained from "onSourceProperties" and intended buffer time
 
@@ -317,7 +317,7 @@ var prepareSubjectDependencies = function( theSubject ) {
 
             var imageData = data[0];
             var sensorGeometry = data[1];
-            
+
             // We have what we need, make the brain plot!
             uiManager.brain.setup( imageData, sensorGeometry );
 
@@ -519,7 +519,7 @@ if ( loadMode ) {       // Using data loaded from the hive
 // Property registration
 
 var updateProperties = function( properties ) {
-    
+
     // TODO Since this code is synchronous these calls won't do anything?
     // uiManager.showIcon( 'transfer' );
 
@@ -622,7 +622,7 @@ var bufferFeatureSignal = function( featureSignal ) {
            featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].push( featureSignal[ chans[ c ] ] );
        }
     }
-    
+
     // Create buffered signal
     for ( var c = 0; c < chans.length; c++ ) {
         if ( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].length == 1) {
@@ -639,7 +639,7 @@ var bufferFeatureSignal = function( featureSignal ) {
             if ( featureSignalBufferManager.featureSignalBufferLength === Infinity ){
                 // Calulate running average
                 var oldAvg = featureSignalBufferManager.runningAverage[ chans[ c ] ];
-                featureSignalBufferManager.runningAverage[ chans[ c ] ] = 
+                featureSignalBufferManager.runningAverage[ chans[ c ] ] =
                 runningAverage( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ][ 1 ],
                 featureSignalBufferManager.numBufferPoints - 1,
                 featureSignalBufferManager.runningAverage[ chans[ c ] ] );
@@ -677,7 +677,7 @@ var startTrial = function() {
 // var hgFeature = new fmfeature.RemoteFeature( path.join( apiPath, 'compute', 'hgfft' ) );
 
 var ingestTrial = function( trialData ) {
-    
+
     // We're done transferring
     uiManager.hideIcon( 'transfer' );
 
@@ -812,7 +812,7 @@ var updateBaselineWindow = function( newWindow ) {
 $( window ).on( 'resize', function() {
 
     uiManager.didResize();
-    
+
 } );
 
 

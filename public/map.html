@@ -130,8 +130,8 @@
           </li>
           <li class="dropdown fm-dataset-list">
 
-          <a href="#" id="stimDropdown" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Stimulus selection <span class="caret"></span></a>
-          <ul class="dropdown-menu">
+            <a href="#" id="stimDropdown" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Stimulus selection <span class="caret"></span></a>
+            <ul class="dropdown-menu">
             <li><a href="#">Stimulus Code 1</a></li>
             <li><a href="#">Stimulus Code 2</a></li>
             <li><a href="#">Stimulus Code 3</a></li>
@@ -145,7 +145,7 @@
             <li><a href="#">Stimulus Code 11</a></li>
             <li><a href="#">Stimulus Code 12</a></li>
           </ul>
-        </li>
+          </li>
           <li class="fm-show-options">
             <a class="glyphicon-button" href="#"><span class="glyphicon glyphicon-cog"></span></a>
           </li>
@@ -154,7 +154,6 @@
       </div>
     </div>
   </nav>
-
 
   <!-- Main content -->
 
@@ -166,10 +165,12 @@
         <div id="fm"></div>
         Stimulus Code is currently:<p class = "stim-display"></p>
       </div>
+
       <script>
         var gameInstance = UnityLoader.instantiate("gameContainer", "/webGLBrainz/Build/webGLBrainz.json", {onProgress: UnityProgress});
       </script>
-      <style>
+
+      <!-- <style>
         #fmContainer { display: flex; flex-direction: column; }
         #fm1 { order: 1; }
         #fm2 { order: 2; }
@@ -183,13 +184,14 @@
         #fm10 { order: 10; }
         #fm11 { order: 11; }
         #fm12 { order: 12; }
-      </style>
+      </style> -->
+
       <div class="col-md-7 col-sm-7 hidden-xs" style="position:fixed; right:0px;">
           <!-- TODO Add aspect ratio button -->
-          <div id="fm-brain"></div>
-          
+          <!-- <div id="fm-brain"></div> -->
+
           <div class="webgl-content">
-            <div id="gameContainer"></div>
+            <div id="gameContainer" style="width: 1000px; height: 1000px"></div>
             <div class="footer1">
               <div class="fullscreen" onclick="gameInstance.SetFullscreen(1)"></div>
               <div class="title">ReconGL</div>
@@ -563,7 +565,6 @@
                     <dl class="dl-horizontal">
                       <dt>Max Collard</dt>
                       <dd>Web frontend, Map, Server, bci2k.js</dd>
-
                       <dt>Griffin Milsap</dt>
                       <dd>BCI2000Web, bci2k.js</dd>
                     </dl>
@@ -612,14 +613,7 @@
     </div>
   </footer>
 
-  <!-- ===================================================== -->
-	<!-- Scripts -->
-	<!-- <script data-main="webfm" src="lib/require.js"></script> -->
   <script src="/js/jquery/jquery.min.js"></script>
-  <!-- <script src="/js/bootstrap/bootstrap.min.js"></script> -->
-
   <script src="/js/app/map.js"></script>
-
 </body>
-
 </html>

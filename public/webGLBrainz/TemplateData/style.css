@@ -1,12 +1,10 @@
 .webgl-content * {border: 10; margin: 0; padding: 0}
 .webgl-content {
   position: absolute;
-  top: 25%;
+  top: 5%;
   left: 50%;
-  -webkit-transform: translate(-50%, 25%);
-  transform: translate(-50%, 25%);
-  width: 1000px;
-  height: 600px;
+  -webkit-transform: translate(-50%, 5%);
+  transform: translate(-50%, 5%);
 }
 
 .webgl-content .logo, .progress {position: absolute; left: 50%; top: 50%; -webkit-transform: translate(-50%, -50%); transform: translate(-50%, -50%);}

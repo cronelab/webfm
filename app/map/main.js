@@ -23,14 +23,13 @@ d3.horizon      = require( '../lib/horizon' );             // New kludge
 var bci2k       = require( 'bci2k' );
 var cronelib    = require( '../lib/cronelib' );
 
-var fmstat      = require( './fmstat' );
+var fmstat      = require( '../shared/fmstat' );
 var fmonline    = require( './fmonline' );
 var fmui        = require( './fmui' );
-var fmgen       = require( './fmgen' );
-var fmdata      = require( './fmdata' );
-var fmfeature   = require( './fmfeature' );
+var fmgen       = require( '../shared/fmgen' );
+var fmdata      = require( '../shared/fmdata' );
+var fmfeature   = require( '../shared/fmfeature' );
 var fmraster    = require( './fmraster' );
-
 
 // MEAT
 
@@ -544,25 +543,25 @@ var startTrial = function() {
 
 
     //Probably not the best place to put this. but this will update the .stim-display to show what stimulusCode was just presented via BCI2000
-    dataSource._bciConnection.execute('Get StimulusCode').then(function (result) {
-      var newFmDiv = '<div id="fmX" class="stim-displayX"><br><br></div>'.replace(/X/g, result.toString().trim());
-      var fmDiv = "fmX".replace("X", result.toString().trim());
-      var fmNum = $('#fmX'.replace("X", result.toString()));
-
-        if (fmNum.length == 0) {
-            $('#fmContainer').append(newFmDiv);
-            var pTag = document.createElement("P");
-            pTag.appendChild(document.createTextNode("Stimulus Code is: X".replace("X", result.toString().trim())));
-            document.getElementById(fmDiv).appendChild(pTag).style.paddingLeft = "275px";
-            pTag.style.fontWeight="900";
-    }
-    // if(result%2==0)
-         $('.stim-display').text(result);
-        // console.log(uiManager.raster)
-        console.log(dataset)
-        console.log(fmdata)
-
-});
+    // dataSource._bciConnection.execute('Get StimulusCode').then(function (result) {
+    //   var newFmDiv = '<div id="fmX" class="stim-displayX"><br><br></div>'.replace(/X/g, result.toString().trim());
+    //   var fmDiv = "fmX".replace("X", result.toString().trim());
+    //   var fmNum = $('#fmX'.replace("X", result.toString()));
+    //
+    //     if (fmNum.length == 0) {
+    //         $('#fmContainer').append(newFmDiv);
+    //         var pTag = document.createElement("P");
+    //         pTag.appendChild(document.createTextNode("Stimulus Code is: X".replace("X", result.toString().trim())));
+    //         document.getElementById(fmDiv).appendChild(pTag).style.paddingLeft = "275px";
+    //         pTag.style.fontWeight="900";
+    //       }
+    // // if(result%2==0)
+    //      $('.stim-display').text(result);
+    //     // console.log(uiManager.raster)
+    //     // console.log(dataset)
+    //     // console.log(fmdata)
+    //
+    //   });
 };
 
 // TODO Testing
