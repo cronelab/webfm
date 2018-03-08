@@ -16,15 +16,14 @@ var d3          = require( 'd3' );
 var Cookies     = require( 'js-cookie' );
 var minimatch   = require( 'minimatch' );
 
-// var horizon  = require( '../lib/d3-horizon-chart.js' ); // Old way of doing
-                                                           // horizon charts
+
 d3.horizon      = require( '../lib/horizon' );             // New kludge
 
 var bci2k       = require( 'bci2k' );
 var cronelib    = require( '../lib/cronelib' );
 
 var fmstat      = require( '../shared/fmstat' );
-var fmonline    = require( './fmonline' );
+var fmonline    = require( '../shared/fmonline' );
 var fmui        = require( './fmui' );
 var fmgen       = require( '../shared/fmgen' );
 var fmdata      = require( '../shared/fmdata' );
@@ -89,7 +88,7 @@ if ( onlineMode ) {     // Using BCI2000Web over the net
     dataSource = new fmonline.OnlineDataSource();
 
     // Wire to common routines
-    dataSource.onproperties = function( properties ) {
+    dataSource.onFeatureProperties = function( properties ) {
 
         // TODO More elegant placement?
         dataset.setupChannels( properties.channels );

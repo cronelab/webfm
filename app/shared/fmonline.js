@@ -8,7 +8,7 @@
 
 // REQUIRES
 
-var bci2k = require( '../lib/bci2k-dev' );
+var bci2k = require( 'bci2k' );
 
 require( 'setimmediate' );                      // Needed to fix promise
                                                 // polyfill on non-IE
@@ -57,7 +57,7 @@ fmonline.OnlineDataSource = function() {
     // Event callbacks
     this.onSourceProperties     = function( properties ) {};
     this.onFeatureProperties    = function( properties ) {};
-
+    // this.onproperties           = function( properties ) {};
     // TODO Only needed to pull out certain properties ...
     this.onBufferCreated        = function() {};
 
