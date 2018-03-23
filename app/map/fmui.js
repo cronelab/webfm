@@ -26,7 +26,7 @@ var Promise     = require( 'promise-polyfill' );    // Needed for IE Promise
 var cronelib    = require( '../lib/cronelib' );
 var fullscreen  = require( '../lib/fullscreen' );
 
-var fmbrain     = require( '../shared/fmbrain' );
+var fmbrain     = require( './fmbrain' );
 var fmraster    = require( './fmraster' );
 var fmscope     = require( '../shared/fmscope' );
 
@@ -72,7 +72,7 @@ fmui.InterfaceManager = function() {
     this.rasters11 = new fmraster.ChannelRaster( '#fm11' );
     this.rasters12 = new fmraster.ChannelRaster( '#fm12' );
 
-    this.brain = new fmbrain.BrainVisualizer( '#fm-brain' , 'map');
+    this.brain = new fmbrain.BrainVisualizer( '#fm-brain' );
     this.scope = new fmscope.ChannelScope( '#fm-scope' );
     this.raster = []
     this.raster.push(this.rasters);

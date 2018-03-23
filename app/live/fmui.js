@@ -26,7 +26,7 @@ var Promise     = require( 'promise-polyfill' );    // Needed for IE Promise
 var cronelib    = require( '../lib/cronelib' );
 var fullscreen  = require( '../lib/fullscreen' );
 
-var fmbrain     = require( '../shared/fmbrain' );
+var fmbrain     = require( './fmbrain' );
 var fmscope     = require( '../shared/fmscope' );
 
 
@@ -57,7 +57,7 @@ fmui.InterfaceManager = function() {
 
     // Allocate members
 
-    this.brain = new fmbrain.BrainVisualizer( '#fm-brain' , 'live');
+    this.brain = new fmbrain.BrainVisualizer( '#fm-brain' );
     this.scope = new fmscope.ChannelScope( '#fm-scope' );
 
     // Events

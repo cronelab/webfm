@@ -120,23 +120,41 @@
     <div class="row">
 
       <div class="col-md-5 col-sm-5" id="fmContainer">
-
-                  <div class="webgl-content">
-                    <div id="gameContainer" style="width: 1000px; height: 1000px"></div>
-                    <div class="footer1">
-                      <div class="fullscreen" onclick="gameInstance.SetFullscreen(1)"></div>
-                      <div class="title">ReconGL</div>
-                    </div>
-                  </div>
+        <div id="fm"></div>
+        Stimulus Code is currently:<p class = "stim-display"></p>
+      </div>
 
       <script>
         var gameInstance = UnityLoader.instantiate("gameContainer", "/webGLBrainz/Build/webGLBrainz.json", {onProgress: UnityProgress});
       </script>
 
+      <!-- <style>
+        #fmContainer { display: flex; flex-direction: column; }
+        #fm1 { order: 1; }
+        #fm2 { order: 2; }
+        #fm3 { order: 3; }
+        #fm4 { order: 4; }
+        #fm5 { order: 5; }
+        #fm6 { order: 6; }
+        #fm7 { order: 7; }
+        #fm8 { order: 8; }
+        #fm9 { order: 9; }
+        #fm10 { order: 10; }
+        #fm11 { order: 11; }
+        #fm12 { order: 12; }
+      </style> -->
+
       <div class="col-md-7 col-sm-7 hidden-xs" style="position:fixed; right:0px;">
           <!-- TODO Add aspect ratio button -->
           <div id="fm-brain"></div>
-
+<!--
+          <div class="webgl-content">
+            <div id="gameContainer" style="width: 1000px; height: 1000px"></div>
+            <div class="footer1">
+              <div class="fullscreen" onclick="gameInstance.SetFullscreen(1)"></div>
+              <div class="title">ReconGL</div>
+            </div>
+          </div> -->
 
       </div>
 
