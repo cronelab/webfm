@@ -357,12 +357,6 @@ fmbrain.BrainVisualizer.prototype = {
         var brain = this;
 
         var num = 128;
-        // var obj = this.data;
-        // var max = Object.keys(obj).reduce(function(m, k){ return obj[k] > m ? obj[k] : m }, -Infinity);
-        // var min = Object.keys(obj).reduce(function(m, k){ return obj[k] < m ? obj[k] : m }, Infinity);
-        // console.log(max)
-        // console.log(min)
-
         var pad = "000000";
 
         for (var i = 1; i <= 128; i++) {
@@ -383,7 +377,7 @@ fmbrain.BrainVisualizer.prototype = {
             gameInstance.SendMessage(ind, "activityChanger", eval("this.data."+ind));
           }
         }
-
+        
 
         var brainDots = d3.select( this.baseNodeId ).select( '.fm-brain-dots' ).selectAll( '.fm-brain-dot' )
           .data( this._reformatForDisplay( this.data ), function( d ) {

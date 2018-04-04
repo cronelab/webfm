@@ -164,15 +164,6 @@ var serveLive = function( req, res ) {
     res.sendFile( path.join( rootDir, 'live.html' ) );
 }
 
-// Experimental AMI Views
-
-var serveAmiView_quad = function( req, res ) {
-    res.sendFile( path.join( rootDir, 'amiView_quad.html' ) );
-}
-var serveAmiView_singlepass = function( req, res ) {
-    res.sendFile( path.join( rootDir, 'amiView_singlepass.html' ) );
-}
-
 
 // TODO Bad practice to have map.html just figure it out from path
 // Should use template engine. This is janky af.
@@ -186,9 +177,6 @@ app.get( '/live/config/online',  serveConfig( 'fmonline.json' ) );
 app.get( '/live/config/tasks',   serveConfig( 'tasks.json' ) );
 
 // Generator
-
-app.get( '/amiView_singlepass', serveAmiView_singlepass );
-app.get( '/amiView_quad', serveAmiView_quad );
 
 app.get( '/map', serveMap );
 app.get( '/map/generate', serveMap );

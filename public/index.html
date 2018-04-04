@@ -76,12 +76,7 @@
             <a id="live-button" class="list-group-item list-group-item-success disabled" href="/live">
               <span class="glyphicon glyphicon-facetime-video"></span> <strong>Go live</strong>
             </a>
-            <a id="live-button" class="list-group-item list-group-item-success disabled" href="/amiView_singlepass">
-              <span class="glyphicon glyphicon-facetime-video"></span> <strong>amiView_singlepass</strong>
-            </a>
-            <a id="live-button" class="list-group-item list-group-item-success disabled" href="/amiView_quad">
-              <span class="glyphicon glyphicon-facetime-video"></span> <strong>amiView_quad</strong>
-            </a>
+
           </div>
           <!--
           <div class="panel-body">
@@ -160,19 +155,18 @@
     </div>
   </footer>
 
-
   <!-- ===================================================== -->
   <!-- File uploaders -->
   <input id="upload-brain-image-input" class="upload-input" type="file" name="brainImage">
   <input id="upload-sensor-geometry-input" class="upload-input" type="file" name="sensorGeometry">
 
-
   <!-- ===================================================== -->
   <!-- Scripts -->
+  <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
   <script src="/js/jquery/jquery.min.js"></script>
   <script src="/js/bootstrap/bootstrap.min.js"></script>
-
   <script src="/js/app/index.js"></script>
+  <script>if (window.module) module = window.module;</script>
 
 </body>
 

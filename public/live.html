@@ -17,9 +17,18 @@
   <link rel="stylesheet" type="text/css" href="/css/bootstrap/bootstrap.css">
   <link rel="stylesheet" type="text/css" href="/css/map.css">
   <link rel="stylesheet" href="/webFM_Display/TemplateData/style.css">
-
+  <!-- ===================================================== -->
+	<!-- Scripts -->
+  <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+	<!-- <script data-main="webfm" src="lib/require.js"></script> -->
+  <script src="/js/jquery/jquery.min.js"></script>
+  <script src="/js/bootstrap/bootstrap.min.js"></script>
   <script src="/webFM_Display/Build/UnityLoader.js"></script>
   <script src="/webFM_Display/TemplateData/UnityProgress.js"></script>
+  <script src="/js/app/live.js"></script>
+  <script>if (window.module) module = window.module;</script>
+
+
   <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
   <!--[if lt IE 9]>
     <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
@@ -123,21 +132,25 @@
 
         <div id="fm"></div>
         Stimulus Code is currently:<p class = "stim-display"></p>
+
       </div>
+
       <script>
-      var gameInstance = UnityLoader.instantiate("gameContainer", "/webFM_Display/Build/webFM_Display.json", {onProgress: UnityProgress});
+        var gameInstance = UnityLoader.instantiate("gameContainer", "/webFM_Display/Build/webFM_Display.json", {onProgress: UnityProgress});
       </script>
 
       <div class="col-md-7 col-sm-7 hidden-xs" style="position:fixed; right:0px;">
           <!-- TODO Add aspect ratio button -->
-          <!-- <div id="fm-brain"></div> -->
-          <div class="webgl-content">
+
+          <div id="fm-brain"></div>
+
+          <!-- <div class="webgl-content">
             <div id="gameContainer" style="width: 1000px; height: 1000px"></div>
             <div class="footer1">
               <div class="fullscreen" onclick="gameInstance.SetFullscreen(1)"></div>
               <div class="title">ReconGL</div>
             </div>
-          </div>
+          </div> -->
 
       </div>
 
@@ -555,13 +568,7 @@
     </div>
   </footer>
 
-  <!-- ===================================================== -->
-	<!-- Scripts -->
-	<!-- <script data-main="webfm" src="lib/require.js"></script> -->
-  <script src="/js/jquery/jquery.min.js"></script>
-  <script src="/js/bootstrap/bootstrap.min.js"></script>
 
-  <script src="/js/app/live.js"></script>
 </body>
 
 </html>
