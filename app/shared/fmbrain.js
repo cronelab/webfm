@@ -355,130 +355,23 @@ fmbrain.BrainVisualizer.prototype = {
           return;
         }
         var brain = this;
+        var keyNames = Object.keys(this.data);
+        var size = Object.keys(this.data).length;
 
-        var num = 128;
-        var pad = "000000";
-
-
-        //Hardcoding for now because life is hard:
-        //Assume electrodes match hardware config
-        //
-        ind = "RAD1"
-
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RAD1);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RAD2);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RAD3);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RAD4);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RAD5);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RAD6);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RAD7);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RAD8);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RAD9);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RAD10);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.ROFD1);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.ROFD2);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.ROFD3);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.ROFD4);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.ROFD5);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.ROFD6);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.ROFD7);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.ROFD8);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.ROFD9);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.ROFD10);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RHD1);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RHD2);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RHD3);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RHD4);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RHD5);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RHD6);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RHD7);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RHD8);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RHD9);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LAD1);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LAD2);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LAD3);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LAD4);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LAD5);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LAD6);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LAD7);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LAD8);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LAD9);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LAD10);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LHD1);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LHD2);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LHD3);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LHD4);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LHD5);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LHD6);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LHD7);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LHD8);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LHD9);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LMFD1);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LMFD2);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LMFD3);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LMFD4);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LMFD5);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LMFD6);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LMFD7);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LMFD8);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LMFD9);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LMFD10);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LOFD1);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LOFD2);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LOFD3);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LOFD4);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LOFD5);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LOFD6);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LOFD7);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.LOFD8);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RAID1);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RAID2);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RAID3);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RAID4);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RAID5);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RAID6);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RAID7);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RAID8);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RACD1);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RACD2);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RACD3);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RACD4);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RACD5);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RACD6);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RACD7);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RACD8);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RACD9);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RACD10);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RLFD1);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RLFD2);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RLFD3);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RLFD4);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RLFD5);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RLFD6);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RLFD7);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RLFD8);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RLFD9);
-        gameInstance.SendMessage(ind, "activityChanger", this.data.RLFD10);
-
-
-        // for (var i = 1; i <= 128; i++) {
-        //   var str = "LTG" + i;
-        //   var ind = str.substring(0,3) + pad.substring(0, pad.length - str.length) + str.substring(3,str.length);
-        //   if(document.title == "WebFM: Live")
-        //   {
-        //     if(eval("this.data."+ind) > 20)
-        //     {
-        //       gameInstance.SendMessage(ind, "activityChanger", eval("this.data."+ind));
-        //     }
-        //     else
-        //     {
-        //       gameInstance.SendMessage(ind, "activityChanger", 0);
-        //     }
-        //   }
-        //   else{
-        //     gameInstance.SendMessage(ind, "activityChanger", eval("this.data."+ind));
-        //   }
-        // }
+        for (var i = 1; i <= size; i++) {
+          if(document.title == "WebFM: Live"){
+            if(eval("this.data."+keyNames[i]) > 10){
+              gameInstance.SendMessage(keyNames[i], "activityChanger", eval("this.data."+keyNames[i]));
+            }
+            else
+            {
+              gameInstance.SendMessage(keyNames[i], "activityChanger", 0);
+            }
+          }
+          else{
+            gameInstance.SendMessage(keyNames[i], "activityChanger", eval("this.data."+keyNames[i]));
+          }
+        }
 
 
         var brainDots = d3.select( this.baseNodeId ).select( '.fm-brain-dots' ).selectAll( '.fm-brain-dot' )
