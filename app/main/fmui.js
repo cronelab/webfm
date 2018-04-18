@@ -26,10 +26,11 @@ var Promise     = require( 'promise-polyfill' );    // Needed for IE Promise
 var cronelib    = require( '../lib/cronelib' );
 var fullscreen  = require( '../lib/fullscreen' );
 
-var fmbrain     = require( '../shared/fmbrain' );
-var fmraster    = require( './fmraster' );
-var fmscope     = require( '../shared/fmscope' );
-
+var fmbrain     = require( './fmbrain' );
+var fmscope     = require( './fmscope' );
+if(document.title == "WebFM: Map"){
+  var fmraster    = require( './fmraster' );
+}
 
 // GLOBALS
 
@@ -57,47 +58,18 @@ fmui.InterfaceManager = function() {
     this.allChannels = [];  // TODO Can avoid?
 
     // Allocate members
-
-    this.rasters = new fmraster.ChannelRaster( '#fm' );
-    this.rasters1 = new fmraster.ChannelRaster( '#fm1' );
-    this.rasters2 = new fmraster.ChannelRaster( '#fm2' );
-    this.rasters3 = new fmraster.ChannelRaster( '#fm3' );
-    this.rasters4 = new fmraster.ChannelRaster( '#fm4' );
-    this.rasters5 = new fmraster.ChannelRaster( '#fm5' );
-    this.rasters6 = new fmraster.ChannelRaster( '#fm6' );
-    this.rasters7 = new fmraster.ChannelRaster( '#fm7' );
-    this.rasters8 = new fmraster.ChannelRaster( '#fm8' );
-    this.rasters9 = new fmraster.ChannelRaster( '#fm9' );
-    this.rasters10 = new fmraster.ChannelRaster( '#fm10' );
-    this.rasters11 = new fmraster.ChannelRaster( '#fm11' );
-    this.rasters12 = new fmraster.ChannelRaster( '#fm12' );
-
-    this.brain = new fmbrain.BrainVisualizer( '#fm-brain' , 'map');
+    if(document.title=="WebFM: Live")
+    {
+      this.brain = new fmbrain.BrainVisualizer( '#fm-brain' , 'live');
+    }
+    else{
+      this.raster = new fmraster.ChannelRaster( '#fm' );
+      this.brain = new fmbrain.BrainVisualizer( '#fm-brain' , 'map');
+      this.raster.onselectchannel = function( newChannel ) {
+          manager.brain.setSelectedChannel( newChannel );
+      };
+    }
     this.scope = new fmscope.ChannelScope( '#fm-scope' );
-    this.raster = []
-    this.raster.push(this.rasters);
-    this.raster.push(this.rasters1);
-    this.raster.push(this.rasters2);
-    this.raster.push(this.rasters3);
-    this.raster.push(this.rasters4);
-    this.raster.push(this.rasters5);
-    this.raster.push(this.rasters6);
-    this.raster.push(this.rasters7);
-    this.raster.push(this.rasters8);
-    this.raster.push(this.rasters9);
-    this.raster.push(this.rasters10);
-    this.raster.push(this.rasters11);
-    this.raster.push(this.rasters12);
-        // Event hooks
-for(var i =0; i<this.raster.length; i++)
-{
-    this.raster[i].onselectchannel = function( newChannel ) {
-        manager.brain.setSelectedChannel( newChannel );
-    };
-  }
-    // this.raster1.onselectchannel = function( newChannel ) {
-    //     manager.brain.setSelectedChannel( newChannel );
-    // };
 
     // Events
 
@@ -134,8 +106,8 @@ fmui.InterfaceManager.prototype = {
 
       for(var i =0; i<this.raster.length; i++)
       {
-        this.raster[i].setRowHeight( this.getRowHeight() );
-        this.raster[i].setExtent( this.getRasterExtent() );
+        this.raster.setRowHeight( this.getRowHeight() );
+        this.raster.setExtent( this.getRasterExtent() );
       }
     },
 
@@ -149,14 +121,15 @@ fmui.InterfaceManager.prototype = {
         mergedConfig.maxRowHeight           = config.maxRowHeight           || 10;
         mergedConfig.pxPerRowHeight         = config.pxPerRowHeight         || 5;
 
-        mergedConfig.rasterExtent           = config.rasterExtent           || 5;
-        mergedConfig.maxRasterExtent        = config.maxRasterExtent        || 10;
-        mergedConfig.unitsPerRasterExtent   = config.unitsPerRasterExtent   || 1;
-
         mergedConfig.iconShowDuration       = config.iconShowDuration       || 100;
         mergedConfig.iconHideDelay          = config.iconHideDelay          || 1000;
         mergedConfig.iconHideDuration       = config.iconHideDuration       || 100;
-
+        if(document.title=="WebFM: Map")
+        {
+          mergedConfig.rasterExtent           = config.rasterExtent           || 5;
+          mergedConfig.maxRasterExtent        = config.maxRasterExtent        || 10;
+          mergedConfig.unitsPerRasterExtent   = config.unitsPerRasterExtent   || 1;
+        }
         mergedConfig.fmMargin = config.fmMargin || { 'left': 0, 'right': 0, 'top': 0, 'bottom': 0 };
 
         mergedConfig.chartDebounceDelay = config.chartDebounceDelay || 100;
@@ -179,28 +152,15 @@ fmui.InterfaceManager.prototype = {
             manager.hideIcon( icon );
         } );
 
-        for(var i =0; i<this.raster.length; i++)
-        {
-          this.raster[i].setup();    // TODO Always will fail for charts until
-        }            // data arrives; necessary?
 
         // Populate options with the current cookie-set values
         this._populateOptions( this.getOptions() );
-
+        if(document.title=="WebFM: Map"){
+        this.raster.setup();    // TODO Always will fail for charts until
         this._syncRasterConfig();
+      }
 
     },
-
-    /*
-    updateRecordDetails: function( subject, record ) {
-
-        // Use straight href for back button
-        $( '.fm-back' ).attr( 'href', '/#' + subject );
-
-        // TODO ...
-
-    },
-    */
 
     rewireButtons: function() {
 
@@ -371,7 +331,7 @@ fmui.InterfaceManager.prototype = {
         var updater = function() {
           for(var i =0; i<manager.raster.length; i++)
           {
-            manager.raster[i].update();
+            manager.raster.update();
           }
         };
 
@@ -459,9 +419,9 @@ fmui.InterfaceManager.prototype = {
         // Alter raster parameters
         for(var i =0; i<this.raster.length; i++)
         {
-        this.raster[i].setRowHeight( this.getRowHeight() );
-}
-  //      this.raster1.setRowHeight( this.getRowHeight() );
+        this.raster.setRowHeight( this.getRowHeight() );
+    }
+    //      this.raster1.setRowHeight( this.getRowHeight() );
         // Redraw the raster with a guarantee
         this.updateRaster( true );
         //Restore the scroll state
@@ -483,7 +443,7 @@ fmui.InterfaceManager.prototype = {
         // TODO Use row in middle of viewport, not fraction of scrolling
         var prevScrollFraction = this._getScrollFraction();
         // Alter raster parameters
-        this.raster[0].setRowHeight( this.getRowHeight() );
+        this.raster.setRowHeight( this.getRowHeight() );
     //    this.raster1.setRowHeight( this.getRowHeight() );
         // Redraw the raster with a guarantee
         this.updateRaster( true );
@@ -504,7 +464,7 @@ fmui.InterfaceManager.prototype = {
         this._updateGainClasses();
 
         // Alter raster parameters
-        this.raster[0].setExtent( this.getRasterExtent() );
+        this.raster.setExtent( this.getRasterExtent() );
         // this.raster1.setExtent( this.getRasterExtent() );
 
         // Redraw the raster with a guarantee
@@ -523,7 +483,7 @@ fmui.InterfaceManager.prototype = {
         this._updateGainClasses();
 
         // Alter raster parameters
-        this.raster[0].setExtent( this.getRasterExtent() );
+        this.raster.setExtent( this.getRasterExtent() );
         // this.raster1.setExtent( this.getRasterExtent() );
 
         // Redraw the raster with a guarantee
@@ -880,11 +840,11 @@ fmui.InterfaceManager.prototype = {
         this.setExclusion( exclusion );
 
         // Update raster display
-        for(var i =0; i<this.raster.length; i++)
-        {
-          this.raster[i].setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
-        }
-        // this.raster1.setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
+        // for(var i =0; i<this.raster.length; i++)
+        // {
+        //   this.raster[i].setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
+        // }
+        this.raster1.setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
     },
 
     unexclude: function( channel ) {
@@ -894,10 +854,11 @@ fmui.InterfaceManager.prototype = {
         this.setExclusion( exclusion );
 
         // Update raster display
-        for(var i =0; i<this.raster.length; i++)
-        {
-          this.raster[i].setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
-        }
+        // for(var i =0; i<this.raster.length; i++)
+        // {
+        //   this.raster[i].setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
+        // }
+        this.raster.setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
     },
 
     channelFilter: function() {
@@ -920,10 +881,15 @@ fmui.InterfaceManager.prototype = {
 
         // Update the raster with the filtered channel list
         // TODO Support different ordering, or just exclusion?
-        for(var i =0; i<this.raster.length; i++)
+        if(document.title=="WebFM: Map")
         {
-          this.raster[i].setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
-        }
+        // for(var i =0; i<this.raster.length; i++)
+        // {
+        //   this.raster[i].setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
+        // }
+        this.raster.setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
+
+      }
 
     },
 
@@ -940,9 +906,10 @@ fmui.InterfaceManager.prototype = {
     },
 
     didResize: function() {
-
+        if(document.title=="WebFM: Map")
+        {
         this.updateRaster();
-
+    }
         this.updateScope();
 
         //this.updateBrain();
@@ -955,12 +922,12 @@ fmui.InterfaceManager.prototype = {
 
     // TODO
 
-};
+    };
 
 
-// EXPORT MODULE
+    // EXPORT MODULE
 
-module.exports = fmui;
+    module.exports = fmui;
 
 
-//
+    //

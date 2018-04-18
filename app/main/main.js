@@ -22,12 +22,12 @@ d3.horizon      = require( '../lib/horizon' );             // New kludge
 var bci2k       = require( 'bci2k' );
 var cronelib    = require( '../lib/cronelib' );
 
-var fmstat      = require( '../shared/fmstat' );
-var fmonline    = require( '../shared/fmonline' );
+var fmstat      = require( './fmstat' );
+var fmonline    = require( './fmonline' );
 var fmui        = require( './fmui' );
-var fmgen       = require( '../shared/fmgen' );
-var fmdata      = require( '../shared/fmdata' );
-var fmfeature   = require( '../shared/fmfeature' );
+var fmgen       = require( './fmgen' );
+var fmdata      = require( './fmdata' );
+var fmfeature   = require( './fmfeature' );
 var fmraster    = require( './fmraster' );
 
 // MEAT
@@ -78,6 +78,29 @@ uiManager.loadConfig( path.join( configPath, 'ui' ) )
                 console.log( reason );
             } );
 
+if(document.title=="WebFM: Live")
+{
+  // Feature signal buffer setup
+  var featureSignalBufferManager = {};
+  featureSignalBufferManager.featureSignalBuffer         = null;
+  featureSignalBufferManager.runningAverage              = null;
+  featureSignalBufferManager.runningStandardDeviation    = null;
+  featureSignalBufferManager.useFeatureSignalBuffer      = true;
+  featureSignalBufferManager.featureSignalBufferTime     = Infinity; // In seconds
+  if ( featureSignalBufferManager.useFeatureSignalBuffer ){
+      if ( featureSignalBufferManager.featureSignalBufferTime === Infinity ){
+          uiManager.brain.dotColorsDomain = uiManager.brain.dotColorsDomainBufferInfinity;
+          uiManager.brain.dotPowerThreshold = uiManager.brain.dotPowerThresholdBufferInfinity;
+          uiManager.brain.extent = uiManager.brain.extentBufferInfinity;
+      } else {
+          uiManager.brain.dotColorsDomain = uiManager.brain.dotColorsDomainBuffer;
+          uiManager.brain.dotPowerThreshold = uiManager.brain.dotPowerThresholdBuffer;
+          uiManager.brain.extent = uiManager.brain.extentBuffer;
+      }
+  }
+  // Buffer length with be obtained from "onSourceProperties" and intended buffer time
+
+}
 
 // DATA SOURCE SET-UP
 
@@ -94,6 +117,8 @@ if ( onlineMode ) {     // Using BCI2000Web over the net
         dataset.setupChannels( properties.channels );
 
         updateProperties( properties );
+        if(document.title=="WebFM: Map")
+        {
         //This is really not good, and probably won't work in all cases.
         dataSource._bciConnection.execute('List Parameter Sequence', function (result) {
             //var sequenceList = []
@@ -104,8 +129,15 @@ if ( onlineMode ) {     // Using BCI2000Web over the net
             sequenceList.shift();
             console.log(Math.max.apply(Math, sequenceList));
         });
-
+      }
     };
+    if(document.title=="WebFM: Live")
+    {
+    dataSource.onSourceProperties = function( properties ) {
+        featureSignalBufferManager.featureSignalBufferLength = featureSignalBufferManager.featureSignalBufferTime
+        / (properties.elementunit.gain * properties.numelements);
+    };
+  }
     dataSource.onBufferCreated = function() {
         // TODO HELLA DUMB TO DO THIS WAY
         dataset.updateTimesFromWindow( dataSource.getTrialWindow(), dataSource.getTrialLength() );
@@ -119,7 +151,12 @@ if ( onlineMode ) {     // Using BCI2000Web over the net
     dataSource.onRawSignal = function( rawSignal ) {
         ingestSignal( rawSignal );
     };
-
+    if(document.title=="WebFM: Live")
+    {
+    dataSource.onFeatureSignal = function( featureSignal ) {
+        ingestFeatureSignal( featureSignal );
+    };
+  }
     cronelib.promiseJSON( path.join( configPath, 'online' ) )
             .then( function( onlineConfig ) {
                 dataSource.setConfig( onlineConfig );
@@ -493,7 +530,10 @@ if ( loadMode ) {       // Using data loaded from the hive
         } )
         .then( function() {
             prepareFromDataset();
+            if(document.title=="WebFM: Map")
+            {
             updateDataDisplay();
+          }
         } );
 
 }
@@ -528,11 +568,138 @@ var updateProperties = function( properties ) {
 var ingestSignal = function( signal ) {
     // Update scope view
     uiManager.scope.update( signal );
-
-
-
-
 };
+
+
+if(document.title=="WebFM: Live")
+{
+
+
+  var ingestFeatureSignal = function( featureSignal ) {
+      // Update scope view
+      if ( featureSignalBufferManager.useFeatureSignalBuffer ) {
+          uiManager.brain.update( bufferFeatureSignal( featureSignal ) );
+      }
+      else {
+         uiManager.brain.update( featureSignal );
+      }
+  };
+
+  var bufferFeatureSignal = function( featureSignal ) {
+      var bufferedFeatureSignal = {};
+      // Math
+      var runningAverage = function( newMeasurement, numOldMeasurements, oldAverage ) {
+          return (oldAverage * numOldMeasurements + newMeasurement) / (numOldMeasurements + 1);
+      }
+      var runningStandardDeviation = function( newMeasurement, numOldMeasurements, oldAvg, newAvg, oldStdev ) {
+          var numNewMeasurements = numOldMeasurements + 1;
+          return Math.sqrt( ( oldStdev^2 * ( numOldMeasurements - 1 )
+          +  ( newMeasurement - oldAvg ) * ( newMeasurement - newAvg ) ) / ( numNewMeasurements - 1 ) )
+      }
+      var average = function( data ) {
+          var sum = data.reduce( function( sum, value ) {
+              return sum + value;
+          }, 0);
+          var avg = sum / data.length;
+          return avg;
+      }
+      var standardDeviation = function ( values ) {
+          var avg = average( values );
+          var squareDiffs = values.map( function( value ) {
+              var diff = value - avg;
+              var sqrDiff = diff * diff;
+              return sqrDiff;
+          });
+          var avgSquareDiff = average( squareDiffs );
+          var stdDev = Math.sqrt( avgSquareDiff );
+          return stdDev;
+      }
+      // Get channels
+      var chans = uiManager.allChannels;
+      // Initialize buffer if needed
+      if ( featureSignalBufferManager.featureSignalBuffer === null ){
+          featureSignalBufferManager.featureSignalBuffer = {};
+          for ( var c = 0; c < chans.length; c++ ) {
+              featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ] = [ ];
+          }
+      }
+      if ( featureSignalBufferManager.runningAverage === null ){
+          featureSignalBufferManager.runningAverage = {};
+          for ( var c = 0; c < chans.length; c++ ) {
+              featureSignalBufferManager.runningAverage[ chans[ c ] ] = [ ];
+          }
+      }
+      if ( featureSignalBufferManager.runningStandardDeviation === null ){
+          featureSignalBufferManager.runningStandardDeviation = {};
+          for ( var c = 0; c < chans.length; c++ ) {
+              featureSignalBufferManager.runningStandardDeviation[ chans[ c ] ] = [ ];
+          }
+      }
+      if ( featureSignalBufferManager.featureSignalBufferLength === Infinity ){
+          // Add to buffer
+         for ( var c = 0; c < chans.length; c++ ) {
+             if ( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].length == 2 ) {
+                 featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].shift();
+             }
+             featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].push( featureSignal[ chans[ c ] ] );
+         }
+      } else {
+         // Add to buffer
+         for ( var c = 0; c < chans.length; c++ ) {
+             if ( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].length == featureSignalBufferManager.featureSignalBufferLength ) {
+                 featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].shift();
+             }
+             featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].push( featureSignal[ chans[ c ] ] );
+         }
+      }
+
+      // Create buffered signal
+      for ( var c = 0; c < chans.length; c++ ) {
+          if ( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].length == 1) {
+              featureSignalBufferManager.numBufferPoints = 1;
+              // Calculate running average
+              featureSignalBufferManager.runningAverage[ chans[ c ] ] = 0;
+              // Calculate running standard deviation
+              featureSignalBufferManager.runningStandardDeviation[ chans[ c ] ] = 0;
+
+              bufferedFeatureSignal[ chans[ c ] ] = 0;
+          }
+          else {
+              featureSignalBufferManager.numBufferPoints += 1;
+              if ( featureSignalBufferManager.featureSignalBufferLength === Infinity ){
+                  // Calulate running average
+                  var oldAvg = featureSignalBufferManager.runningAverage[ chans[ c ] ];
+                  featureSignalBufferManager.runningAverage[ chans[ c ] ] =
+                  runningAverage( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ][ 1 ],
+                  featureSignalBufferManager.numBufferPoints - 1,
+                  featureSignalBufferManager.runningAverage[ chans[ c ] ] );
+                  // Calculate running standard deviation
+                  featureSignalBufferManager.runningStandardDeviation[ chans[ c ] ] =
+                  runningStandardDeviation( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ][ 1 ],
+                  featureSignalBufferManager.numBufferPoints - 1,
+                  oldAvg,
+                  featureSignalBufferManager.runningAverage[ chans[ c ] ],
+                  featureSignalBufferManager.runningStandardDeviation[ chans[ c ] ] );
+
+                  bufferedFeatureSignal[ chans[ c ] ] = ( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ][ featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].length - 1 ]
+                  -  featureSignalBufferManager.runningAverage[ chans[ c ] ])
+                  / featureSignalBufferManager.runningStandardDeviation[ chans[ c ] ];
+              } else {
+                  bufferedFeatureSignal[ chans[ c ] ] = ( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ][ featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ].length - 1 ]
+                  - average( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ] ) )
+                  / standardDeviation( featureSignalBufferManager.featureSignalBuffer[ chans[ c ] ] );
+              }
+          }
+      }
+      // Return buffered signal
+      return bufferedFeatureSignal
+  }
+
+
+
+
+}
+
 
 var startTrial = function() {
     // We're starting to transfer a trial, so engage the transfer icon
@@ -603,24 +770,29 @@ var ingestTrial = function( trialData ) {
     //                 } );
 
 };
-
+if(document.title=="WebFM: Map")
+{
 var updateDataDisplay = function updateDataDisplay() {
 
     var timeBounds = dataset.getTimeBounds();
     var stimCode = $('.stim-display').text();
 
     //For whatever stimulus code is presented to the user
-    if(!uiManager.raster[parseInt(stimCode)] == null)
-    {
-      uiManager.raster[parseInt(stimCode)].update( dataset.displayData );
-      uiManager.brain.update( dataset.dataForTime( uiManager.raster[parseInt(stimCode)].getCursorTime() ) );
-      uiManager.raster[parseInt(stimCode)].updateTimeRange( [timeBounds.start, timeBounds.end] );
-    }
-    //For the combined average of all stimulus codes
-    uiManager.raster[0].update( dataset.displayData );
-    uiManager.brain.update( dataset.dataForTime( uiManager.raster[0].getCursorTime() ) );
-    uiManager.raster[0].updateTimeRange( [timeBounds.start, timeBounds.end] );
+    // if(!uiManager.raster[parseInt(stimCode)] == null)
+    // {
+    //   uiManager.raster[parseInt(stimCode)].update( dataset.displayData );
+    //   uiManager.brain.update( dataset.dataForTime( uiManager.raster[parseInt(stimCode)].getCursorTime() ) );
+    //   uiManager.raster[parseInt(stimCode)].updateTimeRange( [timeBounds.start, timeBounds.end] );
+    // }
 
+    //For the combined average of all stimulus codes
+    // uiManager.raster[0].update( dataset.displayData );
+    // uiManager.brain.update( dataset.dataForTime( uiManager.raster[0].getCursorTime() ) );
+    // uiManager.raster[0].updateTimeRange( [timeBounds.start, timeBounds.end] );
+
+    uiManager.raster.update( dataset.displayData );
+    uiManager.brain.update( dataset.dataForTime( uiManager.raster.getCursorTime() ) );
+    uiManager.raster.updateTimeRange( [timeBounds.start, timeBounds.end] );
 
     // KLUDGE
     // TODO Can't think of a good way to deal with combined async of
@@ -707,20 +879,18 @@ var updatePlotsPostData = function() {
 };
 */
 
-    for(var i=0;i<uiManager.raster.length;i++)
-    {
-      uiManager.raster[i].oncursormove = function( newTime ) {
+      uiManager.raster.oncursormove = function( newTime ) {
         uiManager.updateSelectedTime( newTime );
         uiManager.brain.update( dataset.dataForTime( newTime ) );
-      }
+
 
     /*
     var meanDataSlice = dataForTime( newTime );
     uiManager.brain.update( meanDataSlice );
     */
 
-
 };
+}
 
 uiManager.onsave = function( saveName ) {
 
@@ -802,9 +972,10 @@ var updateBaselineWindow = function( newWindow ) {
 
     dataset.updateBaselineWindow( newWindow )
         .then( function() {
-
+            if(document.title=="WebFM: Map")
+            {
             updateDataDisplay();
-
+}
             uiManager.hideIcon( 'working' );
 
         } );
