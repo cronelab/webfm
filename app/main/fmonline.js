@@ -653,8 +653,8 @@ fmonline.DataFormatter.prototype = {
 
 
 
-          this._timingState           = 'Keyword';                    //Match3, this should be in a config somewhere?
-          // this._timingState           = 'StimulusCode';
+          // this._timingState           = 'Keyword';                    //Match3, this should be in a config somewhere?
+          this._timingState           = 'StimulusCode';
 
 
 

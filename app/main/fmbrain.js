@@ -358,20 +358,20 @@ fmbrain.BrainVisualizer.prototype = {
         var keyNames = Object.keys(this.data);
         var size = Object.keys(this.data).length;
 
-        // for (var i = 1; i <= size; i++) {
-        //   if(document.title == "WebFM: Live"){
-        //     if(eval("this.data."+keyNames[i]) > 10){
-        //       gameInstance.SendMessage(keyNames[i], "activityChanger", eval("this.data."+keyNames[i]));
-        //     }
-        //     else
-        //     {
-        //       gameInstance.SendMessage(keyNames[i], "activityChanger", 0.0);
-        //     }
-        //   }
-        //   else{
-        //     gameInstance.SendMessage(keyNames[i], "activityChanger", eval("this.data."+keyNames[i]));
-        //   }
-        // }
+        for (var i = 1; i <= size; i++) {
+          if(document.title == "WebFM: Live"){
+            if(eval("this.data."+keyNames[i]) > 10){
+              gameInstance.SendMessage(keyNames[i], "activityChanger", eval("this.data."+keyNames[i]));
+            }
+            else
+            {
+              gameInstance.SendMessage(keyNames[i], "activityChanger", 0.0);
+            }
+          }
+          else{
+            gameInstance.SendMessage(keyNames[i], "activityChanger", eval("this.data."+keyNames[i]));
+          }
+        }
 
 
         var brainDots = d3.select( this.baseNodeId ).select( '.fm-brain-dots' ).selectAll( '.fm-brain-dot' )
