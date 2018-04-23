@@ -9,40 +9,47 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
+
     <!-- <title>WebFM: Map</title> -->
 
     <!-- Styles -->
     <link rel="stylesheet" type="text/css" href="/css/bootstrap/bootstrap.css">
     <link rel="stylesheet" type="text/css" href="/css/map.css">
-    <link rel="stylesheet" href="/webFM_Display/TemplateData/style.css">
+    <!-- <link rel="stylesheet" href="/webFM_Display/TemplateData/style.css"> -->
 
     <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
-    <script src="/js/jquery/jquery.min.js"></script>
-    <script src="/webFM_Display/Build/UnityLoader.js"></script>
-    <script src="/webFM_Display/TemplateData/UnityProgress.js"></script>
+    <!-- <script src="/webFM_Display/Build/UnityLoader.js"></script>
+    <script src="/webFM_Display/TemplateData/UnityProgress.js"></script> -->
+    <script src="/js/jquery/jquery.js"></script>
     <script>if (window.module) module = window.module;</script>
 
-    <script>
-      var gameInstance = UnityLoader.instantiate("gameContainer", "/webFM_Display/Build/webFM_Display.json", {onProgress: UnityProgress});
-    </script>
 
     <script>
-    $(function(){
-      $("#navbar").load("/navbar.html");
-      $("#modals").load("/modals.html");
-    });
+      // var gameInstance = UnityLoader.instantiate("gameContainer", "/webFM_Display/Build/webFM_Display.json", {onProgress: UnityProgress});
     </script>
+
 
     <script type="text/javascript">
       document.title = document.cookie.split(";")[3];
     </script>
+    <script>
+    function load(url, element)
+    {
+    req = new XMLHttpRequest();
+    req.open("GET", url, false);
+    req.send(null);
+
+    element.innerHTML = req.responseText;
+    }
+    </script>
 
   </head>
-
   <body>
 
   <!-- Navbar -->
+
   <div id="navbar"></div>
+
 
   <!-- Main content -->
   <div class="container-fluid">
@@ -68,6 +75,11 @@
   <!-- Modals -->
   <div id="modals"></div>
 
+
+
+
+
+
   <!-- Footer -->
 
   <footer class="footer navbar-fixed-bottom">
@@ -78,6 +90,13 @@
         BCI2K: <span class="text-success fm-bci-status-label">Connected</span>
       </p>
     </div>
+
+
+    <script src="/js/app/map.js"></script>
+    <script>
+    load("/navbar.html",document.getElementById("navbar"));
+    load("/modals.html",document.getElementById("modals"));
+    </script>
   </footer>
 </body>
 </html>

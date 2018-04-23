@@ -5,13 +5,9 @@
 //
 // =
 
-
 // REQUIRES
-
 var $ = require( 'jquery' );
 var d3 = require( 'd3' );
-//d3.horizon = require( '../lib/horizon' );
-//d3.horizonChart = require( 'd3-horizon-chart' ).horizonChart;
 d3.horizonChart = require( '../lib/horizon-chart-custom.js' ).default;
 
 // Promise compatibility
@@ -20,14 +16,11 @@ var Promise = require( 'promise-polyfill' );
 
 
 // MODULE OBJECT
-
 var fmraster = {};
 
-
 // MAIN CLASS
-
 fmraster.ChannelRaster = function( baseNodeId ) {
-    
+
     this.baseNodeId = baseNodeId;   // e.g., '#fm'
 
     this.displayOrder   = null;
@@ -37,15 +30,11 @@ fmraster.ChannelRaster = function( baseNodeId ) {
 
 
     // Events
-
     this.oncursormove       = function( newTime ) {};
     this.onselectchannel    = function( newChannel ) {};
 
-
     // Cursor
-
     this.selectedChannel        = null;
-
     this.cursorSvg              = null;
     this.cursorTime             = null;
     this.cursorLocked           = false;
@@ -56,9 +45,7 @@ fmraster.ChannelRaster = function( baseNodeId ) {
         'height':   0
     };
 
-
     // Charts
-
     this.chartMin               = 0.0;      // TODO Expose to manager
     this.chartMax               = 7.5;
 
@@ -83,7 +70,6 @@ fmraster.ChannelRaster = function( baseNodeId ) {
         "#d73027"
     ];
     // this.rangeColors = ["#313695", "#ffffff", "#d73027"];
-
 };
 
 fmraster.ChannelRaster.prototype = {
@@ -91,9 +77,7 @@ fmraster.ChannelRaster.prototype = {
     constructor: fmraster.ChannelRaster,
 
     setup: function() {
-
         this.setupCharts();
-
         this.setupCursor();
 
     },
@@ -219,7 +203,7 @@ fmraster.ChannelRaster.prototype = {
         // TODO Error checking
         var height = this.channelHeight * this.data.length;
         var width = $( this.baseNodeId ).width() - this.chartMargin.left - this.chartMargin.right;
-        
+
         var n = this.data.length;
         var step = width / this.data[0].values.length;
 
@@ -312,7 +296,7 @@ fmraster.ChannelRaster.prototype = {
     },
 
     update: function( newData ) {
-    
+
         if ( newData !== undefined ) {
             this._updateData( newData );
         }
@@ -351,7 +335,7 @@ fmraster.ChannelRaster.prototype = {
         }
 
         // Update data to reflect new order
-        
+
         // Turn the data into a dict
         var dictData = this.data.reduce( function( obj, x ) {
             obj[x.channel] = x.values;
@@ -381,17 +365,13 @@ fmraster.ChannelRaster.prototype = {
         }
 
         this.setSelectedChannel( newChannel );
-
         this.onselectchannel( newChannel );
 
     },
 
 };
 
-
 // EXPORT MODULE
-
 module.exports = fmraster;
-
 
 //

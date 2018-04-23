@@ -14,19 +14,8 @@ require( 'setimmediate' );                      // Needed to fix promise
                                                 // polyfill on non-IE
 var Promise = require( 'promise-polyfill' );    // Needed for IE Promise
                                                 // support
-
-var cronelib = require( '../lib/cronelib' );
-
-
 // MODULE OBJECT
-
 var fmfeature = {};
-
-
-// HELPERS
-
-// ...
-
 
 // MAIN CLASS
 

@@ -5,27 +5,20 @@
 //
 // =
 
-
 // REQUIRES
-
 var $           = require( 'jquery' );
-var d3          = require( 'd3' );
-
 var Cookies     = require( 'js-cookie' );
-
 // Hacky as Hell way to get browserify to work
 window.$ = window.jQuery = $;   // Bootstrap needs $ in global namespace
 require( 'bootstrap' );
 $.noConflict( true );           // Clean up global namespace afterwards
 
 require( 'setimmediate' );                          // Needed to fix promise
-                                                    // polyfill on non-IE
 var Promise     = require( 'promise-polyfill' );    // Needed for IE Promise
                                                     // support
 
 var cronelib    = require( '../lib/cronelib' );
 var fullscreen  = require( '../lib/fullscreen' );
-
 var fmbrain     = require( './fmbrain' );
 var fmscope     = require( './fmscope' );
 if(document.title == "WebFM: Map"){
@@ -33,17 +26,12 @@ if(document.title == "WebFM: Map"){
 }
 
 // GLOBALS
-
 var ENTER_KEY   = 13;   // TODO Should probably go in config
 
-
 // MODULE OBJECT
-
 var fmui = {};
 
-
 // MAIN CLASS
-
 fmui.InterfaceManager = function() {
 
     var manager = this;
@@ -62,7 +50,7 @@ fmui.InterfaceManager = function() {
     {
       this.brain = new fmbrain.BrainVisualizer( '#fm-brain' , 'live');
     }
-    else{
+    else if(document.title=="WebFM: Map"){
       this.raster = new fmraster.ChannelRaster( '#fm' );
       this.brain = new fmbrain.BrainVisualizer( '#fm-brain' , 'map');
       this.raster.onselectchannel = function( newChannel ) {

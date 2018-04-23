@@ -131,7 +131,7 @@ var getSubjectName = function() {
                         // Parameter not set
 
                         $( '#subject-label' ).html( '<small>(No SubjectName set.)</small>' );
-                        
+
                         // TODO The fact that there's this awkward magic number
                         // use suggests that this is a bad way to do this ...
                         setTimeout( function() {
@@ -161,7 +161,7 @@ var getTaskName = function() {
                         // Parameter not set
 
                         $( '#task-label' ).html( '<small>(No DataFile set.)</small>' );
-                        
+
                         // TODO The fact that there's this awkward magic number
                         // use suggests that this is a bad way to do this ...
                         setTimeout( function() {
@@ -272,7 +272,8 @@ var addSubjectCell = function( subject ) {
         text:   subject,
         on: {
             click: cellClick
-        }
+        },
+        onclick: "document.cookie='WebFM: Map'"
     } ).appendTo( '#subject-list' );
 
 };
@@ -386,7 +387,7 @@ var loadSubjects = function() {
 };
 
 var selectFromHash = function( hash ) {
-    
+
     // window.location.hash has a '#' at the front, so clip it
     var hashSubject = hash.slice( 1 );
 
@@ -449,7 +450,7 @@ var updateSourceAddress = function( newSourceAddress ) {
 };
 
 var addSubject = function( subjectId ) {
-    // Make call 
+    // Make call
     $.ajax( {
         url: path.join( apiPath, 'data', subjectId ),
         method: 'PUT'
@@ -467,7 +468,7 @@ $( '#source-address-ok' ).on( 'click', function() {
     // Get new value from form
     var newSourceAddress = $( '#source-address' ).val();
     updateSourceAddress( newSourceAddress );
-    // 
+    //
     hideOnlineOptions();
 } );
 

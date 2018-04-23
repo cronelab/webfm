@@ -7,9 +7,7 @@
 
 
 // REQUIRES
-
 var bci2k = require( 'bci2k' );
-
 require( 'setimmediate' );                      // Needed to fix promise
                                                 // polyfill on non-IE
 var Promise = require( 'promise-polyfill' );    // Needed for IE Promise
@@ -17,7 +15,6 @@ var Promise = require( 'promise-polyfill' );    // Needed for IE Promise
 
 
 // MODULE OBJECT
-
 var fmonline = {};
 
 

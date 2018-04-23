@@ -5,32 +5,15 @@
 //
 // ======================================================================== //
 
-
 // REQUIRES
-
 var path        = require( 'path' );
-
 var $           = require( 'jquery' );
-var d3          = require( 'd3' );
-
 var Cookies     = require( 'js-cookie' );
 var minimatch   = require( 'minimatch' );
-
-
-d3.horizon      = require( '../lib/horizon' );             // New kludge
-
-var bci2k       = require( 'bci2k' );
 var cronelib    = require( '../lib/cronelib' );
-
-var fmstat      = require( './fmstat' );
 var fmonline    = require( './fmonline' );
 var fmui        = require( './fmui' );
-var fmgen       = require( './fmgen' );
 var fmdata      = require( './fmdata' );
-var fmfeature   = require( './fmfeature' );
-var fmraster    = require( './fmraster' );
-
-// MEAT
 
 // Initialization
 
@@ -56,7 +39,6 @@ if ( loadMode ) {
 
 var apiPath         = '/api';
 var configPath      = '/map/config';
-
 
 // Dataset
 var dataBundle      = null;
@@ -127,7 +109,6 @@ if ( onlineMode ) {     // Using BCI2000Web over the net
                 sequenceList[i] = parseInt(sequenceList[i]);
             }
             sequenceList.shift();
-            console.log(Math.max.apply(Math, sequenceList));
         });
       }
     };
@@ -745,9 +726,10 @@ var ingestTrial = function( trialData ) {
     // Update our statistics
     dataset.ingest( trialData )
         .then( function() {
-
+          if(document.title=="WebFM: Map")
+          {
             updateDataDisplay();
-
+}
             uiManager.hideIcon( 'working' );
 
             uiManager.updateTrialCount( dataset.getTrialCount() );
@@ -770,8 +752,7 @@ var ingestTrial = function( trialData ) {
     //                 } );
 
 };
-if(document.title=="WebFM: Map")
-{
+
 var updateDataDisplay = function updateDataDisplay() {
 
     var timeBounds = dataset.getTimeBounds();
@@ -878,7 +859,8 @@ var updatePlotsPostData = function() {
 
 };
 */
-
+if(document.title=="WebFM: Map")
+{
       uiManager.raster.oncursormove = function( newTime ) {
         uiManager.updateSelectedTime( newTime );
         uiManager.brain.update( dataset.dataForTime( newTime ) );
