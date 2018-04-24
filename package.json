@@ -9,20 +9,13 @@
   },
   "author": "Max Collard <collard@jhu.edu>",
   "license": "SEE LICENSE IN LICENSE.md",
-  "devDependencies": {
-    "electron": "^1.8.4"
-  },
   "dependencies": {
     "async": "^2.1.4",
-    "asyncjs": "0.0.10",
     "body-parser": "^1.15.2",
-    "compression": "^1.7.2",
-    "ejs": "^2.5.1",
-    "express": "^4.14.0",
-    "express-static-gzip": "^0.3.2",
-    "formidable": "^1.0.17",
+    "express": "^4.16.3",
+    "formidable": "^1.2.1",
     "jsonfile": "^2.4.0",
-    "node-base64-image": "^1.0.3",
+    "node-base64-image": "^1.0.5",
     "optimist": "^0.6.1",
     "promise-polyfill": "^6.0.2"
   }

@@ -1,7 +1,7 @@
 #!/bin/sh
 
-browserify ./index/main.js -t babelify -o ../public/js/app/index.js
-browserify ./main/main.js -t babelify -o ../public/js/app/map.js
+browserify ./index/main.js -t babelify | uglifyjs -o ../public/js/app/index.js
+browserify ./main/main.js -t babelify | uglifyjs -o ../public/js/app/map.js
 cp ./node_modules/jquery/dist/* ../public/js/jquery
 cp ./node_modules/bootstrap/dist/js/* ../public/js/bootstrap
 cp ./node_modules/bootstrap/dist/css/* ../public/css/bootstrap

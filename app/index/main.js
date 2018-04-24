@@ -9,14 +9,9 @@
 // REQUIRES
 
 var path        = require( 'path' );
-
 var $           = require( 'jquery' );
-var async       = require( 'async' );
-
 var bciwatch    = require( './bciwatch' );
-
 var Cookies     = require( 'js-cookie' );
-
 
 // INIT
 
@@ -31,15 +26,10 @@ var parameterRecheckDuration    = 2000;
 // BCI2K state watch setup
 var bciWatcher      = null;
 
-
 // HELPERS
-
 var removeNewlines = function( s ) {
     return s.replace( /(\r\n|\n|\r)/gm, '' );
 };
-
-
-// MEAT
 
 // Handling configuration cookies
 
@@ -64,13 +54,9 @@ var getSourceAddress = function() {
                     // TODO Get error message from jquery object
                     reject( 'Could not load watcher config from ' + configURI + ' : ' + reason );
                 } );
-
         }
-
         resolve( sourceAddress );
-
     } );
-
 };
 
 var setSourceAddress = function( newSourceAddress ) {
@@ -533,11 +519,8 @@ $( '#upload-sensor-geometry-input' ).on( 'change', function() {
 
             // TODO GUI for error
             console.log( 'Upload failed :( ' + JSON.stringify( err ) );
-
         } );
-
     }
-
 } );
 
 
@@ -586,24 +569,12 @@ $( '#upload-brain-image-input' ).on( 'change', function() {
 
             // TODO GUI for error
             console.log( 'Upload failed :( ' + JSON.stringify( err ) );
-
         } );
-
     }
-
 } );
-
 
 $( window ).on( 'load', function() {
-
     loadSubjects();
-
     setupOnlineOptions();
-
     setupWatcher();
-
 } );
-
-
-
-//

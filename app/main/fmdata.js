@@ -8,20 +8,20 @@
 
 // REQUIRES
 
-var $       = require( 'jquery' );
+const $       = require( 'jquery' );
 
 require( 'setimmediate' );                      // Needed to fix promise
                                                 // polyfill on non-IE
-var Promise = require( 'promise-polyfill' );    // Needed for IE Promise
+const Promise = require( 'promise-polyfill' );    // Needed for IE Promise
                                                 // support
 
-var cronelib = require( '../lib/cronelib' );
-var fmstat = require( './fmstat' );
+const cronelib = require( '../lib/cronelib' );
+const fmstat = require( './fmstat' );
 
 
 // MODULE OBJECT
 
-var fmdata = {};
+const fmdata = {};
 
 
 // DATASET CLASS
@@ -339,7 +339,7 @@ fmdata.Dataset.prototype = {
         }
 
         if ( this.contents.stats !== undefined ) {
-            
+
             // TODO Make configurable
             return cronelib.forEachAsync( Object.keys( this._channelStats ), function( ch ) {
                 dataset.displayData[ch] = dataset._channelStats[ch].fdrCorrectedValues( 0.05 );
@@ -495,7 +495,7 @@ fmdata.Dataset.prototype = {
         }
 
         channels.forEach( function( ch ) {
-            
+
             var newBaselineWindow = undefined;
             if ( dataset.metadata ) {
                 newBaselineWindow = dataset.metadata.baselineWindow;
@@ -687,10 +687,10 @@ fmdata.Dataset.prototype = {
         }, {
             batchSize: 5
         } ).then( function() {
-                
+
                 // Update the stats structure in contents
                 dataset._updateContentsStats();
-                
+
                 // Update the trials structure " "
                 if ( dataset.contents.trials === undefined ) {
                     dataset.contents.trials = [];
