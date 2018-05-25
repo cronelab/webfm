@@ -20,7 +20,8 @@ var Promise     = require( 'promise-polyfill' );    // Needed for IE Promise
 var cronelib    = require( '../lib/cronelib' );
 var fullscreen  = require( '../lib/fullscreen' );
 var fmbrain     = require( './fmbrain' );
-var fmscope     = require( './fmscope' );
+var fmscope0 = require( './fmscope' );
+
 if(document.title == "WebFM: Map"){
   var fmraster    = require( './fmraster' );
 }
@@ -57,7 +58,8 @@ fmui.InterfaceManager = function() {
           manager.brain.setSelectedChannel( newChannel );
       };
     }
-    this.scope = new fmscope.ChannelScope( '#fm-scope' );
+    this.scope = new fmscope0.ChannelScope( '#fm-scope' );
+    // this.scope = new fmscope.ChannelScope( '#fm-scope' );
 
     // Events
 
@@ -127,8 +129,8 @@ fmui.InterfaceManager.prototype = {
     },
 
     setup: function() {
-
         var manager = this; // Capture this
+
 
         // Incorporate the defaults with whatever we've loaded
         this.config = this._mergeDefaultConfig( this.config );
@@ -280,9 +282,27 @@ fmui.InterfaceManager.prototype = {
 
 
         // Scope page
+        var stimElements = document.getElementsByClassName("stimulusSelector");
+          Array.from(stimElements).forEach(function(stimelement){
+            stimelement.addEventListener("click",  function(e) {
+              stimelement.parentElement.classList.toggle("active","force");
+              manager.updateScopeChannel( stimelement.innerText );
+          })
+        });
 
-        $( '#fm-option-scope-channel' ).on( 'change', function ( event ) {
-            manager.updateScopeChannel( this.value );
+        $( '#fm-button' ).on( 'click', function ( event ) {
+          // Deactivate the tab list
+          $( '.fm-options-tab-list .list-group-item' ).removeClass( 'active' );
+
+          // TODO Get Bootstrap events for tab show / hide to work
+          // Selected tab is last word of hash
+          var scopeChannel = $( '#fm-option-scope-channel' ).val();
+
+              manager.scope.setup();     // TODO Necessary?
+              manager.scope.start( 'LAO3' ? 'LAO3' : undefined );
+
+          // console.log(document.getElementById('chanSel'))
+          //   manager.updateScopeChannel( "LAO1" );
         } );
 
         $( '#fm-option-scope-min' ).on( 'change', function ( event ) {
@@ -350,135 +370,6 @@ fmui.InterfaceManager.prototype = {
         }
     },
 
-    updateBrain: function() {
-
-        var manager = this;
-
-        cronelib.debounce( function() {
-            manager.brain.autoResize();
-            manager.brain.update();
-        }, this.config.brainDebounceDelay )();
-
-    },
-
-
-    /* Button handlers */
-
-    _updateZoomClasses: function() {
-        if ( this.config.rowHeight >= this.config.maxRowHeight ) {
-            $( '.fm-zoom-in' ).addClass( 'disabled' );
-        } else {
-            $( '.fm-zoom-in' ).removeClass( 'disabled' );
-        }
-        if ( this.config.rowHeight <= 1 ) {
-            $( '.fm-zoom-out' ).addClass( 'disabled' );
-        } else {
-            $( '.fm-zoom-out' ).removeClass( 'disabled' );
-        }
-    },
-
-    _updateGainClasses: function() {
-        if ( this.config.rasterExtent >= this.config.maxRasterExtent ) {
-            $( '.fm-gain-down' ).addClass( 'disabled' );
-        } else {
-            $( '.fm-gain-down' ).removeClass( 'disabled' );
-        }
-        if ( this.config.rasterExtent <= 1 ) {
-            $( '.fm-gain-up' ).addClass( 'disabled' );
-        } else {
-            $( '.fm-gain-up' ).removeClass( 'disabled' );
-        }
-    },
-
-    zoomIn: function( event ) {
-
-        // Update UI-internal gain measure
-        this.config.rowHeight = this.config.rowHeight + 1;
-        if ( this.config.rowHeight > this.config.maxRowHeight ) {
-            this.config.rowHeight = this.config.maxRowHeight;
-            return;                         // Only update if we actually change
-        }
-
-        this._updateZoomClasses();
-
-        // Cache the scroll state before our manipulations
-        // TODO Use row in middle of viewport, not fraction of scrolling
-        var prevScrollFraction = this._getScrollFraction();
-        // Alter raster parameters
-        for(var i =0; i<this.raster.length; i++)
-        {
-        this.raster.setRowHeight( this.getRowHeight() );
-    }
-    //      this.raster1.setRowHeight( this.getRowHeight() );
-        // Redraw the raster with a guarantee
-        this.updateRaster( true );
-        //Restore the scroll state
-        $( document ).scrollTop( this._topForScrollFraction( prevScrollFraction ) );
-
-    },
-
-    zoomOut: function( event ) {
-
-        // Update UI-internal gain measure
-        this.config.rowHeight = this.config.rowHeight - 1;
-        if ( this.config.rowHeight < 1 ) {
-            this.config.rowHeight = 1;
-            return;
-        }
-        this._updateZoomClasses();
-
-        // Cache the scroll state before our manipulations
-        // TODO Use row in middle of viewport, not fraction of scrolling
-        var prevScrollFraction = this._getScrollFraction();
-        // Alter raster parameters
-        this.raster.setRowHeight( this.getRowHeight() );
-    //    this.raster1.setRowHeight( this.getRowHeight() );
-        // Redraw the raster with a guarantee
-        this.updateRaster( true );
-        // Restore the scroll state
-        $( document ).scrollTop( this._topForScrollFraction( prevScrollFraction ) );
-
-    },
-
-    gainDown: function( event ) {
-
-        // Update UI-internal gain measure
-        this.config.rasterExtent = this.config.rasterExtent + 1;
-        if ( this.config.rasterExtent > this.config.maxPlotExtent ) {
-            this.config.rasterExtent = this.config.maxPlotExtent;
-            return;
-        }
-
-        this._updateGainClasses();
-
-        // Alter raster parameters
-        this.raster.setExtent( this.getRasterExtent() );
-        // this.raster1.setExtent( this.getRasterExtent() );
-
-        // Redraw the raster with a guarantee
-        this.updateRaster( true );
-
-    },
-
-    gainUp: function( event ) {
-
-        // Update UI-internal gain measure
-        this.config.rasterExtent = this.config.rasterExtent - 1;
-        if ( this.config.rasterExtent < 1 ) {
-            this.config.rasterExtent = 1;
-            return;
-        }
-        this._updateGainClasses();
-
-        // Alter raster parameters
-        this.raster.setExtent( this.getRasterExtent() );
-        // this.raster1.setExtent( this.getRasterExtent() );
-
-        // Redraw the raster with a guarantee
-        this.updateRaster( true );
-
-    },
-
     _getScrollFraction: function() {
         return $( window ).scrollTop() / ( $( document ).height() - $( window ).height() );
     },
@@ -506,7 +397,7 @@ fmui.InterfaceManager.prototype = {
     },
 
     optionsHidden: function( event ) {
-        this.scope.stop();
+        // this.scope.stop();
     },
 
     showOptionsTab: function( caller, event ) {
@@ -571,7 +462,7 @@ fmui.InterfaceManager.prototype = {
     },
 
     updateScopeChannel: function( newChannel ) {
-        this.scope.start( newChannel );
+      console.log(newChannel)
     },
 
 
@@ -832,7 +723,7 @@ fmui.InterfaceManager.prototype = {
         // {
         //   this.raster[i].setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
         // }
-        this.raster1.setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
+        this.raster.setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
     },
 
     unexclude: function( channel ) {

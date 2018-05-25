@@ -1,141 +1,178 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
 
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <meta name="description" content="">
-    <meta name="author" content="">
+  <meta name="description" content="">
+  <meta name="author" content="">
 
-    <!-- Styles -->
-    <link rel="stylesheet" type="text/css" href="/css/bootstrap/bootstrap.css">
-    <link rel="stylesheet" type="text/css" href="/css/map.css">
-    <link rel="stylesheet" href="/webFM_Display/TemplateData/style.css">
+  <!-- Styles -->
+  <link rel="stylesheet" type="text/css" href="/css/bootstrap/bootstrap.css">
+  <link rel="stylesheet" type="text/css" href="/css/map.css">
+  <link rel="stylesheet" href="/webFM_Display/TemplateData/style.css">
 
-    <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
-    <script src="/webFM_Display/Build/UnityLoader.js"></script>
-    <script src="/webFM_Display/TemplateData/UnityProgress.js"></script>
-    <script src="/js/jquery/jquery.js"></script>
-    <script>if (window.module) module = window.module;</script>
+  <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+  <!-- <script src="/webFM_Display/Build/UnityLoader.js"></script> -->
 
+  <script src="/webFM_Display/TemplateData/UnityProgress.js"></script>
+  <script src="/js/jquery/jquery.min.js"></script>
+  <script>if (window.module) module = window.module;</script>
 
-    <script>
-      var gameInstance = UnityLoader.instantiate("gameContainer", "/webFM_Display/Build/webFM_Display.json", {onProgress: UnityProgress});
-    </script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script>
+  // var gameInstance = UnityLoader.instantiate("gameContainer", "/webFM_Display/Build/webFM_Display.json", {onProgress: UnityProgress});
+  </script>
 
-    <script type="text/javascript">
-      document.title = document.cookie.split(";")[3];
-    </script>
-    <script>
-      function load(url, element){
-        req = new XMLHttpRequest();
-        req.open("GET", url, false);
-        req.send(null);
-        element.innerHTML = req.responseText;
-      }
-    </script>
-  </head>
-  <body>
-
-
+  <script type="text/javascript">
+  document.title = document.cookie.split(";")[3];
+  </script>
+  <script>
+  function load(url, element){
+    req = new XMLHttpRequest();
+    req.open("GET", url, false);
+    req.send(null);
+    element.innerHTML = req.responseText;
+  }
+  </script>
+</head>
+<body>
 
 
   <!-- Navbar -->
-
   <div id="navbar"></div>
-
 
   <!-- Main content -->
   <div class="container-fluid">
     <div class="row">
-      <div class="col-md-5 col-sm-5" id="fmContainer">
-        <div id="fm"></div>
-        Stimulus Code is currently:<p class = "stim-display"></p>
+      <div class="col-md-5 col-sm-5">
+      <div id="fmContainer">
+        <!-- <div id="fm"></div> -->
+        <!-- <div id="testLineNode">
+          <div class = "fm-testLineNode"></div>
+        </div> -->
       </div>
+
       <div class="col-md-7 col-sm-7 hidden-xs" style="position:fixed; right:0px;">
         <br>
         <br>
         <br>
         <br>
         <br>
-        <div class="btn-group btn-group-toggle" data-toggle="buttons">
-          <label class="btn btn-secondary active">
-            <input type="radio" name="options" id="TwoD" autocomplete="off" checked=true onchange="toggleBrain('2D')"> 2D
-          </label>
-          <label class="btn btn-secondary">
-            <input type="radio" name="options" id="ThreeD" autocomplete="off" checked=false onchange="toggleBrain('3D')"> 3D
-          </label>
-        </div>
-          <!-- TODO Add aspect ratio button -->
 
-          <div id="fm-brain"></div>
 
-          <div class="webgl-content">
-            <div id="gameContainer" style="width: 1000px; height: 1000px"></div>
-            <div class="footer1">
-              <div class="fullscreen" onclick="gameInstance.SetFullscreen(1)"></div>
-              <div class="title">ReconGL</div>
-            </div>
-          </div>
+        <!-- TODO Add aspect ratio button -->
 
+        <!-- <div id="fm-brain"></div> -->
+
+
+        <div id="fm-scope"></div>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <button id="fm-button">Start!</button>
+        <button id="fm-button2">Stop!</button>
+      <!-- <div class="webgl-content"> -->
+        <!-- <div id="gameContainer" style="width: 1000px; height: 1000px"></div> -->
       </div>
     </div>
   </div>
+</div>
 
-  <!-- Modals -->
-  <div id="modals"></div>
+<!-- Modals -->
+<div id="modals"></div>
 
 
+<script>
+var twoDBrain = document.getElementById("fm-brain");
+var threeDBrain = document.getElementsByClassName("webgl-content");
+var rasterPlots = document.getElementById("fmContainer");
+var linePlots = document.getElementById("testLineNode");
 
+// dots.style.display="block"
+twoDBrain.style.visibility = "visible";
+threeDBrain[0].style.visibility = "hidden";
+rasterPlots.style.visibility = "visible";
+linePlots.style.visibility = "hidden";
 
-  <script>
-  var x = document.getElementById("fm-brain");
-  var y = document.getElementsByClassName("webgl-content");
-  // dots.style.display="block"
-  x.style.visibility = "visible";
-  y[0].style.visibility = "hidden";
+function toggleBrain(perspective)
+{
+  if(perspective == "2D")
+  {
+    var dots = document.getElementsByClassName("fm-brain-dots")[0];
 
-    function toggleBrain(perspective)
-    {
-    if(perspective == "2D")
-    {
-      var dots = document.getElementsByClassName("fm-brain-dots")[0];
+    twoDBrain.style.visibility = "visible";
+    threeDBrain[0].style.visibility = "hidden";
+    dots.style.display="block"
 
-      x.style.visibility = "visible";
-      y[0].style.visibility = "hidden";
-      dots.style.display="block"
-
-    }
-    else{
-      var dots = document.getElementsByClassName("fm-brain-dots")[0];
-
-      x.style.visibility = "hidden";
-      y[0].style.visibility = "visible";
-      dots.style.display="none"
-
-    }
   }
+  else{
+    var dots = document.getElementsByClassName("fm-brain-dots")[0];
+
+    twoDBrain.style.visibility = "hidden";
+    threeDBrain[0].style.visibility = "visible";
+    dots.style.display="none"
+
+  }
+}
+
+function toggleCharts(charts){
+  if(charts=="raster"){
+    console.log("A")
+
+    linePlots.style.visibility = "hidden";
+    rasterPlots.style.visibility = "visible";
+  }
+  else if (charts=="line") {
+    rasterPlots.style.visibility = "hidden";
+    linePlots.style.visibility = "visible";
+
+  }
+}
+</script>
+
+
+<!-- Footer -->
+
+<footer class="footer navbar-fixed-bottom">
+  <div class="container-fluid">
+    <p class="text-muted text-right">
+      <span class="fm-trial-label">[n]</span>
+      &emsp;&middot;&emsp;
+      BCI2K: <span class="text-success fm-bci-status-label">Connected</span>
+    </p>
+  </div>
+
+
+  <script src="/js/app/map.js"></script>
+  <script>
+  load("/navbar.html",document.getElementById("navbar"));
+  load("/modals.html",document.getElementById("modals"));
   </script>
-
-  <!-- Footer -->
-
-  <footer class="footer navbar-fixed-bottom">
-    <div class="container-fluid">
-      <p class="text-muted text-right">
-        <span class="fm-trial-label">[n]</span>
-        &emsp;&middot;&emsp;
-        BCI2K: <span class="text-success fm-bci-status-label">Connected</span>
-      </p>
-    </div>
-
-
-    <script src="/js/app/map.js"></script>
-    <script>
-    load("/navbar.html",document.getElementById("navbar"));
-    load("/modals.html",document.getElementById("modals"));
-    </script>
-  </footer>
+  <script type="text/javascript">
+  document.getElementById("twoVsThree").addEventListener("click",function(e) {
+    e.target.parentElement.classList.remove("active");
+    if(e.target.id == "twoDDrop") {
+      toggleBrain("2D");
+    }
+    else if (e.target.id=="threeDDrop") {
+      toggleBrain("3D");
+    }
+  });
+  document.getElementById("graphViews").addEventListener("click",function(e) {
+    e.target.parentElement.classList.remove("active");
+    if(e.target.id == "rasterView") {
+      toggleCharts("raster");
+    }
+    else if (e.target.id=="chartView") {
+      toggleCharts("line");
+    }
+  });
+  </script>
+</footer>
 </body>
 </html>

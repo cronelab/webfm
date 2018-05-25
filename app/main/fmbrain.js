@@ -84,7 +84,7 @@ fmbrain.BrainVisualizer.prototype = {
 
     _defaultData: function( channels ) {
         // Return a data map giving zeros for each channel
-        return channels.reduce( function( obj, ch ) {
+        return channels.reduce( ( obj, ch ) => {
             obj[ch] = 0.0;
             return obj;
         }, {} );
@@ -106,7 +106,7 @@ fmbrain.BrainVisualizer.prototype = {
             }
             // Don't ignore
             return true;
-        } ).map( function( ch ) {
+        } ).map( ch => {
             return {
                 channel: ch,
                 value: data[ch]
@@ -122,7 +122,7 @@ fmbrain.BrainVisualizer.prototype = {
 
     _getDimensionsForData: function( data ) {
 
-        return new Promise( function( resolve, reject ) {
+        return new Promise( (resolve, reject) => {
 
             var image = document.createElement( 'img' );
 
@@ -225,10 +225,7 @@ fmbrain.BrainVisualizer.prototype = {
 
       _dotFilter: function( d ) {
       // TODO Not a super effective filter ...
-        if ( this._dotX( d ) === undefined ) {
-          return false;
-        }
-        return true;
+      this._dotX( d ) === undefined ? false : true;
       },
 
       _dotFill: function( d ) {
@@ -236,9 +233,8 @@ fmbrain.BrainVisualizer.prototype = {
       },
 
       _dotVisibility: function( d ) {
-        if ( d.channel == this.selectedChannel ) {
-          return 'visible';
-        }
+        d.channel == this.selectedChannel ? 'visible' : '';
+
         if( this.config == 'map' ){
           if ( d.value == 0 ) {
               return 'hidden';
@@ -358,20 +354,20 @@ fmbrain.BrainVisualizer.prototype = {
         var keyNames = Object.keys(this.data);
         var size = Object.keys(this.data).length;
 
-        for (var i = 1; i <= size; i++) {
-          if(document.title == "WebFM: Live"){
-            if(eval("this.data."+keyNames[i]) > 10){
-              gameInstance.SendMessage(keyNames[i], "activityChanger", eval("this.data."+keyNames[i]));
-            }
-            else
-            {
-              gameInstance.SendMessage(keyNames[i], "activityChanger", 0.0);
-            }
-          }
-          else{
-            gameInstance.SendMessage(keyNames[i], "activityChanger", eval("this.data."+keyNames[i]));
-          }
-        }
+        // for (var i = 1; i <= size; i++) {
+        //   if(document.title == "WebFM: Live"){
+        //     if(eval("this.data."+keyNames[i]) > 10){
+        //       gameInstance.SendMessage(keyNames[i], "activityChanger", eval("this.data."+keyNames[i]));
+        //     }
+        //     else
+        //     {
+        //       gameInstance.SendMessage(keyNames[i], "activityChanger", 0.0);
+        //     }
+        //   }
+        //   else{
+        //     gameInstance.SendMessage(keyNames[i], "activityChanger", eval("this.data."+keyNames[i]));
+        //   }
+        // }
 
 
         var brainDots = d3.select( this.baseNodeId ).select( '.fm-brain-dots' ).selectAll( '.fm-brain-dot' )

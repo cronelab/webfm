@@ -101,7 +101,6 @@ fmstat.ChannelStat.prototype = {
 
         // Aggregate new trial data
         this.valueTrials.push( data );
-
     },
 
     ingestBaseline: function( data ) {
@@ -143,7 +142,7 @@ fmstat.ChannelStat.prototype = {
 
         // TODO Wrong form of baseline normalization; should use SEM units?
         // TODO Check limit description in maxcog demo notebook.
-        
+
         var stat = this;
 
         return this.values.map( function( v ) {

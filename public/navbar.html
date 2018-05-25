@@ -78,33 +78,54 @@
 
       <ul class="nav navbar-nav navbar-right">
         <li class="dropdown fm-dataset-list">
-          <a href="#" id="bandDropdown" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">High gamma (70–110 Hz) <span class="caret"></span></a>
-          <ul class="dropdown-menu">
-            <li class="dropdown-header">CCEP</li>
-            <li><a href="#">LTG77 <span class="glyphicon glyphicon-arrow-right"></span> LTG78</a></li>
-            <li><a href="#">LTG77 <span class=""></span> LTG78</a></li>
-            <li role="separator" class="divider"></li>
-            <li class="dropdown-header">CCSR</li>
-            <li><a href="#">LTG77 <span class=""></span> LTG78</a></li>
-            <li><a href="#">LTG77 <span class=""></span> LTG78</a></li>
+          <a href="#" class = "stim-display" >Stimulus:</a>
+        </li>
+        <li class="dropdown fm-dataset-list">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Charts <span class="caret"></span></a>
+          <ul id="graphViews" class="dropdown-menu">
+            <li><a href="#" id="rasterView">Raster</a></li>
+            <li><a href="#" id="chartView">Chart</a></li>
           </ul>
         </li>
         <li class="dropdown fm-dataset-list">
+          <a href="#" id="bandDropdown">High gamma (70–110 Hz) </a>
+        </li>
+        <li class="dropdown fm-dataset-list">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Channel selector <span class="caret"></span></a>
+          <ul id="chanSel" class="dropdown-menu">
+            <li><a href="#" class="stimulusSelector">LAF1</a></li>
+            <li><a href="#" class="stimulusSelector">LAF2</a></li>
+            <li><a href="#" class="stimulusSelector">LAF5</a></li>
+            <li><a href="#" class="stimulusSelector">LAF6</a></li>
+            <li><a href="#" class="stimulusSelector">LAO3</a></li>
+            <li><a href="#" class="stimulusSelector">LAO4</a></li>
+            <li><a href="#" class="stimulusSelector">LAO5</a></li>
+            <li><a href="#" class="stimulusSelector">LAO6</a></li>
+            <li><a href="#" class="stimulusSelector">LAO7</a></li>
+            <li><a href="#" class="stimulusSelector">LAO8</a></li>
+          </ul>
+        </li>
 
+        <li class="dropdown fm-dataset-list">
           <a href="#" id="stimDropdown" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Stimulus selection <span class="caret"></span></a>
           <ul class="dropdown-menu">
-          <li><a href="#">Stimulus Code 1</a></li>
-          <li><a href="#">Stimulus Code 2</a></li>
-          <li><a href="#">Stimulus Code 3</a></li>
-          <li><a href="#">Stimulus Code 4</a></li>
-          <li><a href="#">Stimulus Code 5</a></li>
-          <li><a href="#">Stimulus Code 6</a></li>
-          <li><a href="#">Stimulus Code 7</a></li>
-          <li><a href="#">Stimulus Code 8</a></li>
-          <li><a href="#">Stimulus Code 9</a></li>
-          <li><a href="#">Stimulus Code 10</a></li>
-          <li><a href="#">Stimulus Code 11</a></li>
-          <li><a href="#">Stimulus Code 12</a></li>
+            <li><a href="#">Stimulus: All vs none</a></li>
+            <li><a href="#">Stimulus: 1 vs none</a></li>
+            <li><a href="#">Stimulus: 2 vs none</a></li>
+            <li><a href="#">Stimulus: 3 vs none</a></li>
+            <li><a href="#">Stimulus: 4 vs none</a></li>
+            <li><a href="#">Stimulus: 5 vs none</a></li>
+            <li><a href="#">Stimulus: 1 vs 2</a></li>
+            <li><a href="#">Stimulus: 1 vs 3</a></li>
+            <li><a href="#">Stimulus: 2 vs 3</a></li>
+          </ul>
+        </li>
+
+        <li class="dropdown fm-dataset-list">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Perspective <span class="caret"></span></a>
+          <ul id="twoVsThree" class="dropdown-menu">
+            <li><a href="#" id="twoDDrop">2D</a></li>
+            <li><a href="#" id="threeDDrop">3D</a></li>
           </ul>
         </li>
         <li class="fm-show-options">

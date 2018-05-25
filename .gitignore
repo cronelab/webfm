@@ -5,5 +5,5 @@ data_demo/
 
 
 reconstruction/
-public/webFM_Display/StreamingAssets/Cube.prefab
-public/webFM_Display/StreamingAssets/resources.assetbundle
+public/webFM_Display/StreamingAssets/*
+public/webFM_Display/OLD/*

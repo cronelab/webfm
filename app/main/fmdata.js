@@ -26,6 +26,23 @@ const fmdata = {};
 
 // DATASET CLASS
 
+
+// class fmdata.Dataset{
+//   constructor(){
+//     this.metadata = {};
+//     this.contents = {};
+//
+//     // What interfaces with the application
+//     this.displayData = {};
+//
+//     // What's used internally
+//     this._channelStats = {};
+//
+//     // Whether the data are in sync with what was saved
+//     this._clean = true;
+//   }
+// }
+
 fmdata.Dataset = function() {
 
     // What goes in the file
@@ -483,7 +500,6 @@ fmdata.Dataset.prototype = {
     setupChannels: function( channels ) {
 
         var dataset = this;
-
         // Setup metadata
 
         this.metadata.montage = channels;
@@ -720,7 +736,7 @@ fmdata.DataBundle = function() {
 
 fmdata.DataBundle.prototype = {
 
-    constructor: fmdata.DataBundle,
+    // constructor: fmdata.DataBundle,
 
     _initialize: function( data ) {
 

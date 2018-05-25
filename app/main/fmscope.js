@@ -20,7 +20,6 @@ var Promise = require( 'promise-polyfill' );
 
 var fmscope = {};
 
-
 // HELPERS
 
 // Returns an array of zeros
@@ -28,9 +27,7 @@ function zeroArray( n ) {
     return Array.apply( null, new Array( n ) ).map( Number.prototype.valueOf, 0 );
 }
 
-
 // MAIN CLASS
-
 fmscope.ChannelScope = function( baseNodeId ) {
 
     this.baseNodeId     = baseNodeId;
@@ -44,7 +41,7 @@ fmscope.ChannelScope = function( baseNodeId ) {
 
     // TODO Config
     this.extentSnap     = 0.25;
-    this.windowSamples  = 2500;     // TODO Make this in seconds
+    this.windowSamples  = 100;     // TODO Make this in seconds
 
     this.plotHeight     = 250;      // TODO Config
 
@@ -71,7 +68,7 @@ fmscope.ChannelScope.prototype = {
 
     _setupData: function() {
 
-        this.data           = zeroArray( this.windowSamples );
+      this.data           = zeroArray( this.windowSamples );
 
         if ( !this.channel ) {
             this.dataExtent     = [-32768, 32767];
@@ -85,7 +82,7 @@ fmscope.ChannelScope.prototype = {
             }
         }
 
-        
+
 
     },
 
@@ -94,7 +91,7 @@ fmscope.ChannelScope.prototype = {
         // TODO This requires the base node to  be visible because of how
         // jQuery works; so, setup must occur when plot is visible!
         var width = $( this.baseNodeId ).width() - (this.plotMargin.left + this.plotMargin.right);
-        
+
         // This was a dumb idea; drifts!
         //var height = $( this.baseNodeId ).height() - (this.plotMargin.top + this.plotMargin.bottom);
         var height = this.plotHeight;
@@ -143,7 +140,8 @@ fmscope.ChannelScope.prototype = {
                             } )
                             .y( function( d ) {
                                 return scope.plotYScale( d );
-                            } );
+                            } )
+                            .curve(d3.curveNatural);
 
         // Axes
 
@@ -173,7 +171,7 @@ fmscope.ChannelScope.prototype = {
         // Initialize items needed for plotting
         if ( !this.plotSvg ) {
             // TODO Should destroy and re-create plot?
-            this._setupPlot();    
+            this._setupPlot();
         }
 
         // Do an initial update to display contents
@@ -209,12 +207,6 @@ fmscope.ChannelScope.prototype = {
 
     },
 
-    stop: function() {
-
-        this.scoping = false;
-
-    },
-
     _updatePlot: function() {
 
         // Update axes
@@ -238,11 +230,11 @@ fmscope.ChannelScope.prototype = {
     },
 
     update: function( newData ) {
-
-        if ( !this.scoping ) {
-            // If we aren't scoping, don't pay attention to updates
-            return;
-        }
+      // console.log(newData)
+        // if ( !this.scoping ) {
+        //     // If we aren't scoping, don't pay attention to updates
+        //     return;
+        // }
 
         if ( newData !== undefined ) {
             // Incorporate new data into display buffer
@@ -264,7 +256,6 @@ fmscope.ChannelScope.prototype = {
     _pushSamples: function( samples ) {
 
         var scope = this;
-
         // For each new sample, pop one sample off the buffer, and push the
         // new sample onto the back
         samples.forEach( function( s ) {
@@ -305,26 +296,27 @@ fmscope.ChannelScope.prototype = {
 
     _receiveSignal: function( signal ) {
 
-        if ( !this.scoping ) {
-            // We don't care right now
-            return;
-        }
-
-        if ( !this.channel ) {
-            // We can't do anything if we don't know what channel we're
-            // scoping
-            return;
-        }
-
-        if ( Object.keys( signal ).indexOf( this.channel ) < 0 ) {
-            // The channel we're looking for isn't in the signal, so again,
-            // we can't do anything
-            return;
-        }
+        // if ( !this.scoping ) {
+        //     // We don't care right now
+        //     return;
+        // }
+        //
+        // if ( !this.channel ) {
+        //     // We can't do anything if we don't know what channel we're
+        //     // scoping
+        //     return;
+        // }
+        //
+        // if ( Object.keys( signal ).indexOf( this.channel ) < 0 ) {
+        //     // The channel we're looking for isn't in the signal, so again,
+        //     // we can't do anything
+        //     return;
+        // }
 
         // We have a channel and it's in the signal, so we can get samples
         // TODO More error checking?
-        this._pushSamples( signal[this.channel] );
+        // this._pushSamples( signal[this.channel] );
+        this._pushSamples( signal );
 
         // Update our plottiing variables to reflect the new data
         this._updateScale();
