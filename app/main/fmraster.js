@@ -91,7 +91,7 @@ fmraster.ChannelRaster.prototype = {
         this.cursorSvg = d3.select( this.baseNodeId ).append( 'svg' )
                                                         .attr( 'class', 'fm-cursor-svg' );
 
-        // this.cursorSvg1 = d3.select('#testLineNode').select('.fm-testLineNode').select('.childElsvg').append("svg").attr('class','fm-cursor-svg')
+        // this.cursorSvg1 = d3.select('#lineChart').select('.fm-lineChart').select('.childElsvg').append("svg").attr('class','fm-cursor-svg')
 
         // TODO Why?
         $( this.baseNodeId ).on( 'click', function( event ) {
@@ -132,7 +132,7 @@ fmraster.ChannelRaster.prototype = {
                 .attr( 'width', width )
                 .attr( 'height', height );
 
-        // d3.select('#testLineNode').select('.fm-testLineNode').select('.childElsvg')
+        // d3.select('#lineChart').select('.fm-lineChart').select('.childElsvg')
         //     .select( '.fm-cursor-svg1' )
         //         .attr( 'width', lineWidth )
         //         .attr( 'height', lineHeight );
@@ -255,82 +255,89 @@ fmraster.ChannelRaster.prototype = {
 
 
 
-        var x = d3.scaleLinear().range([0, lineWidth]);
-        var y = d3.scaleLinear().range([lineHeight, 0]);
-
-        var svg = d3.select('#testLineNode').select('.fm-testLineNode').append("svg")
-            .attr("class","childElsvg")
-            .attr("width", lineWidth + margin.left + margin.right)
-            .attr("height", lineHeight + margin.top + margin.bottom)
-            .append("g")
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-        var line = d3.line()
-          .x(function(d) { return x(d.xVal); })
-          .y(function(d) { return y(d.yVal); })
-          .curve(d3.curveNatural)
-
-          var lineGraphData = [];
-          var xVals = linspace(this.timeRange[0],this.timeRange[1],allTheData[0].values.length)
-          xVals.forEach(function(e){
-            lineGraphData.push({
-              xVal: e
-            })
-          })
-
-          lineGraphData.forEach(function(e,i){
-            e.yVal = allTheData[8].values[i]
-          })
-
-
-          y.domain([-5,5])
-          x.domain(d3.extent(lineGraphData, function(d) { return d.xVal; }));
-
-          svg.append("g")
-              .attr("class", "x axis")
-              .attr("transform", "translate(0," + lineHeight + ")")
-              .call(d3.axisBottom(x))
-
-          svg.append("text")
-            .attr("transform", "translate("+lineWidth/2 +","+ margin.top*19 + ")")
-            .style("text-anchor", "middle")
-            .text("Time (s)")
-
-          svg.append("g")
-              .attr("class", "y axis")
-              .call(d3.axisLeft(y))
-
-          svg.append("text")
-            .attr("transform", "rotate(-90)")
-            .attr("y", 0 - margin.left)
-            .attr("x",0 - (lineHeight / 2))
-            .attr("dy", "1em")
-            .style("text-anchor", "middle")
-            .text("Value");
-
-
-          svg.append("path")
-              .datum(lineGraphData)
-              .attr("class", "line")
-              .attr("d", line);
-
-        svg.append("line")
-            .attr("stroke", "black")
-            .attr("stroke-dasharray", "5,5")
-            .attr("x1", 147)
-            .attr("y1", 350)
-            .attr("x2", 147)
-            .attr("y2", 10)
-            .attr("transform", "translate(30,0)");
-
-          function linspace(a,b,n) {
-              if(typeof n === "undefined") n = Math.max(Math.round(b-a)+1,1);
-              if(n<2) { return n===1?[a]:[]; }
-              var i,ret = Array(n);
-              n--;
-              for(i=n;i>=0;i--) { ret[i] = (i*b+(n-i)*a)/n; }
-              return ret;
-          }
+        // var x = d3.scaleLinear().range([0, lineWidth]);
+        // var y = d3.scaleLinear().range([lineHeight, 0]);
+        //
+        // var svg = d3.select('#lineChart').select('.fm-lineChart').append("svg")
+        //     .attr("class","childElsvg")
+        //     .attr("width", lineWidth + margin.left + margin.right)
+        //     .attr("height", lineHeight + margin.top + margin.bottom)
+        //     .append("g")
+        //     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        //
+        // var line = d3.line()
+        //   .x(function(d) { return x(d.xVal); })
+        //   .y(function(d) { return y(d.yVal); })
+        //   .curve(d3.curveNatural)
+        //
+        //   var lineGraphData = [];
+        //   var xVals = linspace(this.timeRange[0],this.timeRange[1],allTheData[0].values.length)
+        //   xVals.forEach(function(e){
+        //     lineGraphData.push({
+        //       xVal: e
+        //     })
+        //   })
+        //
+        //   lineGraphData.forEach(function(e,i){
+        //     e.yVal = allTheData[8].values[i]
+        //   })
+        //
+        //
+        //   y.domain([-5,5])
+        //   x.domain(d3.extent(lineGraphData, function(d) { return d.xVal; }));
+        //
+        //   svg.append("g")
+        //       .attr("class", "x axis")
+        //       .attr("transform", "translate(0," + lineHeight + ")")
+        //       .call(d3.axisBottom(x))
+        //
+        //   svg.append("text")
+        //     .attr("transform", "translate("+lineWidth/2 +","+ margin.top*19 + ")")
+        //     .style("text-anchor", "middle")
+        //     .text("Time (s)")
+        //
+        //   svg.append("g")
+        //       .attr("class", "y axis")
+        //       .call(d3.axisLeft(y))
+        //
+        //   svg.append("text")
+        //     .attr("transform", "rotate(-90)")
+        //     .attr("y", 0 - margin.left)
+        //     .attr("x",0 - (lineHeight / 2))
+        //     .attr("dy", "1em")
+        //     .style("text-anchor", "middle")
+        //     .text("Value");
+        //
+        //     svg.append("text")
+        //             .attr("x", width)
+        //             .attr("y", 0 - (margin.top / 2))
+        //             // .attr("text-anchor", "middle")
+        //             .style("font-size", "16px")
+        //             .style("text-decoration", "underline")
+        //             .text("Value vs Date Graph");
+        //
+        //   svg.append("path")
+        //       .datum(lineGraphData)
+        //       .attr("class", "line")
+        //       .attr("d", line);
+        //
+        // svg.append("line")
+        //     .attr("stroke", "black")
+        //     .attr("stroke-dasharray", "5,5")
+        //     .attr("x1", 147)
+        //     .attr("y1", 350)
+        //     .attr("x2", 147)
+        //     .attr("y2", 10)
+        //     .attr("transform", "translate(30,0)");
+        //
+        //   function linspace(a,b,n) {
+        //       if(typeof n === "undefined") n = Math.max(Math.round(b-a)+1,1);
+        //       if(n<2) { return n===1?[a]:[]; }
+        //       var i,ret = Array(n);
+        //       n--;
+        //       for(i=n;i>=0;i--) { ret[i] = (i*b+(n-i)*a)/n; }
+        //       return ret;
+        //   }
 
         // Prepare a mousemove function for the horizon charts
         var horizonMouseMove = function( event ) {
@@ -404,7 +411,7 @@ fmraster.ChannelRaster.prototype = {
     },
 
     update: function( newData ) {
-
+      // console.log(newData)
         if ( newData !== undefined ) {
             this._updateData( newData );
         }

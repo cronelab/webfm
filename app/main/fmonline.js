@@ -627,7 +627,7 @@ fmonline.DataFormatter.prototype = {
   },
 
 _pushSignalSample: function( sample ) {
-  // sample is an array (over channels) of feature values
+  // sample is an array (over channels) of signal values
 
   // TODO Error checking
   var formatter = this;   // Capture this
@@ -822,7 +822,7 @@ _pushSignalSample: function( sample ) {
     this.trialEndBlockNumber = null;
 
     this.ontrial( this._formatFeatureData( trialData ) );
-    this.ontrial( this._formatSourceData( signal ) );
+    // this.ontrial( this._formatSourceData( signal ) );
 
   },
 

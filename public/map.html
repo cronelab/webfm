@@ -27,7 +27,7 @@
   </script>
 
   <script type="text/javascript">
-  document.title = document.cookie.split(";")[3];
+    document.title = document.cookie.split(";")[3];
   </script>
   <script>
   function load(url, element){
@@ -48,11 +48,20 @@
   <div class="container-fluid">
     <div class="row">
       <div class="col-md-5 col-sm-5">
+        <br>
+        <br>
       <div id="fmContainer">
-        <!-- <div id="fm"></div> -->
-        <!-- <div id="testLineNode">
-          <div class = "fm-testLineNode"></div>
-        </div> -->
+
+        <div id="fm"></div>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <div id="lineChart">
+          <div class = "fm-lineChart"></div>
+        </div>
       </div>
 
       <div class="col-md-7 col-sm-7 hidden-xs" style="position:fixed; right:0px;">
@@ -90,8 +99,8 @@
 <script>
 var twoDBrain = document.getElementById("fm-brain");
 var threeDBrain = document.getElementsByClassName("webgl-content");
-var rasterPlots = document.getElementById("fmContainer");
-var linePlots = document.getElementById("testLineNode");
+var rasterPlots = document.getElementById("fm");
+var linePlots = document.getElementById("lineChart");
 
 // dots.style.display="block"
 twoDBrain.style.visibility = "visible";
@@ -122,14 +131,12 @@ function toggleBrain(perspective)
 
 function toggleCharts(charts){
   if(charts=="raster"){
-    console.log("A")
-
-    linePlots.style.visibility = "hidden";
-    rasterPlots.style.visibility = "visible";
+    linePlots.style.display = "none";
+    rasterPlots.style.display = "block";
   }
   else if (charts=="line") {
-    rasterPlots.style.visibility = "hidden";
-    linePlots.style.visibility = "visible";
+    rasterPlots.style.display = "none";
+    linePlots.style.display = "block";
 
   }
 }

@@ -23,26 +23,6 @@ const fmstat = require( './fmstat' );
 
 const fmdata = {};
 
-
-// DATASET CLASS
-
-
-// class fmdata.Dataset{
-//   constructor(){
-//     this.metadata = {};
-//     this.contents = {};
-//
-//     // What interfaces with the application
-//     this.displayData = {};
-//
-//     // What's used internally
-//     this._channelStats = {};
-//
-//     // Whether the data are in sync with what was saved
-//     this._clean = true;
-//   }
-// }
-
 fmdata.Dataset = function() {
 
     // What goes in the file
@@ -51,6 +31,7 @@ fmdata.Dataset = function() {
 
     // What interfaces with the application
     this.displayData = {};
+    this.lineDisplayData = {};
 
     // What's used internally
     this._channelStats = {};
@@ -221,7 +202,6 @@ fmdata.Dataset.prototype = {
             // Check which distribution we have
             // TODO For now we only support Gaussian :(
             // TODO Error checking
-
             if ( stats.distribution.toLowerCase() == 'gaussian' ) {
 
                 var channels = Object.keys( stats.estimators.mean );
@@ -322,7 +302,6 @@ fmdata.Dataset.prototype = {
         if ( !Array.isArray( this.contents.times ) ) {
             return undefined;
         }
-
         var totalSamples = this.contents.times.length;
         var dataWindow = {
             start: this.contents.times[0],
@@ -358,6 +337,10 @@ fmdata.Dataset.prototype = {
         if ( this.contents.stats !== undefined ) {
 
             // TODO Make configurable
+              //CONSOLE.LOG(CHRISDIDTHIS, uncomment line below to fix)
+            this.lineDisplayData = this.contents.trials[this.contents.trials.length-1]
+            // return Promise.resolve();
+
             return cronelib.forEachAsync( Object.keys( this._channelStats ), function( ch ) {
                 dataset.displayData[ch] = dataset._channelStats[ch].fdrCorrectedValues( 0.05 );
             }, {
@@ -697,7 +680,8 @@ fmdata.Dataset.prototype = {
     ingest: function( trialData ) {
 
         var dataset = this;
-
+        console.log(dataset)
+        console.log(trialData)
         return cronelib.forEachAsync( Object.keys( this._channelStats ), function( ch ) {
             dataset._channelStats[ch].ingest( trialData[ch] );
         }, {

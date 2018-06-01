@@ -106,7 +106,24 @@ if ( onlineMode ) {     // Using BCI2000Web over the net
         for (var i = 0; i < sequenceList.length; i++) {
           sequenceList[i] = parseInt(sequenceList[i]);
         }
-        sequenceList.shift();
+        var max = Math.max.apply(null,sequenceList)
+        sequenceList.splice(sequenceList.indexOf(max),1);
+        var max = Math.max.apply(null,sequenceList)
+        for(let i = 0; i<=max;i++)
+        {
+          var item = document.createElement('li');
+          var item2 = document.createElement('a')
+          item.appendChild(item2)
+          item2.setAttribute('href','#')
+          item2.appendChild(document.createTextNode(i))
+          item2.classList.add("stimulusSelector");
+          document.getElementById('stimSel').appendChild(item);
+
+        }
+
+
+
+        // sequenceList.shift();
       });
     }
   };
@@ -693,7 +710,6 @@ var startTrial = function() {
         // var hgFeature = new fmfeature.RemoteFeature( path.join( apiPath, 'compute', 'hgfft' ) );
 
 var ingestTrial = function( trialData ) {
-
           // uiManager.scope.update(dataSource.dataFormatter.sourceBuffer[0])
           // console.log(dataSource.dataFormatter.sourceBuffer[0])
           // We're done transferring
@@ -733,6 +749,8 @@ var updateDataDisplay = function updateDataDisplay() {
           uiManager.raster.update( dataset.displayData );
           uiManager.brain.update( dataset.dataForTime( uiManager.raster.getCursorTime() ) );
           uiManager.raster.updateTimeRange( [timeBounds.start, timeBounds.end] );
+
+          uiManager.lines.update( dataset.lineDisplayData );
 
           // KLUDGE
           // TODO Can't think of a good way to deal with combined async of
