@@ -1,2 +1,9 @@
 bower_components/
 node_modules/
+docker/
+data_demo/
+
+
+reconstruction/
+public/webFM_Display/StreamingAssets/*
+public/webFM_Display/OLD/*

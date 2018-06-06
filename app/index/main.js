@@ -9,14 +9,9 @@
 // REQUIRES
 
 var path        = require( 'path' );
-
 var $           = require( 'jquery' );
-var async       = require( 'async' );
-
 var bciwatch    = require( './bciwatch' );
-
 var Cookies     = require( 'js-cookie' );
-
 
 // INIT
 
@@ -31,15 +26,10 @@ var parameterRecheckDuration    = 2000;
 // BCI2K state watch setup
 var bciWatcher      = null;
 
-
 // HELPERS
-
 var removeNewlines = function( s ) {
     return s.replace( /(\r\n|\n|\r)/gm, '' );
 };
-
-
-// MEAT
 
 // Handling configuration cookies
 
@@ -64,13 +54,9 @@ var getSourceAddress = function() {
                     // TODO Get error message from jquery object
                     reject( 'Could not load watcher config from ' + configURI + ' : ' + reason );
                 } );
-
         }
-
         resolve( sourceAddress );
-
     } );
-
 };
 
 var setSourceAddress = function( newSourceAddress ) {
@@ -131,7 +117,7 @@ var getSubjectName = function() {
                         // Parameter not set
 
                         $( '#subject-label' ).html( '<small>(No SubjectName set.)</small>' );
-                        
+
                         // TODO The fact that there's this awkward magic number
                         // use suggests that this is a bad way to do this ...
                         setTimeout( function() {
@@ -161,7 +147,7 @@ var getTaskName = function() {
                         // Parameter not set
 
                         $( '#task-label' ).html( '<small>(No DataFile set.)</small>' );
-                        
+
                         // TODO The fact that there's this awkward magic number
                         // use suggests that this is a bad way to do this ...
                         setTimeout( function() {
@@ -272,7 +258,8 @@ var addSubjectCell = function( subject ) {
         text:   subject,
         on: {
             click: cellClick
-        }
+        },
+        onclick: "document.cookie='WebFM: Map'"
     } ).appendTo( '#subject-list' );
 
 };
@@ -386,7 +373,7 @@ var loadSubjects = function() {
 };
 
 var selectFromHash = function( hash ) {
-    
+
     // window.location.hash has a '#' at the front, so clip it
     var hashSubject = hash.slice( 1 );
 
@@ -449,7 +436,7 @@ var updateSourceAddress = function( newSourceAddress ) {
 };
 
 var addSubject = function( subjectId ) {
-    // Make call 
+    // Make call
     $.ajax( {
         url: path.join( apiPath, 'data', subjectId ),
         method: 'PUT'
@@ -467,7 +454,7 @@ $( '#source-address-ok' ).on( 'click', function() {
     // Get new value from form
     var newSourceAddress = $( '#source-address' ).val();
     updateSourceAddress( newSourceAddress );
-    // 
+    //
     hideOnlineOptions();
 } );
 
@@ -532,11 +519,8 @@ $( '#upload-sensor-geometry-input' ).on( 'change', function() {
 
             // TODO GUI for error
             console.log( 'Upload failed :( ' + JSON.stringify( err ) );
-
         } );
-
     }
-
 } );
 
 
@@ -585,24 +569,12 @@ $( '#upload-brain-image-input' ).on( 'change', function() {
 
             // TODO GUI for error
             console.log( 'Upload failed :( ' + JSON.stringify( err ) );
-
         } );
-
     }
-
 } );
-
 
 $( window ).on( 'load', function() {
-
     loadSubjects();
-
     setupOnlineOptions();
-
     setupWatcher();
-
 } );
-
-
-
-//

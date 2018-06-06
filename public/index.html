@@ -16,17 +16,9 @@
   <!-- Styles -->
   <link rel="stylesheet" type="text/css" href="css/bootstrap/bootstrap.css">
   <link rel="stylesheet" type="text/css" href="css/index.css">
-
-  <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-  <!--[if lt IE 9]>
-    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-  <![endif]-->
-
 </head>
 
 <body>
-
   <nav class="navbar navbar-inverse navbar-fixed-top">
     <div class="container">
       <div class="navbar-header">
@@ -70,20 +62,18 @@
                 <span id="subject-label"></span><br />
                 <span id="task-label"></span>
             </li>
-            <a id="map-button" class="list-group-item list-group-item-info disabled" href="/map/online">
+            <a id="map-button" class="list-group-item list-group-item-info disabled" onclick="document.cookie='WebFM: Map'" href="/map/">
               <span class="glyphicon glyphicon-map-marker"></span> <strong>Map it</strong>
             </a>
-            <a id="live-button" class="list-group-item list-group-item-success disabled" href="/live">
+            <a id="live-button" class="list-group-item list-group-item-success disabled" onclick="document.cookie='WebFM: Live'" href="/map">
               <span class="glyphicon glyphicon-facetime-video"></span> <strong>Go live</strong>
+
+
             </a>
+
+
+
           </div>
-          <!--
-          <div class="panel-body">
-            <button type="button" class="btn btn-primary btn-lg btn-block">
-              Map it!
-            </button>
-          </div>
-          -->
         </div>
 
         <div class="panel panel-default">
@@ -154,19 +144,17 @@
     </div>
   </footer>
 
-
   <!-- ===================================================== -->
   <!-- File uploaders -->
   <input id="upload-brain-image-input" class="upload-input" type="file" name="brainImage">
   <input id="upload-sensor-geometry-input" class="upload-input" type="file" name="sensorGeometry">
 
-
   <!-- ===================================================== -->
   <!-- Scripts -->
+  <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
   <script src="/js/jquery/jquery.min.js"></script>
-  <script src="/js/bootstrap/bootstrap.min.js"></script>
-
   <script src="/js/app/index.js"></script>
+  <script>if (window.module) module = window.module;</script>
 
 </body>
 

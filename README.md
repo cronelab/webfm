@@ -1,82 +1,39 @@
-# webfm
+# WebFM - A web-based functional mapping utility.
 
-> A web-based functional mapping utility.
-
-...
+### If you want to use the stable, working version, switch to the v1.0_stable branch or download Version 1.0 release
 
 # Prerequisites
 
 In order to run WebFM, you'll need:
 
 1. A working [Node][node] installation
-2. ( ... BCI2000 / BCI2000Web dependencies ... )
+2. BCI2000 / [BCI2000Web[(https://github.com/cronelab/bci2000web)] dependencies
 
 ...
 
 # Installation
 
 Installing WebFM requires three steps:
+Let `{webfm}` denote the path to the root of the WebFM repository.
 
 1. Cloning the WebFM git repository
-2. Installing the Node dependencies *via* `npm` for the *server* and for the
-   *client*
+- git clone https://github.com/cronelab/webfm.git
+2. Installing the Node dependencies *via* `npm` for the *server* and for the *client*
+- Navigate to `{webfm}` and run
+- npm i && cd web && npm i
 3. Building the client application scripts
-
-## Git
-
-To clone the WebFM repo, navigate to wherever you'd like WebFM to be installed
-and run
-
-```
-git clone https://github.com/cronelab/webfm.git
-```
-
-## Node
-
-Let `{webfm}` denote the path to the root of the WebFM repository. First, navigate to `{webfm}` and run
+- ./build
+4. Run
+- Navigate to `{webfm}` and run
+- node webfm (optional port arguments [-p 8080])
 
 ```
-npm install
-```
-
-This will install the dependencies for the WebFM server.
-
-For the client, navigate to `{webfm}/app` and once again run
-
-```
-npm install
-```
-
-## Build
-
-To build the client application scripts, navigate to `{webfm}/app` and run
-
-```
-./build
-```
-
-To test that everything has installed properly, navigate to `{webfm}` and run
-
-```
-node webfm
-```
-
 You should see
-
-```
 Serving {webfm}/public on 54321:tcp
 ```
 
-If you encounter issues starting the server on the default port, you can
-specify a port that works with the `-p` option:
 
-```
-node webfm -p 8080
-```
 
-# Usage
-
-...
 
 # Data formats
 

@@ -57,7 +57,7 @@ export default function () {
             selection.select( '.title' )
                         .text( title )
         }
-        
+
         if ( selection.select( '.value' ).empty() ) {
             selection.append('span')
                 .attr('class', 'value');

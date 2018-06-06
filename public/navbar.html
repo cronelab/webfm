@@ -1,0 +1,128 @@
+<nav class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container-fluid">
+
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+
+    <div class="collapse navbar-collapse">
+
+      <a class="navbar-brand"><span class="fm-subject-name">[subject]</span> - <span class="fm-task-name">[task]</span></a>
+
+      <ul class="nav navbar-nav">
+        <li>
+          <a class="fm-back glyphicon-button" href="/"><span class="glyphicon glyphicon-menu-left"></span></a>
+        </li>
+      </ul>
+
+      <ul class="nav navbar-nav navbar-right">
+        <li class="fm-working-icon">
+          <a class="glyphicon-button" href="#"><span class="glyphicon glyphicon-hourglass"></span></a>
+        </li>
+        <li class="fm-transfer-icon">
+          <a class="glyphicon-button" href="#"><span class="glyphicon glyphicon-transfer"></span></a>
+        </li>
+        <li class="fm-toggle-fullscreen">
+          <a class="glyphicon-button" href="#"><span class="glyphicon glyphicon-fullscreen"></span></a>
+        </li>
+      </ul>
+
+    </div>
+
+  </div>
+</nav>
+
+<nav class="navbar navbar-default navbar-fixed-top navbar-secondary">
+  <div class="container-fluid">
+
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse">
+
+      <ul class="nav navbar-nav">
+        <li>
+          <p class="navbar-text fm-time-label"><span class="fm-time-selected">0.000 s</span></p>
+        </li>
+        <li id="play-button">
+          <a class="glyphicon-button" href="#"><span class="glyphicon glyphicon-play" id="play-button-icon"></span></a>
+        </li>
+        <li class="fm-zoom-in">
+          <a class="glyphicon-button" href="#"><span class="glyphicon glyphicon-zoom-in"></span></a>
+        </li>
+        <li class="fm-zoom-out">
+          <a class="glyphicon-button" href="#"><span class="glyphicon glyphicon-zoom-out"></span></a>
+        </li>
+        <li class="fm-gain-up">
+          <a class="glyphicon-button" href="#"><span class="glyphicon glyphicon-volume-up"></span></a>
+        </li>
+        <li class="fm-gain-down">
+          <a class="glyphicon-button" href="#"><span class="glyphicon glyphicon-volume-down"></span></a>
+        </li>
+        <li class="fm-stim-select">
+          <a class="glyphicon-button" href="#"><span class="glyphicon glyphicon-book"></span></a>
+        </li>
+      </ul>
+
+      <ul class="nav navbar-nav navbar-right">
+        <li class="dropdown fm-dataset-list">
+          <a href="#" id="currentStimCode" class = "stim-display" >Stimulus:</a>
+        </li>
+        <li class="dropdown fm-dataset-list">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Charts <span class="caret"></span></a>
+          <ul id="graphViews" class="dropdown-menu">
+            <li><a href="#" id="rasterView">Raster</a></li>
+            <li><a href="#" id="chartView">Chart</a></li>
+          </ul>
+        </li>
+        <li class="dropdown fm-dataset-list">
+          <a href="#" id="bandDropdown">High gamma (70–110 Hz) </a>
+        </li>
+        <li class="dropdown fm-dataset-list">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Channel selector <span class="caret"></span></a>
+          <ul id="chanSel" class="dropdown-menu">
+          </ul>
+        </li>
+
+        <li class="dropdown fm-dataset-list">
+          <a href="#" id="stimDropdown" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Stimulus selection <span class="caret"></span></a>
+          <ul id="stimSel" class="dropdown-menu">
+            <!-- <li><a href="#">Stimulus: All vs none</a></li>
+            <li><a href="#">Stimulus: 1 vs none</a></li>
+            <li><a href="#">Stimulus: 2 vs none</a></li>
+            <li><a href="#">Stimulus: 3 vs none</a></li>
+            <li><a href="#">Stimulus: 4 vs none</a></li>
+            <li><a href="#">Stimulus: 5 vs none</a></li>
+            <li><a href="#">Stimulus: 1 vs 2</a></li>
+            <li><a href="#">Stimulus: 1 vs 3</a></li>
+            <li><a href="#">Stimulus: 2 vs 3</a></li> -->
+          </ul>
+        </li>
+
+        <li class="dropdown fm-dataset-list">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Perspective <span class="caret"></span></a>
+          <ul id="twoVsThree" class="dropdown-menu">
+            <li><a href="#" id="twoDDrop">2D</a></li>
+            <li><a href="#" id="threeDDrop">3D</a></li>
+          </ul>
+        </li>
+        <li class="fm-show-options">
+          <a class="glyphicon-button" href="#"><span class="glyphicon glyphicon-cog"></span></a>
+        </li>
+      </ul>
+
+    </div>
+  </div>
+</nav>
