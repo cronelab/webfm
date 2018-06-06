@@ -677,11 +677,11 @@ fmdata.Dataset.prototype = {
 
     },
 
-    ingest: function( trialData ) {
+    ingest: function( trialData, trialNum ) {
 
         var dataset = this;
-        console.log(dataset)
-        console.log(trialData)
+        console.log(trialData);
+        console.log(trialNum);
         return cronelib.forEachAsync( Object.keys( this._channelStats ), function( ch ) {
             dataset._channelStats[ch].ingest( trialData[ch] );
         }, {

@@ -20,6 +20,7 @@ var Promise     = require( 'promise-polyfill' );    // Needed for IE Promise
 var cronelib    = require( '../lib/cronelib' );
 var fullscreen  = require( '../lib/fullscreen' );
 var fmbrain     = require( './fmbrain' );
+var fmbrain3     = require( './fmbrain3' );
 var fmscope     = require( './fmscope' );
 var fmlines     = require( './fmlines' );
 
@@ -59,6 +60,7 @@ fmui.InterfaceManager = function() {
           manager.brain.setSelectedChannel( newChannel );
       };
     }
+    this.brain3 = new fmbrain3.BrainVisualizer();
     this.scope = new fmscope.ChannelScope( '#fm-scope' );
     this.lines = new fmlines.ChannelLines();
 
@@ -378,6 +380,7 @@ fmui.InterfaceManager.prototype = {
         cronelib.debounce( function() {
             manager.brain.autoResize();
             manager.brain.update();
+            manager.brain3.update();
         }, this.config.brainDebounceDelay )();
 
     },
@@ -867,6 +870,9 @@ fmui.InterfaceManager.prototype = {
             return !exclusion[ch];
         };
     },
+    updateStimulusCode: function( stuff ) {
+      this.lines.setTrialNumber(stuff);
+    },
 
     updateChannelNames: function( newChannelNames ) {
 
@@ -882,6 +888,7 @@ fmui.InterfaceManager.prototype = {
         {
         this.raster.setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
         this.lines.setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
+
         var chNames = this.allChannels.filter( this.channelFilter() );
         chNames.forEach(ch =>{
           var item = document.createElement('li');

@@ -23,7 +23,7 @@ fmlines.ChannelLines = function() {
   this.data           = null;
 
   this.timeScale      = null;
-
+  this.trialNum       = null;
   this.currInd        = null;
   // Events
 
@@ -92,10 +92,10 @@ fmlines.ChannelLines.prototype = {
     }
 
     var allTheData = this.data
-    // let chNames = this.displayOrder.map(num =>{
-    //   return num;
-    // });
-    // console.log(this.displayOrder)
+    var trialNum = this.trialNum;
+
+
+
 
     var margin = {top: 20, right: 20, bottom: 30, left: 50},
     lineWidth = 600 - margin.left - margin.right,
@@ -192,9 +192,15 @@ fmlines.ChannelLines.prototype = {
     return ret;
   }
 
+  document.getElementById('stimSel').addEventListener("click", function(e){
+    console.log("Index of Stimulus selection: " + e.target)
+    // console.log("these are trial numbers? : " + trialNum);
+
+});
 
 
       document.getElementById('chanSel').addEventListener("click", function(e){
+
         $("#"+e.target.parentNode.parentNode.id + ">li.active").removeClass("active")
         e.target.parentNode.className += " active";
         d3.select("path").remove()
@@ -272,6 +278,9 @@ _reformatData: function( data ) {
     };
   } );
 },
+setTrialNumber: function(trialNum){
+    this.trialNum = trialNum;
+  },
 
 setDisplayOrder: function( newDisplayOrder ) {
   // Change instance value

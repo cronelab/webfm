@@ -27,6 +27,7 @@ var loadMode        = !onlineMode;
 
 var subjectName     = undefined;
 var recordName      = undefined;
+var currStimCode    = undefined;
 
 if ( loadMode ) {
   subjectName     = pathComponents[2] || undefined;
@@ -116,6 +117,7 @@ if ( onlineMode ) {     // Using BCI2000Web over the net
           item.appendChild(item2)
           item2.setAttribute('href','#')
           item2.appendChild(document.createTextNode(i))
+          item2.setAttribute('id',i)
           item2.classList.add("stimulusSelector");
           document.getElementById('stimSel').appendChild(item);
 
@@ -698,12 +700,14 @@ var startTrial = function() {
           // Makes the trial count bold, to indicate we're in a trial
           uiManager.activateTrialCount();
 
-
-          // Probably not the best place to put this. but this will update the .stim-display to show what stimulusCode was just presented via BCI2000
           dataSource._bciConnection.execute('Get StimulusCode').then(function (result) {
+            currStimCode = result;
             $('.stim-display').text(result);
           });
-        };
+          uiManager.lines.setTrialNumber(currStimCode);
+//          uiManager.updateStimulusCode(currStimCode);
+
+                };
 
 // TODO Testing
         // var identityFeature = new fmfeature.RemoteFeature( path.join( apiPath, 'compute', 'identity' ) );
@@ -713,12 +717,17 @@ var ingestTrial = function( trialData ) {
           // uiManager.scope.update(dataSource.dataFormatter.sourceBuffer[0])
           // console.log(dataSource.dataFormatter.sourceBuffer[0])
           // We're done transferring
+
+          // Probably not the best place to put this. but this will update the .stim-display to show what stimulusCode was just presented via BCI2000
+
+
+
           uiManager.hideIcon( 'transfer' );
           // Now we're working
           uiManager.showIcon( 'working' );
 
           // Update our statistics
-          dataset.ingest( trialData )
+          dataset.ingest( trialData, currStimCode )
           .then( function() {
             if(document.title=="WebFM: Map")
             {
@@ -748,6 +757,7 @@ var updateDataDisplay = function updateDataDisplay() {
 
           uiManager.raster.update( dataset.displayData );
           uiManager.brain.update( dataset.dataForTime( uiManager.raster.getCursorTime() ) );
+          uiManager.brain3.update( dataset.dataForTime( uiManager.raster.getCursorTime() ) );
           uiManager.raster.updateTimeRange( [timeBounds.start, timeBounds.end] );
 
           uiManager.lines.update( dataset.lineDisplayData );
@@ -820,6 +830,7 @@ if(document.title=="WebFM: Map"){
   uiManager.raster.oncursormove = function( newTime ) {
     uiManager.updateSelectedTime( newTime );
     uiManager.brain.update( dataset.dataForTime( newTime ) );
+    uiManager.brain3.update( dataset.dataForTime( newTime ) );
     /*
     var meanDataSlice = dataForTime( newTime );
     uiManager.brain.update( meanDataSlice );

@@ -15,15 +15,14 @@
   <link rel="stylesheet" href="/webFM_Display/TemplateData/style.css">
 
   <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
-  <!-- <script src="/webFM_Display/Build/UnityLoader.js"></script> -->
+  <script src="/webFM_Display/Build/UnityLoader.js"></script>
 
   <script src="/webFM_Display/TemplateData/UnityProgress.js"></script>
   <script src="/js/jquery/jquery.min.js"></script>
   <script>if (window.module) module = window.module;</script>
 
-  <script src="https://d3js.org/d3.v5.min.js"></script>
   <script>
-  // var gameInstance = UnityLoader.instantiate("gameContainer", "/webFM_Display/Build/webFM_Display.json", {onProgress: UnityProgress});
+  var gameInstance = UnityLoader.instantiate("gameContainer", "/webFM_Display/Build/webFM_Display.json", {onProgress: UnityProgress});
   </script>
 
   <script type="text/javascript">
@@ -48,49 +47,25 @@
   <div class="container-fluid">
     <div class="row">
       <div class="col-md-5 col-sm-5">
-        <br>
-        <br>
-      <div id="fmContainer">
-
-        <div id="fm"></div>
-        <br>
-        <br>
-        <br>
-        <br>
-        <br>
-        <br>
-        <div id="lineChart">
-          <div class = "fm-lineChart"></div>
+        <div id="fmContainer">
+          <div id="fm"></div>
+          <br><br><br><br><br><br>
+          <div id="lineChart">
+            <div class = "fm-lineChart"></div>
+          </div>
         </div>
       </div>
 
       <div class="col-md-7 col-sm-7 hidden-xs" style="position:fixed; right:0px;">
-        <br>
-        <br>
-        <br>
-        <br>
-        <br>
-
-
-        <!-- TODO Add aspect ratio button -->
-
-        <!-- <div id="fm-brain"></div> -->
-
-
-        <div id="fm-scope"></div>
-        <br>
-        <br>
-        <br>
-        <br>
-        <br>
-        <button id="fm-button">Start!</button>
-        <button id="fm-button2">Stop!</button>
-      <!-- <div class="webgl-content"> -->
-        <!-- <div id="gameContainer" style="width: 1000px; height: 1000px"></div> -->
+        <div id="fm-brain"></div>
+        <!-- <div id="fm-scope"></div> -->
+        <div class="webgl-content">
+          <div id="gameContainer" style="width: 1000px; height: 1000px"></div>
+          <div class="fullscreen" onclick="gameInstance.SetFullscreen(1)"></div>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
 <!-- Modals -->
 <div id="modals"></div>
