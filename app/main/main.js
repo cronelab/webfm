@@ -576,9 +576,11 @@ if(document.title=="WebFM: Live"){
     // Update scope view
     if ( featureSignalBufferManager.useFeatureSignalBuffer ) {
       uiManager.brain.update( bufferFeatureSignal( featureSignal ) );
+      uiManager.brain3.update( bufferFeatureSignal( featureSignal ) );
     }
     else {
       uiManager.brain.update( featureSignal );
+      uiManager.brain3.update( featureSignal );
     }
   };
 
@@ -755,12 +757,15 @@ var updateDataDisplay = function updateDataDisplay() {
 
           var timeBounds = dataset.getTimeBounds();
 
+          uiManager.raster.updateTimeRange( [timeBounds.start, timeBounds.end] );
           uiManager.raster.update( dataset.displayData );
+
+          uiManager.lines.updateTimeRange( [timeBounds.start, timeBounds.end] );
+          uiManager.lines.update( dataset.lineDisplayData );
+
           uiManager.brain.update( dataset.dataForTime( uiManager.raster.getCursorTime() ) );
           uiManager.brain3.update( dataset.dataForTime( uiManager.raster.getCursorTime() ) );
-          uiManager.raster.updateTimeRange( [timeBounds.start, timeBounds.end] );
 
-          uiManager.lines.update( dataset.lineDisplayData );
 
           // KLUDGE
           // TODO Can't think of a good way to deal with combined async of

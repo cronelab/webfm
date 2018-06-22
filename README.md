@@ -7,9 +7,9 @@
 In order to run WebFM, you'll need:
 
 1. A working [Node][node] installation
-2. BCI2000 / [BCI2000Web[(https://github.com/cronelab/bci2000web)] dependencies
+2. BCI2000 / [BCI2000Web](https://github.com/cronelab/bci2000web) dependencies
 
-...
+
 
 # Installation
 
@@ -28,7 +28,7 @@ Let `{webfm}` denote the path to the root of the WebFM repository.
 - node webfm (optional port arguments [-p 8080])
 
 ```
-You should see
+You should see:
 Serving {webfm}/public on 54321:tcp
 ```
 

@@ -680,8 +680,9 @@ fmdata.Dataset.prototype = {
     ingest: function( trialData, trialNum ) {
 
         var dataset = this;
-        console.log(trialData);
-        console.log(trialNum);
+
+        // console.log(trialData);
+        // console.log(trialNum);
         return cronelib.forEachAsync( Object.keys( this._channelStats ), function( ch ) {
             dataset._channelStats[ch].ingest( trialData[ch] );
         }, {
@@ -694,8 +695,11 @@ fmdata.Dataset.prototype = {
                 // Update the trials structure " "
                 if ( dataset.contents.trials === undefined ) {
                     dataset.contents.trials = [];
+                    dataset.contents.stimulus = [];
                 }
                 dataset.contents.trials.push( trialData );
+                dataset.contents.stimulus.push(trialNum);
+                console.log(dataset)
 
                 // We're dirty. So dirty.
                 dataset._clean = false;
@@ -704,7 +708,8 @@ fmdata.Dataset.prototype = {
             .then( function() {
                 return dataset._updateDisplayData();
             } );
-
+            dataset.contents.stimulus.push(trialNum);
+            console.log(dataset)
     }
 
 };

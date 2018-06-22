@@ -1,0 +1,3 @@
+[submodule "utils/python/CCEPS_analysis"]
+	path = utils/python/CCEPS_analysis
+	url = https://github.com/cronelab/CCEPS_analysis

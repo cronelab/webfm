@@ -2,8 +2,9 @@ bower_components/
 node_modules/
 docker/
 data_demo/
-
+certs/
 
 reconstruction/
 public/webFM_Display/StreamingAssets/*
 public/webFM_Display/OLD/*
+ecogpy_config.py

@@ -38,10 +38,10 @@
   </script>
 </head>
 <body>
+
+
   <!-- Navbar -->
   <div id="navbar"></div>
-  <!-- Modals -->
-  <div id="modals"></div>
 
   <!-- Main content -->
   <div class="container-fluid">
@@ -67,7 +67,8 @@
     </div>
   </div>
 
-
+<!-- Modals -->
+<div id="modals"></div>
 
 
 <script>
@@ -76,6 +77,7 @@ var threeDBrain = document.getElementsByClassName("webgl-content");
 var rasterPlots = document.getElementById("fm");
 var linePlots = document.getElementById("lineChart");
 
+// dots.style.display="block"
 twoDBrain.style.visibility = "visible";
 threeDBrain[0].style.visibility = "hidden";
 rasterPlots.style.visibility = "visible";
@@ -110,7 +112,6 @@ function toggleCharts(charts){
   else if (charts=="line") {
     rasterPlots.style.display = "none";
     linePlots.style.display = "block";
-    linePlots.style.visibility = "visible";
 
   }
 }

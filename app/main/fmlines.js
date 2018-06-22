@@ -86,6 +86,7 @@ fmlines.ChannelLines.prototype = {
       // Create some dummy data
       this.data = this._dummyData( this.displayOrder );
     }
+
     if(!this.currInd)
     {
       this.currInd = 1;
@@ -193,7 +194,7 @@ fmlines.ChannelLines.prototype = {
   }
 
   document.getElementById('stimSel').addEventListener("click", function(e){
-    console.log("Index of Stimulus selection: " + e.target)
+    // console.log("Index of Stimulus selection: " + e.target)
     // console.log("these are trial numbers? : " + trialNum);
 
 });

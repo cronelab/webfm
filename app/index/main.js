@@ -226,6 +226,10 @@ var updateMainBrain = function( brainData ) {
     // We can directly add the base64 image data. Science!
     $( '#main-brain' ).attr( 'src', brainData );
 };
+var updateCCEPS = function( brainData ) {
+    // We can directly add the base64 image data. Science!
+    $( '#main-brain2' ).attr( 'src', brainData );
+};
 
 var addRecordCell = function( subject, record ) {
     // TODO Need to incorporate number of members for badge
@@ -448,6 +452,12 @@ var addSubject = function( subjectId ) {
         console.log( xhr.responseText );
     } );
 };
+
+$( '#CCEPS_RUN' ).on( 'click', function() {
+
+    updateCCEPS
+
+} );
 
 
 $( '#source-address-ok' ).on( 'click', function() {

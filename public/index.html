@@ -103,6 +103,7 @@
 
       <div class="col-md-5 hidden-sm hidden-xs">
         <img id="main-brain" src="" class="img-thumbnail">
+        <img id="main-brain2" src="" class="img-thumbnail">
       </div>
 
       <div class="col-md-4 col-sm-6">
@@ -131,13 +132,28 @@
             <!-- <a href="#" class="list-group-item">PictureNaming</a> -->
           </ul>
         </div>
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">Analyses</h3>
+          </div>
+
+          <ul id="analysis-list" class="list-group">
+            <a href="/analysis" id="CCEPS_RUN" class="list-group-item">Run analysis!</a>
+
+            <!-- <button onclick="myFunction()">CCEPS analysis</button> -->
+          </ul>
+        </div>
 
       </div>
 
     </div>
 
   </div> <!-- /container -->
-
+  <script>
+    function myFunction(){
+      console.log("clicked!")
+    }
+  </script>
   <footer class="footer">
     <div class="container">
       <p class="text-muted">Fork me on <a href="http://github.com/cronelab/webfm">GitHub</a>. Powered by <a href="#">Bootstrap</a> and <a href="#">node.js</a>.</p>
