@@ -736,9 +736,11 @@ _pushSignalSample: function( sample ) {
     if ( this._stateTiming ) {
       // Look for changes in the timing state
       // TODO Assumes at most one change per sample block
-      state[this._timingState].some( function( s ) {
-        return formatter._updateTimingState( s );
-      } );
+      this._timingState.map(x=>{
+        state[x].some( function( s ) {
+          return formatter._updateTimingState( s );
+        } );
+      })
 
     }
 
