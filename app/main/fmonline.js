@@ -282,7 +282,7 @@ fmonline.DataFormatter = function() {
   // TODO config
   this._stateTiming           = true;
   this._timingChannel         = 'ainp1';
-  this._timingState           = 'StimulusCode';
+  this._timingState           = ['StimulusCode'];
 
   this.threshold = {
     offValue: 0.0,
@@ -473,10 +473,11 @@ fmonline.DataFormatter.prototype = {
     this._sourceConnection.onStateFormat = function( format ) {
 
       // Check if timing state is available
-      if ( format[formatter._timingState] === undefined ) {
-        console.log( 'WARNING: Desired timing state ' + formatter._timingState + ' was not detected in the state format for Source.' );
-      }
-
+      formatter._timingState.map(x =>{
+        if ( format[x] === undefined ) {
+          console.log( 'WARNING: Desired timing state ' + formatter._timingState + ' was not detected in the state format for Source.' );
+        }
+      })
     };
 
     // this._sourceConnection.onStateVector = function( stateVector ) {

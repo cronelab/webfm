@@ -15,14 +15,14 @@
   <link rel="stylesheet" href="/webFM_Display/TemplateData/style.css">
 
   <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
-  <script src="/webFM_Display/Build/UnityLoader.js"></script>
+  <!-- <script src="/webFM_Display/Build/UnityLoader.js"></script> -->
 
-  <script src="/webFM_Display/TemplateData/UnityProgress.js"></script>
+  <!-- <script src="/webFM_Display/TemplateData/UnityProgress.js"></script> -->
   <script src="/js/jquery/jquery.min.js"></script>
   <script>if (window.module) module = window.module;</script>
 
   <script>
-  var gameInstance = UnityLoader.instantiate("gameContainer", "/webFM_Display/Build/webFM_Display.json", {onProgress: UnityProgress});
+  // var gameInstance = UnityLoader.instantiate("gameContainer", "/webFM_Display/Build/webFM_Display.json", {onProgress: UnityProgress});
   </script>
 
   <script type="text/javascript">
@@ -58,11 +58,10 @@
 
       <div class="col-md-7 col-sm-7 hidden-xs" style="position:fixed; right:0px;">
         <div id="fm-brain"></div>
-        <!-- <div id="fm-scope"></div> -->
-        <div class="webgl-content">
+        <!-- <div class="webgl-content">
           <div id="gameContainer" style="width: 1000px; height: 1000px"></div>
           <div class="fullscreen" onclick="gameInstance.SetFullscreen(1)"></div>
-        </div>
+        </div> -->
       </div>
     </div>
   </div>

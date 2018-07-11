@@ -8,3 +8,4 @@ reconstruction/
 public/webFM_Display/StreamingAssets/*
 public/webFM_Display/OLD/*
 ecogpy_config.py
+public/webFM_Display/save/*

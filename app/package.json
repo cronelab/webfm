@@ -16,6 +16,7 @@
   "dependencies": {
     "bci2k": "^1.0.8",
     "bootstrap": "^3.3.7",
+    "browserify": "^16.2.2",
     "d3": "^4.13.0",
     "d3-array": "^1.0.2",
     "d3-axis": "^1.0.4",
@@ -29,9 +30,9 @@
     "setimmediate": "~1.0.4"
   },
   "devDependencies": {
-    "@babel/core": "^7.0.0-beta.46",
-    "@babel/preset-env": "^7.0.0-beta.46",
-    "babelify": "^8.0.0",
+    "@babel/core": "^7.0.0-beta.53",
+    "@babel/preset-env": "^7.0.0-beta.53",
+    "babelify": "^9.0.0",
     "watchify": "^3.11.0"
   }
 }
