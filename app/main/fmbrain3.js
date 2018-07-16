@@ -24,9 +24,9 @@ fmbrain3.BrainVisualizer = function() {
 fmbrain3.BrainVisualizer.prototype = {
 
     constructor: fmbrain3.BrainVisualizer,
-    //
-    // setup: function( imageData, sensorGeometry ) {
-    //   },
+    
+    setup: function( imageData, sensorGeometry ) {
+      },
 
 
       update: function( newData ) {
@@ -37,10 +37,11 @@ fmbrain3.BrainVisualizer.prototype = {
 
         var keyNames = Object.keys(this.data);
         var size = Object.keys(this.data).length;
-
+        // console.log(keyNames);
         for (var i = 0; i < size; i++) {
           if(keyNames[i] != undefined)
           {
+
             if(document.title == "WebFM: Live"){
               //for pete's sake, find a better way to threshold
               if(eval("this.data."+keyNames[i]) > 10){
@@ -52,6 +53,7 @@ fmbrain3.BrainVisualizer.prototype = {
               }
             }
             else{
+              // console.log(keyNames[i] + ": " + eval("this.data."+keyNames[i]));
               gameInstance.SendMessage(keyNames[i], "activityChanger", eval("this.data."+keyNames[i]));
             }
           }

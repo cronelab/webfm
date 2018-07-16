@@ -9,7 +9,8 @@ In order to run WebFM, you'll need:
 1. A working [Node][node] installation
 2. BCI2000 / [BCI2000Web](https://github.com/cronelab/bci2000web) dependencies
 
-
+# Be advised:
+- Make sure WebFM is fully loaded (including the 3D mesh) before Starting BCI2000.
 
 # Installation
 

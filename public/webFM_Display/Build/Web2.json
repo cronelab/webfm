@@ -1,0 +1,12 @@
+{
+"companyName": "DefaultCompany",
+"productName": "ReconGL",
+"dataUrl": "Web2.data.unityweb",
+"wasmCodeUrl": "Web2.wasm.code.unityweb",
+"wasmFrameworkUrl": "Web2.wasm.framework.unityweb",
+"TOTAL_MEMORY": 536870912,
+"graphicsAPI": ["WebGL 2.0"],
+"webglContextAttributes": {"preserveDrawingBuffer": false},
+"splashScreenStyle": "Dark",
+"backgroundColor": "#231F20"
+}

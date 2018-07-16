@@ -576,11 +576,11 @@ if(document.title=="WebFM: Live"){
     // Update scope view
     if ( featureSignalBufferManager.useFeatureSignalBuffer ) {
       uiManager.brain.update( bufferFeatureSignal( featureSignal ) );
-      // uiManager.brain3.update( bufferFeatureSignal( featureSignal ) );
+      uiManager.brain3.update( bufferFeatureSignal( featureSignal ) );
     }
     else {
       uiManager.brain.update( featureSignal );
-      // uiManager.brain3.update( featureSignal );
+      uiManager.brain3.update( featureSignal );
     }
   };
 
@@ -764,7 +764,7 @@ var updateDataDisplay = function updateDataDisplay() {
           uiManager.lines.update( dataset.lineDisplayData );
 
           uiManager.brain.update( dataset.dataForTime( uiManager.raster.getCursorTime() ) );
-          // uiManager.brain3.update( dataset.dataForTime( uiManager.raster.getCursorTime() ) );
+          uiManager.brain3.update( dataset.dataForTime( uiManager.raster.getCursorTime() ) );
 
 
           // KLUDGE
@@ -835,7 +835,7 @@ if(document.title=="WebFM: Map"){
   uiManager.raster.oncursormove = function( newTime ) {
     uiManager.updateSelectedTime( newTime );
     uiManager.brain.update( dataset.dataForTime( newTime ) );
-    // uiManager.brain3.update( dataset.dataForTime( newTime ) );
+    uiManager.brain3.update( dataset.dataForTime( newTime ) );
     /*
     var meanDataSlice = dataForTime( newTime );
     uiManager.brain.update( meanDataSlice );
@@ -944,19 +944,10 @@ uiManager.hideIcon( 'working' );
 
 };
 
-
-$( window ).on( 'resize', function() {
-
-  uiManager.didResize();
-
-} );
+$( window ).on( 'resize', function() {uiManager.didResize()});
 
 $( window ).on( 'beforeunload', function() {
-
   if ( !dataset.isClean() ) {
-
     return "There are unsaved changes to your map. Are you sure you want to leave?";
-
   }
-
 } );
