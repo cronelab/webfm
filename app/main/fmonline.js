@@ -181,9 +181,9 @@ fmonline.OnlineDataSource.prototype = {
         resolve(true);
         return;
       }
+      var executed = true;
 
       var checkRunning = function checkRunning() {
-        var executed = false;
 
         if (!manager._bciConnection.connected()) {
           // Can't check system state if not connected
@@ -205,19 +205,18 @@ fmonline.OnlineDataSource.prototype = {
           }
 
           if (result.output.search('Running') >= 0) {
-
-            // System state includes 'Running', so we're now good to go
-            // Cache this fact to speed subsequent calls
-            resolve(true);
-            //return;
-          } else if (result.output.search('Resting') >= 0 && executed == false) {
             executed = true;
+            resolve(true);
+
+          } else if (result.output.search('Resting') >= 0 && executed == true) {
+            executed = false;
             manager._connectToData();
           }
 
           // Not running; try again later
-          setTimeout(checkRunning, manager.config.checkRunningInterval);
         });
+        setTimeout(checkRunning, manager.config.checkRunningIntervalReconnect);
+
       };
 
       setTimeout(checkRunning, manager.config.checkRunningInterval);
@@ -312,6 +311,7 @@ fmonline.DataFormatter = function() {
   this._postTrialBlocks       = null;     // TODO Refactor
 
   this.canProcess             = false;
+  this.normalize              = false;    //GRIFF_09/18
 
   this.sourceChannels         = null;
   this.sourceProperties       = null;
@@ -323,6 +323,8 @@ fmonline.DataFormatter = function() {
   this.featureProperties      = null;
   this.featureBuffer          = null;
   this.featureBlockNumber     = 0;
+  this._featureMean           = null;    //GRIFF_09/18
+  this._featureM2             = null;    //GRIFF_09/18
 
   this.previousState          = null;
   this.stateBlockNumber       = 0;
@@ -424,7 +426,6 @@ fmonline.DataFormatter.prototype = {
     } else {
       this._stateTiming = false;
     }
-
   },
 
   updateTimingChannel: function( newChannel ) {
@@ -437,10 +438,13 @@ fmonline.DataFormatter.prototype = {
     this._timingChannel = newChannel;
 
   },
+  
 
   _connectSource: function( dataConnection ) {
 
     var formatter = this;   // Capture this
+    // console.log(formatter);
+    // console.log(dataConnection);
 
     this._sourceConnection = dataConnection;
 
@@ -479,11 +483,9 @@ fmonline.DataFormatter.prototype = {
         }
       })
     };
-
     // this._sourceConnection.onStateVector = function( stateVector ) {
     //     formatter._processStateVector( stateVector );
     // };
-
   },
 
   _connectFeature: function( dataConnection ) {
@@ -508,10 +510,7 @@ fmonline.DataFormatter.prototype = {
     this._featureConnection.onStateVector = function( stateVector ) {
       formatter._processStateVector( stateVector );
     };
-
   },
-
-
 
   _propertiesReceived: function() {
     // TODO This is dumb and an antipattern and everything is horrible
@@ -527,7 +526,6 @@ fmonline.DataFormatter.prototype = {
 
   _setupBuffers: function() {
 
-
     // Determine number of blocks in the buffer
     // TODO Assumes elementunit in seconds
     var blockLengthSeconds      = this.sourceProperties.numelements * this.sourceProperties.elementunit.gain;
@@ -539,6 +537,10 @@ fmonline.DataFormatter.prototype = {
       arr.push( zeroArray( windowLengthBlocks ) );
       return arr;
     }, [] );
+
+    // Initialize running stats                                               //GRIFF_09/18
+    this._featureMean = zeroArray( this.featureChannels.length )              //GRIFF_09/18
+    this._featureM2 = zeroArray( this.featureChannels.length )                //GRIFF_09/18
 
     this.sourceBuffer = this.sourceChannels.reduce(function( arr, ch, i ) {
       arr.push( zeroArray( windowLengthBlocks ) );
@@ -617,13 +619,25 @@ fmonline.DataFormatter.prototype = {
 
     var formatter = this;   // Capture this
 
-    // Map computation over channels
-    return data.map( function( dv ) {
-      // Window the feature elements
-      return dv.reduce( function( acc, el, iel ) {
-        return acc + el * formatter._featureKernel[iel];
-      }, 0.0 );
+      // Map computation over channels                                                  //GRIFF_09/18
+      var feats = data.map( function( dv ) {
+        // Window the feature elements
+        return dv.reduce( function( acc, el, iel ) {
+            return acc + el * formatter._featureKernel[iel];
+        }, 0.0 );      
     } );
+
+    // Accumulate Mean and M2 -- Griff
+    // Welford Algorithm - Running Stats
+    feats.forEach( function( v, i ) {
+        var delta = v - formatter._featureMean[i];
+        formatter._featureMean[i] += delta / formatter.featureBlockNumber;
+        var delta2 = v - formatter._featureMean[i];
+        formatter._featureM2[i] += delta * delta2;
+    } );
+
+
+    return feats;                                                                             //GRIFF_09/18
 
   },
 
@@ -662,7 +676,6 @@ _pushSignalSample: function( sample ) {
     sample.forEach( function( d, i ) {
       formatter.featureBuffer[i].push( d );
     } );
-
   },
 
   _processSourceSignal: function( signal ) {
@@ -737,14 +750,13 @@ _pushSignalSample: function( sample ) {
     if ( this._stateTiming ) {
       // Look for changes in the timing state
       // TODO Assumes at most one change per sample block
+      // console.log(this._timingState);
       this._timingState.map(x=>{
         state[x].some( function( s ) {
           return formatter._updateTimingState( s );
         } );
       })
-
     }
-
   },
 
   _signalThresholdState: function( signalValue ) {
@@ -755,28 +767,23 @@ _pushSignalSample: function( sample ) {
   },
 
   _updateTimingSignal: function( newValue ) {
-
     // TODO Also shitty API nomenclature
-
     // Threshold the signal as desired
     var newState = this._signalThresholdState( newValue );
-
     // Treat the thresholded signal as a timing state
     // TODO More nuanced way?
     return this._updateTimingState( newState );
-
   },
 
   _updateTimingState: function( newState ) {
-
     // TODO Shitty API nomenclature
-
     if ( newState == this.previousState ) {
       // Same ol'
       return false;
     }
 
     // Changed!
+    // console.log("NEW STATE:   " + newState);
     this.previousState = newState;
     this._timingStateChanged( newState );
 
@@ -788,6 +795,8 @@ _pushSignalSample: function( sample ) {
 
     // TODO Make more general with parameters
     if ( newState == 0 ) {
+        // if (newState == 0 || newState ==4 || newState ==3 || newState ==2 || newState == 1){
+
       // Not a new trial; continue
       return;
     }
@@ -831,11 +840,15 @@ _pushSignalSample: function( sample ) {
 
   _formatFeatureData: function( trialData ) {
     // Convert a channel by time array to an object
+    var formatter = this; 
     return this.featureChannels.reduce( function( obj, ch, i ) {
-      obj[ch] = trialData[i];
-      return obj;
+        obj[ch] = trialData[i];
+        if( formatter.normalize && formatter.featureBlockNumber >= 2 )
+            obj[ch] = ( trialData[i] - formatter._featureMean[i] ) / 
+                      ( formatter._featureM2[i] / ( formatter.featureBlockNumber - 1 ) );
+        return obj;
     }, {} );
-  },
+},
 
   _formatSourceData: function( sourceData ) {
     // Convert a channel by time array to an object

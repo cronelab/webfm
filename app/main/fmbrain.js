@@ -52,7 +52,7 @@ fmbrain.BrainVisualizer = function( baseNodeId, config) {
     this.dotMaxRadius   = 0.040;
     this.dotColors          = ["#313695","#4575b4","#74add1","#abd9e9","#000000","#fee090","#fdae61","#f46d43","#d73027"];
 
-    if(this.config == 'map')
+    if(document.title == "WebFM: Map")
     {
       this.dotMinRadius   = 0.003;        // u (horizontal) units
       this.extent         = 10.0;         // TODO Expose
@@ -61,11 +61,10 @@ fmbrain.BrainVisualizer = function( baseNodeId, config) {
     else
     {
       this.dotMinRadius   = 0.006;        // u (horizontal) units
-      this.extent               = 600.0;         // TODO Expose
+      this.extent               = 100.0;         // TODO Expose
       this.dotColorsDomain                 = [ -450,    -350,     -100,     -30,      0.0,      30,       100,      350,      450 ];
       this.dotPowerThreshold               = [ this.dotColorsDomain[3], this.dotColorsDomain[5] ];
     }
-
 
     this.extentBuffer         = 10.0;         // TODO Expose                                                                                             LIVE
     this.extentBufferInfinity = 180.0;        // TODO Expose                                                                                                LIVE
@@ -74,9 +73,7 @@ fmbrain.BrainVisualizer = function( baseNodeId, config) {
     this.dotPowerThresholdBuffer         = [ this.dotColorsDomainBuffer[3], this.dotColorsDomainBuffer[5] ];
     this.dotPowerThresholdBufferInfinity = [ this.dotColorsDomainBufferInfinity[3], this.dotColorsDomainBufferInfinity[5] ];
     this.doDotPowerThreshold = true;
-
 };
-
 
 fmbrain.BrainVisualizer.prototype = {
 

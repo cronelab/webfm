@@ -5,37 +5,52 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
   <meta name="description" content="">
   <meta name="author" content="">
-
-  <!-- Styles -->
   <link rel="stylesheet" type="text/css" href="/css/bootstrap/bootstrap.css">
   <link rel="stylesheet" type="text/css" href="/css/map.css">
   <link rel="stylesheet" href="/webFM_Display/TemplateData/style.css">
 
   <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
-  <script src="/webFM_Display/Build/UnityLoader.js"></script>
-
+  <!-- <script src="/webFM_Display/Build/PY18N007/UnityLoader.js" ></script> -->
   <script src="/webFM_Display/TemplateData/UnityProgress.js"></script>
   <script src="/js/jquery/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.2.0/bootstrap-slider.js"></script>
   <script>if (window.module) module = window.module;</script>
-
+  
+ 
   <script>
-  var gameInstance = UnityLoader.instantiate("gameContainer", "/webFM_Display/Build/web2.json", {onProgress: UnityProgress});
+    var gameInstance = null;
+    let show=true;
+
+    function toggle3DLoader(){
+      if(typeof UnityLoader=="undefined")
+      {
+        alert("Wait until mapping is ready, thank you")
+      }
+      else{
+        let subjName = document.getElementsByClassName("fm-subject-name")[0].innerHTML
+      gameInstance = UnityLoader.instantiate("gameContainer", `/webFM_Display/Build/${subjName}/${subjName}.json`, {onProgress: UnityProgress});
+
+      }
+    }
   </script>
 
   <script type="text/javascript">
-    document.title = document.cookie.split(";")[3];
+      var urlParams = new URLSearchParams(window.location.search);
+      
+      document.title = urlParams.get('view');
   </script>
+
   <script>
-  function load(url, element){
-    req = new XMLHttpRequest();
-    req.open("GET", url, false);
-    req.send(null);
-    element.innerHTML = req.responseText;
-  }
+    function load(url, element){
+      req = new XMLHttpRequest();
+      req.open("GET", url, false);
+      req.send(null);
+      element.innerHTML = req.responseText;
+    }
   </script>
+
 </head>
 <body>
   <!-- Navbar -->
@@ -46,7 +61,7 @@
   <!-- Main content -->
   <div class="container-fluid">
     <div class="row">
-      <div class="col-md-5 col-sm-5">
+          <div class="col-md-5 col-sm-5">
         <div id="fmContainer">
           <div id="fm"></div>
           <br><br><br><br><br><br>
@@ -55,19 +70,17 @@
           </div>
         </div>
       </div>
-
       <div class="col-md-7 col-sm-7 hidden-xs" style="position:fixed; right:0px;">
         <div id="fm-brain"></div>
+        <div class="slidecontainer">
+          <input type="range" min="-100" max="100" value="0" class="slider" id="myRange">
+        </div>
         <div class="webgl-content">
-          <div id="gameContainer" style="width: 1000px; height: 1000px"></div>
-          <div class="fullscreen" onclick="gameInstance.SetFullscreen(1)"></div>
+          <div id="gameContainer" style="width: 1000px; height: 1500px"></div>
         </div>
       </div>
     </div>
   </div>
-
-
-
 
 <script>
 var twoDBrain = document.getElementById("fm-brain");
@@ -115,7 +128,19 @@ function toggleCharts(charts){
 }
 </script>
 
-
+<script>
+      setTimeout(function(){
+      
+      let subjName = document.getElementsByClassName("fm-subject-name")[0].innerHTML
+        console.log(subjName)
+      var script = document.createElement('script');
+      script.src = `/webFM_Display/Build/${subjName}/UnityLoader.js`;
+      var ref = document.querySelector('script');
+      ref.parentNode.insertBefore(script, ref);
+      }, 5000);
+  
+  
+  </script>
 <!-- Footer -->
 
 <footer class="footer navbar-fixed-bottom">
@@ -154,5 +179,8 @@ function toggleCharts(charts){
   });
   </script>
 </footer>
+
 </body>
+
+
 </html>

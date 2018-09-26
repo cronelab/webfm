@@ -338,7 +338,7 @@ fmdata.Dataset.prototype = {
 
             // TODO Make configurable
               //CONSOLE.LOG(CHRISDIDTHIS, uncomment line below to fix)
-            this.lineDisplayData = this.contents.trials[this.contents.trials.length-1]
+            // this.lineDisplayData = this.contents.trials[this.contents.trials.length-1]
             // return Promise.resolve();
 
             return cronelib.forEachAsync( Object.keys( this._channelStats ), function( ch ) {

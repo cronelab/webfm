@@ -236,7 +236,7 @@ var addRecordCell = function( subject, record ) {
     // TODO Could fail if record is badly named
     $( '<a/>', {
         id:     record,
-        href:   path.join( '/', 'map', subject, record ),
+        href:   path.join( '/', 'map/?view=WebFM: Map', subject, record ),
         class:  'list-group-item',
         text:   record
     } ).appendTo( '#record-list' );
@@ -262,8 +262,9 @@ var addSubjectCell = function( subject ) {
         text:   subject,
         on: {
             click: cellClick
-        },
-        onclick: "document.cookie='WebFM: Map'"
+        }
+        // ,
+        // onclick: "document.cookie='WebFM: Map'"
     } ).appendTo( '#subject-list' );
 
 };

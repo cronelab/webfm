@@ -145,9 +145,9 @@ fmui.InterfaceManager.prototype = {
         // Populate options with the current cookie-set values
         this._populateOptions( this.getOptions() );
         if(document.title=="WebFM: Map"){
-        this.raster.setup();    // TODO Always will fail for charts until
-        this.lines.setup();
-        this._syncRasterConfig();
+            this.raster.setup();    // TODO Always will fail for charts until
+            // this.lines.setup();
+            this._syncRasterConfig();
       }
 
     },
@@ -667,8 +667,11 @@ fmui.InterfaceManager.prototype = {
         this.onoptionchange( 'stim-on', options.stimulus.signal.onValue );
 
         $( '#fm-option-stim-state' ).val( options.stimulus.state.name );
+        this.onoptionchange( 'stim-state', options.stimulus.state.name );
         $( '#fm-option-stim-state-off' ).val( options.stimulus.state.offValue );
+        this.onoptionchange( 'stim-state-on', options.stimulus.state.onValue );
         $( '#fm-option-stim-state-on' ).val( options.stimulus.state.onValue );
+        this.onoptionchange( 'stim-state-off', options.stimulus.state.offValue );
 
         // Response thresholding
         $( '#fm-option-resp-channel' ).val( options.response.signal.channel );

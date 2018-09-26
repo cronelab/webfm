@@ -61,6 +61,7 @@ uiManager.loadConfig( path.join( configPath, 'ui' ) )
 } );
 
 if(document.title=="WebFM: Live"){
+
   // Feature signal buffer setup
   var featureSignalBufferManager = {};
   featureSignalBufferManager.featureSignalBuffer         = null;
@@ -133,12 +134,15 @@ if ( onlineMode ) {     // Using BCI2000Web over the net
 
   if(document.title=="WebFM: Live"){
     dataSource.onSourceProperties = function( properties ) {
+
       featureSignalBufferManager.featureSignalBufferLength = featureSignalBufferManager.featureSignalBufferTime
       / (properties.elementunit.gain * properties.numelements);
     };
     dataSource.onFeatureSignal = function( featureSignal ) {
       ingestFeatureSignal( featureSignal );
     };
+    dataSource.normalize = true;
+
   }
 
   dataSource.onBufferCreated = function() {
@@ -150,11 +154,12 @@ if ( onlineMode ) {     // Using BCI2000Web over the net
   };
   dataSource.ontrial = function( trialData ) {
     ingestTrial( trialData );
-    uiManager.scope.update( dataSource.dataFormatter.sourceBuffer[0] );
+    // uiManager.scope.update( dataSource.dataFormatter.sourceBuffer[0] );
 
   };
 
   dataSource.onRawSignal = function( rawSignal ) {
+    ingestSignal(rawSignal);
 
     // uiManager.scope.update( rawSignal );
   };
@@ -564,23 +569,33 @@ var updateProperties = function( properties ) {
 // Data ingestion
 
 
-// var ingestSignal = function( signal ) {
-//   // Update scope view
-//   uiManager.scope.update( signal );
-// };
+var ingestSignal = function( signal ) {
+  // Update scope view
+  // console.log(signal);
+  uiManager.scope.update( signal );
+};
 
 
 if(document.title=="WebFM: Live"){
 
   var ingestFeatureSignal = function( featureSignal ) {
+    // console.log(featureSignal);
+    // console.log(featureSignalBufferManager);
     // Update scope view
     if ( featureSignalBufferManager.useFeatureSignalBuffer ) {
-      uiManager.brain.update( bufferFeatureSignal( featureSignal ) );
-      uiManager.brain3.update( bufferFeatureSignal( featureSignal ) );
+           var _buffered = bufferFeatureSignal(featureSignal);
+      let maxVal = (Object.keys(featureSignal).reduce((a, b) => featureSignal[a] > featureSignal[b] ? a : b));
+      var sliderVal = document.getElementsByClassName("slider")[0];
+
+      Object.keys(_buffered).forEach((key) => {
+        _buffered[key] = _buffered[key]/(_buffered[maxVal]+(sliderVal.value*.01));
+      });
+      uiManager.brain.update( _buffered );
+      // uiManager.brain3.update( _buffered );
     }
     else {
       uiManager.brain.update( featureSignal );
-      uiManager.brain3.update( featureSignal );
+      // uiManager.brain3.update( featureSignal );
     }
   };
 
@@ -706,7 +721,7 @@ var startTrial = function() {
             currStimCode = result;
             $('.stim-display').text(result);
           });
-          uiManager.lines.setTrialNumber(currStimCode);
+          // uiManager.lines.setTrialNumber(currStimCode);
 //          uiManager.updateStimulusCode(currStimCode);
 
                 };
@@ -716,9 +731,7 @@ var startTrial = function() {
         // var hgFeature = new fmfeature.RemoteFeature( path.join( apiPath, 'compute', 'hgfft' ) );
 
 var ingestTrial = function( trialData ) {
-          // uiManager.scope.update(dataSource.dataFormatter.sourceBuffer[0])
-          // console.log(dataSource.dataFormatter.sourceBuffer[0])
-          // We're done transferring
+
 
           // Probably not the best place to put this. but this will update the .stim-display to show what stimulusCode was just presented via BCI2000
 
@@ -740,106 +753,25 @@ var ingestTrial = function( trialData ) {
             uiManager.updateTrialCount( dataset.getTrialCount() );
             uiManager.deactivateTrialCount();
           } );
-          /*
-          updateStatistics( trialData );
-          */
-          // TODO Testing
-          // identityFeature.compute( trialData )
-          //                 .then( function( computedData ) {
-          //                     updateStatistics( computedData );
-          //                 } )
-          //                 .catch( function( reason ) {
-          //                     console.log( 'Error computing features on remote: ' + reason );
-          //                 } );
         };
 
 var updateDataDisplay = function updateDataDisplay() {
 
-          var timeBounds = dataset.getTimeBounds();
 
-          uiManager.raster.updateTimeRange( [timeBounds.start, timeBounds.end] );
-          uiManager.raster.update( dataset.displayData );
-
-          uiManager.lines.updateTimeRange( [timeBounds.start, timeBounds.end] );
-          uiManager.lines.update( dataset.lineDisplayData );
-
-          uiManager.brain.update( dataset.dataForTime( uiManager.raster.getCursorTime() ) );
-          uiManager.brain3.update( dataset.dataForTime( uiManager.raster.getCursorTime() ) );
-
-
-          // KLUDGE
-          // TODO Can't think of a good way to deal with combined async of
-          // loading UI config and setting up data source
-          // TODO Need to make compatible with dataset
-          //var trialWindow = dataSource.getTrialWindow();
-          // END KLUDGE
+  uiManager.raster.update( dataset.displayData );
+  uiManager.brain.update( dataset.dataForTime( uiManager.raster.getCursorTime() ) );
+  // uiManager.brain3.update( dataset.dataForTime( uiManager.raster.getCursorTime() ) );
+  var timeBounds = dataset.getTimeBounds();
+  uiManager.raster.updateTimeRange( [timeBounds.start, timeBounds.end] );
 
         }
-        /*
-        var updateStatistics = function( trialData ) {
-        cronelib.forEachAsync( Object.keys( channelStats ), function( ch ) {
-        channelStats[ch].ingest( trialData[ch] );
-        meanData[ch] = channelStats[ch].fdrCorrectedValues( 0.05 );
-      }, {
-      batchSize: 5
-    } ).then( function() {
-    // TODO
-    var trialCount = 0;
-    Object.keys( channelStats ).every( function( ch ) {
-    trialCount = channelStats[ch].valueTrials.length;
-    return false;
-  } );
-  updatePlotsPostData();
-  // GUI stuff
-  uiManager.hideIcon( 'working' );
-  uiManager.updateTrialCount( trialCount );
-  uiManager.deactivateTrialCount();
-} );
-};
-*/
-// EVENT HOOKS
-// TODO Super kludgey to put here, but need data
-/*
-var dataForTime = function( time ) {
-// TODO Kludge; cache this, since it doesn't change
-var dataSamples = 0;
-Object.keys( meanData ).every( function( ch ) {
-dataSamples = meanData[ch].length;
-return false;
-} );
-var trialWindow = dataSource.getTrialWindow();
-var totalTime = trialWindow.end - trialWindow.start;
-var timeIndexFloat = ((time - trialWindow.start) / totalTime) * dataSamples;
-var timeIndex = Math.floor( timeIndexFloat );
-var timeFrac = timeIndexFloat - timeIndex;
-return Object.keys( meanData ).reduce( function( obj, ch ) {
-obj[ch] = (1.0 - timeFrac) * meanData[ch][timeIndex] + (timeFrac) * meanData[ch][timeIndex + 1];
-return obj
-}, {} );
-};
-*/
-// TODO AAAAAAH I'M AN IDIOT
-/*
-var updatePlotsPostData = function() {
-uiManager.raster.update( meanData );
-// TODO Kludge: dataForTime is the only thing keeping routine in main
-var meanDataSlice = dataForTime( uiManager.raster.getCursorTime() );
-uiManager.brain.update( meanDataSlice );
-// TODO Super kludge; should only need to update once ever ...
-var trialWindow = dataSource.getTrialWindow();
-uiManager.raster.updateTimeRange( [trialWindow.start, trialWindow.end] );
-};
-*/
+       
 
 if(document.title=="WebFM: Map"){
   uiManager.raster.oncursormove = function( newTime ) {
     uiManager.updateSelectedTime( newTime );
     uiManager.brain.update( dataset.dataForTime( newTime ) );
     uiManager.brain3.update( dataset.dataForTime( newTime ) );
-    /*
-    var meanDataSlice = dataForTime( newTime );
-    uiManager.brain.update( meanDataSlice );
-    */
   };
 }
 
@@ -901,6 +833,24 @@ uiManager.onoptionchange = function( option, newValue ) {
     }
   }
   if ( option == 'stim-on' ) {
+    if ( onlineMode ) {
+      dataSource.dataFormatter.updateThreshold( { onValue: newValue } );
+    }
+  }
+
+  if ( option == 'stim-state' ) {
+    if ( onlineMode ) {
+      console.log(newValue);
+
+      dataSource.dataFormatter._updateTimingState( newValue );
+    }
+  }
+  if ( option == 'stim-state-off' ) {
+    if ( onlineMode ) {
+      dataSource.dataFormatter.updateThreshold( { offValue: newValue } );
+    }
+  }
+  if ( option == 'stim-off' ) {
     if ( onlineMode ) {
       dataSource.dataFormatter.updateThreshold( { onValue: newValue } );
     }

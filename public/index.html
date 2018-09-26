@@ -62,10 +62,10 @@
                 <span id="subject-label"></span><br />
                 <span id="task-label"></span>
             </li>
-            <a id="map-button" class="list-group-item list-group-item-info disabled" onclick="document.cookie='WebFM: Map'" href="/map/">
+            <a id="map-button" class="list-group-item list-group-item-info disabled" href="/map/?view=WebFM: Map">
               <span class="glyphicon glyphicon-map-marker"></span> <strong>Map it</strong>
             </a>
-            <a id="live-button" class="list-group-item list-group-item-success disabled" onclick="document.cookie='WebFM: Live'" href="/map">
+            <a id="live-button" class="list-group-item list-group-item-success disabled" href="/map?view=WebFM: Live">
               <span class="glyphicon glyphicon-facetime-video"></span> <strong>Go live</strong>
 
 
@@ -139,6 +139,7 @@
 
           <ul id="analysis-list" class="list-group">
             <a href="/analysis" id="CCEPS_RUN" class="list-group-item">Run analysis!</a>
+            <a href="/webFM_Display/" id="3DView" class="list-group-item">Simple 3D Viewer</a>
 
             <!-- <button onclick="myFunction()">CCEPS analysis</button> -->
           </ul>
@@ -149,11 +150,7 @@
     </div>
 
   </div> <!-- /container -->
-  <script>
-    function myFunction(){
-      console.log("clicked!")
-    }
-  </script>
+
   <footer class="footer">
     <div class="container">
       <p class="text-muted">Fork me on <a href="http://github.com/cronelab/webfm">GitHub</a>. Powered by <a href="#">Bootstrap</a> and <a href="#">node.js</a>.</p>

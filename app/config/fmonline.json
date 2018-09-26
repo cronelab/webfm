@@ -4,6 +4,6 @@
 
     "checkRunningInterval"  : 1000,
     "checkStateInterval"    : 1000,
-    "checkRunningIntervalReconnect"  : 1500
+    "checkRunningIntervalReconnect"  : 1000
 
 }
