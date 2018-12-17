@@ -122,6 +122,16 @@
 
     "CCEPS*" : {
         "trialWindow" : {
+            "start" : -1.0,
+            "end"   : 2.5
+        },
+        "baselineWindow" : {
+            "start" : -1.0,
+            "end"   : 0.0
+        }
+    },
+    "COMMENT" : {
+        "trialWindow" : {
             "start" : -0.6,
             "end"   : 1.2
         },
@@ -134,7 +144,7 @@
     "PassiveStim*" : {
         "trialWindow" : {
             "start" : -0.6,
-            "end"   : 1.8
+            "end"   : 1.5
         },
         "baselineWindow" : {
             "start" : -0.6,
@@ -145,7 +155,7 @@
     "PassiveFingerVibration" : {
         "trialWindow" : {
             "start" : -0.6,
-            "end"   : 1.8
+            "end"   : 1.5
         },
         "baselineWindow" : {
             "start" : -0.6,

@@ -12,10 +12,10 @@
   <link rel="stylesheet" href="/webFM_Display/TemplateData/style.css">
 
   <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
-  <script src="/webFM_Display/Build/PY18N013/UnityLoader.js" ></script>
+  <script src="/webFM_Display/Build/PY18N016/UnityLoader.js" ></script>
   <script src="/webFM_Display/TemplateData/UnityProgress.js"></script>
   <script src="/js/jquery/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.2.0/bootstrap-slider.js"></script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.2.0/bootstrap-slider.js"></script> -->
   <script>if (window.module) module = window.module;</script>
   
  
@@ -70,11 +70,16 @@
           </div>
         </div>
       </div>
+      <br>
+      <br>
+      <br>
+      <br>
+      <br>
       <div class="col-md-7 col-sm-7 hidden-xs" style="position:fixed; right:0px;">
         <div id="fm-brain"></div>
-        <div class="slidecontainer">
+        <!-- <div class="slidecontainer">
           <input type="range" min="-100" max="100" value="0" class="slider" id="myRange">
-        </div>
+        </div> -->
         <div class="webgl-content">
           <div id="gameContainer" style="width: 1000px; height: 1500px"></div>
         </div>
@@ -83,15 +88,18 @@
   </div>
 
 <script>
-var twoDBrain = document.getElementById("fm-brain");
-var threeDBrain = document.getElementsByClassName("webgl-content");
-var rasterPlots = document.getElementById("fm");
-var linePlots = document.getElementById("lineChart");
+  var twoDBrain = document.getElementById("fm-brain");
+  var threeDBrain = document.getElementsByClassName("webgl-content");
+  var rasterPlots = document.getElementById("fm");
+  var linePlots = document.getElementById("lineChart");
 
-twoDBrain.style.visibility = "visible";
-threeDBrain[0].style.visibility = "hidden";
-rasterPlots.style.visibility = "visible";
-linePlots.style.visibility = "hidden";
+  twoDBrain.style.visibility = "visible";
+  // twoDBrain.style.width = "auto";
+  // twoDBrain.style.height = "auto";
+  twoDBrain.style.resize = "none";
+  threeDBrain[0].style.visibility = "hidden";
+  rasterPlots.style.visibility = "visible";
+  linePlots.style.visibility = "hidden";
 
 function toggleBrain(perspective)
 {

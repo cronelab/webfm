@@ -167,12 +167,12 @@ body > .container {
   */
 }
 
-.container-brain {
+/* .container-brain {
   float: right;
   width: 25%;
   height: 100%;
   margin-top: 10px;
-}
+} */
 
 code {
   font-size: 80%;
@@ -198,6 +198,9 @@ code {
 
 #fm-brain {
   margin-top: 101px;
+  resize: none;
+  min-width: 650px;
+  max-width: 650px;
 }
 
 .fm-brain-dot {
