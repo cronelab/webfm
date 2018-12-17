@@ -1233,11 +1233,13 @@ app.put( '/api/data/:subject/:record', rawBody, function( req, res ) {
 
 //CCEP stuff
 var options ={
-  args:['PY18N002','E:/Projects/Hopkins/GIT/webfm/webfm_dev/utils/python/CCEPS_analysis/Subjects/']
+  args:['PY18N002','E:/Projects/Hopkins/GIT/GIT_WebFM/utils/python/CCEPS/Subjects/']
 };
 
 app.get( '/analysis', function( req, res ) {
-  PythonShell.run('/utils/python/CCEPS_analysis/CCEPS_test.py', options, function (err, results) {
+  console.log("AAAA")
+  PythonShell.run('/utils/python/CCEPS/CCEPS_test.py', options, function (err, results) {
+    console.log("BBB")
     if(err){
       console.log(err);
     }

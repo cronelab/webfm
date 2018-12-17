@@ -1,3 +1,15 @@
 [submodule "utils/python/CCEPS_analysis"]
 	path = utils/python/CCEPS_analysis
 	url = https://github.com/cronelab/CCEPS_analysis.git
+[submodule "utils/python/--force"]
+	path = utils/python/--force
+	url = https://github.com/cronelab/CCEPS_analysis.git
+[submodule "utils/python/--name"]
+	path = utils/python/--name
+	url = https://github.com/cronelab/CCEPS_analysis.git
+[submodule "utils/python/--name2"]
+	path = utils/python/--name2
+	url = https://github.com/cronelab/CCEPS_analysis.git
+[submodule "utils/python/CCEPS"]
+	path = utils/python/CCEPS
+	url = https://github.com/cronelab/CCEPS_analysis.git

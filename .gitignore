@@ -11,3 +11,4 @@ ecogpy_config.py
 public/webFM_Display/save/*
 
 .vscode/
+public_backup
