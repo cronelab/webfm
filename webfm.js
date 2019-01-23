@@ -108,13 +108,13 @@ var app = express();
 
 
 
-var key = fs.readFileSync('certs/private.key');
-var cert = fs.readFileSync('certs/server.crt');
-var options = {
-  key:key,
-  cert:cert
-}
-var https = require('https');
+// var key = fs.readFileSync('certs/private.key');
+// var cert = fs.readFileSync('certs/server.crt');
+// var options = {
+//   key:key,
+//   cert:cert
+// }
+// var https = require('https');
 
 
 // App globals
@@ -1232,24 +1232,24 @@ app.put( '/api/data/:subject/:record', rawBody, function( req, res ) {
 
 
 //CCEP stuff
-var options ={
-  args:['PY18N002','E:/Projects/Hopkins/GIT/GIT_WebFM/utils/python/CCEPS/Subjects/']
-};
+// var options ={
+//   args:['PY18N002','E:/Projects/Hopkins/GIT/GIT_WebFM/utils/python/CCEPS/Subjects/']
+// };
 
-app.get( '/analysis', function( req, res ) {
-  console.log("AAAA")
-  PythonShell.run('/utils/python/CCEPS/CCEPS_test.py', options, function (err, results) {
-    console.log("BBB")
-    if(err){
-      console.log(err);
-    }
-    res.sendFile('D:/Projects/Hopkins/GIT/webfm/webfm_dev/CCEP_Stim@'+'LOFD1'+'_'+'LOFD2'+'.png' );
-  });
-});
+// app.get( '/analysis', function( req, res ) {
+//   console.log("AAAA")
+//   PythonShell.run('/utils/python/CCEPS/CCEPS_test.py', options, function (err, results) {
+//     console.log("BBB")
+//     if(err){
+//       console.log(err);
+//     }
+//     res.sendFile('D:/Projects/Hopkins/GIT/webfm/webfm_dev/CCEP_Stim@'+'LOFD1'+'_'+'LOFD2'+'.png' );
+//   });
+// });
 
 
 //Serve the stuff
-https.createServer(options,app).listen(54321);
+// https.createServer(options,app).listen(54321);
 var http = require('http');
 http.createServer(app).listen(8080);
 

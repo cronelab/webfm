@@ -5,7 +5,7 @@
 #browserify ./main/main.js -t babelify | uglifyjs -o ../public/js/app/map.js
 
 ##Development:
-# browserify ./index/main.js -t babelify -o ../public/js/app/index.js
+browserify ./index/main.js -t babelify -o ../public/js/app/index.js
 browserify ./main/main.js -t babelify -o ../public/js/app/map.js
 
 ##or
@@ -15,8 +15,8 @@ browserify ./main/main.js -t babelify -o ../public/js/app/map.js
 #watchify ./main/main.js -t babelify -o ../public/js/app/map.js
 
 ##Bootstrap/Jquery
-# cp ./node_modules/jquery/dist/jquery.min.js ../public/js/jquery
-# cp ./node_modules/bootstrap/dist/js/* ../public/js/bootstrap
-# cp ./node_modules/bootstrap/dist/css/* ../public/css/bootstrap
-# cp ./node_modules/bootstrap/dist/fonts/* ../public/fonts/bootstrap
-# cp ./node_modules/bootstrap/dist/fonts/* ../public/css/fonts
+cp ./node_modules/jquery/dist/jquery.min.js ../public/js/jquery
+cp ./node_modules/bootstrap/dist/js/* ../public/js/bootstrap
+cp ./node_modules/bootstrap/dist/css/* ../public/css/bootstrap
+cp ./node_modules/bootstrap/dist/fonts/* ../public/fonts/bootstrap
+cp ./node_modules/bootstrap/dist/fonts/* ../public/css/fonts
