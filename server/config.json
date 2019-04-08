@@ -1,0 +1,62 @@
+{
+    "times": {
+      "template": ["baselineStart", "baselineEnd", "trialStart", "trialEnd"],
+      "default": [-1.0, -0.2, -1.0, 3.0],
+      "PictureNaming": [-1.0, -0.2, -1.0, 3.0],
+      "SoundNaming": [-1.0, -0.2, -1.0, 3.5],
+      "BrandtNaming": [-1.0, -0.2, -1.0, 3.0],
+      "WordReading": [-1.0, -0.2, -1.0, 2.5],
+      "WordRepetition": [-1.0, -0.2, -1.0, 2.5],
+      "AuditoryNaming": [-1.0, -0.2, -1.0, 4.0],
+      "AuditoryNamingSpanish": [-1.0, -0.2, -1.0, 4.0],
+      "AuditoryWordRepetition": [-1.0, -0.2, -1.0, 2.5],
+      "SyllableRepetition": [-1.0, -0.2, -1.0, 2.5],
+      "SyllableReading": [-1.0, -0.2, -1.0, 2.5],
+      "CCEPS*": [-1.0, 0.0, -1.0, 2.5],
+      "PassiveStim": [-0.6, -0.2, -1.0, 1.5],
+      "PassiveFingerVibration": [-0.6, -0.2, -0.6, 1.5],
+      "AutoStim": [-1.8, -1.0, -1.8, 1.8],
+      "AutoTone": [-1.0, -0.2, -1.0, 2.2],
+      "SyllableStrings*": [-1.0, -0.2, -1.0, 4.5],
+      "UTHouston_Jabberwocky*": [-1.0, -0.2, -1.0, 6.0],
+      "OLDSentenceCompletion*": [-1.0, -0.2, -1.0, 6.5],
+      "SentenceCompletion*": [0.0, 1.0, -4.0, 1.0],
+      "GoalsTask*": [-1.0, -0.2, -1.0, 5.0],
+      "Match3": [-3.5, -2.9, -3.5, 1.0]
+    },
+    "ui": {
+      "rowHeight": 2,
+      "maxRowHeight": 8,
+      "pxPerRowHeight": 8,
+  
+      "rasterExtent": 4,
+      "maxrasterExtent": 1000,
+      "unitsPerrasterExtent": 0.5,
+  
+      "iconShowDuration": 0,
+      "iconHideDelay": 500,
+      "iconHideDuration": 500,
+  
+      "fmMargin": {
+        "left": 0,
+        "right": 0,
+        "top": 70,
+        "bottom": 0
+      },
+  
+      "rasterDebounceDelay": 100,
+      "scopeDebounceDelay": 200,
+      "brainDebounceDelay": 100,
+  
+      "cookieExpirationDays": 14
+    },
+    "online": {
+      "debug": true,
+      "sourceAddress": "127.0.0.1",
+  
+      "checkRunningInterval": 1000,
+      "checkStateInterval": 1000,
+      "checkRunningIntervalReconnect": 1000
+    }
+  }
+  

@@ -3,6 +3,7 @@ node_modules/
 docker/
 data_demo/
 certs/
+dist/
 
 reconstruction/
 public/webFM_Display/StreamingAssets/*
