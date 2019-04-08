@@ -33,6 +33,6 @@
     "@babel/core": "^7.2.2",
     "@babel/preset-env": "^7.2.0",
     "babelify": "^9.0.0",
-    "watchify": "^3.11.0"
+    "watchify": "^3.11.1"
   }
 }

@@ -12,3 +12,4 @@ public/webFM_Display/save/*
 
 .vscode/
 public_backup
+public/js/bootstrap/bootstrap.js

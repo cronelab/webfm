@@ -12,8 +12,9 @@
   <link rel="stylesheet" href="/webFM_Display/TemplateData/style.css">
 
   <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
-  <script src="/webFM_Display/Build/PY18N016/UnityLoader.js" ></script>
-  <script src="/webFM_Display/TemplateData/UnityProgress.js"></script>
+  <!-- <script src="/webFM_Display/Build/PY18N016/UnityLoader.js" ></script>
+  <script src="/webFM_Display/TemplateData/UnityProgress.js"></script> -->
+  document.title="WebFM"
   <script src="/js/jquery/jquery.min.js"></script>
   <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.2.0/bootstrap-slider.js"></script> -->
   <script>if (window.module) module = window.module;</script>
@@ -30,7 +31,7 @@
       }
       else{
         let subjName = document.getElementsByClassName("fm-subject-name")[0].innerHTML
-      gameInstance = UnityLoader.instantiate("gameContainer", `/webFM_Display/Build/${subjName}/${subjName}.json`, {onProgress: UnityProgress});
+      // gameInstance = UnityLoader.instantiate("gameContainer", `/webFM_Display/Build/${subjName}/${subjName}.json`, {onProgress: UnityProgress});
 
       }
     }
@@ -80,10 +81,10 @@
         <!-- <div class="slidecontainer">
           <input type="range" min="-100" max="100" value="0" class="slider" id="myRange">
         </div> -->
-        <div class="webgl-content">
+        <!-- <div class="webgl-content">
           <div id="gameContainer" style="width: 1000px; height: 1500px"></div>
         </div>
-      </div>
+      </div> -->
     </div>
   </div>
 
@@ -137,15 +138,15 @@ function toggleCharts(charts){
 </script>
 
 <script>
-      setTimeout(function(){
+      // setTimeout(function(){
       
-      let subjName = document.getElementsByClassName("fm-subject-name")[0].innerHTML
-        console.log(subjName)
-      var script = document.createElement('script');
-      script.src = `/webFM_Display/Build/${subjName}/UnityLoader.js`;
-      var ref = document.querySelector('script');
-      ref.parentNode.insertBefore(script, ref);
-      }, 5000);
+      // let subjName = document.getElementsByClassName("fm-subject-name")[0].innerHTML
+      //   console.log(subjName)
+      // var script = document.createElement('script');
+      // script.src = `/webFM_Display/Build/${subjName}/UnityLoader.js`;
+      // var ref = document.querySelector('script');
+      // ref.parentNode.insertBefore(script, ref);
+      // }, 5000);
   
   
   </script>
