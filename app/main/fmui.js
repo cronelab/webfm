@@ -24,7 +24,7 @@ var fmbrain3     = require( './fmbrain3' );
 var fmscope     = require( './fmscope' );
 var fmlines     = require( './fmlines' );
 
-if(document.title == "WebFM: Map"){
+if(document.title.includes("WebFM: Map")){
   var fmraster    = require( './fmraster' );
 }
 
@@ -53,7 +53,7 @@ fmui.InterfaceManager = function() {
     {
       this.brain = new fmbrain.BrainVisualizer( '#fm-brain' , 'live');
     }
-    else if(document.title=="WebFM: Map"){
+    else if(document.title.includes("WebFM: Map")){
       this.raster = new fmraster.ChannelRaster( '#fm' );
       this.brain = new fmbrain.BrainVisualizer( '#fm-brain' , 'map');
       this.raster.onselectchannel = function( newChannel ) {
@@ -113,7 +113,7 @@ fmui.InterfaceManager.prototype = {
         mergedConfig.iconShowDuration       = config.iconShowDuration       || 100;
         mergedConfig.iconHideDelay          = config.iconHideDelay          || 1000;
         mergedConfig.iconHideDuration       = config.iconHideDuration       || 100;
-        if(document.title=="WebFM: Map")
+        if(document.title.includes("WebFM: Map"))
         {
           mergedConfig.rasterExtent           = config.rasterExtent           || 5;
           mergedConfig.maxRasterExtent        = config.maxRasterExtent        || 10;
@@ -144,7 +144,7 @@ fmui.InterfaceManager.prototype = {
 
         // Populate options with the current cookie-set values
         this._populateOptions( this.getOptions() );
-        if(document.title=="WebFM: Map"){
+        if(document.title.includes("WebFM: Map")){
             this.raster.setup();    // TODO Always will fail for charts until
             // this.lines.setup();
             this._syncRasterConfig();
@@ -887,7 +887,7 @@ fmui.InterfaceManager.prototype = {
 
         // Update the raster with the filtered channel list
         // TODO Support different ordering, or just exclusion?
-        if(document.title=="WebFM: Map")
+        if(document.title.includes("WebFM: Map"))
         {
         this.raster.setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
         this.lines.setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
@@ -922,7 +922,7 @@ fmui.InterfaceManager.prototype = {
     },
 
     didResize: function() {
-        if(document.title=="WebFM: Map")
+        if(document.title.includes("WebFM: Map"))
         {
         this.updateRaster();
     }

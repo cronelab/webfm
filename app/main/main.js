@@ -18,9 +18,9 @@ var fmdata      = require( './fmdata' );
 // Initialization
 
 // TODO A little kludgey
-var pathComponents  = window.location.pathname.split( '/' );
+var pathComponents  = window.location.href.split( '/' );
 
-var modeString      = pathComponents[2] || 'online';
+var modeString      = pathComponents[5] || 'online';
 
 var onlineMode      = modeString == 'online';
 var loadMode        = !onlineMode;
@@ -30,8 +30,8 @@ var recordName      = undefined;
 var currStimCode    = undefined;
 
 if ( loadMode ) {
-  subjectName     = pathComponents[2] || undefined;
-  recordName      = pathComponents[3] || undefined;
+  subjectName     = pathComponents[5] || undefined;
+  recordName      = pathComponents[6] || undefined;
 } else {
   subjectName     = pathComponents[3] || undefined;
   recordName      = pathComponents[4] || undefined;
@@ -99,7 +99,7 @@ if ( onlineMode ) {     // Using BCI2000Web over the net
     dataset.setupChannels( properties.channels );
 
     updateProperties( properties );
-    if(document.title=="WebFM: Map")
+    if(document.title.includes("WebFM: Map"))
     {
       //This is really not good, and probably won't work in all cases.
       dataSource._bciConnection.execute('List Parameter Sequence', function (result) {
@@ -538,7 +538,7 @@ if ( loadMode ) {       // Using data loaded from the hive
   } )
   .then( function() {
     prepareFromDataset();
-    if(document.title=="WebFM: Map")
+    if(document.title.includes("WebFM: Map"))
     {
       updateDataDisplay();
     }
@@ -744,7 +744,7 @@ var ingestTrial = function( trialData ) {
           // Update our statistics
           dataset.ingest( trialData, currStimCode )
           .then( function() {
-            if(document.title=="WebFM: Map")
+            if(document.title.includes("WebFM: Map"))
             {
               updateDataDisplay();
             }
@@ -767,7 +767,7 @@ var updateDataDisplay = function updateDataDisplay() {
         }
        
 
-if(document.title=="WebFM: Map"){
+if(document.title.includes("WebFM: Map")){
   uiManager.raster.oncursormove = function( newTime ) {
     uiManager.updateSelectedTime( newTime );
     uiManager.brain.update( dataset.dataForTime( newTime ) );
@@ -873,7 +873,7 @@ var updateBaselineWindow = function( newWindow ) {
 
   dataset.updateBaselineWindow( newWindow )
   .then( function() {
-    if(document.title=="WebFM: Map")
+    if(document.title.includes("WebFM: Map"))
     {
       updateDataDisplay();
     }

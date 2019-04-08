@@ -52,7 +52,7 @@ fmbrain.BrainVisualizer = function( baseNodeId, config) {
     this.dotMaxRadius   = 0.040;
     this.dotColors          = ["#313695","#4575b4","#74add1","#abd9e9","#000000","#fee090","#fdae61","#f46d43","#d73027"];
 
-    if(document.title == "WebFM: Map")
+    if(document.title.includes("WebFM: Map"))
     {
       this.dotMinRadius   = 0.003;        // u (horizontal) units
       this.extent         = 10.0;         // TODO Expose

@@ -3,6 +3,8 @@ const fs = require("fs");
 var async = require("async");
 var jsonfile = require("jsonfile");
 const loadJsonFile = require("load-json-file");
+var mapExtension = ".fm";
+var bundleExtension = ".fmbundle";
 
 const dataDir = "./data";
 var metadataFilename = ".metadata";
@@ -15,10 +17,62 @@ const getSubjectMetadata = async subject => {
 
 const getRecord = async (subject, record) => {
     const recordPath = path.join(dataDir, subject, record);
-    let _record = await loadJsonFile(recordPath);
+    let _record = await loadJsonFile(`${recordPath}.fm`);
     return _record;
 };
+var checkRecord = function (subject, record, cb) {
+    var checker = function (checkPath, checkKind) {
+        return function (innerCB) {
+            fs.stat(checkPath, function (err, stats) {
+                if (err) {
+                    // We don't want to kick back an error, because that would
+                    // short-circuit our parallel call
+                    innerCB(null, false);
+                    return;
+                }
+                // Check that the thing we found is the kind of thing we want
+                innerCB(
+                    null,
+                    checkKind == "bundle" ? stats.isDirectory() : stats.isFile()
+                );
+            });
+        };
+    };
 
+    var checkOrder = {
+        map: checker(path.join(dataDir, subject, record + mapExtension), "map"),
+        bundle: checker(
+            path.join(dataDir, subject, record + bundleExtension),
+            "bundle"
+        )
+    };
+
+    async.parallel(checkOrder, function (err, results) {
+        // This should ostensibly never happen.
+        if (err) {
+            cb(err);
+            return;
+        }
+        // TODO More elegantly
+        if (results.map && results.bundle) {
+            console.log(
+                "WARNING Both map and bundle exist with same name. Bundle takes precedence."
+            );
+        }
+        // WOMP WOMP
+        if (!results.map && !results.bundle) {
+            cb(null, "none");
+            return;
+        }
+        // Bundle
+        if (results.bundle) {
+            cb(null, "bundle");
+            return;
+        }
+        // Must be a map
+        cb(null, "map");
+    });
+};
 
 module.exports = express => {
     const router = express.Router();
@@ -30,7 +84,42 @@ module.exports = express => {
     //     router.get("/", (req, res) =>
     //     res.sendFile(path.join(__dirname, "/../public", "/index.html"))
     // );
+    // Get info on particular record.
+    router.get("/api/info/:subject/:record", function (req, res) {
+        var errOut = function (code, msg) {
+            console.log(msg);
+            res.status(code).send(msg);
+        };
 
+        var subject = req.params.subject;
+        var record = req.params.record;
+
+        // Check and see what kind of thing we are
+        checkRecord(subject, record, function (err, recordType) {
+            if (err) {
+                // Couldn't determine for some reason
+                errOut(500, "Couldn't determine record type: /" + subject + "/" + record);
+                return;
+            }
+
+            if (recordType == "none") {
+                // Not found
+                errOut(404, "Record not found: /" + subject + "/" + record);
+                return;
+            }
+
+            var recordInfo = {
+                subject: subject,
+                record: record,
+                isBundle: recordType == "bundle",
+                uri: path.join("/", "api", "data", subject, record)
+            };
+
+            res.json(recordInfo);
+
+            // TODO This should be exhaustive ... Right?
+        });
+    });
     //List of subjects
     // router.get("/api/subjects", (req, res) => {
     router.get("/api/list", (req, res) => {
@@ -54,7 +143,7 @@ module.exports = express => {
 
     //Brain
     // router.get("/api/:subject/brain", (req, res) => {
-        router.get("/api/brain/:subject/", (req, res) => {
+    router.get("/api/brain/:subject/", (req, res) => {
         let subject = req.params.subject;
         fs.readdir(dataDir, (err, subjects) => {
             if (subjects.indexOf(subject) > -1) {
@@ -64,13 +153,13 @@ module.exports = express => {
                 //         root: `${dataDir}/${subject}/`
                 //     });
                 // } else {
-                    getSubjectMetadata(subject)
-                        .then(metadata => {
-                            // console.log(metadata.brainImage)
-                            res.status(200).send(metadata.brainImage)
-                        })
-                        
-                        .catch(err => console.log(err));
+                getSubjectMetadata(subject)
+                    .then(metadata => {
+                        // console.log(metadata.brainImage)
+                        res.status(200).send(metadata.brainImage)
+                    })
+
+                    .catch(err => console.log(err));
                 // }
             } else {
                 console.log("subject not found");
@@ -138,14 +227,90 @@ module.exports = express => {
         });
     });
 
-    //Record
-    router.get("/api/:subject/:record/:info", (req, res) => {
-        let subject = req.params.subject;
-        let record = `${req.params.record}.json`;
-        let info = req.params.info;
-        getRecord(subject, record).then(recordFile => {
-            let infoToSend = recordFile.contents[`${info}`];
-            res.status(200).json(infoToSend);
+    router.get("/api/data/:subject/:record", function (req, res) {
+        var subject = req.params.subject;
+        var record = req.params.record;
+
+        var errOut = function (code, msg) {
+            console.log("[GET " + req.originalUrl + "] " + msg);
+            res.status(code).send(msg);
+        };
+
+        checkRecord(subject, record, function (err, recordType) {
+            if (err) {
+                errOut(
+                    500,
+                    "Error determining if " +
+                    subject +
+                    "/" +
+                    record +
+                    " is a record: " +
+                    err
+                );
+                return;
+            }
+
+            if (recordType == "none") {
+                errOut(404, "Record not found: " + subject + "/" + record);
+                return;
+            }
+
+            if (recordType == "bundle") {
+                errOut(501, "Bundle server not yet implemented.");
+                return;
+            }
+
+            // recordType == 'map'
+
+            // Load the record
+            var recordPath = path.join(dataDir, subject, record + mapExtension);
+            jsonfile.readFile(recordPath, function (err, recordData) {
+                // Make a deep copy
+                var sendData = JSON.parse(JSON.stringify(recordData));
+
+                // Check for metadata imports
+                if (recordData.metadata !== undefined) {
+                    if (recordData.metadata["_import"] !== undefined) {
+                        // Execute metadata imports
+
+                        var imports = recordData.metadata["_import"];
+
+                        // Put all imports on the same footing
+                        if (!Array.isArray(imports)) {
+                            imports = [imports];
+                        }
+
+                        // Create promises
+                        var importPromise = function (relPath) {
+                            // Absolut-ize import path
+                            var absPath = path.normalize(path.join(dataDir, subject, relPath));
+
+                            return new Promise(function (resolve, reject) {
+                                jsonfile.readFile(absPath, function (err, data) {
+                                    if (err) {
+                                        reject(err);
+                                        return;
+                                    }
+                                    resolve(data);
+                                });
+                            });
+                        };
+
+                        Promise.all(imports.map(importPromise)).then(function (importData) {
+                            // Execute the imports on the metadata being sent
+                            for (var i = 0; i < importData.length; i++) {
+                                Object.assign(sendData.metadata, importData[i]);
+                            }
+
+                            // Unset the _import field
+                            sendData.metadata["_import"] = undefined;
+
+                            // Send the data!
+                            res.status(200).send(JSON.stringify(sendData));
+                        });
+                    }
+                }
+            });
         });
     });
 

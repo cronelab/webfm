@@ -15,7 +15,7 @@
   "license": "SEE LICENSE IN ../LICENSE.md",
   "dependencies": {
     "bci2k": "^1.0.8",
-    "bootstrap": "^3.4.0",
+    "bootstrap": "^3.4.1",
     "browserify": "^16.2.3",
     "d3": "^4.13.0",
     "d3-array": "^1.2.4",
