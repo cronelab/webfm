@@ -1,0 +1,95 @@
+@import "~bootstrap/scss/bootstrap";
+
+html,body { height:100%; }
+
+.navbar-dark {
+  background-color: #397ad0;
+  border-color: #316198;
+  .navbar-brand {
+    span {
+      color: #fffff6;
+    }
+    a {
+      color: white;
+    }
+  }
+}
+
+.navbar-light {
+  background-color: rgba(0, 0, 0, 0.23);
+}
+
+.navbar-nav {
+  font-size: 1.5rem;
+}
+
+.navbar-expand-lg .navbar-nav .nav-item {
+  padding: 0rem 1rem;
+  &:hover {
+    color: black;
+  }
+}
+
+#sidebar {
+  border-top: 1px solid #316198;
+  position: absolute;
+  top: 55px;
+  right: 0;
+  height:90%;
+  text-align: center;
+  min-width: 250px;
+  max-width: 250px;
+  background: #397ad0;
+  color: #fff;
+  margin-left: auto;
+  margin-right: 0;
+  transition: all 0.9s;
+  ul{
+    p {
+      padding: 10px;
+      font-size: 1.1em;
+      display: block;
+    }
+    button {
+      background: #397ad0;
+      color: #fff;
+      padding: 10px;
+      font-size: 1.1em;
+      display: block;
+
+      &:hover{
+        color: #397ad0;
+        background: white;
+      }
+    }
+  }
+}
+
+#sidebar.active {
+  margin-left: auto;
+  margin-right: 100%;
+}
+
+#fm-chart-container {
+  height: 100%;
+  padding-right: 0;
+}
+#fm-chart-container2 {
+  height: 100%;
+  padding: 0;
+}
+#fm-brain{
+  width: 100%;
+}
+
+#fm-brain-3D{
+  height:100%;
+  width:100%
+}
+#fm-brain-2D{
+  // height:100%;
+  width:100%
+}
+#viewToggle{
+  margin-left: auto;
+}

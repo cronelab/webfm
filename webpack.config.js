@@ -13,7 +13,8 @@ const devMode = process.env.NODE_ENV !== "production";
 module.exports = {
     entry: {
         index: devMode ? ["./index/index.js", hotMiddlewareScript] : "./index/index.js",
-        map: "./map/main.js"
+        map: "./map/map.js",
+        replay: "./replay/replay.js",
     },
     mode: devMode ? "development" : "production",
 
@@ -53,7 +54,7 @@ module.exports = {
                 use: [
                     devMode ? "style-loader" : MiniCssExtractPlugin.loader,
                     "css-loader",
-                    // "postcss-loader",
+                    "postcss-loader",
                     "sass-loader"
                 ]
             }
@@ -66,8 +67,13 @@ module.exports = {
             hash: true,
             template: "./index/index.html",
             filename: 'index.html',
-
         }),
+        new HtmlWebpackPlugin({
+            inject: false,
+            hash: true,
+            template: "./replay/replay.html",
+            filename: 'replay.html'
+          }),
         new HtmlWebpackPlugin({
             inject: false,
             hash: true,
