@@ -15,6 +15,8 @@ module.exports = {
         index: devMode ? ["./index/index.js", hotMiddlewareScript] : "./index/index.js",
         map: "./map/map.js",
         replay: "./replay/replay.js",
+        threeD: "./threeD/threeD.js",
+        cortstim: "./cortstim/cortstim.js"    
     },
     mode: devMode ? "development" : "production",
 
@@ -73,14 +75,19 @@ module.exports = {
             hash: true,
             template: "./replay/replay.html",
             filename: 'replay.html'
-          }),
+        }),
         new HtmlWebpackPlugin({
             inject: false,
             hash: true,
             template: "./map/index.html",
             filename: 'map.html',
-
         }),
+        new HtmlWebpackPlugin({
+            inject: false,
+            hash: true,
+            template: "./cortstim/index.html",
+            filename: 'cortstim.html'
+          }),
         new MiniCssExtractPlugin({
             filename: devMode ? "[name].css" : "[name].css",
             chunkFilename: devMode ? "[id].css" : "[id].css"
