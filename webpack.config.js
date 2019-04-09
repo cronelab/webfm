@@ -12,9 +12,8 @@ const devMode = process.env.NODE_ENV !== "production";
 
 module.exports = {
     entry: {
-        index: devMode ?
-            ["./index/index.js", hotMiddlewareScript] :
-            "./index/index.js"
+        index: devMode ? ["./index/index.js", hotMiddlewareScript] : "./index/index.js",
+        map: "./map/main.js"
     },
     mode: devMode ? "development" : "production",
 
@@ -45,6 +44,7 @@ module.exports = {
                     loader: 'file-loader',
                     options: {
                         name: '[path][name].[ext]',
+                        presets: ['env'],
                     },
                 }, ],
             },
@@ -66,6 +66,13 @@ module.exports = {
             hash: true,
             template: "./index/index.html",
             filename: 'index.html',
+
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
+            hash: true,
+            template: "./map/index.html",
+            filename: 'map.html',
 
         }),
         new MiniCssExtractPlugin({

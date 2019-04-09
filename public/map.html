@@ -20,23 +20,6 @@
   <script>if (window.module) module = window.module;</script>
   
  
-  <script>
-    var gameInstance = null;
-    let show=true;
-
-    function toggle3DLoader(){
-      if(typeof UnityLoader=="undefined")
-      {
-        alert("Wait until mapping is ready, thank you")
-      }
-      else{
-        let subjName = document.getElementsByClassName("fm-subject-name")[0].innerHTML
-      // gameInstance = UnityLoader.instantiate("gameContainer", `/webFM_Display/Build/${subjName}/${subjName}.json`, {onProgress: UnityProgress});
-
-      }
-    }
-  </script>
-
   <script type="text/javascript">
       var urlParams = new URLSearchParams(window.location.search);
       

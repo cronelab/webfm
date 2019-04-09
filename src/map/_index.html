@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="/css/map.css">
+    <link rel="stylesheet" href="/webFM_Display/TemplateData/style.css">
+
+    <script>
+        if (typeof module === 'object') {
+            window.module = module;
+            module = undefined;
+        }
+    </script>
+    <!-- <script src="/webFM_Display/Build/PY18N016/UnityLoader.js" ></script>
+  <script src="/webFM_Display/TemplateData/UnityProgress.js"></script> -->
+    document.title="WebFM"
+    <script src="/js/jquery/jquery.min.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.2.0/bootstrap-slider.js"></script> -->
+    <script>
+        if (window.module) module = window.module;
+    </script>
+
+
+    <script>
+        var gameInstance = null;
+        let show = true;
+
+        function toggle3DLoader() {
+            if (typeof UnityLoader == "undefined") {
+                alert("Wait until mapping is ready, thank you")
+            } else {
+                // let subjName = document.getElementsByClassName("fm-subject-name")[0].innerHTML
+                // gameInstance = UnityLoader.instantiate("gameContainer", `/webFM_Display/Build/${subjName}/${subjName}.json`, {onProgress: UnityProgress});
+
+            }
+        }
+    </script>
+
+    <script type="text/javascript">
+        var urlParams = new URLSearchParams(window.location.search);
+
+        document.title = urlParams.get('view');
+    </script>
+
+    <script>
+        function load(url, element) {
+            req = new XMLHttpRequest();
+            req.open("GET", url, false);
+            req.send(null);
+            element.innerHTML = req.responseText;
+        }
+    </script>
+
+</head>
+
+<body>
+    <!-- Navbar -->
+    <div id="navbar"></div>
+    <!-- Modals -->
+    <div id="modals"></div>
+
+    <!-- Main content -->
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-5 col-sm-5">
+                <div id="fmContainer">
+                    <div id="fm"></div>
+                    <br><br><br><br><br><br>
+                    <div id="lineChart">
+                        <div class="fm-lineChart"></div>
+                    </div>
+                </div>
+            </div>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <div class="col-md-7 col-sm-7 hidden-xs" style="position:fixed; right:0px;">
+                <div id="fm-brain"></div>
+                <!-- <div class="slidecontainer">
+          <input type="range" min="-100" max="100" value="0" class="slider" id="myRange">
+        </div> -->
+                <!-- <div class="webgl-content">
+          <div id="gameContainer" style="width: 1000px; height: 1500px"></div>
+        </div>
+      </div> -->
+            </div>
+        </div>
+
+        <script>
+            var twoDBrain = document.getElementById("fm-brain");
+            var threeDBrain = document.getElementsByClassName("webgl-content");
+            var rasterPlots = document.getElementById("fm");
+            var linePlots = document.getElementById("lineChart");
+
+            twoDBrain.style.visibility = "visible";
+            // twoDBrain.style.width = "auto";
+            // twoDBrain.style.height = "auto";
+            twoDBrain.style.resize = "none";
+            threeDBrain[0].style.visibility = "hidden";
+            rasterPlots.style.visibility = "visible";
+            linePlots.style.visibility = "hidden";
+
+            function toggleBrain(perspective) {
+                if (perspective == "2D") {
+                    var dots = document.getElementsByClassName("fm-brain-dots")[0];
+
+                    twoDBrain.style.visibility = "visible";
+                    threeDBrain[0].style.visibility = "hidden";
+                    dots.style.display = "block"
+
+                } else {
+                    var dots = document.getElementsByClassName("fm-brain-dots")[0];
+
+                    twoDBrain.style.visibility = "hidden";
+                    threeDBrain[0].style.visibility = "visible";
+                    dots.style.display = "none"
+
+                }
+            }
+
+            function toggleCharts(charts) {
+                if (charts == "raster") {
+                    linePlots.style.display = "none";
+                    rasterPlots.style.display = "block";
+                } else if (charts == "line") {
+                    rasterPlots.style.display = "none";
+                    linePlots.style.display = "block";
+                    linePlots.style.visibility = "visible";
+
+                }
+            }
+        </script>
+
+        <script>
+            // setTimeout(function(){
+
+            // let subjName = document.getElementsByClassName("fm-subject-name")[0].innerHTML
+            //   console.log(subjName)
+            // var script = document.createElement('script');
+            // script.src = `/webFM_Display/Build/${subjName}/UnityLoader.js`;
+            // var ref = document.querySelector('script');
+            // ref.parentNode.insertBefore(script, ref);
+            // }, 5000);
+        </script>
+        <!-- Footer -->
+
+        <footer class="footer navbar-fixed-bottom">
+            <div class="container-fluid">
+                <p class="text-muted text-right">
+                    <span class="fm-trial-label">[n]</span>
+                    &emsp;&middot;&emsp;
+                    BCI2K: <span class="text-success fm-bci-status-label">Connected</span>
+                </p>
+            </div>
+
+
+            <script src="/js/app/map.js"></script>
+            <script>
+                load("/navbar.html", document.getElementById("navbar"));
+                load("/modals.html", document.getElementById("modals"));
+            </script>
+
+            <script type="text/javascript">
+                document
+                    .getElementById("twoVsThree")
+                    .addEventListener("click", function (e) {
+                        let raster = document.getElementById("fm");
+                        let maxVals = []
+                        let meanValues = []
+                        let chNames = []
+                        for (var i = 1; i < raster.children.length - 15; i++) {
+                            var item = raster.children[i];
+                            maxVals.push(Math.max(...item.children[2].__data__.values))
+                            let sum = item.children[2].__data__.values.reduce((previous, current) => current +=
+                                previous);
+                            let avg = sum / item.children[2].__data__.values.length;
+                            meanValues.push(avg)
+                            chNames.push(item.children[2].__data__.channel)
+                        }
+
+                        let maxDict = {}
+                        let meanDict = {}
+
+
+                        for (let i = 0; i < maxVals.length; i++) {
+                            if (maxVals[i] > 0) {
+                                maxDict[`${chNames[i]}`] = maxVals[i]
+                            }
+                        }
+                        for (let i = 0; i < meanValues.length; i++) {
+                            if (meanValues[i] > 0) {
+                                meanDict[`${chNames[i]}`] = meanValues[i]
+                            }
+                        }
+                        var maxSortable = [];
+                        for (var valz in maxDict) {
+                            maxSortable.push([valz, maxDict[valz]]);
+                        }
+
+                        maxSortable.sort(function (a, b) {
+                            return a[1] - b[1];
+                        });
+                        var meanSortable = [];
+                        for (var valz in meanDict) {
+                            meanSortable.push([valz, meanDict[valz]]);
+                        }
+
+                        meanSortable.sort(function (a, b) {
+                            return a[1] - b[1];
+                        });
+                        console.log("Maximum High Gamma Activity")
+                        console.log(JSON.stringify(maxSortable))
+                        console.log("Mean High Gamma Activity")
+                        console.log(meanDict)
+                        console.log(JSON.stringify(meanSortable))
+
+
+
+
+
+
+
+
+
+
+
+                        e.target.parentElement.classList.remove("active");
+                        if (e.target.id == "twoDDrop") {
+                            toggleBrain("2D");
+                        } else if (e.target.id == "threeDDrop") {
+                            toggleBrain("3D");
+                        }
+                    });
+                document.getElementById("graphViews").addEventListener("click", function (e) {
+                    e.target.parentElement.classList.remove("active");
+                    if (e.target.id == "rasterView") {
+                        toggleCharts("raster");
+                    } else if (e.target.id == "chartView") {
+                        toggleCharts("line");
+                    }
+                });
+            </script>
+        </footer>
+
+</body>
+
+
+</html>
