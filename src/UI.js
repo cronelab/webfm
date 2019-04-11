@@ -6,15 +6,23 @@ export default class UI {
     buttonFunctions() {
       document.getElementsByClassName("fm-zoom-in")[0].onclick = () => {
         this.changeBrainSize(4,3,2);
+        // original
+        // manager.zoomIn(e);
       };
       document.getElementsByClassName("fm-zoom-out")[0].onclick = () => {
         this.changeBrainSize(-4,-3,2);
+        // original
+        // manager.zoomOut(e);
       };
       document.getElementsByClassName("fm-gain-up")[0].onclick = () => {
         console.log("gU button pressed");
+        // original
+        // manager.gainUp(e);
       };
       document.getElementsByClassName("fm-gain-down")[0].onclick = () => {
         console.log("gD button pressed");
+        // original
+        // manager.gainDown(e);
       };
       document.getElementById("play-button").onclick = () => {
         console.log("play button pressed");

@@ -1,23 +1,29 @@
 let urlParams = new URLSearchParams(window.location.search);
 import "./map.scss";
-import $ from "jquery";
-import {loadBrain, loadGeometry, loadDots} from '../loaders.js'
-
 import "bootstrap";
 import "@fortawesome/fontawesome-free/js/all";
-if (urlParams.get('type') == "map") {}
+import {
+    loadBrain,
+    loadGeometry,
+    loadDots
+} from '../loaders.js'
 import BCI2KWatcher from "../index/bciwatch.js";
-let bciWatcher = null;
 import {
     generateChart
-} from "./timeSeries";
+} from "../timeSeries";
+import {
+    Helpers
+} from './stats';
+import UI from "../UI"
+if (urlParams.get('type') == "map") {}
+let bciWatcher = null;
 
-let bciStateChange = newState => {};
+// let bciStateChange = newState => {};
 
 window.onload = () => {
     //Get the bci2000 source address from the browser's local storage
     let sourceAddress = localStorage.getItem("sourceAddress");
-
+    let newHelper = new Helpers();
     //Instantiate the UI class
     // let userInterface = new UI();
 
@@ -29,9 +35,10 @@ window.onload = () => {
     bciWatcher.connect(sourceAddress).then(() => {
         bciWatcher.start();
 
+
         //Tap the spectral stream
         setupDataConnections();
-
+        getTaskParameters();
         //Use the running BCI2000 instance to get the subject name
         bciWatcher.getParameter("SubjectName").then(subjName => {
             let subj = subjName.trim();
@@ -40,6 +47,27 @@ window.onload = () => {
             loadBrain(subj).then(() => {
                 loadGeometry(subj).then(geo => {
                     loadDots(geo);
+                    let chList = document.createElement("ul");
+                    chList.classList.add("list-group-item");
+                    chList.innerHTML = "All channels";
+                    chList.onclick = e => {
+                        // e.preventDefault();
+                        //View all channels
+                        // stats.then(y => lineChart(y, Object.keys(x), 1000));
+                    };
+                    document.getElementById("fm-montage-list").appendChild(chList);
+                    Object.keys(geo).map((ch, i) => {
+                        let chList = document.createElement("ul");
+                        chList.classList.add("list-group-item");
+                        chList.innerHTML = ch;
+                        chList.onclick = e => {
+                            // e.preventDefault();
+                            // selectedChannel = [ch];
+                            //View a single channel
+                            // stats.then(y => lineChart(y, [ch], lineScale));
+                        };
+                        document.getElementById("fm-montage-list").appendChild(chList);
+                    });
                 });
             });
             //Get pertinent parameters
@@ -62,20 +90,29 @@ window.onload = () => {
     });
 };
 
-const setupDataConnections = async () => {
-    //Get raw time series data
-    let sourceData = await bciWatcher._bciConnection.tap("Source");
-    let spectralData = await bciWatcher._bciConnection.tap("SpectralOutput");
+let bciStateChange = newState => {
+    console.log(newState);
+    // document.getElementById('state-label').innerHTML = "<strong>" + newState + "<strong>";
+    // Object.keys(stateClasses).map(v => {
+    //     if (newState == v) {
+    //         document.getElementById('state-label').classList.add(stateClasses[v])
+    //         return
+    //     }
+    //     document.getElementById('state-label').classList.remove(stateClasses[v])
+    // })
+}
 
-    sourceData.onSignalProperties = sigProps => {
-        console.log(sigProps.sourceProperties);
-        let chan = sigProps.channels.length;
-        let sampB = sigProps.numElements;
-        if (sampB) {
-            sendSourceData(chan, sampB);
-        }
-    };
-    await new Promise(resolve => setTimeout(resolve, 3000));
+const getTaskParameters = async () => {
+    let firstBin = await bciWatcher.getParameter("FirstBinCenter")
+    let lastBin = await bciWatcher.getParameter("LastBinCenter");
+    let stimDuration = await bciWatcher.getParameter("StimulusDuration")
+    let minISI = await bciWatcher.getParameter("ISIMinDuration")
+    let maxISI = await bciWatcher.getParameter("ISIMaxDuration")
+    console.log(firstBin, lastBin, stimDuration, minISI, maxISI)
+}
+
+
+const setupDataConnections = async () => {
 
     const sendSourceData = (numChannels, sampleBlockSize) => {
         let timeBuffer = [];
@@ -83,10 +120,11 @@ const setupDataConnections = async () => {
             timeBuffer.push([]);
         }
         sourceData.onGenericSignal = timeData => {
+            console.log(timeBuffer);
             timeData.map((ch, i) => {
                 console.log(timeBuffer[i].length);
                 if (timeBuffer[i].length == sampleBlockSize) {
-                    generateChart(timeBuffer[i]);
+                    // generateChart(timeBuffer[i]);
                     timeBuffer[i].splice(0, sampleBlockSize);
                     timeBuffer[i] = timeBuffer[i].concat(ch);
                 } else {
@@ -95,6 +133,35 @@ const setupDataConnections = async () => {
             });
         };
     };
+
+    //Get raw time series data
+    let sourceData = await bciWatcher._bciConnection.tap("Source");
+    let spectralData = await bciWatcher._bciConnection.tap("SpectralOutput");
+    try {
+        sourceData.onSignalProperties = sigProps => {
+            console.log(sigProps);
+            console.log(sigProps.channels.length);
+            console.log(sigProps.numElements);
+
+            let chan = sigProps.channels.length;
+            let sampB = sigProps.numelements;
+            if (sampB) {
+                sendSourceData(chan, sampB);
+            }
+        };
+    } catch (err) {
+        console.log(err);
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
+
+    spectralData.onStateVector = data => {
+        // console.log(data.StimulusCode)
+    };
+    // spectralData.onGenericSignal = signal =>{
+    //     console.log(signal);
+    // }
 };
 
 //   // Wire to common routines

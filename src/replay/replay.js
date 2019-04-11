@@ -2,10 +2,10 @@ import "./replay.scss";
 import "bootstrap";
 import "@fortawesome/fontawesome-free/js/all";
 import * as d3 from "d3";
-import { loadBrain, loadGeometry, loadStats } from "../loaders.js";
+import { loadBrain, loadGeometry, loadStats, loadDots } from "../loaders.js";
 import * as horizon from "d3-horizon-chart";
 // import threeD from "../threeD/threeD";
-import UI from "../map/UI";
+import UI from "../UI";
 
 window.onload = () => {
   let userInterface = new UI();
@@ -27,6 +27,8 @@ window.onload = () => {
 
   //Load the montage file
   loadGeometry(subject).then(x => {
+    loadDots(x);
+
     let chList = document.createElement("ul");
     chList.classList.add("list-group-item");
     chList.innerHTML = "All channels";

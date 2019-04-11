@@ -1,95 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="" />
-    <meta name="author" content="" />
-    <script src="./replay.js"></script>
-    <link rel="stylesheet" type="text/css" href="./replay.css" />
 
-  </head>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="author" content="" />
+</head>
 
-  <body>
-    <nav class="navbar navbar-dark">
-      <span class="navbar-brand mb-0 h1"><a href="/">WebFM</a></span>
+<body>
+  <nav class="navbar navbar-dark">
+    <span class="navbar-brand mb-0 h1"><a href="/">WebFM</a></span>
 
-      <a class="navbar-brand"
-        ><span class="fm-subject-name">[subject]</span> -
-        <span class="fm-task-name">[task]</span></a
-      >
+    <a class="navbar-brand"><span class="fm-subject-name">[subject]</span> -
+      <span class="fm-task-name">[task]</span></a>
 
-      <div class="navbar-header">
-        <button
-          id="sidebarCollapse"
-          class="navbar-toggler"
-          type="button"
-          data-toggle="collapse"
-          data-target="#navbarToggleExternalContent"
-          aria-controls="navbarToggleExternalContent"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
-      </div>
-    </nav>
+    <div class="navbar-header">
+      <button id="sidebarCollapse" class="navbar-toggler" type="button" data-toggle="collapse"
+        data-target="#navbarToggleExternalContent" aria-controls="navbarToggleExternalContent" aria-expanded="false"
+        aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+    </div>
+  </nav>
 
-    <nav class="navbar navbar-light navbar-expand-lg">
-        <div class="navbar-nav">
-            <a class="nav-item fm-time-label">
-              <span class="fm-time-selected">0.000 s</span>
-            </a>
-            <a class="nav-item nav-link" id="play-button">
-              <span class="fas fa-play" href="#"></span>
-            </a>
-            <a class="nav-item nav-link fm-zoom-in ">
-              <span class="fas fa-search-plus" href="#"></span>
-            </a>
-            <a class="nav-item nav-link fm-zoom-out">
-              <span class="fas fa-search-minus" href="#"></span>
-            </a>
-            <a class="nav-item nav-link fm-gain-up">
-              <span class="fas fa-volume-up"></span>
-            </a>
-            <a class="nav-item nav-link fm-gain-down">
-              <span class="fas fa-volume-down" href="#"></span>
-            </a>
-          </div>
-         <span class="btn-group btn-group-toggle" id="viewToggle" data-toggle="buttons" >
-            <label class="btn btn-secondary active">
-              <input type="radio" name="options" id="toggle2D" autocomplete="off" checked> TwoD
-            </label>
-            <label class="btn btn-secondary">
-              <input type="radio" name="options" id="toggle3D" autocomplete="off"> ThreeD
-            </label>
-          </span> 
+  <nav class="navbar navbar-light navbar-expand-lg">
+    <div class="navbar-nav">
+      <a class="nav-item fm-time-label">
+        <span class="fm-time-selected">0.000 s</span>
+      </a>
+      <a class="nav-item nav-link" id="play-button">
+        <span class="fas fa-play" href="#"></span>
+      </a>
+      <a class="nav-item nav-link fm-zoom-in ">
+        <span class="fas fa-search-plus" href="#"></span>
+      </a>
+      <a class="nav-item nav-link fm-zoom-out">
+        <span class="fas fa-search-minus" href="#"></span>
+      </a>
+      <a class="nav-item nav-link fm-gain-up">
+        <span class="fas fa-volume-up"></span>
+      </a>
+      <a class="nav-item nav-link fm-gain-down">
+        <span class="fas fa-volume-down" href="#"></span>
+      </a>
+    </div>
+    <span class="btn-group btn-group-toggle" id="viewToggle" data-toggle="buttons">
+      <label class="btn btn-secondary active">
+        <input type="radio" name="options" id="toggle2D" autocomplete="off" checked> TwoD
+      </label>
+      <label class="btn btn-secondary">
+        <input type="radio" name="options" id="toggle3D" autocomplete="off"> ThreeD
+      </label>
+    </span>
 
-    </nav>
+  </nav>
 
-    <div class="row">
+  <div class="row">
 
-      <div class="col-7">
+    <div class="col-7">
 
-        <div class="row">
-          <div class="col" id="fm-chart-container">
-            <svg id ="fm-chart" style="width: 100%"></svg>
+      <div class="row">
+        <div class="col" id="fm-chart-container">
+          <svg id="fm-chart" style="width: 100%"></svg>
 
-          </div>
-          <div class="col" id="fm-chart-container2"></div>
         </div>
-      </div>
-
-      <div class="col-5" id="fm-brain-container">
-        <img id="fm-brain-2D" src="" class="img-thumbnail" />
-      </div>
-      <div class="row" id="fm-brain-container2">
-          <div id="threeD" style="width: 640px; height: 480px; float: right;"></div>
+        <div class="col" id="fm-chart-container2"></div>
       </div>
     </div>
 
-    <!-- <div id="fm-options-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="fmOptionsModal">
+    <div class="col-5" id="fm-brain-container">
+                <canvas id="electrode-dots"></canvas>
+
+      <img id="fm-brain-2D" src="" class="img-thumbnail" />
+    </div>
+    <div class="row" id="fm-brain-container2">
+      <div id="fm-brain-3D" style="width: 640px; height: 480px; float: right;"></div>
+    </div>
+  </div>
+
+  <!-- <div id="fm-options-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="fmOptionsModal">
               <div id="fm-options-modal-dialog" class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
                   <div class="modal-header">
@@ -347,50 +338,26 @@
               </div>
             </div> -->
 
-    <nav id="sidebar" class="active">
-      <ul class="list-group">
-        <p>Settings</p>
-        <button
-          type="button"
-          class="list-group-item list-group-item-action"
-          data-toggle="modal"
-          data-target="#fm-scope"
-        >
-          Options
-        </button>
-        <button
-          type="button"
-          class="list-group-item list-group-item-action"
-          data-toggle="modal"
-          data-target="#fm-montage"
-        >
-          Montage
-        </button>
-        <button
-          type="button"
-          class="list-group-item list-group-item-action"
-          data-toggle="modal"
-          data-target="#fm-scope"
-        >
-          Scope
-        </button>
-        <button
-          type="button"
-          class="list-group-item list-group-item-action"
-          data-toggle="modal"
-          data-target="#fm-scope"
-        >
-          Save
-        </button>
-        <button
-          type="button"
-          class="list-group-item list-group-item-action"
-          data-toggle="modal"
-          data-target="#fm-about"
-        >
-          About
-        </button>
-        <!-- <li>
+  <nav id="sidebar" class="active">
+    <ul class="list-group">
+      <p>Settings</p>
+      <button type="button" class="list-group-item list-group-item-action" data-toggle="modal" data-target="#fm-scope">
+        Options
+      </button>
+      <button type="button" class="list-group-item list-group-item-action" data-toggle="modal"
+        data-target="#fm-montage">
+        Montage
+      </button>
+      <button type="button" class="list-group-item list-group-item-action" data-toggle="modal" data-target="#fm-scope">
+        Scope
+      </button>
+      <button type="button" class="list-group-item list-group-item-action" data-toggle="modal" data-target="#fm-scope">
+        Save
+      </button>
+      <button type="button" class="list-group-item list-group-item-action" data-toggle="modal" data-target="#fm-about">
+        About
+      </button>
+      <!-- <li>
             <a
               href="#homeSubmenu"
               data-toggle="collapse"
@@ -401,7 +368,7 @@
               <li><a href="#">home1</a></li>
             </ul>
           </li> -->
-        <!-- <li>
+      <!-- <li>
             <a
               href="#pageSubmenu"
               data-toggle="collapse"
@@ -412,137 +379,91 @@
               <li><a href="#">page1</a></li>
             </ul>
           </li> -->
-      </ul>
-    </nav>
+    </ul>
+  </nav>
 
-    <div
-      class="modal fade"
-      id="fm-scope"
-      tabindex="-1"
-      role="dialog"
-      aria-labelledby="fm-scopeLabel"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="fm-scope-title">Scope</h5>
-          </div>
-          <div class="modal-body">
-            <div class="container-fluid">
-              <p>
-                Enter a <strong>Channel</strong> name to begin scoping live
-                data. By default, the scale will automatically adjust to match
-                the incoming signal; alternatively, you can fix the scale by
-                entering a <strong>Min</strong> or <strong>Max</strong> value.
-              </p>
-              <form>
-                <div class="form-group row">
-                  <label
-                    for="fm-option-scope-channel"
-                    class="col-md-2 col-sm-3 col-form-label"
-                    >Channel</label
-                  >
-                  <div class="col-md-3 col-sm-7">
-                    <input
-                      type="text"
-                      class="form-control"
-                      id="fm-option-scope-channel"
-                      placeholder="ainp1"
-                    />
-                  </div>
-                  <label
-                    for="fm-option-scope-min"
-                    class="col-md-1 col-sm-3 col-form-label"
-                    >Min</label
-                  >
-                  <div class="col-md-2 col-sm-3">
-                    <input
-                      type="text"
-                      class="form-control"
-                      id="fm-option-scope-min"
-                      placeholder="-100"
-                    />
-                  </div>
-                  <label
-                    for="fm-option-scope-max"
-                    class="col-md-1 col-sm-1 col-form-label"
-                    >Max</label
-                  >
-                  <div class="col-md-2 col-sm-3">
-                    <input
-                      type="text"
-                      class="form-control"
-                      id="fm-option-scope-max"
-                      placeholder="100"
-                    />
-                  </div>
+  <div class="modal fade" id="fm-scope" tabindex="-1" role="dialog" aria-labelledby="fm-scopeLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="fm-scope-title">Scope</h5>
+        </div>
+        <div class="modal-body">
+          <div class="container-fluid">
+            <p>
+              Enter a <strong>Channel</strong> name to begin scoping live
+              data. By default, the scale will automatically adjust to match
+              the incoming signal; alternatively, you can fix the scale by
+              entering a <strong>Min</strong> or <strong>Max</strong> value.
+            </p>
+            <form>
+              <div class="form-group row">
+                <label for="fm-option-scope-channel" class="col-md-2 col-sm-3 col-form-label">Channel</label>
+                <div class="col-md-3 col-sm-7">
+                  <input type="text" class="form-control" id="fm-option-scope-channel" placeholder="ainp1" />
                 </div>
-              </form>
-            </div>
+                <label for="fm-option-scope-min" class="col-md-1 col-sm-3 col-form-label">Min</label>
+                <div class="col-md-2 col-sm-3">
+                  <input type="text" class="form-control" id="fm-option-scope-min" placeholder="-100" />
+                </div>
+                <label for="fm-option-scope-max" class="col-md-1 col-sm-1 col-form-label">Max</label>
+                <div class="col-md-2 col-sm-3">
+                  <input type="text" class="form-control" id="fm-option-scope-max" placeholder="100" />
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       </div>
     </div>
-    <div
-      class="modal fade"
-      id="fm-about"
-      tabindex="-1"
-      role="dialog"
-      aria-labelledby="fm-aboutLabel"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="fm-about-title">Scope</h5>
-          </div>
-          <div class="modal-body">
-            <div class="container-fluid">
-              <p>
-                We're just a bunch of brains trying to figure out how we work.
-                And we have Dan.
-              </p>
-            </div>
+  </div>
+  <div class="modal fade" id="fm-about" tabindex="-1" role="dialog" aria-labelledby="fm-aboutLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="fm-about-title">Scope</h5>
+        </div>
+        <div class="modal-body">
+          <div class="container-fluid">
+            <p>
+              We're just a bunch of brains trying to figure out how we work.
+              And we have Dan.
+            </p>
           </div>
         </div>
       </div>
     </div>
-    <div
-      class="modal fade"
-      id="fm-montage"
-      tabindex="-1"
-      role="dialog"
-      aria-labelledby="fm-montageLabel"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="fm-montage-title">Montage</h5>
-          </div>
-          <div class="modal-body">
-            <div class="container-fluid">
-              <ul class="list-group" id="fm-montage-list"></ul>
-            </div>
+  </div>
+  <div class="modal fade" id="fm-montage" tabindex="-1" role="dialog" aria-labelledby="fm-montageLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="fm-montage-title">Montage</h5>
+        </div>
+        <div class="modal-body">
+          <div class="container-fluid">
+            <ul class="list-group" id="fm-montage-list"></ul>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- <img src="Brain.gif" alt="Flowers in Chania"> -->
-  </body>
-  <footer>
-    <div class="fixed-bottom">
-      <footer class="card-footer bg-light text-center">
-        <a href="https://github.com/cronelab/webfm.git">WebFM</a> and
-        <a href="https://cronelab.github.io">CroneLab</a>
-      </footer>
-    </div>
-    <script>
-      document.getElementById("sidebarCollapse").onclick = function() {
-        document.getElementById("sidebar").classList.toggle("active");
-      };
-    </script>
-  </footer>
+  <!-- <img src="Brain.gif" alt="Flowers in Chania"> -->
+</body>
+<footer>
+  <div class="fixed-bottom">
+    <footer class="card-footer bg-light text-center">
+      <a href="https://github.com/cronelab/webfm.git">WebFM</a> and
+      <a href="https://cronelab.github.io">CroneLab</a>
+    </footer>
+  </div>
+  <script>
+    document.getElementById("sidebarCollapse").onclick = function () {
+      document.getElementById("sidebar").classList.toggle("active");
+    };
+  </script>
+</footer>
+
 </html>

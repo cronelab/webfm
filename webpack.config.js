@@ -16,7 +16,7 @@ module.exports = {
         map: "./map/map.js",
         replay: "./replay/replay.js",
         threeD: "./threeD/threeD.js",
-        cortstim: "./cortstim/cortstim.js"    
+        cortstim: "./cortstim/cortstim.js"
     },
     mode: devMode ? "development" : "production",
 
@@ -64,40 +64,46 @@ module.exports = {
     },
     plugins: [
         new CleanWebpackPlugin(),
-        new HtmlWebpackPlugin({
-            inject: false,
-            hash: true,
-            template: "./index/index.html",
-            filename: 'index.html',
-        }),
-        new HtmlWebpackPlugin({
-            inject: false,
-            hash: true,
-            template: "./replay/replay.html",
-            filename: 'replay.html'
-        }),
-        new HtmlWebpackPlugin({
-            inject: false,
-            hash: true,
-            template: "./map/index.html",
-            filename: 'map.html',
-        }),
-        new HtmlWebpackPlugin({
-            inject: false,
-            hash: true,
-            template: "./cortstim/index.html",
-            filename: 'cortstim.html'
-          }),
         new MiniCssExtractPlugin({
             filename: devMode ? "[name].css" : "[name].css",
             chunkFilename: devMode ? "[id].css" : "[id].css"
         }),
-        new WriteFilePlugin()
+        new WriteFilePlugin(),
+        new HtmlWebpackPlugin({
+            hash: true,
+            template: "./index/index.html",
+            filename: 'index.html',
+            chunks: ['index'],
+            title: 'WebFM'
+        }),
+        new HtmlWebpackPlugin({
+            hash: true,
+            template: "./replay/replay.html",
+            filename: 'replay.html',
+            chunks: ['replay'],
+            title: 'WebFM: Replay'
+
+        }),
+        new HtmlWebpackPlugin({
+            hash: true,
+            template: "./map/map.html",
+            filename: 'map.html',
+            chunks: ['map'],
+            title: 'WebFM: Map'
+
+        }),
+        new HtmlWebpackPlugin({
+            hash: true,
+            template: "./cortstim/index.html",
+            filename: 'cortstim.html',
+            chunks: ['cortstim'],
+            title: 'WebFM: Cortstim'
+
+        }),
     ],
     output: {
         path: path.resolve(__dirname, "dist"),
-        filename: "[name].js",
-        publicPath: path.resolve(__dirname, "dist"),
+        filename: "[name].[hash].js",
         globalObject: (`typeof self !== 'undefined' ? self : this`)
 
     },

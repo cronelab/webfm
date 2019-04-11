@@ -6,10 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>WebFM: Map</title>
-    <script src="map.js"></script>
-
-        <!-- <link rel="stylesheet" type="text/css" href="./map.css" /> -->
-
 </head>
 
 <body>
@@ -321,19 +317,25 @@
                 </div>
               </div> -->
 
-    <nav id="sidebar" class="active">
-        <ul class="list-group">
-            <p>Settings</p>
-            <button type="button" class="list-group-item list-group-item-action" data-toggle="modal"
-                data-target="#fm-scope">Options</button>
-            <button type="button" class="list-group-item list-group-item-action" data-toggle="modal"
-                data-target="#fm-scope">Montage</button>
-            <button type="button" class="list-group-item list-group-item-action" data-toggle="modal"
-                data-target="#fm-scope">Scope</button>
-            <button type="button" class="list-group-item list-group-item-action" data-toggle="modal"
-                data-target="#fm-scope">Save</button>
-            <button type="button" class="list-group-item list-group-item-action" data-toggle="modal"
-                data-target="#fm-about">About</button>
+              <nav id="sidebar" class="active">
+                <ul class="list-group">
+                  <p>Settings</p>
+                  <button type="button" class="list-group-item list-group-item-action" data-toggle="modal" data-target="#fm-scope">
+                    Options
+                  </button>
+                  <button type="button" class="list-group-item list-group-item-action" data-toggle="modal"
+                    data-target="#fm-montage">
+                    Montage
+                  </button>
+                  <button type="button" class="list-group-item list-group-item-action" data-toggle="modal" data-target="#fm-scope">
+                    Scope
+                  </button>
+                  <button type="button" class="list-group-item list-group-item-action" data-toggle="modal" data-target="#fm-scope">
+                    Save
+                  </button>
+                  <button type="button" class="list-group-item list-group-item-action" data-toggle="modal" data-target="#fm-about">
+                    About
+                  </button>
             <!-- <li>
               <a
                 href="#homeSubmenu"
@@ -359,77 +361,72 @@
         </ul>
     </nav>
 
-    <div class="modal fade" id="fm-scope" tabindex="-1" role="dialog" aria-labelledby="fm-scopeLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="fm-scope-title">Scope</h5>
+    <div class="modal fade" id="fm-scope" tabindex="-1" role="dialog" aria-labelledby="fm-scopeLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="fm-scope-title">Scope</h5>
+          </div>
+          <div class="modal-body">
+            <div class="container-fluid">
+              <p>
+                Enter a <strong>Channel</strong> name to begin scoping live
+                data. By default, the scale will automatically adjust to match
+                the incoming signal; alternatively, you can fix the scale by
+                entering a <strong>Min</strong> or <strong>Max</strong> value.
+              </p>
+              <form>
+                <div class="form-group row">
+                  <label for="fm-option-scope-channel" class="col-md-2 col-sm-3 col-form-label">Channel</label>
+                  <div class="col-md-3 col-sm-7">
+                    <input type="text" class="form-control" id="fm-option-scope-channel" placeholder="ainp1" />
+                  </div>
+                  <label for="fm-option-scope-min" class="col-md-1 col-sm-3 col-form-label">Min</label>
+                  <div class="col-md-2 col-sm-3">
+                    <input type="text" class="form-control" id="fm-option-scope-min" placeholder="-100" />
+                  </div>
+                  <label for="fm-option-scope-max" class="col-md-1 col-sm-1 col-form-label">Max</label>
+                  <div class="col-md-2 col-sm-3">
+                    <input type="text" class="form-control" id="fm-option-scope-max" placeholder="100" />
+                  </div>
                 </div>
-                <div class="modal-body">
-                    <div class="container-fluid">
-                        <p>
-                            Enter a <strong>Channel</strong> name to begin scoping live data. By default,
-                            the scale will automatically adjust to match the incoming
-                            signal; alternatively, you can fix the scale by entering
-                            a <strong>Min</strong> or <strong>Max</strong> value.
-                        </p>
-                        <form>
-                            <div class="form-group row">
-                                <label for="fm-option-scope-channel"
-                                    class="col-md-2 col-sm-3 col-form-label">Channel</label>
-                                <div class="col-md-3 col-sm-7">
-                                    <input type="text" class="form-control" id="fm-option-scope-channel"
-                                        placeholder="ainp1">
-                                </div>
-                                <label for="fm-option-scope-min" class="col-md-1 col-sm-3 col-form-label">Min</label>
-                                <div class="col-md-2 col-sm-3">
-                                    <input type="text" class="form-control" id="fm-option-scope-min" placeholder="-100">
-                                </div>
-                                <label for="fm-option-scope-max" class="col-md-1 col-sm-1 col-form-label">Max</label>
-                                <div class="col-md-2 col-sm-3">
-                                    <input type="text" class="form-control" id="fm-option-scope-max" placeholder="100">
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+              </form>
             </div>
+          </div>
         </div>
+      </div>
     </div>
-    <div class="modal fade" id="fm-about" tabindex="-1" role="dialog" aria-labelledby="fm-aboutLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="fm-about-title">Scope</h5>
-                </div>
-                <div class="modal-body">
-                    <div class="container-fluid">
-                        <p>
-                            We're just a bunch of brains trying to figure out how we work. And we have Dan.
-                        </p>
-                    </div>
-                </div>
+    <div class="modal fade" id="fm-about" tabindex="-1" role="dialog" aria-labelledby="fm-aboutLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="fm-about-title">Scope</h5>
+          </div>
+          <div class="modal-body">
+            <div class="container-fluid">
+              <p>
+                We're just a bunch of brains trying to figure out how we work.
+                And we have Dan.
+              </p>
             </div>
+          </div>
         </div>
+      </div>
     </div>
-
     <div class="modal fade" id="fm-montage" tabindex="-1" role="dialog" aria-labelledby="fm-montageLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="fm-montage-title">Montage</h5>
-                </div>
-                <div class="modal-body">
-                    <div class="container-fluid">
-                        <ul class="list-group" id="fm-montage-list">
-                        </ul>
-                    </div>
-                </div>
+      aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="fm-montage-title">Montage</h5>
+          </div>
+          <div class="modal-body">
+            <div class="container-fluid">
+              <ul class="list-group" id="fm-montage-list"></ul>
             </div>
+          </div>
         </div>
+      </div>
     </div>
 
     <!-- <img src="Brain.gif" alt="Flowers in Chania"> -->
