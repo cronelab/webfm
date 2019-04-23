@@ -41,7 +41,9 @@ export default class BCI2KWatcher{
   start() {
     var watcher = this;
     this.watching = true;
-    setTimeout(() => watcher._checkState(), 100);}
+    setTimeout(() => watcher._checkState(), 100);
+    setTimeout(() => watcher._stateVectorWatch(), 100);
+  }
 
   stop() {
     this.watching = false;
