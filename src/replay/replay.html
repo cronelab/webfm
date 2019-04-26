@@ -54,28 +54,16 @@
         <input type="radio" name="options" id="toggle3D" autocomplete="off"> ThreeD
       </label>
     </span>
-
   </nav>
 
   <div class="row">
-
-    <!-- <div class="col-7"> -->
-
-      <!-- <div class="row"> -->
-        <div class="col-7" id="fm-chart-container">
-          <!-- <svg id="fm-chart" style="width: 100%"></svg> -->
-        <!-- </div> -->
-        <!-- <div class="col" id="fm-chart-container2"></div> -->
-      <!-- </div> -->
-    </div>
-
+    <div class="col-7" id="fm-chart-container"></div>
     <div class="col-5" id="fm-brain-container">
       <canvas id="electrode-dots"></canvas>
       <img id="fm-brain-2D" src="" class="img-thumbnail" />
+      <button id="fm-brain-zoom-in-button" >Zoom in</button>
+      <button id="fm-brain-zoom-out-button" >Zoom out</button>
     </div>
-    <!-- <div class="row" id="fm-brain-container2">
-      <div id="fm-brain-3D" style="width: 640px; height: 480px; float: right;"></div>
-    </div> -->
   </div>
 
   <!-- <div id="fm-options-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="fmOptionsModal">
@@ -448,7 +436,62 @@
     </div>
   </div>
 
-  <!-- <img src="Brain.gif" alt="Flowers in Chania"> -->
+  <script>
+    //Make the DIV element draggagle:
+    dragElement(document.getElementById("fm-brain-container"));
+
+    function dragElement(elmnt) {
+      var pos1 = 0,
+        pos2 = 0,
+        pos3 = 0,
+        pos4 = 0;
+      if (document.getElementById(elmnt.id + "header")) {
+        document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
+      } else {
+        elmnt.onmousedown = dragMouseDown;
+      }
+
+      function dragMouseDown(e) {
+        e = e || window.event;
+        e.preventDefault();
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        document.onmouseup = closeDragElement;
+        document.onmousemove = elementDrag;
+      }
+
+      function elementDrag(e) {
+        e = e || window.event;
+        e.preventDefault();
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+        elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+      }
+
+      function closeDragElement() {
+        document.onmouseup = null;
+        document.onmousemove = null;
+      }
+    }
+    let zoomInBtn = document.getElementById('fm-brain-zoom-in-button');
+    let zoomOutBtn = document.getElementById('fm-brain-zoom-out-button');
+    let brainContainer = document.getElementById('fm-brain-container');
+
+    zoomInBtn.addEventListener("click", (e) =>{
+      e.preventDefault();
+
+      brainContainer.style.width = brainContainer.offsetWidth + 50 + 'px'
+      brainContainer.style.height = brainContainer.offsetHeight + 50 + 'px'
+    })
+    zoomOutBtn.addEventListener("click", (e) =>{
+      e.preventDefault();
+      brainContainer.style.width = brainContainer.offsetWidth - 50 + 'px'
+      brainContainer.style.height = brainContainer.offsetHeight - 50 + 'px'
+    })
+  </script>
 </body>
 <footer>
   <div class="fixed-bottom">

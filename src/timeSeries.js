@@ -1,3 +1,16 @@
+//TODO:
+  //chart margin
+  //channel to plot
+  //how many plots
+    //subplots?
+    //movable plots?
+  //Scale/Axis!
+  //Resize
+  //Start/stop
+  //buffering size
+  //update time
+
+
 import * as d3 from "d3";
 
 export const generateChart = allData => {

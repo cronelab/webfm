@@ -26,7 +26,10 @@ window.onload = () => {
   let values = loadValues(subject, task);
 
   // let stats = loadStats(subject, task);
-
+  loadDots({
+    geo:JSON.parse(localStorage.getItem("geometry")),
+    dotObject:[0]
+  })
   //Load the brain image
   loadBrain(subject);
 
@@ -325,13 +328,10 @@ let horizonChartz = (values, chs) => {
     .text((d, i) => chs[i])
     .each(horizonChart)
 
-  horizons.selectAll(".horizon")
-    .on("mouseover", handleMouseOver)
 
   var horizons2 = d3
     .select(secondRaster)
     .selectAll(".horizon")
-    .on("mouseover", handleMouseOver)
     .data(secondHalf)
     .enter()
     .append("div")
@@ -341,7 +341,5 @@ let horizonChartz = (values, chs) => {
     .text((d, i) => chs[i + data.length / 2])
     .each(horizonChart);
 
-  const handleMouseOver = () => {
-    console.log("A");
-  };
+
 };

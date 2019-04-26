@@ -1,6 +1,37 @@
 export default class UI {
     constructor() {
       this.buttonFunctions();
+      this.icons = [
+        'transfer',
+        'working'
+      ]
+      //TODO: 
+      //Configuration loaded from server
+      //Save button
+      //Fullscreen mode
+      //Height/Width of:
+        //Raster
+          //parameterize:
+            //row height
+              //Give some channels bigger rows?
+            //row width
+            //how many columns/rows
+            //baseline/trial windows
+        //Brain
+      //Window resizing!
+      //Options tab
+        //Timing state
+        //Timining signal
+          //Thresholds
+        //Scope
+          //Channels
+          //Range
+      //Clear local storage
+      //Drop down menus
+      //Montage
+        //Excluded channels
+      //Trial count
+      //Get stimulus from sequence
     }
   
     buttonFunctions() {

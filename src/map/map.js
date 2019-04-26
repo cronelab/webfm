@@ -46,7 +46,7 @@ window.onload = () => {
             //Load the brain and geometry
             loadBrain(subj).then(() => {
                 loadGeometry(subj).then(geo => {
-                    loadDots(geo);
+                    // loadDots(geo);
                     let chList = document.createElement("ul");
                     chList.classList.add("list-group-item");
                     chList.innerHTML = "All channels";

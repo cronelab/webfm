@@ -48,15 +48,24 @@
     </nav>
 
     <div class="row">
-        <div class="col" id="fm-chart-container" style="padding-left: 50px; padding-top: 50px">
-            <svg id="fm-chart" style="width: 100%"></svg>
-        </div>
 
-        <div class="col-5" id="fm-brain-container">
-            <canvas id="electrode-dots"></canvas>
-            <img id="fm-brain-2D" src="" />
-        </div>
-        
+      <!-- <div class="col-7"> -->
+  
+        <!-- <div class="row"> -->
+          <div class="col-7" id="fm-chart-container">
+            <!-- <svg id="fm-chart" style="width: 100%"></svg> -->
+          <!-- </div> -->
+          <!-- <div class="col" id="fm-chart-container2"></div> -->
+        <!-- </div> -->
+      </div>
+  
+      <div class="col-5" id="fm-brain-container">
+        <canvas id="electrode-dots"></canvas>
+        <img id="fm-brain-2D" src="" class="img-thumbnail" />
+      </div>
+      <!-- <div class="row" id="fm-brain-container2">
+        <div id="fm-brain-3D" style="width: 640px; height: 480px; float: right;"></div>
+      </div> -->
     </div>
 
     <!-- <div id="fm-options-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="fmOptionsModal">
@@ -431,7 +440,51 @@
 
     <!-- <img src="Brain.gif" alt="Flowers in Chania"> -->
 
-
+    <script>
+      //Make the DIV element draggagle:
+      dragElement(document.getElementById("fm-brain-container"));
+      
+      function dragElement(elmnt) {
+        var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+        if (document.getElementById(elmnt.id + "header")) {
+          /* if present, the header is where you move the DIV from:*/
+          document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
+        } else {
+          /* otherwise, move the DIV from anywhere inside the DIV:*/
+          elmnt.onmousedown = dragMouseDown;
+        }
+      
+        function dragMouseDown(e) {
+          e = e || window.event;
+          e.preventDefault();
+          // get the mouse cursor position at startup:
+          pos3 = e.clientX;
+          pos4 = e.clientY;
+          document.onmouseup = closeDragElement;
+          // call a function whenever the cursor moves:
+          document.onmousemove = elementDrag;
+        }
+      
+        function elementDrag(e) {
+          e = e || window.event;
+          e.preventDefault();
+          // calculate the new cursor position:
+          pos1 = pos3 - e.clientX;
+          pos2 = pos4 - e.clientY;
+          pos3 = e.clientX;
+          pos4 = e.clientY;
+          // set the element's new position:
+          elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+          elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+        }
+      
+        function closeDragElement() {
+          /* stop moving when mouse button is released:*/
+          document.onmouseup = null;
+          document.onmousemove = null;
+        }
+      }
+      </script>
 </body>
 <footer>
     <div class="fixed-bottom">

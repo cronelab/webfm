@@ -1,3 +1,18 @@
+//TODO:
+  //Parameterize:
+    //Margins
+    //Height/width
+    //resizing
+    //Dot:
+      //radii
+      //colors
+      //Highlight selected channel from Raster
+    //Threshold:
+      //Live
+      //Map
+      
+    
+
 import * as d3 from "d3";
 
 let loadBrain = async subject => {
@@ -37,7 +52,7 @@ let loadDots = dataList => {
     .domain(dotColorsDomain)
     .range(dotColors)
     .clamp(true);
-    console.log(dotColorScale)
+    // console.log(dotColorScale)
   let brain = document.getElementById("fm-brain-2D");
   let dots = document.getElementById("electrode-dots");
   dots.style.position = "absolute";
