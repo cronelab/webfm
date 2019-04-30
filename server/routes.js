@@ -3,15 +3,11 @@ const fs = require("fs");
 var async = require("async");
 var jsonfile = require("jsonfile");
 const loadJsonFile = require("load-json-file");
-
+var bodyParser = require('body-parser')
+const multer = require('multer')
+const infoDir = "./data/info";
 const dataDir = "./data";
-var metadataFilename = ".metadata";
 
-const getSubjectMetadata = async subject => {
-  const metaPath = path.join(dataDir, subject, metadataFilename);
-  let metadata = await loadJsonFile(metaPath);
-  return metadata;
-};
 
 const getRecord = async (subject, record) => {
   const recordPath = path.join(dataDir, subject, record);
@@ -27,7 +23,7 @@ const getCortStim = async (subject, results) => {
 
 module.exports = express => {
   const router = express.Router();
-
+  router.use(bodyParser.json())
   router.get("/map", (req, res) =>
     res.sendFile(path.join(__dirname, "/../dist", "/map.html"))
   );
@@ -40,7 +36,7 @@ module.exports = express => {
 
   //Cortstim directory
   router.get("/api/cortstim", (req, res) => {
-    fs.readdir(`${dataDir}/PY18N007`, (err, files) => {
+    fs.readdir(`${infoDir}/PY18N007`, (err, files) => {
       getCortStim('PY18N007', files[4]).then(x => {
         res.send(x.Trial);
       })
@@ -54,49 +50,17 @@ module.exports = express => {
     });
   });
 
-  //Geometry
-  router.get("/api/:subject/geometry", (req, res) => {
-    let subject = req.params.subject;
-    fs.readdir(dataDir, () => {
-      getSubjectMetadata(subject)
-        .then(metadata => {
-          res.status(200).send(metadata.sensorGeometry);
-        })
-        .catch(err => console.log(err));
-    });
-  });
-
-  //Brain
-  router.get("/api/:subject/brain", (req, res) => {
-    let subject = req.params.subject;
-    fs.readdir(dataDir, (err, subjects) => {
-      if (subjects.indexOf(subject) > -1) {
-        //Load the jpg, if jpg doesn't exist, load data from the .metadata file
-        if (fs.existsSync(`${dataDir}/${subject}/${subject}.jpg`)) {
-          res.sendFile(`${subject}.jpg`, {
-            root: `${dataDir}/${subject}/`
-          });
-        } else {
-          getSubjectMetadata(subject)
-            .then(metadata => res.status(200).send(metadata.brainImage))
-            .catch(err => console.log(err));
-        }
-      } else {
-        console.log("subject not found");
-      }
-    });
-  });
 
   //3D brain
   router.get("/3Dbrain/:subject", (req, res) => {
     let subject = req.params.subject;
-    fs.readdir(dataDir, (err, subjects) => {
+    fs.readdir(infoDir, (err, subjects) => {
       if (subjects.indexOf(subject) > -1) {
         //Load the fbx file
-        if (fs.existsSync(`${dataDir}/${subject}/${subject}.fbx`)) {
+        if (fs.existsSync(`${infoDir}/${subject}/${subject}.fbx`)) {
           console.log('here')
           res.sendFile(`${subject}.fbx`, {
-            root: `${dataDir}/${subject}/`
+            root: `${infoDir}/${subject}/`
           });
         }
       } else {
@@ -130,191 +94,82 @@ module.exports = express => {
     });
   });
 
-  //Add new subject to the database
-  router.put("/api/data/:subject", (req, res) => {
+  //Geometry
+  router.get("/api/:subject/geometry", (req, res) => {
     let subject = req.params.subject;
-    Record.find({
-      identifier: subject
-    }, (err, record) => {
-      if (err) throw err;
-      if (record.length) {
-        console.log("Record already exists!");
+    fs.readdir(dataDir, (err, subjects) => {
+      if (subjects.indexOf(subject) > -1) {
+        if (fs.existsSync(`${dataDir}/${subject}/info/channels.json`)) {
+          res.sendFile(`channels.json`, {
+            root: `${dataDir}/${subject}/info`
+          });
+        } else {}
       } else {
-        let newRecord = new Record({
-          identifier: subject
-        });
-        newRecord.save();
+        console.log("subject not found");
       }
-    });
+    })
+  })
+  //Add subjects geometry to the database
+  router.put("/api/:subject/geometry", (req, res) => {
+    let returnObject = {}
+    req.body.electrodeName.forEach((name, i) => {
+      returnObject[name] = req.body.electrodePosition[i]
+      return returnObject
+    })
+    fs.writeFile(`./data/${req.params.subject}/info/channels.json`, JSON.stringify(returnObject), (err) => console.log(err))
   });
 
   //Add subjects geometry to the database
-  router.put("/api/geometry/:subject", (req, res) => {
-    var subject = req.params.subject;
-    // First check if subject exists
-    checkSubject(subject, function (err, isSubject) {
-      if (!isSubject) {
-        // Not a subject
-        errOut(404, "Subject " + subject + " not found.");
-        return;
+  router.put("/api/:subject/notes", (req, res) => {
+    console.log(req.body.note)
+    fs.writeFile(`./data/${req.params.subject}/info/notes.txt`, req.body.note, (err) => console.log(err))
+
+  });
+
+
+
+  //Brain
+  router.get("/api/:subject/brain", (req, res) => {
+    let subject = req.params.subject;
+    fs.readdir(dataDir, (err, subjects) => {
+      if (subjects.indexOf(subject) > -1) {
+        //Load the jpg, if jpg doesn't exist, load data from the .metadata file
+        if (fs.existsSync(`${dataDir}/${subject}/info/reconstruction.jpg`)) {
+          res.sendFile(`reconstruction.jpg`, {
+            root: `${dataDir}/${subject}/info`
+          });
+        }
+      } else {
+        console.log("subject not found");
       }
-      // Next attempt to get the old metadata
-      getSubjectMetadata(subject, function (err, metadata) {
-        var oldMetadata = metadata;
-        if (err) {
-          // TODO Check err details to determine if we failed because
-          // file doesn't exist or for some other reason; other reasons
-          // should probably return errors
-          oldMetadata = {};
-        }
-        var newMetadata = Object.assign({}, oldMetadata);
-        var reqContentType = req.headers["content-type"].split(";")[0];
-        var writeMetadata = function (dataToWrite, onSuccess) {
-          var metadataPath = path.join(dataDir, subject, metadataFilename);
-          jsonfile.writeFile(metadataPath, dataToWrite, function (err) {
-            if (onSuccess !== undefined) {
-              onSuccess();
-            }
-          });
-        };
-        var handleJSONData = function (data, cb) {
-          // We're given the new metadata straight in the body as JSON;
-          // just incorporate it
-          try {
-            newMetadata.sensorGeometry = JSON.parse(data);
-          } catch (err) {
-            return;
-          }
-
-          writeMetadata(newMetadata, cb);
-        };
-
-        var handleCSVData = function (data, cb) {
-          // We need to reformat the CSV data into JSON
-
-          var newGeometry = {};
-
-          // Split according to the CSV format
-          var lines = data.split("\n");
-          var entries = lines.map(function (line) {
-            return line.split(",");
-          });
-
-          // TODO Implement support for non-UV CSV coordinates
-          // var isUV = true;
-
-          // For each line
-          for (var i = 0; i < entries.length; i++) {
-            var lineEntries = entries[i];
-
-            // Ensure that we have the correct number of datapoints
-            if (lineEntries.length < 3) {
-              continue;
-            }
-
-            // Ensure that entries are the proper type
-            var channelName = lineEntries[0];
-            var channelU = +lineEntries[1];
-            var channelV = +lineEntries[2];
-            if (isNaN(channelU) || isNaN(channelV)) {
-              continue;
-            }
-
-            // Add the new entry
-            newGeometry[channelName] = {
-              u: channelU,
-              v: channelV
-            };
-          }
-          // Write the newly parsed geometry
-          newMetadata.sensorGeometry = newGeometry;
-          writeMetadata(newMetadata, cb);
-        };
-
-        if (reqContentType == "application/json") {
-          // Our body is raw JSON, which we know how to handle
-          handleJSONData(req.rawBody, function () {
-            // On success ...
-            res.sendStatus(201);
-          });
-          return;
-        }
-
-        if (reqContentType == "text/csv") {
-          // Our body is raw CSV, which we know how to handle
-          handleCSVData(req.rawBody, function () {
-            // On success ...
-            res.sendStatus(201);
-          });
-          return;
-        }
-
-        if (reqContentType == "multipart/form-data") {
-          // We need to load up the file, then deal with the contents
-          var form = formidable.IncomingForm();
-          form.uploadDir = uploadsDir;
-
-          form.on("file", function (field, file) {
-            // TODO Remove log?
-            console.log(
-              'Received file "' +
-              file.name +
-              '" for field "' +
-              field +
-              '" at path: ' +
-              file.path
-            );
-            // How we process the file depends on the extension
-            var fileExtension = path.extname(file.name);
-            if (fileExtension == ".json") {
-              // Our file data is just JSON, which we can handle
-              // TODO Should move parsing out of called method, so that
-              // it can be handled by jsonfile?
-              fs.readFile(file.path, function (err, data) {
-                // Now, just call our normal handler
-                handleJSONData(data.toString());
-              });
-              return;
-            }
-            if (fileExtension == ".csv") {
-              // Similar to above: our file is just CSV, which we can handle
-              fs.readFile(file.path, function (err, data) {
-                // Now, just call our normal handler
-                handleCSVData(data.toString());
-              });
-              return;
-            }
-          });
-
-          form.on("error", function (err) {
-            console.log(
-              "Error processing geometry files: " + JSON.stringify(err)
-            );
-          });
-
-          form.on("end", function () {
-            // TODO Need to verify that onend only gets called when successful
-            res.sendStatus(201);
-          });
-          form.parse(req);
-          return;
-        }
-      });
     });
   });
 
-  //Add subjects brain image to the databse
-  router.post("/api/brain/:subject", (req, res) => {
-    var subject = req.params.subject;
-    let imageFile = req.files.file;
-    Record.find({
-      identifier: subject
-    }, (err, record) => {
-      if (err) throw err;
-      record[0].brainImage = imageFile.data;
-      record[0].save();
-    });
-  });
-
+  router.post("/api/:subject/brain", (req, res) => {
+    if (!fs.existsSync(`./data/${req.params.subject}/info`)) {
+      fs.mkdirSync(`./data/${req.params.subject}`)
+      fs.mkdirSync(`./data/${req.params.subject}/info`);
+    }
+    var upload = multer({
+      storage: multer.diskStorage({
+        destination: (req, file, cb) => {
+          cb(null, `./data/${req.params.subject}/info`)
+        },
+        filename: (req, file, cb) => {
+          cb(null, `reconstruction${path.extname(file.originalname)}`);
+        }
+      }),
+      limits: {
+        fileSize: 100000000
+      }
+    }).single('myImage');
+    upload(req, res, (err) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send()
+      }
+    })
+  })
   return router;
 };

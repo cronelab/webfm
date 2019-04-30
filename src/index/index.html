@@ -1,178 +1,160 @@
-<html>
-  <head>
-    <title>WebFM</title>
-  </head>
+<!doctype html>
+<html lang="en">
 
-  <body>
-    <nav class="navbar navbar-inverse navbar-fixed-top">
-      <div class="container">
-        <div class="navbar-header">
-          <a class="navbar-brand" href="#">WebFM</a>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>WebFM</title>
+</head>
+
+<body>
+  <nav class="navbar navbar-inverse navbar-fixed-top justify-content-start navbar-expand">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">WebFM</a>
+    </div>
+    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+      <span class="navbar-text " id="dataFileInfo1"></span>
+      <span class="navbar-text " id="dataFileInfo2"></span>
+    </div>
+    <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+      <span class="navbar-text">BCI2000: </span>
+      <span class="navbar-text" id="bciConnectionStatus">Not connected</span>
+    </div>
+    <button class="btn-info btn" type="button" data-toggle="modal" data-target="#exampleModal">Menu</button>
+
+  </nav>
+
+
+  <!-- Modal -->
+  <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h6 class="modal-title" id="exampleModalLabel">Menu</h6>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
         </div>
-      </div>
-    </nav>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-3">
+              <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                <a class="nav-link active" id="v-pills-profile-tab" data-toggle="pill" href="#v-pills-profile"
+                  role="tab" aria-controls="v-pills-profile" aria-selected="true">
+                  Create new
+                </a>
 
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-3 col-md-6">
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title" style="text-align:center;">
-                Online
-                <span class="toggle-online-options"
-                  ><span class="fa fa-cog"></span
-                ></span>
-              </h3>
-            </div>
-            <div id="online-options" class="card-header d-none">
-              <div class="input-group">
-                <span class="input-group-addon" id="basic-addon1">Source</span>
-                <input
-                  id="source-address"
-                  type="text"
-                  class="form-control"
-                  placeholder="Address"
-                />
-                <span class="input-group-btn">
-                  <button
-                    id="source-address-ok"
-                    class="btn btn-default"
-                    type="button"
-                  >
-                    <span class="fa fa-check-circle"></span>
-                  </button>
-                </span>
-              </div>
-              <!-- /input-group -->
-            </div>
-            <div class="list-group">
-              <li
-                id="state-label"
-                class="list-group-item text-center text-muted"
-              >
-                <strong>Not Connected</strong>
-              </li>
-              <li
-                id="info-label"
-                class="list-group-item d-none"
-                style="text-align:center;"
-              >
-                <span id="subject-label"></span><br />
-                <span id="task-label"></span>
-              </li>
-              <a
-                id="map-button"
-                class="list-group-item list-group-item-info disabled"
-                href="/map?type=map"
-                style="text-align:center;"
-              >
-                <span class="fa fa-map"></span> <strong>Map it</strong>
-              </a>
-              <a
-                id="live-button"
-                class="list-group-item list-group-item-success disabled"
-                href="/map?type=live"
-                style="text-align:center;"
-              >
-                <span class="fa fa-play"></span> <strong>Go live</strong>
-              </a>
-            </div>
-          </div>
+                <a class="nav-link" id="modal-geometry-generator-tab" data-toggle="pill"
+                  href="#modal-geometry-generator" role="tab" aria-controls="modal-geometry-generator"
+                  aria-selected="false">
+                  Geometry
+                </a>
 
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title">
-                Subjects
-                <a class="toggle-new-subject"
-                  ><span class="fas fa-plus" href="#"></span
-                ></a>
-              </h3>
-            </div>
-            <div id="new-subject-options" class="card-header d-none">
-              <div class="input-group">
-                <span class="input-group-addon" id="basic-addon1">ID</span>
-                <input
-                  id="new-subject-id"
-                  type="text"
-                  class="form-control"
-                  placeholder="PYXXNXXX"
-                />
-                <span class="input-group-btn">
-                  <button
-                    id="new-subject-ok"
-                    class="btn btn-default"
-                    type="button"
-                  >
-                    <span class="fa fa-check-circle"></span>
-                  </button>
-                </span>
+                <a class="nav-link" id="modal-note-tab" data-toggle="pill" href="#note-tab" role="tab"
+                  aria-controls="note-tab" aria-selected="false">
+                  Notes
+                </a>
+
               </div>
             </div>
-            <ul id="subject-list" class="list-group"></ul>
-          </div>
-        </div>
+            <div class="col-9">
+              <div class="tab-content" id="v-pills-tabContent">
 
-        <div class="col-lg-5 d-md-block d-sm-none">
-          <img id="fm-brain-2D" src="" class="img-thumbnail" />
-        </div>
+                <div class="tab-pane fade show active" id="v-pills-profile" role="tabpanel"
+                  aria-labelledby="v-pills-profile-tab">
+                  <form id="subjectBrainUpload">
+                    <div class="form-group row">
+                      <label for="subjectEntry" class="col-form-label col-3">Subject name</label>
+                      <div class="col-4">
+                        <input id="subjectEntry" class="form-control" type="text" placeholder="PYaaNbbb">
 
-        <div class="col-lg-4 col-md-6">
-          <div class="card">
-            <div class="card-header"><h3 class="card-title">CortStim</h3></div>
-            <div class="card-header"><h3 class="card-title">Metadata</h3></div>
+                      </div>
+                      <div class="custom-file col-5">
+                        <input type="file" class="custom-file-input" id="brainFile" name="myImage">
+                        <label class="custom-file-label" for="brainFile">Upload yo brain</label>
+                      </div>
+                    </div>
+                    <button id="createSubject" type="button" class="btn btn-primary">Upload</button>
+                  </form>
+                </div>
 
-            <ul class="list-group">
-              <li class="list-group-item">
-                Brain image (create?)
-                <span class="pull-right"
-                  ><a class="upload-brain-image toggle-online-options"
-                    ><span class="fa fa-upload"></span></a
-                ></span>
-              </li>
-              <li class="list-group-item">
-                Sensor geometry
-                <span class="pull-right"
-                  ><a class="edit-sensor-geometry"
-                    ><span class="fa fa-pencil-alt"></span></a
-                  >&emsp;<a class="upload-sensor-geometry"
-                    ><span class="fa fa-upload"></span></a
-                ></span>
-              </li>
-            </ul>
-          </div>
+                <div class="tab-pane fade" id="modal-geometry-generator" role="tabpanel"
+                  aria-labelledby="modal-geometry-generator">
+                  <form class="form-inline">
+                    <input id="geometryCreator" class="form-control" type="text" placeholder="Electrode group">
+                    <button id="geometryButton" type="submit" class="btn btn-primary">Select</button>
+                  </form>
+                  <div class="row">
+                    <div class="col-10">
+                      <div id='geometryContainer'>
+                        <canvas id="geometryCanvas"></canvas>
+                        <img src="" class="img-fluid fm-brain-2D" />
+                      </div>
+                    </div>
+                    <div class="col-2" id="electrodeHolder">
+                      <div id="electrodeList">Electrodes
+                      </div>
+                    </div>
+                  </div>
+                  <button id="saveGeometry" type="button" class="btn btn-primary">Save</button>
+                </div>
 
-          <div class="card">
-            <div class="card-header"><h3 class="card-title">Records</h3></div>
-
-            <ul id="record-list" class="list-group"></ul>
+                <div class="tab-pane fade" id="note-tab" role="tabpanel" aria-labelledby="note-tab">
+                  <form>
+                    <div class="form-group">
+                      <label for="webfmNotes">Please take some notes!</label>
+                      <textarea class="form-control" id="webfmNotes" rows="3"></textarea>
+                      <button id="saveNotes" type="button" class="btn btn-primary">Save</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <footer class="footer">
-      <div class="container" style="text-align:center;">
-        <p class="text-muted">
-          Fork me on <a href="http://github.com/cronelab/webfm">GitHub</a>. And
-          check out our website:
-          <a href="http://cronelab.github.io/">CroneLab</a>
-        </p>
+
+  <div class="container-fluid ">
+    <div class="row">
+      <div class="col-2" id="subjectList">
+        <div class="card">
+          <div class="card-header ">
+            <h5 class="card-title text-center">Subjects</h5>
+          </div>
+          <ul id="subject-list" class="list-group"></ul>
+        </div>
       </div>
-    </footer>
 
-    <!-- ===================================================== -->
-    <!-- File uploaders -->
-    <input
-      id="upload-brain-image-input"
-      class="upload-input"
-      type="file"
-      name="brainImage"
-    />
-    <input
-      id="upload-sensor-geometry-input"
-      class="upload-input"
-      type="file"
-      name="sensorGeometry"
-    />
-  </body>
+
+
+      <div class="col-2" id="recordList">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title text-center">Records</h5>
+          </div>
+          <ul id="record-list" class="list-group"></ul>
+        </div>
+      </div>
+
+      <div id='fm-brain-container' class="col-8">
+        <img src="" class="img-fluid fm-brain-2D" />
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container" style="text-align:center;">
+      <p class="text-muted">
+        Fork me on <a href="http://github.com/cronelab/webfm">GitHub</a>. And
+        check out our website:
+        <a href="http://cronelab.github.io/">CroneLab</a>
+      </p>
+    </div>
+  </footer>
+</body>
+
 </html>

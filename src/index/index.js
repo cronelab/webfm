@@ -1,325 +1,203 @@
 import "./main.scss";
-import $ from "jquery";
-
-import "bootstrap";
 import "@fortawesome/fontawesome-free/js/all";
-
-import BCI2KWatcher from "./bciwatch.js";
-import {loadBrain} from '../loaders.js'
+import "bootstrap";
 import path from "path";
+import BCI2K from 'bci2k'
+import {
+  loadBrain,
+  loadRecords,
+  loadSubjects
+} from '../loaders.js'
 
-const apiPath = "/api";
-const configPath = "/index/config";
-
-const parameterRecheckDuration = 2000;
-
-const goLiveStates = ["Suspended", "Running"];
-const mapItStates = ["Running"];
-const infoStates = ["Suspended", "Running"];
-
-// TODO Shouldn't have to edit JS to change look and feel ...
-// should use special-purpose CSS classes
-var stateClasses = {
-  "Not Connected": "text-muted",
-  Idle: "text-info",
-  Suspended: "text-warning",
-  Running: "text-success"
-};
-
-let bciWatcher = null;
+const bci = new BCI2K();
 
 window.onload = () => {
-  bciWatcher = new BCI2KWatcher();
-  bciWatcher.onstatechange = bciStateChange;
-  loadSubjects();
-  getSourceAddress(path.join(configPath,"online"))
-  .then(sourceAddress => {
-    document.getElementById('source-address').value = sourceAddress;
-    bciWatcher.connect(sourceAddress)
-  })
-  .then(() => bciWatcher.start())
-  .catch(reason => console.log(`Could not set up BCI Watcher: ${reason}`));
-  
-  
-  
-  document.getElementsByClassName('toggle-online-options')[0].onclick = () => {
-    let onlineOptions = document.getElementById('online-options')
-    console.log(onlineOptions)
-    if (onlineOptions.className.indexOf('d-none') > -1) {
-      onlineOptions.classList.remove("d-none");
-    } else {
-      hideOnlineOptions();
-    }
-  }
-  document.getElementById('new-subject-ok').onclick = () =>{
-    $.ajax({
-      url: path.join(apiPath, "data", document.getElementById("new-subject-id").value),
-      method: "PUT"
-    })
-      .done(function(data, status, xhr) {
-        console.log(status);
-        console.log(data);
-      })
-      .fail(function(xhr, status, err) {
-        console.log(status);
-        console.log(xhr.responseText);
+  loadSubjects().then(subjects => {
+    subjects.sort().forEach(subject => {
+      let subjectCell = document.createElement("a");
+      subjectCell.id = subject;
+      subjectCell.href = '#';
+      subjectCell.classList = 'list-group-item text-center';
+      subjectCell.innerHTML = subject;
+      subjectCell.onclick = () => selectSubject(subject => {
+        if (subject.length == 0) return;
+        Array.from(document.getElementById('subject-list').children).map(subj => subj.classList.remove('active'))
+        document.getElementById(subject).classList.add('active');
+
+        // Clear records for a clean slate
+        let recordList = document.getElementById('record-list');
+        Array.from(recordList.children).map(rec => recordList.removeChild(rec))
+
+        loadRecords(subject)
+          .then(records => {
+            records.sort().map(record => (record, subject) => {
+              let recordCell = document.createElement('a');
+              recordCell.id = record;
+              recordCell.href = "/replay";
+              recordCell.classList = "list-group-item";
+              recordCell.innerHTML = record;
+              recordCell.onclick = () => {
+                localStorage.setItem('subject', subject)
+                localStorage.setItem('task', record)
+              };
+              document.getElementById('record-list').appendChild(recordCell);
+            })
+          })
+        // Load the brain image from the server
+        loadBrain(subject)
       });
-    };
-  document.getElementsByClassName('toggle-new-subject')[0].onclick = () => {
-    let newSubjectOptions = document.getElementById('new-subject-options')
-    if(newSubjectOptions.className.indexOf('d-none') > -1){
-      newSubjectOptions.classList.remove('d-none')
-    } else{
-      newSubjectOptions.classList.add('d-none')
-    }
-  }
-  document.getElementsByClassName('upload-sensor-geometry')[0].onclick = () => {
-    $("#upload-sensor-geometry-input").click(); 
-  }
-
-  document.getElementById('source-address-ok').onclick = () => {
-    let newSourceAddress = document.getElementById('source-address').value
-    localStorage.setItem('sourceAddress', newSourceAddress)
-    // Cookies.set("sourceAddress", newSourceAddress);
-    // Reset our connection
-    bciWatcher.stop();
-    setupWatcher();
-    hideOnlineOptions();
-  }
-  document.getElementById('upload-sensor-geometry-input').onchange = () =>{
-    let files = $(this).get(0).files;
-  
-    // TODO This will fail in certain obvious cases; should be caching a
-    // current subject state variable
-    let subject = window.location.hash.slice(1);
-  
-    if (files.length > 0) {
-      let file = files[0];
-  
-      // FormData carries the payload for our PUT request
-      let formData = new FormData();
-  
-      // We only care about the first file
-      // TODO Get name from jquery element somehow?
-      formData.append("sensorGeometry", file, file.name);
-  
-      // Make an AJAX request
-  
-      $.ajax({
-        url: path.join(apiPath, "geometry", subject),
-        method: "PUT",
-        data: formData,
-        processData: false,
-        contentType: false
-      })
-        .done(function(data, status, xhr) {
-          // Reload the newly uploaded brain
-          selectSubject(subject);
-        })
-        .fail(function(xhr, status, err) {
-          // TODO GUI for error
-          console.log("Upload failed :( " + JSON.stringify(err));
-        });
-    }
-  }
-
-  document.getElementsByClassName('upload-brain-image')[0].onclick = () =>{
-    document.getElementById('upload-brain-image-input').click()
-  }
-  
-  document.getElementById('upload-brain-image-input').onchange = () =>{
-    var files = $(this).get(0).files;
-  
-    // TODO This will fail in certain obvious cases; should be caching a
-    // current subject state variable
-    var subject = window.location.hash.slice(1);
-  
-    if (files.length > 0) {
-      var file = files[0];
-  
-      // FormData carries the payload for our PUT request
-      var formData = new FormData();
-  
-      // We only care about the first file
-      // TODO Get name from jquery element somehow?
-      formData.append("brainImage", file, file.name);
-  
-      // Make an AJAX request
-  
-      $.ajax({
-        url: path.join(apiPath, "brain", subject),
-        method: "PUT",
-        data: formData,
-        processData: false,
-        contentType: false
-      })
-        .done((data, status, xhr) => {
-          // Reload the newly uploaded brain
-          selectSubject(subject);
-        })
-        .fail((xhr, status, err) => {
-          // TODO GUI for error
-          console.log("Upload failed :( " + JSON.stringify(err));
-        });
-    }
-
-  }
+      document.getElementById('subject-list').appendChild(subjectCell);
+    });
+  })
+  bci.connect('127.0.0.1');
+  bci.onconnect = e => {
+    setInterval(() => {
+      bci
+        .execute("Get System State", result => result)
+        .then(state => document.getElementById('bciConnectionStatus').innerHTML = state.trim());
+      parseParameter("SubjectName");
+      parseParameter("DataFile")
+    }, 1000);
+  };
 }
-
-
-
-let loadSubjects = () => {
-  let listPath = path.join('/api/subjects');
-  fetch(listPath)
-  .then(res => { return res.json()})
-  .then(subjects => { 
-    subjects.sort().forEach(addSubjectCell);
-    selectSubject(window.location.hash.slice(1));
-  })
-  .catch(err => console.log(err));
-};
-
-// Load the records from the server API
-let loadRecords = subject => {
-  let listPath = path.join('/api/', subject, '/records');
-  fetch(listPath)
-  .then(res => res.json())
-  .then(records => { 
-    records.sort().map( record => recordCellAdderFor(record,subject))
-  })
-  .catch(err => console.log(err))
-};
-
-
-let selectSubject = subject => {
-
-  if (subject.length == 0) return;
-
-  Array.from(document.getElementById('subject-list').children).map(subj => subj.classList.remove('active'))
-  document.getElementById(subject).classList.add('active');
-
-  // Clear records for a clean slate
-  let recordList = document.getElementById('record-list');
-  Array.from(recordList.children).map(rec => recordList.removeChild(rec))
-
-  loadRecords(subject);
-
-  // Load the brain image from the server API
-  loadBrain(subject)
-};
-
-
-let getSourceAddress = async (configURI) =>{
-    let sourceAddress = localStorage.getItem('sourceAddress')
-    // let sourceAddress = Cookies.get("sourceAddress");
-
-    if (sourceAddress === undefined) {
-      let response = await fetch(configURI)
-      let parameters = await response.json()
-      localStorage.setItem('sourceAddress',parameters.sourceAddress)
-      return await parameters.sourceAddress
-    }
-    else{
-      return await sourceAddress
-    }
-};
-
 
 let parseParameter = async (param) => {
-  let parameter = await bciWatcher.getParameter(param);
-  let label = null
-  let taskName = null
-  if(param == "SubjectName"){
-    label = document.getElementById('subject-label')
-    label.innerHTML = parameter;
-  }
-  else if(param=="DataFile"){
-    label = document.getElementById('task-label')
-    if(parameter.length > 0) {
+  let parameter = await bci.execute(`Get Parameter ${param}`);
+  let label1 = document.getElementById('dataFileInfo1')
+  let label2 = document.getElementById('dataFileInfo2')
+  if (param == "SubjectName") {
+    label1.innerHTML = `${parameter} -`;
+  } else if (param == "DataFile") {
+    if (parameter.length > 0) {
       let dataPathParts = parameter.split(path.sep);
-      label.innerHTML = dataPathParts[1];
+      label2.innerHTML = `- ${dataPathParts[1]}`;
     }
-  }
-  if (parameter.length == 0) {
-    label.innerHTML = `<small>(${param} is unavailable)</small>`
-    setTimeout(() => parseParameter(param), parameterRecheckDuration);
-    return;
   }
 }
 
-let bciStateChange = newState => {
-  document.getElementById('state-label').innerHTML = "<strong>" + newState + "<strong>";
-  Object.keys(stateClasses).map(v => {
-    if(newState==v){
-      document.getElementById('state-label').classList.add(stateClasses[v])
-      return
-    }
-    document.getElementById('state-label').classList.remove(stateClasses[v])
+let canvas = document.getElementById('geometryCanvas');
+let electrodeGroup = null;
+let electrodeItem = null;
+let positionClicked = null;
+let geometryStore = {};
+let electrodeHolder = []
+let electrodePositionHolder = []
+let count = 1;
+let ctx = canvas.getContext("2d");
+
+canvas.addEventListener('click', evt => {
+  evt.preventDefault();
+  let electrodeGroupHolder = document.getElementById(electrodeGroup);
+  let electrode = `${electrodeGroup}${count}`
+  let rect = canvas.getBoundingClientRect();
+  positionClicked = {
+    x: evt.clientX - rect.left,
+    y: evt.clientY - rect.top
+  };
+  ctx.beginPath();
+  ctx.arc(positionClicked.x, positionClicked.y, 1, 0, Math.PI * 2, false);
+  ctx.stroke();
+  ctx.fillStyle = 'red';
+  ctx.fill();
+  electrodeItem = document.createElement('a');
+  electrodeItem.className = 'list-group-item electrode'
+  electrodeItem.href = '#'
+  electrodeItem.innerHTML = electrode
+  electrodeItem.id = electrode
+  Array.from(document.getElementsByClassName('electrode')).forEach(elec => {
+    elec.classList.remove('active')
   })
 
-  if (mapItStates.indexOf(newState) >= 0) {
-    document.getElementById('map-button').classList.remove('disabled')
-  } else {
-    document.getElementById('map-button').classList.add('disabled')  }
 
-  if (mapItStates.indexOf(newState) >= 0) {
-    document.getElementById('live-button').classList.remove('disabled')
-  } else {
-    document.getElementById('live-button').classList.add('disabled')  }
-  
-  if (infoStates.indexOf(newState) >= 0) {
-    document.getElementById('info-label').classList.remove('d-none')
-    parseParameter("SubjectName");
-    parseParameter("DataFile")
-  } else {
-    document.getElementById('info-label').classList.add('d-none')
-    document.getElementById('subject-label').innerHTML = '';
-  }
-};
-
-let recordCellAdderFor = (record, subject) => {
-
-  let storeParams = () => {
-    localStorage.setItem('subject',subject)
-    localStorage.setItem('task',record)
-  }
-
-  $("<a/>", {
-    id: record,
-    href: "/replay",
-    class: "list-group-item",
-    text: record,
-    on: {
-      click: storeParams
-    }
-  }).appendTo("#record-list");  
-};
-
-let addSubjectCell = subject => {
-  let cellClick = () => {
-    selectSubject(subject);
+  electrodeItem.onclick = () => {
+    Array.from(document.getElementsByClassName('electrode')).forEach(elec => {
+      elec.classList.remove('active')
+    })
+    document.getElementById(electrode).classList.add('active')
   };
-  // TODO Need to incorporate number of members for badge
-  $("<a/>", {
-    id: subject,
-    href: "#" + subject,
-    class: "list-group-item",
-    text: subject,
-    on: {
-      click: cellClick
+  electrodeGroupHolder.appendChild(electrodeItem);
+  count++;
+  electrodeHolder.push(electrode);
+  electrodePositionHolder.push({
+    x: positionClicked.x / canvas.width,
+    y: positionClicked.y / canvas.height
+  });
+
+  geometryStore = {
+    electrodeName: electrodeHolder,
+    electrodePosition: electrodePositionHolder
+  }
+})
+
+document.onkeydown = e => {
+  if (e.code == 'KeyX') {
+    Array.from(document.getElementsByClassName('electrode')).forEach(elec => {
+      if (elec.classList.contains('active')) {
+        let indexToRemove = geometryStore.electrodeName.indexOf(elec.id);
+        ctx.clearRect(geometryStore.electrodePosition[indexToRemove].x - 2, geometryStore.electrodePosition[indexToRemove].y - 2, 10, 10);
+        geometryStore.electrodeName.splice(indexToRemove, 1);
+        geometryStore.electrodePosition.splice(indexToRemove, 1);
+        elec.remove();
+        count--;
+      }
+    })
+  }
+}
+
+document.getElementById("geometryButton").onclick = () => {
+  count = 1;
+  let canvas = document.getElementById('geometryCanvas');
+  let canvasBrain = document.getElementsByClassName('fm-brain-2D')[0]
+  if (canvas.width != canvasBrain.width) {
+    canvas.width = canvasBrain.width;
+    canvas.height = canvasBrain.height;
+  }
+  let electrodeList = document.getElementById('electrodeList')
+  let electrodeListItem = document.createElement('ul');
+  electrodeGroup = document.getElementById('geometryCreator').value;
+  electrodeListItem.setAttribute('class', 'list-group');
+  electrodeListItem.id = electrodeGroup;
+  electrodeListItem.innerHTML = electrodeGroup;
+  electrodeList.appendChild(electrodeListItem);
+}
+
+document.getElementById("saveGeometry").onclick = () => {
+  fetch(`/api/${document.getElementById('subjectEntry').value}/geometry`, {
+      method: 'PUT',
+      body: JSON.stringify(geometryStore),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }).then(res => res.json())
+    .then(response => console.log('Success:', JSON.stringify(response)))
+    .catch(error => console.error('Error:', error));
+}
+
+document.getElementById("createSubject").onclick = () => {
+  let subjFile = document.getElementById('subjectBrainUpload');
+  const data = new URLSearchParams();
+  for (const pair of new FormData(subjFile)) {
+    data.append(pair[0], pair[1]);
+  }
+  let formData = new FormData(subjFile)
+  fetch(`/api/${document.getElementById('subjectEntry').value}/brain`, {
+      method: 'post',
+      body: formData,
+    }).then(res => res.text())
+    .then(response => {
+      loadBrain(`${document.getElementById('subjectEntry').value}`)
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+document.getElementById('saveNotes').onclick = () => {
+  fetch(`/api/${document.getElementById('subjectEntry').value}/notes`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      note: document.getElementById('webfmNotes').value
+    }),
+    headers: {
+      'Content-Type': 'application/json'
     }
-    // ,
-    // onclick: "document.cookie='WebFM: Map'"
-  }).appendTo("#subject-list");
-};
-
-
-let hideOnlineOptions = () => document.getElementById('online-options').classList.add('d-none')
-
-
-
-
-
-
-
-
+  })
+}

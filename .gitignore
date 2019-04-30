@@ -1,7 +1,5 @@
-bower_components/
 node_modules/
-docker/
-data_demo/
+data/
 certs/
 dist/
 

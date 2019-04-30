@@ -1,136 +1,113 @@
 @import "~bootstrap/scss/bootstrap";
 
-
-
-
 html {
   position: relative;
   min-height: 100%;
-}
-body {
-  /* Margin bottom by footer height */
-  margin-bottom: 60px;
-}
 
-.footer {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  /* Set the fixed height of the footer here */
-  height: 60px;
-  background-color: #f5f5f5;
+  body {
+    padding-bottom: 20px;
+  }
 }
 
-.footer .container {
-  margin-top: 20px;
-}
-
-
-/* Hide file upload elements
--------------------------------------------------- */
 .upload-input {
   display: none !important;
 }
 
-
-/* Other styles
--------------------------------------------------- */
-
-/* Move down content because we have a fixed navbar that is 50px tall */
-body {
-  /* padding-top: 75px; */
-  padding-bottom: 20px;
-}
-
-.navbar-brand {
-  font-size: 28px;
-}
-
 .list-group-item {
-  font-size: 18px;
-}
-.list-group-item .badge {
-  margin-top: 1px;
-  font-size: 16px;
+  font-size: 10px;
 }
 
-#record-list .list-group-item {
-    font-size: 14px;
-}
-
-.brain-medium {
-  width: 300px;
-}
-
-
-/* Re-color navbars
--------------------------------------------------- */
 .navbar-inverse {
   background-color: #397ad0;
   border-color: #316198;
-}
-.navbar-inverse .navbar-brand {
-  color: #fffff6;
-}
-.navbar-inverse .navbar-brand:hover,
-.navbar-inverse .navbar-brand:focus {
-  color: #fffdbb;
-}
-.navbar-inverse .navbar-text {
-  color: #fffff6;
-}
-.navbar-inverse .navbar-nav > li > a {
-  color: #fffff6;
-}
-.navbar-inverse .navbar-nav > li > a:hover,
-.navbar-inverse .navbar-nav > li > a:focus {
-  color: #fffdbb;
-}
-.navbar-inverse .navbar-nav > .active > a,
-.navbar-inverse .navbar-nav > .active > a:hover,
-.navbar-inverse .navbar-nav > .active > a:focus {
-  color: #fffdbb;
-  background-color: #316198;
-}
-.navbar-inverse .navbar-nav > .open > a,
-.navbar-inverse .navbar-nav > .open > a:hover,
-.navbar-inverse .navbar-nav > .open > a:focus {
-  color: #fffdbb;
-  background-color: #316198;
-}
-.navbar-inverse .navbar-toggler {
-  border-color: #316198;
-}
-.navbar-inverse .navbar-toggler:hover,
-.navbar-inverse .navbar-toggler:focus {
-  background-color: #316198;
-}
-.navbar-inverse .navbar-toggler .icon-bar {
-  background-color: #fffff6;
-}
-.navbar-inverse .navbar-collapse,
-.navbar-inverse {
-  border-color: #fffff6;
-}
-.navbar-inverse .navbar-link {
-  color: #fffff6;
-}
-.navbar-inverse .navbar-link:hover {
-  color: #fffdbb;
+
+  .navbar-brand {
+    color: #fffff6;
+    font-size: 20px;
+  }
+
+  .nav-item {
+    color: white;
+  }
 }
 
-@media (max-width: 767px) {
-  .navbar-inverse .navbar-nav .open .dropdown-menu > li > a {
-    color: #fffff6;
+#recordList {
+  padding-left: 0%;
+}
+
+#subjectList {
+  padding-right: 0%;
+}
+
+.saveGeometry {
+  z-index: 1;
+}
+
+.footer {
+  position: absolute;
+  width: 100%;
+  background-color: #f5f5f5;
+}
+
+
+
+#sidebar {
+  border-top: 1px solid #316198;
+  position: absolute;
+  top: 55px;
+  right: 0;
+  height: 90%;
+  text-align: center;
+  min-width: 250px;
+  max-width: 250px;
+  background: #397ad0;
+  color: #fff;
+  margin-left: auto;
+  margin-right: 0;
+  transition: all 0.9s;
+
+  ul {
+    p {
+      padding: 10px;
+      font-size: 1.1em;
+      display: block;
+    }
+
+    button {
+      background: #397ad0;
+      color: #fff;
+      padding: 10px;
+      font-size: 1.1em;
+      display: block;
+
+      &:hover {
+        color: #397ad0;
+        background: white;
+      }
+    }
   }
-  .navbar-inverse .navbar-nav .open .dropdown-menu > li > a:hover,
-  .navbar-inverse .navbar-nav .open .dropdown-menu > li > a:focus {
-    color: #fffdbb;
-  }
-  .navbar-inverse .navbar-nav .open .dropdown-menu > .active > a,
-  .navbar-inverse .navbar-nav .open .dropdown-menu > .active > a:hover,
-  .navbar-inverse .navbar-nav .open .dropdown-menu > .active > a:focus {
-    color: #fffdbb;
-    background-color: #316198;
-  }
+}
+
+#geometryContainer {
+  display: inline-block;
+  position: relative;
+}
+
+#geometryCanvas {
+  top: 0px;
+  position: absolute;
+  ;
+  z-index: 20;
+}
+
+#fm-brain-2D {
+  position: absolute;
+  ;
+  z-index: 1;
+}
+
+
+
+#electrodeHolder {
+    padding-left: 0%;
 }

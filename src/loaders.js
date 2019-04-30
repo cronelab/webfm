@@ -1,17 +1,17 @@
 //TODO:
-  //Parameterize:
-    //Margins
-    //Height/width
-    //resizing
-    //Dot:
-      //radii
-      //colors
-      //Highlight selected channel from Raster
-    //Threshold:
-      //Live
-      //Map
-      
-    
+//Parameterize:
+//Margins
+//Height/width
+//resizing
+//Dot:
+//radii
+//colors
+//Highlight selected channel from Raster
+//Threshold:
+//Live
+//Map
+
+
 
 import * as d3 from "d3";
 
@@ -19,7 +19,7 @@ let loadBrain = async subject => {
   let brainPath = `/api/${subject}/brain`;
   let response = await fetch(brainPath);
   let resType = response.headers.get("content-type");
-  let fmBrain = document.getElementById("fm-brain-2D");
+  let fmBrain = document.getElementsByClassName("fm-brain-2D");
 
   if (resType.includes("image/jpeg")) {
     let brain = await response.arrayBuffer();
@@ -27,11 +27,14 @@ let loadBrain = async subject => {
     let binary = "";
     let bytes = [].slice.call(new Uint8Array(brain));
     bytes.forEach(b => (binary += String.fromCharCode(b)));
-
-    fmBrain.setAttribute("src", base64Flag + window.btoa(binary));
+    Array.from(fmBrain).forEach(fmbrain => {
+      fmbrain.setAttribute("src", base64Flag + window.btoa(binary));
+    })
   } else {
     let brain = await response.text();
-    fmBrain.setAttribute("src", brain);
+    Array.from(fmBrain).forEach(fmbrain => {
+      fmbrain.setAttribute("src", brain);
+    })
   }
 };
 
@@ -52,7 +55,7 @@ let loadDots = dataList => {
     .domain(dotColorsDomain)
     .range(dotColors)
     .clamp(true);
-    // console.log(dotColorScale)
+  // console.log(dotColorScale)
   let brain = document.getElementById("fm-brain-2D");
   let dots = document.getElementById("electrode-dots");
   dots.style.position = "absolute";
@@ -144,10 +147,26 @@ let loadStats = async (subject, record) => {
   return values;
 };
 
+// Load the records from the server API
+let loadRecords = async subject => {
+  let listPath = `/api/${subject}/records`;
+  let response = await fetch(listPath);
+  let list = await response.json();
+  return list;
+};
+let loadSubjects = async () => {
+  let listPath = `/api/subjects`;
+  let response = await fetch(listPath);
+  let subjects = await response.json();
+  return subjects
+};
+
 export {
   loadGeometry,
   loadBrain,
   loadDots,
   loadStats,
-  loadValues
+  loadValues,
+  loadRecords,
+  loadSubjects
 };

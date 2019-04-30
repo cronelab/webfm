@@ -1,3 +1,8 @@
+//TODO from main.js
+//datasets/bundles
+//Initialize source/spectral buffers
+//Save metadata
+
 let urlParams = new URLSearchParams(window.location.search);
 import "./map.scss";
 import "bootstrap";
@@ -7,7 +12,7 @@ import {
     loadGeometry,
     loadDots
 } from '../loaders.js'
-import BCI2KWatcher from "../index/bciwatch.js";
+// import BCI2KWatcher from "../index/bciwatch.js";
 import {
     generateChart
 } from "../timeSeries";
@@ -658,14 +663,7 @@ const setupDataConnections = async () => {
 //             currStimCode = result;
 //             $('.stim-display').text(result);
 //           });
-//           // uiManager.lines.setTrialNumber(currStimCode);
-// //          uiManager.updateStimulusCode(currStimCode);
-
 //                 };
-
-// // TODO Testing
-//         // var identityFeature = new fmfeature.RemoteFeature( path.join( apiPath, 'compute', 'identity' ) );
-//         // var hgFeature = new fmfeature.RemoteFeature( path.join( apiPath, 'compute', 'hgfft' ) );
 
 // var ingestTrial = function( trialData ) {
 
@@ -812,17 +810,6 @@ const setupDataConnections = async () => {
 //     uiManager.hideIcon( 'working' );
 
 //   } );
-
-//   /*
-//   cronelib.forEachAsync( Object.keys( channelStats ), function( ch ) {
-//   channelStats[ch].recompute( newWindow );
-// }, {
-// batchSize: 5
-// } ).then( function() {
-// updatePlotsPostData();
-// uiManager.hideIcon( 'working' );
-// } );
-// */
 
 // };
 
