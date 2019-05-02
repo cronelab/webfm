@@ -27,8 +27,8 @@ window.onload = () => {
 
   // let stats = loadStats(subject, task);
   loadDots({
-    geo:JSON.parse(localStorage.getItem("geometry")),
-    dotObject:[0]
+    geo: JSON.parse(localStorage.getItem("geometry")),
+    dotObject: [0]
   })
   //Load the brain image
   loadBrain(subject);
@@ -38,7 +38,7 @@ window.onload = () => {
 
   //Load the montage file
   loadGeometry(subject).then(x => {
-    localStorage.setItem("geometry",JSON.stringify(x));
+    localStorage.setItem("geometry", JSON.stringify(x));
     // loadDots(x);
 
     let chList = document.createElement("ul");
@@ -278,7 +278,10 @@ let horizonChartVals = vals => {
 
       let dotObject = Object.values(vals).map(x => x[dataIndex]);
       let geo = JSON.parse(localStorage.getItem("geometry"));
-      let dotObj = {geo,dotObject}
+      let dotObj = {
+        geo,
+        dotObject
+      }
       loadDots(dotObj)
 
     }

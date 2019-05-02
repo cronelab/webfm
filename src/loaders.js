@@ -56,7 +56,7 @@ let loadDots = dataList => {
     .range(dotColors)
     .clamp(true);
   // console.log(dotColorScale)
-  let brain = document.getElementById("fm-brain-2D");
+  let brain = document.getElementsByClassName("fm-brain-2D")[0];
   let dots = document.getElementById("electrode-dots");
   dots.style.position = "absolute";
   dots.width = brain.width;

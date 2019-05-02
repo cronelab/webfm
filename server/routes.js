@@ -1,7 +1,5 @@
 const path = require("path");
 const fs = require("fs");
-var async = require("async");
-var jsonfile = require("jsonfile");
 const loadJsonFile = require("load-json-file");
 var bodyParser = require('body-parser')
 const multer = require('multer')
@@ -21,8 +19,14 @@ const getCortStim = async (subject, results) => {
   return _result;
 };
 
+
+
 module.exports = express => {
   const router = express.Router();
+
+  router.get("/api/config/", (req, res) => res.sendFile(`${__dirname}/config.json`) );
+
+
   router.use(bodyParser.json())
   router.get("/map", (req, res) =>
     res.sendFile(path.join(__dirname, "/../dist", "/map.html"))
@@ -171,5 +175,18 @@ module.exports = express => {
       }
     })
   })
+
+  router.post('/api/:subject/data/save', (req,res) =>{
+    console.log(req.body)
+    fs.writeFile(`./data/${req.params.subject}/data/timeSeries.json`, JSON.stringify(req.body), (err) => console.log(err))
+
+  })
+
+
+
+
+
+
+
   return router;
 };

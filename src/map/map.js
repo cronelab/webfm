@@ -12,7 +12,6 @@ import {
     loadGeometry,
     loadDots
 } from '../loaders.js'
-// import BCI2KWatcher from "../index/bciwatch.js";
 import {
     generateChart
 } from "../timeSeries";

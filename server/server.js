@@ -1,6 +1,8 @@
 const express = require("express");
 const app = express();
 const routes = require("./routes")(express);
+const graphQlRoutes = require("./graphqlRoute")(express);
+
 const path = require('path')
 const webpack = require("webpack");
 const config = require("../webpack.config.js");
@@ -13,23 +15,15 @@ let newConfig = merge(config, {
   ]
 });
 
-const serveConfig = configName => {
-  return (req, res) => {
-    res.sendFile(__dirname + "/config/" + configName);
-  };
-};
+
 
 app.use("/", routes);
-app.get("/index/config/online", serveConfig("fmonline.json"));
-
-app.get('/map/config/ui', serveConfig('fmui.json'));
-app.get('/map/config/online', serveConfig('fmonline.json'));
-app.get('/map/config/tasks', serveConfig('tasks.json'));
+app.use("/", graphQlRoutes);
 
 
-if (process.env.NODE_ENV == "production") {
-  app.use("/", express.static("./dist"));
-} else if (process.env.NODE_ENV == "development") {
+
+
+ if (process.env.NODE_ENV == "development") {
   const compiler = webpack(newConfig);
   app.use(require("webpack-dev-middleware")(compiler, {
     noInfo: true

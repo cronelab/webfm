@@ -19,8 +19,9 @@ window.onload = () => {
       subjectCell.href = '#';
       subjectCell.classList = 'list-group-item text-center';
       subjectCell.innerHTML = subject;
-      subjectCell.onclick = () => selectSubject(subject => {
+      subjectCell.onclick = () => {
         if (subject.length == 0) return;
+        // localStorage.setItem("subject",subject)
         Array.from(document.getElementById('subject-list').children).map(subj => subj.classList.remove('active'))
         document.getElementById(subject).classList.add('active');
 
@@ -30,7 +31,7 @@ window.onload = () => {
 
         loadRecords(subject)
           .then(records => {
-            records.sort().map(record => (record, subject) => {
+            records.sort().map(record => {
               let recordCell = document.createElement('a');
               recordCell.id = record;
               recordCell.href = "/replay";
@@ -45,7 +46,7 @@ window.onload = () => {
           })
         // Load the brain image from the server
         loadBrain(subject)
-      });
+      };
       document.getElementById('subject-list').appendChild(subjectCell);
     });
   })

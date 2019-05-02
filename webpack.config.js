@@ -16,7 +16,8 @@ module.exports = {
         map: "./map/map.js",
         replay: "./replay/replay.js",
         threeD: "./threeD/threeD.js",
-        cortstim: "./cortstim/cortstim.js"
+        cortstim: "./cortstim/cortstim.js",
+        streamSaver: "./streamSaver/index.js",
     },
     mode: devMode ? "development" : "production",
 
@@ -54,18 +55,18 @@ module.exports = {
             {
                 test: /\.(sa|sc|c)ss$/,
                 use: [{
-                    loader: devMode ? "style-loader" : MiniCssExtractPlugin.loader
-                  }, {
-                    loader: "css-loader"
-                  },
-                  {
-                    loader: "postcss-loader"
-                  }, {
-                    loader: "sass-loader",
-                    options: {
-                      implementation: require("sass")
+                        loader: devMode ? "style-loader" : MiniCssExtractPlugin.loader
+                    }, {
+                        loader: "css-loader"
+                    },
+                    {
+                        loader: "postcss-loader"
+                    }, {
+                        loader: "sass-loader",
+                        options: {
+                            implementation: require("sass")
+                        }
                     }
-                  }
                 ]
             }
         ]
@@ -106,7 +107,13 @@ module.exports = {
             filename: 'cortstim.html',
             chunks: ['cortstim'],
             title: 'WebFM: Cortstim'
-
+        }),
+        new HtmlWebpackPlugin({
+            hash: true,
+            template: "./streamSaver/index.html",
+            filename: 'streamSaver.html',
+            chunks: ['streamSaver'],
+            title: 'WebFM: Streaming'
         }),
     ],
     output: {
