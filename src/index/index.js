@@ -9,7 +9,7 @@ import {
   loadSubjects
 } from '../loaders.js'
 
-const bci = new BCI2K();
+const bci = new BCI2K.bciOperator();
 
 window.onload = () => {
   loadSubjects().then(subjects => {
@@ -52,13 +52,11 @@ window.onload = () => {
   })
   bci.connect('127.0.0.1');
   bci.onconnect = e => {
-    setInterval(() => {
-      bci
-        .execute("Get System State", result => result)
-        .then(state => document.getElementById('bciConnectionStatus').innerHTML = state.trim());
-      parseParameter("SubjectName");
-      parseParameter("DataFile")
-    }, 1000);
+    bci.onStateChange = state => {
+      document.getElementById('bciConnectionStatus').innerHTML = state.trim()
+    }
+    // parseParameter("SubjectName");
+    // parseParameter("DataFile")
   };
 }
 

@@ -19,6 +19,7 @@ module.exports = express => {
             records(subj: String): [String]
             record(subj: String, rec: String): Record
             info(subj: String): Info
+            configurations(task: String): [Float]
         },
         type Info {
             channels: [Channel]
@@ -36,7 +37,8 @@ module.exports = express => {
         },
         type Data {
             channel: [[Float]]
-        }
+        },
+
         `);
 
 
@@ -45,9 +47,11 @@ module.exports = express => {
         schema: schema,
         rootValue: {
             subjects: () => fs.readdirSync('./data', (err, subjs) => subjs),
-            records: (args) => fs.readdirSync(`./data/${args.subj}`, (err, files) => {
-                files
-            }),
+            records: (args) => fs.readdirSync(`./data/${args.subj}`, (err, files) => files),
+            configurations: async (args) => {
+                let configFile = await fs.readJSON(`./server/config.json`)
+                return configFile.times[args.task];
+            },
             info: async (args) => {
                 let chVals = await fs.readJSON(`./data/${args.subj}/info/channels.json`)
                 let chNames = Object.keys(chVals)
