@@ -1,19 +1,17 @@
-var graphqlHTTP = require('express-graphql');
-var {
-    buildSchema,
-} = require('graphql');
-const fs = require('fs-extra')
+import graphqlHTTP from 'express-graphql';
+import graphql from 'graphql';
+import fs from 'fs-extra'
 
-const path = require('path')
+import path from 'path'
 
 
 
 
 
-module.exports = express => {
+export default express => {
     const router = express.Router();
 
-    let schema = buildSchema(`
+    let schema = graphql.buildSchema(`
         type Query {
             subjects: [String]
             records(subj: String): [String]

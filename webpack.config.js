@@ -1,16 +1,16 @@
-const path = require("path");
-const webpack = require('webpack')
-const HtmlWebpackPlugin = require("html-webpack-plugin");
-const CleanWebpackPlugin = require("clean-webpack-plugin");
-const WriteFilePlugin = require('write-file-webpack-plugin');
-
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+import path from "path";
+import webpack from 'webpack'
+import HtmlWebpackPlugin from "html-webpack-plugin";
+import CleanWebpackPlugin from "clean-webpack-plugin";
+import WriteFilePlugin from 'write-file-webpack-plugin';
+let __dirname = path.resolve(path.dirname(''));
+import MiniCssExtractPlugin from "mini-css-extract-plugin";
 var hotMiddlewareScript =
     "webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000&reload=true";
 
 const devMode = process.env.NODE_ENV !== "production";
 
-module.exports = {
+const module =  {
     entry: {
         index: devMode ? ["./index/index.js", hotMiddlewareScript] : "./index/index.js",
         map: "./map/map.js",
@@ -18,6 +18,7 @@ module.exports = {
         threeD: "./threeD/threeD.js",
         cortstim: "./cortstim/cortstim.js",
         streamSaver: "./streamSaver/index.js",
+        cceps: "./CCEPS/index.js",
     },
     mode: devMode ? "development" : "production",
 
@@ -40,7 +41,11 @@ module.exports = {
         rules: [{
                 test: /\.js$/,
                 exclude: /node_modules/,
-                use: ["babel-loader"]
+                loader: 'babel-loader',
+                options: {
+                    presets: ['@babel/preset-env'],
+                    cacheDirectory: true
+                }
             },
             {
                 test: /\.(fbx)$/,
@@ -63,9 +68,6 @@ module.exports = {
                         loader: "postcss-loader"
                     }, {
                         loader: "sass-loader",
-                        options: {
-                            implementation: require("sass")
-                        }
                     }
                 ]
             }
@@ -115,6 +117,14 @@ module.exports = {
             chunks: ['streamSaver'],
             title: 'WebFM: Streaming'
         }),
+        new HtmlWebpackPlugin({
+            hash: true,
+            template: "./CCEPS/index.html",
+            filename: 'CCEPS.html',
+            chunks: ['cceps'],
+            title: 'WebFM: CCEPS'
+        }),
+
     ],
     output: {
         path: path.resolve(__dirname, "dist"),
@@ -129,3 +139,5 @@ module.exports = {
         hot: true
     } : {},
 };
+
+export default module

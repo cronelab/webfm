@@ -34,7 +34,7 @@ let loadBrain = async subject => {
     let brain = await response.text();
     Array.from(fmBrain).forEach(fmbrain => {
       fmbrain.setAttribute("src", brain);
-    })
+    }) 
   }
 };
 

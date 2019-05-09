@@ -1,0 +1,28 @@
+@import "~bootstrap/scss/bootstrap";
+
+#fm-chart-container {
+  top: 0;
+  position: relative;
+  height: 75%;
+  padding-right: 0px;
+  padding-left: 0px;
+}
+
+#fm-brain-container {
+  position: relative;
+}
+
+
+
+.fm-brain-2D {
+  position: relative;
+  z-index: -2;
+  width: 100%;
+  padding: 0;
+  border: 0;
+}
+
+// #electrode-dots {
+//   position: relative;
+//   z-index: -1;
+// }

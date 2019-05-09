@@ -12,7 +12,7 @@
     "AuditoryWordRepetition": [-1.0, -0.2, -1.0, 2.5],
     "SyllableRepetition": [-1.0, -0.2, -1.0, 2.5],
     "SyllableReading": [-1.0, -0.2, -1.0, 2.5],
-    "CCEPS*": [-1.0, 0.0, -1.0, 2.5],
+    "Matlab_CCEPS": [-1.0, -0.01, -1.0, 1.5],
     "PassiveStim": [-0.6, -0.2, -1.0, 1.5],
     "PassiveFingerVibration": [-0.6, -0.2, -0.6, 1.5],
     "AutoStim": [-1.8, -1.0, -1.8, 1.8],
@@ -22,7 +22,8 @@
     "OLDSentenceCompletion*": [-1.0, -0.2, -1.0, 6.5],
     "SentenceCompletion*": [0.0, 1.0, -4.0, 1.0],
     "GoalsTask*": [-1.0, -0.2, -1.0, 5.0],
-    "Match3": [-3.5, -2.9, -3.5, 1.0]
+    "Match3": [-3.5, -2.9, -3.5, 1.0],
+    "GenericGOTask": [-2.0, 0.0, -2.0, 3.0]
   },
   "online": {
     "sourceAddress": "127.0.0.1",

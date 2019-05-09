@@ -1,8 +1,8 @@
-const path = require("path");
-const fs = require("fs");
-const loadJsonFile = require("load-json-file");
-var bodyParser = require('body-parser')
-const multer = require('multer')
+import path from "path";
+import fs from "fs";
+import loadJsonFile from "load-json-file";
+import bodyParser from 'body-parser'
+import multer from 'multer'
 const infoDir = "./data/info";
 const dataDir = "./data";
 
@@ -21,10 +21,10 @@ const getCortStim = async (subject, results) => {
 
 
 
-module.exports = express => {
+const routes = (express) => {
   const router = express.Router();
 
-  router.get("/api/config/", (req, res) => res.sendFile(`${__dirname}/config.json`) );
+  router.get("/api/config/", (req, res) => res.sendFile(`${__dirname}/config.json`));
 
 
   router.use(bodyParser.json())
@@ -37,6 +37,34 @@ module.exports = express => {
   router.get("/cortstim", (req, res) =>
     res.sendFile(path.join(__dirname, "/../dist", "/cortstim.html"))
   );
+  router.get("/cceps", (req, res) =>
+    res.sendFile(path.join(__dirname, "/../dist", "/CCEPS.html"))
+  );
+
+  router.get("/api/CCEPS/:subject/:task/:data",  (req, res) => {
+    let subject = req.params.subject;
+    let task = req.params.task;
+    let data = req.params.data;
+    fs.readdir(dataDir,async (err, subjects) => {
+      if (subjects.indexOf(subject) > -1) {
+        if (data == "img") {
+          console.log(data);
+          if (fs.existsSync(`${dataDir}/${subject}/CCEPS/${subject}_${task}.jpg`)) {
+            res.sendFile(`${subject}_${task}.jpg`, {
+              root: `${dataDir}/${subject}/CCEPS`
+            });
+          }
+        } else if (data == "z-scores") {
+          if (fs.existsSync(`${dataDir}/${subject}/CCEPS/${subject}_${task}.json`)) {
+            let _result = await loadJsonFile(`${dataDir}/${subject}/CCEPS/${subject}_${task}.json`);
+            res.status(200).json(_result);
+
+          }
+        }
+      }
+
+    });
+  })
 
   //Cortstim directory
   router.get("/api/cortstim", (req, res) => {
@@ -176,7 +204,7 @@ module.exports = express => {
     })
   })
 
-  router.post('/api/:subject/data/save', (req,res) =>{
+  router.post('/api/:subject/data/save', (req, res) => {
     console.log(req.body)
     fs.writeFile(`./data/${req.params.subject}/data/timeSeries.json`, JSON.stringify(req.body), (err) => console.log(err))
 
@@ -190,3 +218,5 @@ module.exports = express => {
 
   return router;
 };
+
+export default routes
