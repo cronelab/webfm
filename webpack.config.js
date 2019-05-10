@@ -15,7 +15,6 @@ const module =  {
         index: devMode ? ["./index/index.js", hotMiddlewareScript] : "./index/index.js",
         map: "./map/map.js",
         replay: "./replay/replay.js",
-        threeD: "./threeD/threeD.js",
         cortstim: "./cortstim/cortstim.js",
         streamSaver: "./streamSaver/index.js",
         cceps: "./CCEPS/index.js",

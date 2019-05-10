@@ -1,5 +1,5 @@
-var d3 = require( 'd3' );
-
+// var d3 = require( 'd3' );
+import d3 from "d3";
 // Shit from core that I need.
 
 // Copies a variable number of methods from source to target.

@@ -5,8 +5,10 @@ import path from "path";
 import BCI2K from 'bci2k'
 import {
   loadBrain,
-  loadRecords,
-  loadSubjects
+  loadHG,
+  loadEP,
+  loadSubjects,
+  load3DBrain,
 } from '../loaders.js'
 
 const bci = new BCI2K.bciOperator();
@@ -26,10 +28,10 @@ window.onload = () => {
         document.getElementById(subject).classList.add('active');
 
         // Clear records for a clean slate
-        let recordList = document.getElementById('record-list');
+        let recordList = document.getElementById('HG-list');
         Array.from(recordList.children).map(rec => recordList.removeChild(rec))
 
-        loadRecords(subject)
+        loadHG(subject)
           .then(records => {
             records.sort().map(record => {
               let recordCell = document.createElement('a');
@@ -41,10 +43,26 @@ window.onload = () => {
                 localStorage.setItem('subject', subject)
                 localStorage.setItem('task', record)
               };
-              document.getElementById('record-list').appendChild(recordCell);
+              document.getElementById('HG-list').appendChild(recordCell);
+            })
+          })
+          loadEP(subject)
+          .then(records => {
+            records.sort().map(record => {
+              let recordCell = document.createElement('a');
+              recordCell.id = record;
+              recordCell.href = "/replay";
+              recordCell.classList = "list-group-item";
+              recordCell.innerHTML = record;
+              recordCell.onclick = () => {
+                localStorage.setItem('subject', subject)
+                localStorage.setItem('task', record)
+              };
+              document.getElementById('EP-list').appendChild(recordCell);
             })
           })
         // Load the brain image from the server
+        console.log(subject)
         loadBrain(subject)
       };
       document.getElementById('subject-list').appendChild(subjectCell);
@@ -58,6 +76,8 @@ window.onload = () => {
     // parseParameter("SubjectName");
     // parseParameter("DataFile")
   };
+
+  // load3DBrain('PY19N008');
 }
 
 let parseParameter = async (param) => {

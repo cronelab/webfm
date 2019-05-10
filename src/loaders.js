@@ -11,9 +11,10 @@
 //Live
 //Map
 
-
-
-import * as d3 from "d3";
+import {scaleLinear} from "d3";
+import {Scene, PerspectiveCamera, WebGLRenderer, HemisphereLight} from "three";
+import FBXLoader from 'three-fbx-loader'
+import OrbitControls from 'three-orbitcontrols'
 
 let loadBrain = async subject => {
   let brainPath = `/api/${subject}/brain`;
@@ -34,9 +35,32 @@ let loadBrain = async subject => {
     let brain = await response.text();
     Array.from(fmBrain).forEach(fmbrain => {
       fmbrain.setAttribute("src", brain);
-    }) 
+    })
   }
 };
+
+let load3DBrain = subject => {
+  let brainContainer = document.getElementById('fm-brain-3D');
+  let loader = new FBXLoader();
+  let scene = new Scene();
+  let camera = new PerspectiveCamera(45, 640 / 480, 0.1, 50000);
+  let renderer = new WebGLRenderer({antialias: true});
+  let controls = new OrbitControls( camera, renderer.domElement );
+  let light = new HemisphereLight( 0xffffff, 0x444444 );
+  camera.position.set(500, 1000, 500);
+  renderer.setSize(640, 480);
+  light.position.set( 0, 0, 10 );
+  controls.target.set( 100, 0, 0 );
+  controls.update();
+  scene.add( light );
+  loader.load(`/api/${subject}/brain3D`, object3d => scene.add(object3d));
+  const animate = () => {
+    requestAnimationFrame(animate);
+    renderer.render(scene, camera);
+  };
+  animate();
+  brainContainer.appendChild(renderer.domElement);
+}
 
 
 let loadGeometry = async subject => {
@@ -51,7 +75,7 @@ let loadGeometry = async subject => {
 let loadDots = dataList => {
   let dotColors = ["#313695", "#4575b4", "#74add1", "#abd9e9", "#000000", "#fee090", "#fdae61", "#f46d43", "#d73027"];
   let dotColorsDomain = [-9, -5, -2, -0.01, 0.0, 0.01, 2, 5, 9];
-  let dotColorScale = d3.scaleLinear()
+  let dotColorScale = scaleLinear()
     .domain(dotColorsDomain)
     .range(dotColors)
     .clamp(true);
@@ -148,12 +172,19 @@ let loadStats = async (subject, record) => {
 };
 
 // Load the records from the server API
-let loadRecords = async subject => {
-  let listPath = `/api/${subject}/records`;
+let loadHG = async subject => {
+  let listPath = `/api/${subject}/records/HG`;
   let response = await fetch(listPath);
   let list = await response.json();
   return list;
 };
+let loadEP = async subject => {
+  let listPath = `/api/${subject}/records/EP`;
+  let response = await fetch(listPath);
+  let list = await response.json();
+  return list;
+};
+
 let loadSubjects = async () => {
   let listPath = `/api/subjects`;
   let response = await fetch(listPath);
@@ -167,6 +198,8 @@ export {
   loadDots,
   loadStats,
   loadValues,
-  loadRecords,
-  loadSubjects
+  loadEP,
+  loadHG,
+  loadSubjects,
+  load3DBrain
 };

@@ -1,10 +1,11 @@
-import path from "path";
 import fs from "fs";
-import loadJsonFile from "load-json-file";
-import bodyParser from 'body-parser'
+import path from "path";
 import multer from 'multer'
+import bodyParser from 'body-parser'
+import loadJsonFile from "load-json-file";
 const infoDir = "./data/info";
 const dataDir = "./data";
+let __dirname = path.resolve(path.dirname(''));
 
 
 const getRecord = async (subject, record) => {
@@ -29,26 +30,25 @@ const routes = (express) => {
 
   router.use(bodyParser.json())
   router.get("/map", (req, res) =>
-    res.sendFile(path.join(__dirname, "/../dist", "/map.html"))
+    res.sendFile(path.join(__dirname, "/dist", "/map.html"))
   );
   router.get("/replay", (req, res) =>
-    res.sendFile(path.join(__dirname, "/../dist", "/replay.html"))
+    res.sendFile(path.join(__dirname, "/dist", "/replay.html"))
   );
   router.get("/cortstim", (req, res) =>
-    res.sendFile(path.join(__dirname, "/../dist", "/cortstim.html"))
+    res.sendFile(path.join(__dirname, "/dist", "/cortstim.html"))
   );
   router.get("/cceps", (req, res) =>
-    res.sendFile(path.join(__dirname, "/../dist", "/CCEPS.html"))
+    res.sendFile(path.join(__dirname, "/dist", "/CCEPS.html"))
   );
 
-  router.get("/api/CCEPS/:subject/:task/:data",  (req, res) => {
+  router.get("/api/CCEPS/:subject/:task/:data", (req, res) => {
     let subject = req.params.subject;
     let task = req.params.task;
     let data = req.params.data;
-    fs.readdir(dataDir,async (err, subjects) => {
+    fs.readdir(dataDir, async (err, subjects) => {
       if (subjects.indexOf(subject) > -1) {
         if (data == "img") {
-          console.log(data);
           if (fs.existsSync(`${dataDir}/${subject}/CCEPS/${subject}_${task}.jpg`)) {
             res.sendFile(`${subject}_${task}.jpg`, {
               root: `${dataDir}/${subject}/CCEPS`
@@ -83,36 +83,25 @@ const routes = (express) => {
   });
 
 
-  //3D brain
-  router.get("/3Dbrain/:subject", (req, res) => {
+
+
+  //List of records
+  router.get("/api/:subject/records/HG", (req, res) => {
     let subject = req.params.subject;
-    fs.readdir(infoDir, (err, subjects) => {
-      if (subjects.indexOf(subject) > -1) {
-        //Load the fbx file
-        if (fs.existsSync(`${infoDir}/${subject}/${subject}.fbx`)) {
-          console.log('here')
-          res.sendFile(`${subject}.fbx`, {
-            root: `${infoDir}/${subject}/`
-          });
-        }
-      } else {
-        console.log("subject not found");
-      }
+    let epDir = path.join(dataDir, subject, 'data', 'HG');
+    fs.readdir(epDir, (err, records) => {
+      let cleanRecords = records.map(f => f.split('.')[0])
+      res.status(200).json(cleanRecords)
     });
   });
 
-  //List of records
-  router.get("/api/:subject/records", (req, res) => {
+  router.get("/api/:subject/records/EP", (req, res) => {
     let subject = req.params.subject;
-    let subjectDir = path.join(dataDir, subject);
-    fs.readdir(subjectDir, (err, records) => {
-      let cleanRecords = records
-        .map(e => {
-          return path.parse(e).name;
-        })
-        .filter(f => f != ".metadata");
-      res.status(200).json(cleanRecords);
-    });
+    let epDir = path.join(dataDir, subject, 'data', 'EP');
+    fs.readdir(epDir, (err, records) => {
+      let cleanRecords = records.filter(e => path.extname(e) == '.json').map(f => f.split('.')[0])
+      res.status(200).json(cleanRecords)
+  });
   });
 
   //Record
@@ -141,7 +130,6 @@ const routes = (express) => {
       }
     })
   })
-  //Add subjects geometry to the database
   router.put("/api/:subject/geometry", (req, res) => {
     let returnObject = {}
     req.body.electrodeName.forEach((name, i) => {
@@ -150,16 +138,11 @@ const routes = (express) => {
     })
     fs.writeFile(`./data/${req.params.subject}/info/channels.json`, JSON.stringify(returnObject), (err) => console.log(err))
   });
-
-  //Add subjects geometry to the database
+  //Notes
   router.put("/api/:subject/notes", (req, res) => {
     console.log(req.body.note)
     fs.writeFile(`./data/${req.params.subject}/info/notes.txt`, req.body.note, (err) => console.log(err))
-
   });
-
-
-
   //Brain
   router.get("/api/:subject/brain", (req, res) => {
     let subject = req.params.subject;
@@ -176,7 +159,6 @@ const routes = (express) => {
       }
     });
   });
-
   router.post("/api/:subject/brain", (req, res) => {
     if (!fs.existsSync(`./data/${req.params.subject}/info`)) {
       fs.mkdirSync(`./data/${req.params.subject}`)
@@ -203,18 +185,27 @@ const routes = (express) => {
       }
     })
   })
+  //3D brain
+  router.get("/api/:subject/brain3D", (req, res) => {
+    let subject = req.params.subject;
+    fs.readdir(dataDir, (err, subjects) => {
+      if (subjects.indexOf(subject) > -1) {
+        //Load the fbx file
+        if (fs.existsSync(`${dataDir}/${subject}/info/reconstruction.fbx`)) {
+          res.sendFile(`reconstruction.fbx`, {
+            root: `${dataDir}/${subject}/info`
+          });
+        }
+      } else {
+        console.log("subject not found");
+      }
+    });
+  });
 
   router.post('/api/:subject/data/save', (req, res) => {
     console.log(req.body)
     fs.writeFile(`./data/${req.params.subject}/data/timeSeries.json`, JSON.stringify(req.body), (err) => console.log(err))
-
   })
-
-
-
-
-
-
 
   return router;
 };

@@ -1,11 +1,6 @@
-import graphqlHTTP from 'express-graphql';
-import graphql from 'graphql';
 import fs from 'fs-extra'
-
-import path from 'path'
-
-
-
+import graphql from 'graphql';
+import graphqlHTTP from 'express-graphql';
 
 
 export default express => {
@@ -71,28 +66,27 @@ export default express => {
                     image
                 }
             },
-            record: async (args) =>{
+            record: async (args) => {
                 let file = await fs.readJSON(`./data/${args.subj}/${args.rec}.json`)
                 let times = file.contents.times
                 let dataKeys = Object.keys(file.contents)
                 let dataMean;
-                if(dataKeys.includes('stats')){
+                if (dataKeys.includes('stats')) {
                     dataMean = file.contents.stats.estimators.mean;
                     let baselineMean = file.contents.stats.baseline.mean;
                     let baselineVar = file.contents.stats.baseline.variance;
                     Object.keys(dataMean).map((key, i) => {
                         dataMean[key] = dataMean[key].map(x => {
-                            return (x-baselineMean[key])/Math.sqrt(baselineVar[key])
+                            return (x - baselineMean[key]) / Math.sqrt(baselineVar[key])
                         })
                     })
                     fs.writeFile(`./data/PY19N006/data/values.json`, JSON.stringify(dataMean), (err) => console.log(err))
 
                 }
                 let values = file.contents.values
-                if(values != undefined) {
+                if (values != undefined) {
                     data = values
-                }
-                else if(dataMean != undefined){
+                } else if (dataMean != undefined) {
                     data = dataMean;
                 }
                 return {

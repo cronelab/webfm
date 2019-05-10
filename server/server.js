@@ -1,19 +1,13 @@
-// const express = require("express");
-import express from 'express'
+import express              from 'express'
+import webpack              from 'webpack'
+import routes               from './routes.js'
+import merge                from 'webpack-merge'
+import config               from '../webpack.config.js'
+import graphQlRoutes        from './graphqlRoute.js'
+import webpackDevMiddleware from 'webpack-dev-middleware'
+import webpackHotMiddleware from 'webpack-hot-middleware'
 const app = express();
-import routes from './routes.js'
-// routes(express)
-// const routes = require("./routes")(express);
-// const graphQlRoutes = require("./graphqlRoute")(express);
-import graphQlRoutes from './graphqlRoute.js'
-// graphQlRoutes
-import path from "path";
-import webpack from 'webpack'
-import config from '../webpack.config.js'
-import merge from 'webpack-merge'
 
-// const config = require("../webpack.config.js");
-// const merge = require("webpack-merge");
 let newConfig = merge(config, {
   plugins: [
     new webpack.optimize.OccurrenceOrderPlugin(),
@@ -28,8 +22,6 @@ app.use("/", routes(express));
 app.use("/", graphQlRoutes(express));
 
 
-import webpackDevMiddleware from 'webpack-dev-middleware'
-import webpackHotMiddleware from 'webpack-hot-middleware'
 
  if (process.env.NODE_ENV == "development") {
   const compiler = webpack(newConfig);
