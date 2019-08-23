@@ -4,21 +4,20 @@
   "description": "A web-based functional mapping utility.",
   "main": "server/server.js",
   "scripts": {
-    "start": "node --experimental-modules server/server.js"
+    "start": "nodemon --experimental-modules server/server.js"
   },
   "author": "Max Collard <collard@jhu.edu>",
   "license": "SEE LICENSE IN LICENSE.md",
   "type": "module",
   "dependencies": {
-    "async": "^2.1.4",
-    "asyncjs": "0.0.10",
-    "body-parser": "^1.15.2",
-    "ejs": "^2.5.1",
-    "express": "^4.14.0",
-    "formidable": "^1.0.17",
-    "jsonfile": "^2.4.0",
-    "node-base64-image": "^1.0.3",
-    "optimist": "^0.6.1",
-    "promise-polyfill": "^6.0.2"
+    "async": "3.1.0",
+    "asyncjs": "0.0.13",
+    "body-parser": "1.19.0",
+    "express": "4.17.1",
+    "formidable": "1.2.1",
+    "jsonfile": "5.0.0",
+    "load-json-file": "^6.2.0",
+    "node-base64-image": "1.0.6",
+    "promise-polyfill": "^8.1.3"
   }
 }
