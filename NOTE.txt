@@ -1,0 +1,4 @@
+The plan here is to create a new branch at negative 16 commits and slowly integrate webpack, and then React.
+Note: The public built file is probably further downstream than the src un-buit version, so any future builds will probably be missing that critical information.
+
+The plan after that is to either depoly using Azure pipelines or Git CI/CD. (Sign up for beta)

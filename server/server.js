@@ -1,71 +1,14 @@
-// ======================================================================== //
-//
-// webfm
-// The WebFM server.
-//
-// ======================================================================== //
 
+import fs from 'fs';
+import path from 'path';
+import express              from 'express'
+import formidable from  'formidable' ;
+import async       from 'async' ;
+import jsonfile    from 'jsonfile' ;
+import base64      from 'node-base64-image' ;
+import Promise from 'promise-polyfill' 
 
-// Requires
-
-var assets      = require( './assets' );
-
-var fs          = require( 'fs' );
-var path        = require( 'path' );
-
-var spawn       = require( 'child_process' ).spawn;
-
-var optimist    = require( 'optimist' )
-                    .usage( 'Web-based functional map server.\nUsage: $0' )
-                    .options( 'p', {
-                        alias: 'port',
-                        describe: 'TCP port to host server on',
-                        default: 54321
-                    } )
-                    .options( 'r', {
-                        alias: 'root',
-                        describe: 'Directory to use as web root',
-                        default: './public'
-                    } )
-                    .options( 'd', {
-                        alias: 'data',
-                        describe: 'Directory for data hive',
-                        default: './data'
-                    } )
-                    .options( 'u', {
-                        alias: 'uploads',
-                        describe: 'Directory for storing file uploads',
-                        default: './uploads'
-                    } )
-                    .options( 'a', {
-                        alias: 'app',
-                        describe: 'Directory for application scripts',
-                        default: './app'
-                    } )
-                    .options( 'h', {
-                        alias: 'help',
-                        describe: 'Show this help message',
-                        boolean: true,
-                        default: false
-                    } );
-var argv        = optimist.argv;
-
-if ( argv.help ) {
-    optimist.showHelp();
-    process.exit( 0 );
-}
-
-var express     = require( 'express' );
-var bodyParser  = require( 'body-parser' );
-var formidable  = require( 'formidable' );
-
-var async       = require( 'async' );
-
-var jsonfile    = require( 'jsonfile' );
-var base64      = require( 'node-base64-image' );
-
-// Promise compatibility
-var Promise = require( 'promise-polyfill' );
+// var bodyParser  = require( 'body-parser' );
 
 
 // Object.assign polyfill
@@ -96,17 +39,12 @@ if (typeof Object.assign != 'function') {
 }
 
 
-// Process argv
 
-var port        = argv.port;
+var rootDir     = path.resolve( './public');
+var dataDir     = path.resolve( './data');
+var uploadsDir  = path.resolve( './uploads' );
+var appDir      = path.resolve('./app');
 
-var rootDir     = path.resolve( argv.root );
-var dataDir     = path.resolve( argv.data );
-var uploadsDir  = path.resolve( argv.uploads );
-var appDir      = path.resolve( argv.app );
-
-
-// Set up server
 
 var app = express();
 
@@ -132,56 +70,39 @@ function rawBody( req, res, next ) {
 // TODO Iffy re. html pages?
 app.use( '/', express.static( rootDir ) );
 
-var serveConfig = function( configName ) {
-    return function( req, res ) {
-        // TODO Front-end config shouldn't be served from app source dir
+const serveConfig = configName => {
+    return ( req, res ) => {
         res.sendFile( path.join( appDir, 'config', configName ) );
     }
 }
 
 
-// Index routes
-
-var serveIndex = function( req, res ) {
-    res.sendFile( path.join( rootDir, 'index.html' ) );
-}
 
 app.get( '/index/config/online',  serveConfig( 'fmonline.json' ) );
 
-app.get( '/', serveIndex );
-app.get( '/index', serveIndex );
+app.get( '/', ( req, res ) => {
+    res.sendFile( path.join( rootDir, 'index.html' )  )
+});
 
-
-// Functional map routes
 
 var serveMap = function( req, res ) {
     res.sendFile( path.join( rootDir, 'map.html' ) );
 }
-
-// Live functional map routes
 
 var serveLive = function( req, res ) {
     res.sendFile( path.join( rootDir, 'live.html' ) );
 }
 
 
-// TODO Bad practice to have map.html just figure it out from path
-// Should use template engine. This is janky af.
-
 app.get( '/map/config/ui',      serveConfig( 'fmui.json' ) );
 app.get( '/map/config/online',  serveConfig( 'fmonline.json' ) );
 app.get( '/map/config/tasks',   serveConfig( 'tasks.json' ) );
-
 app.get( '/live/config/ui',      serveConfig( 'fmui.json' ) );
 app.get( '/live/config/online',  serveConfig( 'fmonline.json' ) );
 app.get( '/live/config/tasks',   serveConfig( 'tasks.json' ) );
 
-// Generator
 app.get( '/map', serveMap );
-app.get( '/map/generate', serveMap );
-
 app.get( '/live', serveLive );
-app.get( '/live/generate', serveLive);
 
 // Load
 app.get( '/map/:subject/:record', serveMap );
@@ -213,7 +134,7 @@ var dataPath = function( subject, record, dataset, kind ) {
     }
 }
 
-var getSubjectMetadata = function( subject, cb ) {
+const getSubjectMetadata = ( subject, cb ) => {
 
     var metaPath = path.join( dataDir, subject, metadataFilename );
 
@@ -229,29 +150,25 @@ var getSubjectMetadata = function( subject, cb ) {
 
 }
 
-var checkSubject = function( subject, cb ) {
+const checkSubject = ( subject, cb ) => {
     
-    var checkPath = path.join( dataDir, subject );
+    const checkPath = path.join( dataDir, subject );
 
-    fs.stat( checkPath, function( err, stats ) {
+    fs.stat( checkPath, ( err, stats ) => {
         if ( err ) {
-            // TODO We probably care about the details of the error, but
-            // for now let's assume it isn't a subject.
             cb( null, false );
             return;
         }
-        // Subject name should be a directory
-        // TODO Should check a little more? Maybe for members?
         cb( null, stats.isDirectory() );
     } );
 
 }
 
-var checkRecord = function( subject, record, cb ) {
+const checkRecord = ( subject, record, cb ) => {
 
-    var checker = function( checkPath, checkKind ) {
-        return function( innerCB ) {
-            fs.stat( checkPath, function( err, stats ) {
+    const checker = ( checkPath, checkKind ) => {
+        return ( innerCB ) => {
+            fs.stat( checkPath, ( err, stats ) => {
                 if ( err ) {
                     // We don't want to kick back an error, because that would
                     // short-circuit our parallel call
@@ -263,7 +180,7 @@ var checkRecord = function( subject, record, cb ) {
             } );
         }
     }
-
+    
     var checkOrder = {
         'map':      checker( path.join( dataDir, subject, record + mapExtension ), 'map' ),
         'bundle':   checker( path.join( dataDir, subject, record + bundleExtension ), 'bundle' )
@@ -292,42 +209,23 @@ var checkRecord = function( subject, record, cb ) {
         // Must be a map
         cb( null, 'map' );
     } );
-
 }
 
 // Get info on particular record.
-app.get( '/api/info/:subject/:record', function( req, res ) {
+app.get( '/api/info/:subject/:record', ( req, res ) => {
 
-    var errOut = function( code, msg ) {
-        console.log( msg );
-        res.status( code ).send( msg );
-    }
 
     var subject     = req.params.subject;
     var record      = req.params.record;
 
     // Check and see what kind of thing we are
-    checkRecord( subject, record, function( err, recordType ) {
-        if ( err ) {    // Couldn't determine for some reason
-            errOut( 500, "Couldn't determine record type: /" + subject + "/" + record );
-            return;
-        }
-
-        if ( recordType == 'none' ) {   // Not found
-            errOut( 404, "Record not found: /" + subject + "/" + record );
-            return;
-        }
-
+    checkRecord( subject, record, ( err, recordType ) => {
         var recordInfo = {
             'subject'   : subject,
             'record'    : record,
-            'isBundle'  : recordType == 'bundle',
             'uri'       : path.join( '/', 'api', 'data', subject, record )
         };
-
         res.json( recordInfo );
-
-        // TODO This should be exhaustive ... Right?
     } );
 
 } );
@@ -335,18 +233,10 @@ app.get( '/api/info/:subject/:record', function( req, res ) {
 // Get list of subjects
 app.get( '/api/list', function( req, res ) {
 
-    var errOut = function( code, msg ) {
-        console.log( msg );
-        res.status( code ).send( msg );
-    }
 
     // Get all members of the data directory
     fs.readdir( dataDir, function( err, entries ) {
 
-        if ( err ) {
-            errOut( 500, 'Could not read data directory contents: ' + JSON.stringify( err ) );
-            return;
-        }
 
         // Oh my god I'm currying.
         var checkerForEntry = function( entry ) {
@@ -355,36 +245,15 @@ app.get( '/api/list', function( req, res ) {
             };
         }
 
-        async.parallel( entries.map( checkerForEntry ), function( err, results ) {
-
-            if ( err ) {
-                // TODO This does die if an error is thrown, but checkSubject
-                // doesn't so we cool. Probably.
-                errOut( 500, 'Unable to obtain subject list: ' + JSON.stringify( err ) );
-                return;
-            }
-
-            // Pull out only the entries that passed checkSubject
-            var goodEntries = entries.filter( function( e, ie ) {
-                return results[ie];
-            } );
-
-            // It's away!
-            res.status( 200 ).json( goodEntries );
-
+        async.parallel( entries.map( checkerForEntry ), ( err, results ) => {
+            res.status( 200 ).json( entries.filter( ( e, ie ) => results[ie]) );
         } );
-
     } );
-
 } );
 
 // Get list of records for subject
 app.get( '/api/list/:subject', function( req, res ) {
 
-    var errOut = function( code, msg ) {
-        console.log( msg );
-        res.status( code ).send( msg );
-    }
 
     var subject     = req.params.subject;
     var subjectDir  = path.join( dataDir, subject );
@@ -392,41 +261,24 @@ app.get( '/api/list/:subject', function( req, res ) {
     // Get all members of the subject's directory
     fs.readdir( subjectDir, function( err, entries ) {
 
-        if ( err ) {
-            errOut( 500, 'Could not read data directory for subject ' + subject + ': ' + JSON.stringify( err ) );
-            return;
-        }
 
         // Curry +
-        var checkerForEntry = function( entry ) {
+        var checkerForEntry = ( entry ) => {
             // Record name should be before the '.'
             var record = entry.split( '.' )[0];
-            return function( cb ) {
+            return ( cb ) => {
                 checkRecord( subject, record, cb );
             };
         }
 
-        async.parallel( entries.map( checkerForEntry ), function( err, results ) {
-
-            if ( err ) {
-                // TODO This does die if an error is thrown, but checkSubject
-                // doesn't so we cool. Probably.
-                errOut( 500, 'Unable to obtain record list: ' + JSON.stringify( err ) );
-                return;
-            }
+        async.parallel( entries.map( checkerForEntry ), ( err, results ) => {
 
             // Pull out only the entries that passed checkSubject
-            var goodEntries = entries.filter( function( e, ie ) {
-                return !( results[ie] == 'none' );
-            } );
+            var goodEntries = entries.filter( ( e, ie ) => !( results[ie] == 'none' ));
 
             // Entries are filenames, so find out just their record names
-            var goodRecords = goodEntries.map( function( e ) {
-                return e.split( '.' )[0];
-            } );
-
             // It's away!
-            res.status( 200 ).json( goodRecords );
+            res.status( 200 ).json( goodEntries.map(e => e.split( '.' )[0]) );
 
         } );
 
@@ -437,81 +289,27 @@ app.get( '/api/list/:subject', function( req, res ) {
 // Get subject brain image data from .metadata
 app.get( '/api/brain/:subject', function( req, res ) {
 
-    var errOut = function( code, msg ) {
-        // TODO Special case cause 418s are huge; must fix
-        if ( code == 418 ) {
-            console.log( "I'm a teapot." );
-        } else {
-            console.log( msg );
-        }
-        res.status( code ).send( msg );
-    }
 
     var subject = req.params.subject;
 
     // First check if subject exists
     checkSubject( subject, function( err, isSubject ) {
-        
-        if ( err ) {
-            // Based on how checkSubject is defined, this shouldn't happen
-            errOut( 500, 'Error determining if ' + subject + ' is a subject: ' + JSON.stringify( err ) );
-            return;
-        }
-
-        if ( !isSubject ) {
-            // Not a subject
-            errOut( 404, 'Subject ' + subject + ' not found.' );
-            return;
-        }
 
         // We know it's a valid subject, so check if we've got metadata
-        getSubjectMetadata( subject, function( err, metadata ) {
-
-            if ( err ) {
-                // TODO Be more granular with error codes based on err
-                errOut( 500, 'Error loading metadata for ' + subject + ': ' + JSON.stringify( err ) );
-                return;
-            }
-
-            // We've got metadata, so check that we've got a brain image
-            if ( metadata.brainImage === undefined ) {
-                // TODO Better error code for this?
-                errOut( 418, assets.noBrainImage );
-                return;
-            }
-
+        getSubjectMetadata( subject, ( err, metadata ) => {
             res.status( 200 ).send( metadata.brainImage );
-
         } );
-
     } );
-
 } );
 
 // Put new brain image data into .metadata
 app.put( '/api/brain/:subject', function( req, res ) {
 
-    var errOut = function( code, msg ) {
-        console.log( msg );
-        res.status( code ).send( msg );
-    }
 
     var subject = req.params.subject;
 
     // First check if subject exists
     checkSubject( subject, function( err, isSubject ) {
-
-        if ( err ) {
-            // Based on how checkSubject is defined, this shouldn't happen
-            errOut( 500, 'Error determining if "' + subject + '" is a subject: ' + JSON.stringify( err ) );
-            return;
-        }
-
-        if ( !isSubject ) {
-            // Not a subject
-            errOut( 404, 'Subject "' + subject + '" not found.' );
-            return;
-        }
 
         // Next get the existing metadata
         getSubjectMetadata( subject, function( err, metadata ) {
@@ -542,12 +340,6 @@ app.put( '/api/brain/:subject', function( req, res ) {
                     local: true
                 }, function( err, imageData ) {
 
-                    if ( err ) {
-                        // Could not be serialized
-                        errOut( 500, 'Could not serialize uploaded image.' );
-                        return;
-                    }
-
                     // Generate the new metadata entry
                     var imageExtension = path.extname( file.name );
                     newMetadata.brainImage = 'data:image/' + imageExtension + ';base64,' + imageData;
@@ -556,21 +348,8 @@ app.put( '/api/brain/:subject', function( req, res ) {
                     var metadataPath = path.join( dataDir, subject, metadataFilename );
                     jsonfile.writeFile( metadataPath, newMetadata, function( err ) {
 
-                        if ( err ) {
-                            // Could not create record file
-                            errOut( 500, 'Could not update metadata for "' + subject + '": ' + JSON.stringify( err ) );
-                            return;
-                        }
-
-                        // We're going to delay sending success until the
-                        // form parser triggers an 'end' event.
-
-                        // TODO Good idea?
-
                     } );
-
                 } );
-
             } );
 
             form.on( 'error', function( err ) {
@@ -595,43 +374,13 @@ app.put( '/api/brain/:subject', function( req, res ) {
 // serialization / deserialization work ...
 app.get( '/api/geometry/:subject', function( req, res ) {
 
-    var errOut = function( code, msg ) {
-        console.log( msg );
-        res.status( code ).send( msg );
-    }
-
     var subject = req.params.subject;
 
     // First check if subject exists
     checkSubject( subject, function( err, isSubject ) {
         
-        if ( err ) {
-            // Based on how checkSubject is defined, this shouldn't happen
-            errOut( 500, 'Error determining if ' + subject + ' is a subject: ' + JSON.stringify( err ) );
-            return;
-        }
-
-        if ( !isSubject ) {
-            // Not a subject
-            errOut( 404, 'Subject ' + subject + ' not found.' );
-            return;
-        }
-
         // We know it's a valid subject, so check if we've got metadata
         getSubjectMetadata( subject, function( err, metadata ) {
-
-            if ( err ) {
-                // TODO Be more granular with error codes based on err
-                errOut( 500, 'Error loading metadata for ' + subject + ': ' + JSON.stringify( err ) );
-                return;
-            }
-
-            // We've got metadata, so check that we've got a brain image
-            if ( metadata.sensorGeometry === undefined ) {
-                // TODO Better error code for this?
-                errOut( 404, 'Sensor geometry not specified for subject ' + subject );
-                return;
-            }
 
             res.status( 200 ).send( metadata.sensorGeometry );
 
@@ -644,27 +393,11 @@ app.get( '/api/geometry/:subject', function( req, res ) {
 // Put new subject sensor geometry data into .metadata
 app.put( '/api/geometry/:subject', function( req, res ) {
 
-    var errOut = function( code, msg ) {
-        console.log( msg );
-        res.status( code ).send( msg );
-    }
-
     var subject = req.params.subject;
     
     // First check if subject exists
     checkSubject( subject, function( err, isSubject ) {
 
-        if ( err ) {
-            // Based on how checkSubject is defined, this shouldn't happen
-            errOut( 500, 'Error determining if ' + subject + ' is a subject: ' + JSON.stringify( err ) );
-            return;
-        }
-
-        if ( !isSubject ) {
-            // Not a subject
-            errOut( 404, 'Subject ' + subject + ' not found.' );
-            return;
-        }
 
         // Next attempt to get the old metadata
         getSubjectMetadata( subject, function( err, metadata ) {
@@ -770,15 +503,6 @@ app.put( '/api/geometry/:subject', function( req, res ) {
                 // Write the newly parsed geometry
                 newMetadata.sensorGeometry = newGeometry;
                 writeMetadata( newMetadata, cb );
-
-            };
-
-            var handleMATFile = function( filePath, cb ) {
-
-                // We need to throw it out to the system to deal with MAT files
-
-                // TODO
-                errOut( 400, 'MAT-files not yet supported.' );
 
             };
 
@@ -1217,60 +941,12 @@ app.put( '/api/data/:subject/:record', rawBody, function( req, res ) {
 } );
 
 
-// Computation api
-
-app.post( '/api/compute/identity', rawBody, function( req, res ) {
-
-    // Spawn a child process for the compute utility
-    var pyProcess = spawn( './compute/identity' );
-    var outData = '';
-
-    // Set up event handlers for the process
-    pyProcess.stdout.on( 'data', function( data ) {
-        outData += data;
-    } );
-    pyProcess.stdout.on( 'end', function() {
-        // Finished processing; send it!
-        res.status( 200 ).send( outData );
-    } );
-
-    // Start the process computing by passing it input
-    // TODO Don't need to actually parse
-    //pyProcess.stdin.write( JSON.stringify( req.body ) );
-    pyProcess.stdin.write( req.rawBody );
-    pyProcess.stdin.end();
-
-} );
-
-app.post( '/api/compute/hgfft', rawBody, function( req, res ) {
-
-    // Spawn a child process for the compute utility
-    var pyProcess = spawn( './compute/hgfft' );
-    var outData = '';
-
-    // Set up event handlers for the process
-    pyProcess.stdout.on( 'data', function( data ) {
-        outData += data;
-    } );
-    pyProcess.stdout.on( 'end', function() {
-        // Finished processing; send it!
-        res.status( 200 ).send( outData );
-    } );
-
-    // Start the process computing by passing it input
-    // TODO Don't need to actually parse
-    //pyProcess.stdin.write( JSON.stringify( req.body ) );
-    pyProcess.stdin.write( req.rawBody );
-    pyProcess.stdin.end();
-
-} );
-
 
 
 // GO!
 
-app.listen( argv.port, function() {
-    console.log( "Serving " + rootDir + " on " + argv.port + ":tcp" );
+app.listen( 8080, function() {
+    console.log( "Serving " + rootDir + " on " + 8080 + ":tcp" );
 } );
 
 

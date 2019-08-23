@@ -2,12 +2,13 @@
   "name": "webfm",
   "version": "1.0.0",
   "description": "A web-based functional mapping utility.",
-  "main": "webfm.js",
+  "main": "server/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node --experimental-modules server/server.js"
   },
   "author": "Max Collard <collard@jhu.edu>",
   "license": "SEE LICENSE IN LICENSE.md",
+  "type": "module",
   "dependencies": {
     "async": "^2.1.4",
     "asyncjs": "0.0.10",

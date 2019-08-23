@@ -8,7 +8,7 @@
 
 // REQUIRES
 
-var bci2k = require( '../lib/bci2k-dev' );
+var bci2k = require( 'bci2k' );
 
 require( 'setimmediate' );                      // Needed to fix promise
                                                 // polyfill on non-IE
