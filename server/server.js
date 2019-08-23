@@ -6,10 +6,35 @@ import async from 'async';
 import jsonfile from 'jsonfile';
 import base64 from 'node-base64-image';
 import routes from './routes.js'
+import config from '../webpack.config.js'
+import webpackDevMiddleware from 'webpack-dev-middleware'
+import webpackHotMiddleware from 'webpack-hot-middleware'
+import merge from 'webpack-merge'
+import webpack from 'webpack'
 
 const app = express();
-app.use("/", routes(express));
 
+let newConfig = merge(config, {
+    plugins: [
+        new webpack.optimize.OccurrenceOrderPlugin(),
+        new webpack.HotModuleReplacementPlugin(),
+        new webpack.NoEmitOnErrorsPlugin()
+    ]
+});
+
+
+
+if (process.env.NODE_ENV == "development") {
+    const compiler = webpack(newConfig);
+    app.use(webpackDevMiddleware(compiler, {
+        noInfo: true
+    }));
+    app.use(webpackHotMiddleware(compiler));
+} else {
+    app.use('/', express.static('./dist'));
+
+}
+app.use("/", routes(express));
 
 var rootDir = path.resolve('./public');
 var dataDir = path.resolve('./data');
@@ -28,10 +53,10 @@ function rawBody(req, res, next) {
     });
 }
 
-app.use('/', express.static(rootDir));
-app.get('/', (req, res) => {
-    res.sendFile(path.join(rootDir, 'index.html'))
-});
+// app.use('/', express.static(rootDir));
+// app.get('/', (req, res) => {
+//     res.sendFile(path.join(rootDir, 'index.html'))
+// });
 
 var mapExtension = '.fm';
 var metadataFilename = '.metadata';
