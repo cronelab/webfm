@@ -15,7 +15,8 @@ const module = {
     devtool: devMode ? "inline-source-map" : "source-map",
 
     entry: {
-        index: './app/index/main.js'
+        index: './app/index/main.js',
+        map: './app/map/main.js'
     },
     module: {
         rules: [{
@@ -24,6 +25,12 @@ const module = {
                 loader: 'babel-loader',
                 options: {
                     presets: ['@babel/preset-env'],
+                    plugins: [
+                        "@babel/plugin-syntax-dynamic-import",
+                        "@babel/plugin-transform-modules-commonjs",
+                        "@babel/plugin-transform-runtime",
+                        "@babel/plugin-proposal-class-properties",
+                    ],
                     cacheDirectory: true
                 }
             },
@@ -57,10 +64,17 @@ const module = {
             chunks: ['index'],
             title: 'WebFM'
         }),
-        new webpack.ProvidePlugin({
-            $: 'jquery',
-            jQuery: 'jquery'
-        })
+        new HtmlWebpackPlugin({
+            hash: true,
+            template: "./app/map/index.html",
+            filename: 'map.html',
+            chunks: ['map'],
+            title: 'WebFM'
+        }),
+        // new webpack.ProvidePlugin({
+        //     $: 'jquery',
+        //     jQuery: 'jquery'
+        // })
     ],
 
     output: {
