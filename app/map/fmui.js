@@ -1,406 +1,313 @@
-// =
-//
-// fmui
-// User interface manager for WebFM
-//
-// =
+var Cookies = require('js-cookie');
+var cronelib = require('../lib/cronelib');
+var fullscreen = require('../lib/fullscreen');
+import fmbrain from './fmbrain';
+import fmraster from './fmraster';
+var fmscope = require('./fmscope');
 
 
-// REQUIRES
+class fmui {
+    constructor() {
 
-var $           = require( 'jquery' );
-var d3          = require( 'd3' );
+        var manager = this;
 
-var Cookies     = require( 'js-cookie' );
+        this.config = {};
 
-// Hacky as Hell way to get browserify to work
-window.$ = window.jQuery = $;   // Bootstrap needs $ in global namespace
-require( 'bootstrap' );
-$.noConflict( true );           // Clean up global namespace afterwards
+        this.icons = [
+            'transfer',
+            'working'
+        ];
 
-require( 'setimmediate' );                          // Needed to fix promise
-                                                    // polyfill on non-IE
-var Promise     = require( 'promise-polyfill' );    // Needed for IE Promise
-                                                    // support
+        this.allChannels = []; // TODO Can avoid?
 
-var cronelib    = require( '../lib/cronelib' );
-var fullscreen  = require( '../lib/fullscreen' );
+        // Allocate members
 
-var fmbrain     = require( './fmbrain' );
-var fmraster    = require( './fmraster' );
-var fmscope     = require( './fmscope' );
+        this.raster = new fmraster('#fm');
+        this.brain = new fmbrain('#fm-brain');
+        this.scope = new fmscope.ChannelScope('#fm-scope');
 
+        // Event hooks
 
-// GLOBALS
+        this.raster.onselectchannel = function (newChannel) {
+            manager.brain.setSelectedChannel(newChannel);
+        };
 
-var ENTER_KEY   = 13;   // TODO Should probably go in config
+        // Events
 
+        this.onoptionchange = function (option, newValue) {};
 
-// MODULE OBJECT
+        this.onsave = function (saveName) {};
 
-var fmui = {};
-
-
-// MAIN CLASS
-
-fmui.InterfaceManager = function() {
-
-    var manager = this;
-
-    this.config = {};
-
-    this.icons = [
-        'transfer',
-        'working'
-    ];
-
-    this.allChannels = [];  // TODO Can avoid?
-
-    // Allocate members
-
-    this.raster = new fmraster.ChannelRaster( '#fm' );
-    this.brain = new fmbrain.BrainVisualizer( '#fm-brain' );
-    this.scope = new fmscope.ChannelScope( '#fm-scope' );
-
-    // Event hooks
-
-    this.raster.onselectchannel = function( newChannel ) {
-        manager.brain.setSelectedChannel( newChannel );
     };
 
-    // Events
+    async loadConfig(configURI) {
 
-    this.onoptionchange = function( option, newValue ) {};
+        var manager = this;
 
-    this.onsave = function( saveName ) {};
+        let request = await fetch(configURI)
+        let data = await request.json()
+        manager.config = data;
+        manager.setup();
+    }
 
-};
 
-fmui.InterfaceManager.prototype = {
+    _syncRasterConfig() {
+        this.raster.setRowHeight(this.getRowHeight());
+        this.raster.setExtent(this.getRasterExtent());
+    }
 
-    constructor: fmui.InterfaceManager,
+    _mergeDefaultConfig(config) {
 
-    loadConfig: function( configURI ) {
-        
-        var manager = this;     // Cache this for nested functions
-
-        // Wrap $.getJSON in a standard Promise
-        return new Promise( function( resolve, reject ) {
-            $.getJSON( configURI )
-                .done( resolve )
-                .fail( function( req, reason, err ) {
-                    // TODO Get error message from jquery object
-                    reject( 'Could not load UI config from ' + configURI + ' : ' + reason );
-                } );
-        } ).then( function( data ) {
-            manager.config = data;
-            manager.setup();
-        } );
-
-    },
-
-    _syncRasterConfig: function() {
-        this.raster.setRowHeight( this.getRowHeight() );
-        this.raster.setExtent( this.getRasterExtent() );
-    },
-
-    _mergeDefaultConfig: function( config ) {
-    
         // Copy over any extras that might not be merged here
         var mergedConfig = config;
 
         // For required config items, specify a default if nothing is provided
-        mergedConfig.rowHeight              = config.rowHeight              || 5;
-        mergedConfig.maxRowHeight           = config.maxRowHeight           || 10;
-        mergedConfig.pxPerRowHeight         = config.pxPerRowHeight         || 5;
+        mergedConfig.rowHeight = config.rowHeight || 5;
+        mergedConfig.maxRowHeight = config.maxRowHeight || 10;
+        mergedConfig.pxPerRowHeight = config.pxPerRowHeight || 5;
 
-        mergedConfig.rasterExtent           = config.rasterExtent           || 5;
-        mergedConfig.maxRasterExtent        = config.maxRasterExtent        || 10;
-        mergedConfig.unitsPerRasterExtent   = config.unitsPerRasterExtent   || 1;
+        mergedConfig.rasterExtent = config.rasterExtent || 5;
+        mergedConfig.maxRasterExtent = config.maxRasterExtent || 10;
+        mergedConfig.unitsPerRasterExtent = config.unitsPerRasterExtent || 1;
 
-        mergedConfig.iconShowDuration       = config.iconShowDuration       || 100;
-        mergedConfig.iconHideDelay          = config.iconHideDelay          || 1000;
-        mergedConfig.iconHideDuration       = config.iconHideDuration       || 100;
+        mergedConfig.iconShowDuration = config.iconShowDuration || 100;
+        mergedConfig.iconHideDelay = config.iconHideDelay || 1000;
+        mergedConfig.iconHideDuration = config.iconHideDuration || 100;
 
-        mergedConfig.fmMargin = config.fmMargin || { 'left': 0, 'right': 0, 'top': 0, 'bottom': 0 };
+        mergedConfig.fmMargin = config.fmMargin || {
+            'left': 0,
+            'right': 0,
+            'top': 0,
+            'bottom': 0
+        };
 
         mergedConfig.chartDebounceDelay = config.chartDebounceDelay || 100;
 
         return mergedConfig;
-        
-    },
 
-    setup: function() {
+    }
 
+    setup() {
         var manager = this; // Capture this
-
         // Incorporate the defaults with whatever we've loaded
-        this.config = this._mergeDefaultConfig( this.config );
-
+        this.config = this._mergeDefaultConfig(this.config);
         this.rewireButtons();
         this.rewireForms();
-
-        this.icons.forEach( function( icon ) {
-            manager.hideIcon( icon );
-        } );
-
-        
-        this.raster.setup();    // TODO Always will fail for charts until
-                                // data arrives; necessary?
-
-        //this.scope.setup();
-
-        // Populate options with the current cookie-set values
-        this._populateOptions( this.getOptions() );
-        
+        this.icons.forEach(function (icon) {
+            manager.hideIcon(icon);
+        });
+        this.raster.setup(); // TODO Always will fail for charts until
+        this._populateOptions(this.getOptions());
         this._syncRasterConfig();
+    }
 
-    },
-
-    /*
-    updateRecordDetails: function( subject, record ) {
-
-        // Use straight href for back button
-        $( '.fm-back' ).attr( 'href', '/#' + subject );
-
-        // TODO ...
-
-    },
-    */
-
-    rewireButtons: function() {
+    rewireButtons() {
 
         var manager = this;
-
-        $( '.fm-zoom-in' ).on( 'click', function( event ) {
+        document.getElementsByClassName('fm-zoom-in')[0].onclick = function (event) {
             event.preventDefault();
-            if ( $( this ).hasClass( 'disabled' ) ) { return; }
-            manager.zoomIn( event );
-        } );
-        $( '.fm-zoom-out' ).on( 'click', function( event ) {
+            if (event.target.classList.contains('disabled')) {
+                return;
+            }
+            manager.zoomIn(event);
+        };
+        document.getElementsByClassName('fm-zoom-out')[0].onclick = function (event) {
             event.preventDefault();
-            if ( $( this ).hasClass( 'disabled' ) ) { return; }
-            manager.zoomOut( event );
-        } );
-        $( '.fm-gain-up' ).on( 'click', function( event ) {
+            if (event.target.classList.contains('disabled')) {
+                return;
+            }
+            manager.zoomOut(event);
+        };
+        document.getElementsByClassName('fm-gain-up')[0].onclick = function (event) {
             event.preventDefault();
-            if ( $( this ).hasClass( 'disabled' ) ) { return; }
-            manager.gainUp( event );
-        } );
-        $( '.fm-gain-down' ).on( 'click', function( event ) {
+            if (event.target.classList.contains('disabled')) {
+                return;
+            }
+            manager.gainUp(event);
+        };
+        document.getElementsByClassName('fm-gain-down')[0].onclick = function (event) {
             event.preventDefault();
-            if ( $( this ).hasClass( 'disabled' ) ) { return; }
-            manager.gainDown( event );
-        } );
-
-        $( '.fm-toggle-fullscreen' ).on( 'click', function( event ) {
-            event.preventDefault();
-            manager.toggleFullscreen( event );
-        } );
-
-        $( '.fm-show-options' ).on( 'click', function( event ) {
-            event.preventDefault();
-            manager.showOptions( event );
-        } );
-        $( '.fm-options-tab-list a' ).on( 'click', function( event ) {
-            event.preventDefault();
-            manager.showOptionsTab( this, event );
-        } );
-
-        $( '.fm-save-cloud' ).on( 'click', function( event ) {
-            event.preventDefault();
-            // TODO Bad.
-            manager.onsave( $( '#fm-option-save-name' ).val() );
-        } );
-
-    },
-
-    rewireForms: function() {
-
-        var manager = this;     // Capture this
-
-        // TODO Use classes rather than ids?
-
-        // Modal dialog
-
-        $( '#fm-options-modal' ).on( 'hidden.bs.modal', function( event ) {
-            manager.optionsHidden( event );
-        } );
-
-        // Options page
-
-        var updateOptions = function( updater ) {
-            var options = manager.getOptions();
-            updater( options );
-            manager.setOptions( options );
+            if (event.target.classList.contains('disabled')) {
+                return;
+            }
+            manager.gainDown(event);
         };
 
-        // TODO Manually handling radio because my markup is dumb
-        $( '#fm-option-stim-timing-state' ).on( 'click', function( event ) {
-            $( '#fm-option-stim-timing-state' ).prop( 'checked', true );
-            $( '#fm-option-stim-timing-signal' ).prop( 'checked', false );
+        document.getElementsByClassName('fm-toggle-fullscreen')[0].onclick = function (event) {
+            event.preventDefault();
+            manager.toggleFullscreen(event);
+        };
 
-            updateOptions( function( options ) {
+        document.getElementsByClassName('fm-show-options')[0].onclick = function (event) {
+            event.preventDefault();
+            manager.showOptions(event);
+        };
+        document.getElementsByClassName('fm-options-tab-list')[0].onclick = function (event) {
+            event.preventDefault();
+            manager.showOptionsTab(this, event);
+        };
+
+        document.getElementsByClassName('fm-save-cloud')[0].onclick = function (event) {
+            event.preventDefault();
+            manager.onsave(document.getElementById('fm-option-save-name').value);
+        };
+
+    }
+
+    rewireForms() {
+        var manager = this; // Capture this
+        // document.getElementById('fm-options-modal').on('hidden.bs.modal', function (event) {
+        //     manager.optionsHidden(event);
+        // });
+        var updateOptions = function (updater) {
+            var options = manager.getOptions();
+            updater(options);
+            manager.setOptions(options);
+        };
+        document.getElementById('fm-option-stim-timing-state').onclick = function (event) {
+            document.getElementById('fm-option-stim-timing-state').prop('checked', true);
+            document.getElementById('fm-option-stim-timing-signal').prop('checked', false);
+            updateOptions(function (options) {
                 options.stimulus.timingStrategy = 'state';
-            } );
-            manager.onoptionchange( 'stim-timing', 'state' );
-        } );
-        $( '#fm-option-stim-timing-signal' ).on( 'click', function( event ) {
-            $( '#fm-option-stim-timing-state' ).prop( 'checked', false );
-            $( '#fm-option-stim-timing-signal' ).prop( 'checked', true );
+            });
+            manager.onoptionchange('stim-timing', 'state');
+        };
+        document.getElementById('fm-option-stim-timing-signal').onclick = function (event) {
+            document.getElementById('fm-option-stim-timing-state').prop('checked', false);
+            document.getElementById('fm-option-stim-timing-signal').prop('checked', true);
 
-            updateOptions( function( options ) {
+            updateOptions(function (options) {
                 options.stimulus.timingStrategy = 'signal';
-            } );
-            manager.onoptionchange( 'stim-timing', 'signal' );
-        } );
+            });
+            manager.onoptionchange('stim-timing', 'signal');
+        };
 
-        $( '#fm-option-stim-channel' ).on( 'change', function( event ) {
+        document.getElementById('fm-option-stim-channel').onchange = function (event) {
             var newValue = this.value;
-            updateOptions( function( options ) {
+            updateOptions(function (options) {
                 options.stimulus.signal.channel = newValue;
-            } );
-            manager.onoptionchange( 'stim-channel', newValue );
-        } );
-        $( '#fm-option-stim-off' ).on( 'change', function( event ) {
+            });
+            manager.onoptionchange('stim-channel', newValue);
+        };
+        document.getElementById('fm-option-stim-off').onchange = function (event) {
             var newValue = +this.value;
-            updateOptions( function( options ) {
+            updateOptions(function (options) {
                 options.stimulus.signal.offValue = newValue;
-            } );
-            manager.onoptionchange( 'stim-off', newValue );
-        } );
-        $( '#fm-option-stim-on' ).on( 'change', function( event ) {
+            });
+            manager.onoptionchange('stim-off', newValue);
+        };
+        document.getElementById('fm-option-stim-on').onchange = function (event) {
             var newValue = +this.value;
-            updateOptions( function( options ) {
+            updateOptions(function (options) {
                 options.stimulus.signal.onValue = newValue;
-            } );
-            manager.onoptionchange( 'stim-on', newValue );
-        } );
+            });
+            manager.onoptionchange('stim-on', newValue);
+        };
 
 
-        $ ( '#fm-option-nuke-cookies' ).on( 'click', function( event ) {
+        document.getElementById('fm-option-nuke-cookies').onclick = function (event) {
             manager.clearOptions();
             manager.clearExclusion();
-        } );
+        };
 
 
-        // Scope page
+        document.getElementById('fm-option-scope-channel').onchange = function (event) {
+            manager.updateScopeChannel(this.value);
+        };
 
-        $( '#fm-option-scope-channel' ).on( 'change', function ( event ) {
-            manager.updateScopeChannel( this.value );
-        } );
+        document.getElementById('fm-option-scope-min').onchange = function (event) {
+            manager.updateScopeMin((this.value == '') ? null : +this.value);
+        };
+        document.getElementById('fm-option-scope-max').onchange = function (event) {
+            manager.updateScopeMax((this.value == '') ? null : +this.value);
+        };
 
-        $( '#fm-option-scope-min' ).on( 'change', function ( event ) {
-            manager.updateScopeMin( ( this.value == '' ) ? null : +this.value );
-        } );
-        $( '#fm-option-scope-max' ).on( 'change', function ( event ) {
-            manager.updateScopeMax( ( this.value == '' ) ? null : +this.value );
-        } );
+    }
 
-    },
-
-    showIcon: function( iconName ) {
-        // If properties aren't set, use 0
-        // TODO Necessary? We guarantee merged defaults when loading ...
+    showIcon(iconName) {
         var showDuration = this.config.iconShowDuration || 0;
-        $( '.fm-' + iconName + '-icon' ).show( showDuration );
-    },
+        $('.fm-' + iconName + '-icon').show(showDuration);
+    }
 
-    hideIcon: function( iconName ) {
+    hideIcon(iconName) {
         // If properties aren't set, use 0
         // TODO As above.
         var hideDelay = this.config.iconHideDelay || 0;
         var hideDuration = this.config.iconHideDuration || 0;
 
-        setTimeout( function() {
-            $( '.fm-' + iconName + '-icon' ).hide( hideDuration );
-        }, hideDelay );
-    },
+        setTimeout(function () {
+            document.getElementsByClassName(`fm-${iconName}-icon`)[0].classList.add('d-none');
+        }, hideDelay);
+    }
 
-    updateRaster: function( guarantee ) {
+    updateRaster(guarantee) {
 
         var manager = this;
-
-        var updater = function() {
+        var updater = function () {
             manager.raster.update();
         };
-
-        if ( guarantee ) {
-            // Guarantee the update happens now
+        if (guarantee) {
             updater();
         } else {
-            // Debounce the update calls to prevent overload
-            cronelib.debounce( updater, this.config.rasterDebounceDelay, true )();
+            cronelib.debounce(updater, this.config.rasterDebounceDelay, true)();
         }
+    }
 
-    },
-
-    updateScope: function( guarantee ) {
-
+    updateScope(guarantee) {
         var manager = this;
-
-        var updater = function() {
+        var updater = function () {
             manager.scope.autoResize();
             manager.scope.update();
         };
-
-        if ( guarantee ) {
-            // Guarantee the update happens now
+        if (guarantee) {
             updater();
         } else {
-            // Debounce the update calls to prevent overload
-            cronelib.debounce( updater, this.config.scopeDebounceDelay, true )();
+            cronelib.debounce(updater, this.config.scopeDebounceDelay, true)();
         }
+    }
 
-    },
-
-    updateBrain: function() {
-
+    updateBrain() {
         var manager = this;
-
-        cronelib.debounce( function() {
+        cronelib.debounce(function () {
             manager.brain.autoResize();
             manager.brain.update();
-        }, this.config.brainDebounceDelay )();
+        }, this.config.brainDebounceDelay)();
 
-    },
+    }
 
-
-    /* Button handlers */
-
-    _updateZoomClasses: function() {
-        if ( this.config.rowHeight >= this.config.maxRowHeight ) {
-            $( '.fm-zoom-in' ).addClass( 'disabled' );
+    _updateZoomClasses() {
+        if (this.config.rowHeight >= this.config.maxRowHeight) {
+            document.getElementsByClassName('fm-zoom-in')[0].classList.add('disabled');
         } else {
-            $( '.fm-zoom-in' ).removeClass( 'disabled' );
+            document.getElementsByClassName('fm-zoom-in')[0].classList.remove('disabled');
         }
-        if ( this.config.rowHeight <= 1 ) {
-            $( '.fm-zoom-out' ).addClass( 'disabled' );
+        if (this.config.rowHeight <= 1) {
+            document.getElementsByClassName('fm-zoom-out')[0].classList.add('disabled');
         } else {
-            $( '.fm-zoom-out' ).removeClass( 'disabled' );
+            document.getElementsByClassName('fm-zoom-out')[0].classList.remove('disabled');
         }
-    },
+    }
 
-    _updateGainClasses: function() {
-        if ( this.config.rasterExtent >= this.config.maxRasterExtent ) {
-            $( '.fm-gain-down' ).addClass( 'disabled' );
+    _updateGainClasses() {
+        if (this.config.rasterExtent >= this.config.maxRasterExtent) {
+            document.getElementsByClassName('fm-gain-down')[0].classList.add('disabled');
         } else {
-            $( '.fm-gain-down' ).removeClass( 'disabled' );
+            document.getElementsByClassName('fm-gain-down')[0].classList.remove('disabled');
         }
-        if ( this.config.rasterExtent <= 1 ) {
-            $( '.fm-gain-up' ).addClass( 'disabled' );
+        if (this.config.rasterExtent <= 1) {
+            document.getElementsByClassName('fm-gain-up')[0].classList.add('disabled');
         } else {
-            $( '.fm-gain-up' ).removeClass( 'disabled' );
+            document.getElementsByClassName('fm-gain-up')[0].classList.remove('disabled');
         }
-    },
+    }
 
-    zoomIn: function( event ) {
+    zoomIn(event) {
 
         // Update UI-internal gain measure
         this.config.rowHeight = this.config.rowHeight + 1;
-        if ( this.config.rowHeight > this.config.maxRowHeight ) {
+        if (this.config.rowHeight > this.config.maxRowHeight) {
             this.config.rowHeight = this.config.maxRowHeight;
-            return;                         // Only update if we actually change
+            return; // Only update if we actually change
         }
 
         this._updateZoomClasses();
@@ -409,19 +316,19 @@ fmui.InterfaceManager.prototype = {
         // TODO Use row in middle of viewport, not fraction of scrolling
         var prevScrollFraction = this._getScrollFraction();
         // Alter raster parameters
-        this.raster.setRowHeight( this.getRowHeight() );
+        this.raster.setRowHeight(this.getRowHeight());
         // Redraw the raster with a guarantee
-        this.updateRaster( true );
+        this.updateRaster(true);
         //Restore the scroll state
-        $( document ).scrollTop( this._topForScrollFraction( prevScrollFraction ) );
+        $(document).scrollTop(this._topForScrollFraction(prevScrollFraction));
 
-    },
-    
-    zoomOut: function( event ) {
+    }
+
+    zoomOut(event) {
 
         // Update UI-internal gain measure
         this.config.rowHeight = this.config.rowHeight - 1;
-        if ( this.config.rowHeight < 1 ) {
+        if (this.config.rowHeight < 1) {
             this.config.rowHeight = 1;
             return;
         }
@@ -431,19 +338,19 @@ fmui.InterfaceManager.prototype = {
         // TODO Use row in middle of viewport, not fraction of scrolling
         var prevScrollFraction = this._getScrollFraction();
         // Alter raster parameters
-        this.raster.setRowHeight( this.getRowHeight() );
+        this.raster.setRowHeight(this.getRowHeight());
         // Redraw the raster with a guarantee
-        this.updateRaster( true );
+        this.updateRaster(true);
         // Restore the scroll state
-        $( document ).scrollTop( this._topForScrollFraction( prevScrollFraction ) );
+        $(document).scrollTop(this._topForScrollFraction(prevScrollFraction));
 
-    },
+    }
 
-    gainDown: function( event ) {
+    gainDown(event) {
 
         // Update UI-internal gain measure
         this.config.rasterExtent = this.config.rasterExtent + 1;
-        if ( this.config.rasterExtent > this.config.maxPlotExtent ) {
+        if (this.config.rasterExtent > this.config.maxPlotExtent) {
             this.config.rasterExtent = this.config.maxPlotExtent;
             return;
         }
@@ -451,77 +358,77 @@ fmui.InterfaceManager.prototype = {
         this._updateGainClasses();
 
         // Alter raster parameters
-        this.raster.setExtent( this.getRasterExtent() );
+        this.raster.setExtent(this.getRasterExtent());
 
         // Redraw the raster with a guarantee
-        this.updateRaster( true );
+        this.updateRaster(true);
 
-    },
+    }
 
-    gainUp: function( event ) {
+    gainUp(event) {
 
         // Update UI-internal gain measure
         this.config.rasterExtent = this.config.rasterExtent - 1;
-        if ( this.config.rasterExtent < 1 ) {
+        if (this.config.rasterExtent < 1) {
             this.config.rasterExtent = 1;
             return;
         }
         this._updateGainClasses();
 
         // Alter raster parameters
-        this.raster.setExtent( this.getRasterExtent() );
+        this.raster.setExtent(this.getRasterExtent());
 
         // Redraw the raster with a guarantee
-        this.updateRaster( true );
+        this.updateRaster(true);
 
-    },
+    }
 
-    _getScrollFraction: function() {
-        return $( window ).scrollTop() / ( $( document ).height() - $( window ).height() );
-    },
+    _getScrollFraction() {
+        return $(window).scrollTop() / ($(document).height() - $(window).height());
+    }
 
-    _topForScrollFraction: function( frac ) {
-        return frac * ( $( document ).height() - $( window ).height() );
-    },
+    _topForScrollFraction(frac) {
+        return frac * ($(document).height() - $(window).height());
+    }
 
-    toggleFullscreen: function( event ) {
+    toggleFullscreen(event) {
         fullscreen.toggle()
-                    .then( function( result ) {
-                        if ( fullscreen.is() ) {
-                            // TODO Change fullscreen button icon
-                        } else {
-                            // TODO
-                        }
-                    } )
-                    .catch( function( reason ) {
-                        console.log( 'Could not toggle fullscreen: ' + reason );
-                    } );
-    },
+            .then(function (result) {
+                if (fullscreen.is()) {
+                    // TODO Change fullscreen button icon
+                } else {
+                    // TODO
+                }
+            })
+            .catch(function (reason) {
+                console.log('Could not toggle fullscreen: ' + reason);
+            });
+    }
 
-    showOptions: function( event ) {
-        $( '#fm-options-modal' ).modal( 'show' );
-    },
+    showOptions(event) {
+        $('#fm-options-modal').modal('show');
+    }
 
-    optionsHidden: function( event ) {
+    optionsHidden(event) {
         this.scope.stop();
-    },
+    }
 
-    showOptionsTab: function( caller, event ) {
+    showOptionsTab(caller, event) {
 
         // Show the caller's tab
-        $( caller ).tab( 'show' );
+        $(caller).tab('show');
 
         // Deactivate the tab list
-        $( '.fm-options-tab-list .list-group-item' ).removeClass( 'active' );
+        document.getElementsByClassName('fm-options-tab-list .list-group-item')[0].classList.remove('active');
 
         // TODO Get Bootstrap events for tab show / hide to work
         // Selected tab is last word of hash
-        var selectedTab = caller.hash.split( '-' ).pop();
-        var scopeChannel = $( '#fm-option-scope-channel' ).val();
+        var selectedTab = caller.hash.split('-').pop();
+        var scopeChannel = document.getElementById('fm-option-scope-channel').value;
 
-        if ( selectedTab == 'scope' ) {
-            this.scope.setup();     // TODO Necessary?
-            this.scope.start( scopeChannel ? scopeChannel : undefined );
+        if (selectedTab == 'scope') {
+            this.scope.setup(); // TODO Necessary?
+            this.scope.start(scopeChannel ? scopeChannel : undefined);
         } else {
             this.scope.stop();
         }
@@ -529,192 +436,161 @@ fmui.InterfaceManager.prototype = {
         // Activate the caller
         // TODO Deactivation is with class behavior, but this is specific instance
         // Could cause de-synch behavior if multiple instances of class
-        $( caller ).addClass( 'active' );
+        $(caller).addClass('active');
 
-    },
+    }
 
-    setModalSize: function( size, event ) {
-
-        console.log( 'Changing size to ' + size );
-
-        if ( size == 'lg' ) {
-            $( '#fm-options-modal-dialog' ).removeClass( 'modal-sm' )
-                                            .addClass( 'modal-lg' );
+    setModalSize(size, event) {
+        console.log('Changing size to ' + size);
+        if (size == 'lg') {
+            document.getElementById('fm-options-modal-dialog').classList.remove('modal-sm')
+                .addClass('modal-lg');
             return;
         }
-
-        if ( size == 'sm' ) {
-            $( '#fm-options-modal-dialog' ).removeClass( 'modal-lg' )
-                                            .addClass( 'modal-sm' );
+        if (size == 'sm') {
+            document.getElementById('fm-options-modal-dialog').classList.remove('modal-lg')
+                .addClass('modal-sm');
             return;
         }
-
-        $( '#fm-options-modal-dialog' ).removeClass( 'modal-lg modal-sm' );
+        document.getElementById('fm-options-modal-dialog').classList.remove('modal-lg modal-sm');
         return;
-    },
+    }
 
-    updateScopeMin: function( newMin ) {
-        if ( isNaN( newMin ) ) {
+    updateScopeMin(newMin) {
+        if (isNaN(newMin)) {
             return;
         }
-        this.scope.setMinTarget( newMin );
-    },
+        this.scope.setMinTarget(newMin);
+    }
 
-    updateScopeMax: function( newMax ) {
-        if ( isNaN( newMax ) ) {
+    updateScopeMax(newMax) {
+        if (isNaN(newMax)) {
             return;
         }
-        this.scope.setMaxTarget( newMax );
-    },
+        this.scope.setMaxTarget(newMax);
+    }
 
-    updateScopeChannel: function( newChannel ) {
-        this.scope.start( newChannel );
-    },
+    updateScopeChannel(newChannel) {
+        this.scope.start(newChannel);
+    }
 
 
     /* GUI Update methods */
 
-    updateSubjectName: function( newSubjectName ) {
-        $( '.fm-subject-name' ).text( newSubjectName );
-        $( '.fm-back' ).attr( 'href', '/#' + newSubjectName );
-    },
+    updateSubjectName(newSubjectName) {
+        document.getElementsByClassName('fm-subject-name')[0].innerHTML = newSubjectName;
+        document.getElementsByClassName('fm-back')[0].setAttribute('href', `/#${newSubjectName}`);
+    }
 
-    updateTaskName: function( newTaskName ) {
-        $( '.fm-task-name' ).text( newTaskName );
-        $( '#fm-option-save-name' ).val( newTaskName );
-    },
+    updateTaskName(newTaskName) {
+        document.getElementsByClassName('fm-task-name')[0].innerHTML = newTaskName;
+        document.getElementById('fm-option-save-name').value = newTaskName;
+    }
 
-    updateSubjectRecords: function( newRecords ) {
+    updateSubjectRecords(newRecords) {
 
         // Clear list before populating it
-        $( '#fm-cloud-records-table' ).empty();
+        document.getElementById('fm-cloud-records-table').empty();
 
-        var addRecordCell = function( record ) {
-            // TODO Need to incorporate number of members for badge
-            // TODO Could fail if record is badly named
-
-            var outer = $( '<tr/>' );
-
-            var inner = $( '<td/>', {
+        var addRecordCell = function (record) {
+            var outer = $('<tr/>');
+            var inner = $('<td/>', {
                 text: record
-            } );
-
-            inner.appendTo( outer );
-            outer.appendTo( '#fm-cloud-records-table' );
-
+            });
+            inner.appendTo(outer);
+            outer.appendTo('#fm-cloud-records-table');
         };
 
-        newRecords.forEach( addRecordCell );
+        newRecords.forEach(addRecordCell);
 
-    },
+    }
 
-    // TODO nomenclature
-    updateSelectedTime: function( newTime ) {
-        $( '.fm-time-selected' ).text( ( newTime > 0 ? '+' : '' ) + newTime.toFixed( 3 ) + ' s' );
-    },
+    updateSelectedTime(newTime) {
+        document.getElementsByClassName('fm-time-selected')[0].innerHTML = (newTime > 0 ? '+' : '') + newTime.toFixed(3) + ' s';
+    }
 
-    _populateOptions: function( options ) {
-
-        // TODO We respond to option changes here; best time? Smarter way?
-
+    _populateOptions(options) {
         // Stimulus windows
-        $( '#fm-option-stim-trial-start' ).val( options.stimulus.window.start );
-        $( '#fm-option-stim-trial-end' ).val( options.stimulus.window.end );
-        $( '#fm-option-stim-baseline-start' ).val( options.stimulus.baselineWindow.start );
-        $( '#fm-option-stim-baseline-end' ).val( options.stimulus.baselineWindow.end );
+        document.getElementById('fm-option-stim-trial-start').value = options.stimulus.window.start
+        document.getElementById('fm-option-stim-trial-end').value = options.stimulus.window.end
+        document.getElementById('fm-option-stim-baseline-start').value = options.stimulus.baselineWindow.start
+        document.getElementById('fm-option-stim-baseline-end').value = options.stimulus.baselineWindow.end
 
         // Response windows
-        $( '#fm-option-resp-trial-start' ).val( options.response.window.start );
-        $( '#fm-option-resp-trial-end' ).val( options.response.window.end );
-        $( '#fm-option-resp-baseline-start' ).val( options.response.baselineWindow.start );
-        $( '#fm-option-resp-baseline-end' ).val( options.response.baselineWindow.end );
-        
-        // Timing strategy
-        $( '#fm-option-stim-timing-state' ).prop( 'checked', options.stimulus.timingStrategy == 'state' );
-        $( '#fm-option-stim-timing-signal' ).prop( 'checked', options.stimulus.timingStrategy == 'signal' );
-        this.onoptionchange( 'stim-timing', options.stimulus.timingStrategy );
+        document.getElementById('fm-option-resp-trial-start').value = options.response.window.start
+        document.getElementById('fm-option-resp-trial-end').value = options.response.window.end
+        document.getElementById('fm-option-resp-baseline-start').value = options.response.baselineWindow.start
+        document.getElementById('fm-option-resp-baseline-end').value = options.response.baselineWindow.end
+
+        // // Timing strategy
+        // document.getElementById('fm-option-stim-timing-state').prop('checked', options.stimulus.timingStrategy == 'state');
+        // document.getElementById('fm-option-stim-timing-signal').prop('checked', options.stimulus.timingStrategy == 'signal');
+        this.onoptionchange('stim-timing', options.stimulus.timingStrategy);
 
         // Stimulus thresholding
-        $( '#fm-option-stim-channel' ).val( options.stimulus.signal.channel );
-        this.onoptionchange( 'stim-channel', options.stimulus.signal.channel );
-        $( '#fm-option-stim-off' ).val( options.stimulus.signal.offValue );
-        this.onoptionchange( 'stim-off', options.stimulus.signal.offValue );
-        $( '#fm-option-stim-on' ).val( options.stimulus.signal.onValue );
-        this.onoptionchange( 'stim-on', options.stimulus.signal.onValue );
+        document.getElementById('fm-option-stim-channel').value = options.stimulus.signal.channel
+        this.onoptionchange('stim-channel', options.stimulus.signal.channel);
+        document.getElementById('fm-option-stim-off').value = options.stimulus.signal.offValue
+        this.onoptionchange('stim-off', options.stimulus.signal.offValue);
+        document.getElementById('fm-option-stim-on').value = options.stimulus.signal.onValue
+        this.onoptionchange('stim-on', options.stimulus.signal.onValue);
 
-        $( '#fm-option-stim-state' ).val( options.stimulus.state.name );
-        $( '#fm-option-stim-state-off' ).val( options.stimulus.state.offValue );
-        $( '#fm-option-stim-state-on' ).val( options.stimulus.state.onValue );
+        document.getElementById('fm-option-stim-state').vaue = options.stimulus.state.name;
+        document.getElementById('fm-option-stim-state-off').value = options.stimulus.state.offValue
+        document.getElementById('fm-option-stim-state-on').value = options.stimulus.state.onValue
 
         // Response thresholding
-        $( '#fm-option-resp-channel' ).val( options.response.signal.channel );
-        $( '#fm-option-resp-off' ).val( options.response.signal.offValue );
-        $( '#fm-option-resp-on' ).val( options.response.signal.onValue );
+        document.getElementById('fm-option-resp-channel').value = options.response.signal.channel
+        document.getElementById('fm-option-resp-off').value = options.response.signal.offValue
+        document.getElementById('fm-option-resp-on').value = options.response.signal.onValue
 
-        $( '#fm-option-resp-state' ).val( options.response.state.name );
-        $( '#fm-option-resp-state-off' ).val( options.response.state.offValue );
-        $( '#fm-option-resp-state-on' ).val( options.response.state.onValue );
+        document.getElementById('fm-option-resp-state').value = options.response.state.name
+        document.getElementById('fm-option-resp-state-off').value = options.response.state.offValue
+        document.getElementById('fm-option-resp-state-on').value = options.response.state.onValue
 
-    },
+    }
 
-    _populateMontageList: function( newChannelNames ) {
+    _populateMontageList(newChannelNames) {
+        // var manager = this;
+        // var exclusion = this.getExclusion();
+        // var montageBody = document.getElementsByClassName('fm-montage-table tbody')[0];
+        // montageBody.empty();
+        // newChannelNames.forEach(function (ch) {
+        //     var curRow = document.createElement('tr')
+        //     curRow.append($('<th scope="row" class="fm-montage-cell-channelname">' + ch + '</th>'));
+        //     var isExcludedText = exclusion[ch] ? 'Yes' : 'No';
+        //     curRow.append($('<td class="fm-montage-cell-isexcluded">' + isExcludedText + '</td>')); // TODO Check if excluded
+        //     if (exclusion[ch]) {
+        //         curRow.addClass('danger');
+        //     }
+        //     curRow.on('click', function (event) {
+        //         var selection = $(this);
+        //         var shouldExclude = !selection.hasClass('danger');
+        //         if (shouldExclude) {
+        //             manager.exclude(ch);
+        //         } else {
+        //             manager.unexclude(ch);
+        //         }
+        //         selection.toggleClass('danger');
+        //         $('.fm-montage-cell-isexcluded', this).text(shouldExclude ? 'Yes' : 'No');
+        //     });
+        //     montageBody.append(curRow);
+        // });
+    }
 
-        var manager = this;
-
-        var exclusion = this.getExclusion();
-
-        var montageBody = $( '.fm-montage-table tbody' );
-
-        // Clear out old montage
-        montageBody.empty();
-
-        // Build up new montage
-        // TODO Incorporate excluded channels
-        newChannelNames.forEach( function( ch ) {
-            var curRow = $( '<tr></tr>' );
-            curRow.append( $( '<th scope="row" class="fm-montage-cell-channelname">' + ch + '</th>' ) );
-            
-            var isExcludedText = exclusion[ch] ? 'Yes' : 'No';
-            curRow.append( $( '<td class="fm-montage-cell-isexcluded">' + isExcludedText + '</td>' ) );    // TODO Check if excluded
-
-            if ( exclusion[ch] ) {
-                curRow.addClass( 'danger' );
-            }
-
-            curRow.on( 'click', function( event ) {
-
-                var selection = $( this );
-                var shouldExclude = !selection.hasClass( 'danger' );
-
-                if ( shouldExclude ) {
-                    manager.exclude( ch );
-                } else {
-                    manager.unexclude( ch );
-                }
-
-                selection.toggleClass( 'danger' );
-                $( '.fm-montage-cell-isexcluded', this ).text( shouldExclude ? 'Yes' : 'No' );
-
-            } );
-
-            montageBody.append( curRow );
-        } );
-
-    },
-
-    getRasterExtent: function() {
+    getRasterExtent() {
         return this.config.rasterExtent * this.config.unitsPerRasterExtent;
-    },
+    }
 
-    getRowHeight: function() {
+    getRowHeight() {
         return this.config.rowHeight * this.config.pxPerRowHeight;
-    },
+    }
 
-    getOptions: function() {
+    getOptions() {
         // Get the set options
-        var options = Cookies.getJSON( 'options' );
+        var options = Cookies.getJSON('options');
 
-        if ( options === undefined ) {
+        if (options === undefined) {
             // Cookie isn't set, so generate default
             options = {};
 
@@ -725,177 +601,149 @@ fmui.InterfaceManager.prototype = {
             // Stimulus-based alignment config
 
             options.stimulus.window = {
-                start   : -1.0,
-                end     : 3.0
+                start: -1.0,
+                end: 3.0
             };
             options.stimulus.baselineWindow = {
-                start   : -1.0,
-                end     : -0.2
+                start: -1.0,
+                end: -0.2
             };
 
             options.stimulus.timingStrategy = 'state';
 
             options.stimulus.signal = {};
-            options.stimulus.signal.channel      = 'ainp1';
-            options.stimulus.signal.offValue     = 0;
-            options.stimulus.signal.onValue      = 1;
-            options.stimulus.signal.threshold    = 0.2;
+            options.stimulus.signal.channel = 'ainp1';
+            options.stimulus.signal.offValue = 0;
+            options.stimulus.signal.onValue = 1;
+            options.stimulus.signal.threshold = 0.2;
 
             options.stimulus.state = {};
-            options.stimulus.state.name          = 'StimulusCode';
-            options.stimulus.state.offValue      = 0;
-            options.stimulus.state.onValue       = 'x';
+            options.stimulus.state.name = 'StimulusCode';
+            options.stimulus.state.offValue = 0;
+            options.stimulus.state.onValue = 'x';
 
             // Response-based alignment config
 
             options.response = {};
             options.response.window = {
-                start   : -2.0,
-                end     : 2.0
+                start: -2.0,
+                end: 2.0
             };
             options.response.baselineWindow = {
-                start   : -2.0,
-                end     : -1.6
+                start: -2.0,
+                end: -1.6
             };
 
             options.response.timingStrategy = 'state';
 
             options.response.signal = {};
-            options.response.signal.channel      = 'ainp2';
-            options.response.signal.offValue     = 0;
-            options.response.signal.onValue      = 1;
-            options.response.signal.threshold    = 0.2;
+            options.response.signal.channel = 'ainp2';
+            options.response.signal.offValue = 0;
+            options.response.signal.onValue = 1;
+            options.response.signal.threshold = 0.2;
 
             options.response.state = {};
-            options.response.state.name          = 'RespCode';
-            options.response.state.offValue      = 0;
-            options.response.state.onValue       = 'x';
+            options.response.state.name = 'RespCode';
+            options.response.state.offValue = 0;
+            options.response.state.onValue = 'x';
 
             // Set the cookie so this doesn't happen again!
-            Cookies.set( 'options', options, {
+            Cookies.set('options', options, {
                 expires: this.config.cookieExpirationDays
-            } );
+            });
         }
 
         return options
-    },
+    }
 
-    setOptions: function( options ) {
-        Cookies.set( 'options', options, {
+    setOptions(options) {
+        Cookies.set('options', options, {
             expires: this.config.cookieExpirationDays
-        } );
-    },
+        });
+    }
 
-    clearOptions: function() {
-        Cookies.remove( 'options' );
+    clearOptions() {
+        Cookies.remove('options');
         this.getOptions();
-    },
+    }
 
-    getExclusion: function() {
+    getExclusion() {
         // Get the excluded channels
-        var exclusion = Cookies.getJSON( 'exclusion' );
+        var exclusion = Cookies.getJSON('exclusion');
 
-        if ( exclusion === undefined ) {
+        if (exclusion === undefined) {
             // Cookie is not set, so generate default
             exclusion = {};
             // ... and set it so this doesn't happen again!
-            Cookies.set( 'exclusion', exclusion, {
+            Cookies.set('exclusion', exclusion, {
                 expires: this.config.cookieExpirationDays
-            } );
+            });
         }
 
         return exclusion;
-    },
+    }
 
-    setExclusion: function( exclusion ) {
-        Cookies.set( 'exclusion', exclusion, {
+    setExclusion(exclusion) {
+        Cookies.set('exclusion', exclusion, {
             expires: this.config.cookieExpirationDays
-        } );
-    },
+        });
+    }
 
-    clearExclusion: function() {
-        Cookies.remove( 'exclusion' );
+    clearExclusion() {
+        Cookies.remove('exclusion');
         this.getExclusion();
-    },
+    }
 
-    exclude: function( channel ) {
+    exclude(channel) {
         // TODO Check if channel is in allChannels?
         var exclusion = this.getExclusion();
         exclusion[channel] = true;
-        this.setExclusion( exclusion );
+        this.setExclusion(exclusion);
 
         // Update raster display
-        this.raster.setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
-    },
+        this.raster.setDisplayOrder(this.allChannels.filter(this.channelFilter()));
+    }
 
-    unexclude: function( channel ) {
+    unexclude(channel) {
         // TODO Better behavior: Check if channel is in exclusion, then delete
         var exclusion = this.getExclusion();
         exclusion[channel] = false;
-        this.setExclusion( exclusion );
+        this.setExclusion(exclusion);
 
         // Update raster display
-        this.raster.setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
-    },
+        this.raster.setDisplayOrder(this.allChannels.filter(this.channelFilter()));
+    }
 
-    channelFilter: function() {
+    channelFilter() {
         var exclusion = this.getExclusion();
-        return function( ch ) {
-            if ( exclusion[ch] === undefined ) {
+        return function (ch) {
+            if (exclusion[ch] === undefined) {
                 return true;
             }
             return !exclusion[ch];
         };
-    },
-
-    updateChannelNames: function( newChannelNames ) {
-
-        // Update our state
+    }
+    updateChannelNames(newChannelNames) {
         this.allChannels = newChannelNames;
-
-        // Update the GUI with the complete channel list
-        this._populateMontageList( this.allChannels );
-
-        // Update the raster with the filtered channel list
-        // TODO Support different ordering, or just exclusion?
-        this.raster.setDisplayOrder( this.allChannels.filter( this.channelFilter() ) );
-
-    },
-
-    activateTrialCount: function() {
-        $( '.fm-trial-label' ).addClass( 'fm-trial-label-active' );
-    },
-
-    deactivateTrialCount: function() {
-        $( '.fm-trial-label' ).removeClass( 'fm-trial-label-active' );
-    },
-
-    updateTrialCount: function( newCount ) {
-        $( '.fm-trial-label' ).text( 'n = ' + newCount );
-    },
-
-    didResize: function() {
-
-        this.updateRaster();
-
-        this.updateScope();
-
-        //this.updateBrain();
-        this.brain.autoResize();
-
+        this._populateMontageList(this.allChannels);
+        this.raster.setDisplayOrder(this.allChannels.filter(this.channelFilter()));
     }
 
-    
-    /* Animation */
+    activateTrialCount() {
+        document.getElementsByClassName('fm-trial-label')[0].classList.add('fm-trial-label-active');
+    }
 
-    // TODO
-    
+    deactivateTrialCount() {
+        document.getElementsByClassName('fm-trial-label')[0].classList.remove('fm-trial-label-active');
+    }
+
+    updateTrialCount(newCount) {
+        document.getElementsByClassName('fm-trial-label')[0].innerHTML = 'n = ' + newCount;
+    }
+    didResize() {
+        this.updateRaster();
+        this.updateScope();
+        this.brain.autoResize();
+    }
 };
-
-
-// EXPORT MODULE
-
-module.exports = fmui;
-
-
-//
+export default fmui;

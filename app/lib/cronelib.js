@@ -1,165 +1,130 @@
-// ======================================================================== //
-//
-// cronelib
-// Miscellaneous utilities.
-//
-// ======================================================================== //
-
-
-// REQUIRES
-
-var $ = require( 'jquery' );
-
-// Promise compatibility
-require( 'setimmediate' );
-var Promise = require( 'promise-polyfill' );
-
-
-// MODULE OBJECT
-
 var cronelib = {};
 
 
-// METHODS
 
-// cronelib.promiseJSON
-// Wrap $.
-
-cronelib.promiseJSON = function( url ) {
-
-    return new Promise( function( resolve, reject ) {
-        $.getJSON( url )
-            .done( resolve )
-            .fail( function( req, reason, err ) {
-                // TODO Get more descriptive error from jquery result
-                reject( 'Could not get JSON from "' + configURI + '": ' + reason );
-            } );
-    } );
-
-}
 
 
 // cronelib.forEachAsync
 // Allows breaks in the computation to do other stuff
 
-cronelib.forEachAsync = function( arr, f, config ) {
+cronelib.forEachAsync = function (arr, f, config) {
 
     // TODO Find a better pattern
     var batchSize = 100;
-    var onbatch = function( i, n ) {};
+    var onbatch = function (i, n) {};
 
-    if ( config ) {
+    if (config) {
         batchSize = config.batchSize || batchSize;
         onbatch = config.onbatch || onbatch;
     }
 
-    return new Promise( function( resolve, reject ) {
+    return new Promise(function (resolve, reject) {
 
         // TODO Handle errors inside loop with reject
 
-        ( function worker( start ) {
+        (function worker(start) {
 
-            setTimeout( function() {
+            setTimeout(function () {
 
                 var nextStart = start + batchSize;
 
                 // Execute f on this block
-                for ( var i = start; i < nextStart; i++ ) {
-                    if ( i >= arr.length ) {
+                for (var i = start; i < nextStart; i++) {
+                    if (i >= arr.length) {
                         // We're done!
                         resolve();
                         return;
                     }
                     // We're not done, so do something
-                    f( arr[i], i, arr );
+                    f(arr[i], i, arr);
                 }
 
                 // Call our callback
-                onbatch( nextStart, arr.length );
+                onbatch(nextStart, arr.length);
 
                 // Move on to next block
-                worker( nextStart );
+                worker(nextStart);
 
-            }, 0 );
+            }, 0);
 
-        } )( 0 );
+        })(0);
 
-    } );
+    });
 
 };
 
-cronelib.reduceAsync = function( arr, f, a0, config ) {
-    
+cronelib.reduceAsync = function (arr, f, a0, config) {
+
     var initialValue = arr[0];
     var initialIndex = 1;
 
-    if ( a0 !== undefined ) {
+    if (a0 !== undefined) {
         initialValue = a0;
         initialIndex = 0;
     }
 
     // TODO Find a better pattern
     var batchSize = 100;
-    var onbatch = function( i, n ) {};
+    var onbatch = function (i, n) {};
 
-    if ( config ) {
+    if (config) {
         batchSize = config.batchSize || batchSize;
         onbatch = config.onbatch || batchSize;
     }
 
-    return new Promise( function( resolve, reject ) {
+    return new Promise(function (resolve, reject) {
 
         // TODO Handle errors inside loop with reject
 
-        ( function worker( start, acc ) {
+        (function worker(start, acc) {
 
-            setTimeout( function() {
+            setTimeout(function () {
 
                 var nextStart = start + batchSize;
 
                 // Execute f on this block
-                for ( var i = start; i < nextStart; i++ ) {
-                    if ( i >= arr.length ) {
+                for (var i = start; i < nextStart; i++) {
+                    if (i >= arr.length) {
                         // We're done!
-                        resolve( acc );
+                        resolve(acc);
                         return;
                     }
                     // We're not done, so do something
-                    acc = f( acc, arr[i], i, arr );
+                    acc = f(acc, arr[i], i, arr);
                 }
-                
+
                 // Call our callback
-                onbatch( nextStart, arr.length );
+                onbatch(nextStart, arr.length);
 
                 // Move on to next block
-                worker( nextStart, acc );
+                worker(nextStart, acc);
 
-            }, 0 );
+            }, 0);
 
-        } )( initialIndex, initialValue );
+        })(initialIndex, initialValue);
 
-    } );
+    });
 
 };
 
-cronelib.mapAsync = function( arr, f, config ) {
+cronelib.mapAsync = function (arr, f, config) {
     // TODO Inefficient?
-    return cronelib.reduceAsync( arr, function( acc, x, i,  xs ) {
-        acc.push( f( x, i, xs ) );
+    return cronelib.reduceAsync(arr, function (acc, x, i, xs) {
+        acc.push(f(x, i, xs));
         return acc;
-    }, [], config );
+    }, [], config);
 };
 
 
 // cronelib.parseQuery
 // Parses URL queries to objects
 
-cronelib.parseQuery = function( qstr ) {
+cronelib.parseQuery = function (qstr) {
     var query = {};
-    var a = qstr.substr( 1 ).split( '&' );
-    for( var i = 0; i < a.length; i++ ) {
-        var b = a[ i ].split( '=' );
-        query[ decodeURIComponent( b[0] ) ] = decodeURIComponent( b[1] || '' );
+    var a = qstr.substr(1).split('&');
+    for (var i = 0; i < a.length; i++) {
+        var b = a[i].split('=');
+        query[decodeURIComponent(b[0])] = decodeURIComponent(b[1] || '');
     }
     return query;
 }
@@ -167,14 +132,15 @@ cronelib.parseQuery = function( qstr ) {
 // cronelib.debounce_old
 // For, e.g., preventing excessive resize() calls
 
-cronelib.debounce_old = function( func , timeout ) {
-    var timeoutID , timeout = timeout || 200;
+cronelib.debounce_old = function (func, timeout) {
+    var timeoutID, timeout = timeout || 200;
     return function () {
-        var scope = this , args = arguments;
-        clearTimeout( timeoutID );
-        timeoutID = setTimeout( function () {
-            func.apply( scope , Array.prototype.slice.call( args ) );
-        } , timeout );
+        var scope = this,
+            args = arguments;
+        clearTimeout(timeoutID);
+        timeoutID = setTimeout(function () {
+            func.apply(scope, Array.prototype.slice.call(args));
+        }, timeout);
     }
 }
 
@@ -185,18 +151,19 @@ cronelib.debounce_old = function( func , timeout ) {
 // N milliseconds. If `immediate` is passed, trigger the function on the
 // leading edge, instead of the trailing.
 
-cronelib.debounce = function( func, wait, immediate ) {
+cronelib.debounce = function (func, wait, immediate) {
     var timeout;
-    return function() {
-        var context = this, args = arguments;
-        var later = function() {
+    return function () {
+        var context = this,
+            args = arguments;
+        var later = function () {
             timeout = null;
-            if ( !immediate ) func.apply( context, args );
+            if (!immediate) func.apply(context, args);
         };
         var callNow = immediate && !timeout;
-        clearTimeout( timeout );
-        timeout = setTimeout( later, wait );
-        if ( callNow ) func.apply( context, args );
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+        if (callNow) func.apply(context, args);
     };
 };
 

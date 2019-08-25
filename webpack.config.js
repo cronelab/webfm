@@ -71,10 +71,6 @@ const module = {
             chunks: ['map'],
             title: 'WebFM'
         }),
-        // new webpack.ProvidePlugin({
-        //     $: 'jquery',
-        //     jQuery: 'jquery'
-        // })
     ],
 
     output: {
