@@ -1,60 +1,41 @@
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
-
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <meta name="description" content="">
     <meta name="author" content="">
-
     <title>WebFM</title>
-
-    <!-- Styles -->
-    <!-- <link rel="stylesheet" type="text/css" href="css/index.css"> -->
-
 </head>
 
 <body>
-
-    <nav class="navbar navbar-inverse navbar-fixed-top">
+    <nav class="navbar navbar-inverse navbar-fixed-top justify-content-start navbar-expand">
         <div class="container">
             <div class="navbar-header">
-                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
-                    aria-expanded="false" aria-controls="navbar">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
                 <a class="navbar-brand" href="#">WebFM</a>
             </div>
         </div>
     </nav>
 
     <div class="container">
-
         <div class="row">
-
             <div class="col-md-3 col-sm-6">
-
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
                             Online <span class="pull-right"><a class="toggle-online-options"><span
-                                        class="glyphicon glyphicon-cog"></span></a></span>
+                                        class="fas fa-cog"></span></a></span>
                         </h3>
                     </div>
-                    <div id="online-options" class="panel-heading hidden">
+                    <div id="online-options" class="card-header d-none">
                         <div class="input-group">
                             <span class="input-group-addon" id="basic-addon1">Source</span>
                             <input id="source-address" type="text" class="form-control" placeholder="Address">
                             <span class="input-group-btn">
                                 <button id="source-address-ok" class="btn btn-default" type="button"><span
-                                        class="glyphicon glyphicon-ok"></span></button>
+                                        class="fas fa-check-square"></span></button>
                             </span>
                         </div><!-- /input-group -->
                     </div>
@@ -62,86 +43,72 @@
                         <li id="state-label" class="list-group-item text-center text-muted">
                             <strong>Not Connected</strong>
                         </li>
-                        <li id="info-label" class="list-group-item hidden">
+                        <li id="info-label" class="list-group-item d-none">
                             <span id="subject-label"></span><br />
                             <span id="task-label"></span>
                         </li>
                         <a id="map-button" class="list-group-item list-group-item-info disabled" href="/map/online">
-                            <span class="glyphicon glyphicon-map-marker"></span> <strong>Map it</strong>
+                            <span class="fas fa-map-marker"></span> <strong>Map it</strong>
                         </a>
                         <a id="live-button" class="list-group-item list-group-item-success disabled" href="/live">
-                            <span class="glyphicon glyphicon-facetime-video"></span> <strong>Go live</strong>
+                            <span class="fas fa-play"></span> <strong>Go live</strong>
                         </a>
                     </div>
-                    <!--
-          <div class="panel-body">
-            <button type="button" class="btn btn-primary btn-lg btn-block">
-              Map it!
-            </button>
-          </div>
-          -->
+
                 </div>
 
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
                             Subjects <span class="pull-right"><a class="toggle-new-subject"><span
-                                        class="glyphicon glyphicon-plus"></span></a></span>
+                                        class="fas fa-plus"></span></a></span>
                         </h3>
                     </div>
-                    <div id="new-subject-options" class="panel-heading hidden">
+                    <div id="new-subject-options" class="card-header d-none">
                         <div class="input-group">
                             <span class="input-group-addon" id="basic-addon1">ID</span>
                             <input id="new-subject-id" type="text" class="form-control" placeholder="PYXXNXXX">
                             <span class="input-group-btn">
                                 <button id="new-subject-ok" class="btn btn-default" type="button"><span
-                                        class="glyphicon glyphicon-ok"></span></button>
+                                        class="fas fa-check-square"></span></button>
                             </span>
                         </div><!-- /input-group -->
                     </div>
                     <ul id="subject-list" class="list-group">
-                        <!-- <a href="#" class="list-group-item">
-              <span class="badge">9</span>
-              PY16N006
-            </a> -->
                     </ul>
                 </div>
 
             </div>
 
-            <div class="col-md-5 hidden-sm hidden-xs">
+            <div class="col-md-5 d-none-sm d-none-xs">
                 <img id="main-brain" src="" class="img-thumbnail">
             </div>
 
             <div class="col-md-4 col-sm-6">
 
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">Metadata</h3>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Metadata</h3>
                     </div>
 
                     <ul class="list-group">
                         <li class="list-group-item">
                             Brain image <span class="pull-right"><a
                                     class="upload-brain-image toggle-online-options"><span
-                                        class="glyphicon glyphicon-cloud-upload"></span></a></span>
+                                        class="fas fa-upload"></span></a></span>
                         </li>
                         <li class="list-group-item">
-                            Sensor geometry <span class="pull-right"><a class="edit-sensor-geometry"><span
-                                        class="glyphicon glyphicon-pencil"></span></a>&emsp;<a
-                                    class="upload-sensor-geometry"><span
-                                        class="glyphicon glyphicon-cloud-upload"></span></a></span>
+                            Sensor geometry <span class="pull-right"><a class="upload-sensor-geometry"><span
+                                        class="fas fa-upload"></span></a></span>
                         </li>
                     </ul>
                 </div>
 
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">Records</h3>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Records</h3>
                     </div>
-
                     <ul id="record-list" class="list-group">
-                        <!-- <a href="#" class="list-group-item">PictureNaming</a> -->
                     </ul>
                 </div>
 

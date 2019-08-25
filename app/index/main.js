@@ -1,613 +1,251 @@
-// ======================================================================== //
-//
-// index/main
-// Main entry for WebFM dashboard (index.html).
-//
-// ======================================================================== //
-
-
-// REQUIRES
-
-var path = require('path');
-import $ from 'jquery'
-window.jQuery = $;
-window.$ = $;
+import path from 'path';
 import "bootstrap";
 import "./index.scss";
+import "@fortawesome/fontawesome-free/js/all";
+import BCI2K from "@cronelab/bci2k";
+import Cookies from 'js-cookie'
 
+let parameterRecheckDuration = 2000;
+let _bciConnection = null;
+let currentState = 'Not Connected';
+let watching = false;
+let config = null;
 
-var async = require('async');
-
-import bciwatch from './bciwatch'
-
-var Cookies = require('js-cookie');
-
-
-// INIT
-
-var knownSubjects = undefined;
-var subjectRecords = undefined;
-
-var apiPath = '/api';
-var configPath = '/index/config';
-
-var parameterRecheckDuration = 2000;
-
-// BCI2K state watch setup
-var bciWatcher = null;
-
-
-// HELPERS
-
-var removeNewlines = function (s) {
-    return s.replace(/(\r\n|\n|\r)/gm, '');
-};
-
-
-// MEAT
-
-// Handling configuration cookies
-
-var getSourceAddress = function () {
-
-    return new Promise(function (resolve, reject) {
-
-        var sourceAddress = Cookies.get('sourceAddress');
-
-        if (sourceAddress === undefined) {
-
-            var configURI = path.join(configPath, 'online');
-
-            $.getJSON(configURI)
-                .done(function (data) {
-                    // Set the cookie for the future, so we can get it directly
-                    Cookies.set('sourceAddress', data.sourceAddress);
-                    // Resolve to the value
-                    resolve(data.sourceAddress);
-                })
-                .fail(function (req, reason, err) {
-                    // TODO Get error message from jquery object
-                    reject('Could not load watcher config from ' + configURI + ' : ' + reason);
-                });
-
-        }
-
-        resolve(sourceAddress);
-
-    });
-
-};
-
-var setSourceAddress = function (newSourceAddress) {
-    Cookies.set('sourceAddress', newSourceAddress);
-};
-
-
-// Handling BCI2K
-
-var setupWatcher = function () {
-
-    bciWatcher = new bciwatch();
-
-    // Set up state change callback
-    bciWatcher.onstatechange = bciStateChange;
-
-    bciWatcher.loadConfig(path.join(configPath, 'online'))
-        .then(function () {
-            return getSourceAddress();
-        })
-        .then(function (localSourceAddress) {
-            return bciWatcher.connect(localSourceAddress);
-        })
-        .then(function (connectionEvent) {
-            bciWatcher.start();
-        })
-        .catch(function (reason) {
-            console.log('Could not set up BCI Watcher: ' + reason); // TODO Respond intelligently
-        });
-
-};
-
-// TODO
-var goLiveStates = ['Suspended', 'Running'];
-//var mapItStates     = [ 'Idle', 'Suspended', 'Running' ];
-var mapItStates = ['Running'];
-var infoStates = ['Suspended', 'Running'];
-
-// TODO Shouldn't have to edit JS to change look and feel ...
-// should use special-purpose CSS classes
-var stateClasses = {
+const _updateState = (newState) => {
+    if (currentState != newState) {
+        currentState = newState;
+        bciStateChange(currentState);
+    }
+}
+let goLiveStates = ['Suspended', 'Running'];
+let mapItStates = ['Running'];
+let infoStates = ['Suspended', 'Running'];
+let stateClasses = {
     'Not Connected': 'text-muted',
     'Idle': 'text-info',
     'Suspended': 'text-warning',
     'Running': 'text-success'
 };
 
-var clearTaskDetails = function () {
-    $('#subject-label').html('');
-};
-
-var getSubjectName = function () {
-
-    bciWatcher.getParameter('SubjectName')
-        .then(function (subjectName) {
-
-            if (subjectName.length == 0) {
-                // Parameter not set
-
-                $('#subject-label').html('<small>(No SubjectName set.)</small>');
-
-                // TODO The fact that there's this awkward magic number
-                // use suggests that this is a bad way to do this ...
-                setTimeout(function () {
-                    getSubjectName();
-                }, parameterRecheckDuration);
-
-                return;
-            }
-
-            $('#subject-label').html(subjectName);
-
-        })
-        .catch(function (reason) {
-
-            console.log(reason); // TODO Handle
-
-        });
-
-};
-
-var getTaskName = function () {
-
-    bciWatcher.getParameter('DataFile')
-        .then(function (data) {
-
-            if (data.length == 0) {
-                // Parameter not set
-
-                $('#task-label').html('<small>(No DataFile set.)</small>');
-
-                // TODO The fact that there's this awkward magic number
-                // use suggests that this is a bad way to do this ...
-                setTimeout(function () {
-                    getTaskName();
-                }, parameterRecheckDuration);
-
-                return;
-            }
-
-            // TODO Is this format universal?
-            var dataPathParts = data.split(path.sep);
-            var taskName = dataPathParts[1]; // i.e., subject/task/...
-
-            $('#task-label').html(taskName);
-
-        })
-        .catch(function (reason) {
-
-            console.log(reason); // TODO Handle
-
-        });
-
-};
-
-
-var bciStateChange = function (newState) {
-
-    // Update state label text
-    $('#state-label').html('<strong>' + newState + '<strong>');
-
-    // Set correct state class
-    $.map(stateClasses, function (v, k) {
-        if (newState == k) {
-            $('#state-label').addClass(v);
+let bciStateChange = newState => {
+    document.getElementById('state-label').innerHTML = '<strong>' + newState + '<strong>';
+    Object.keys(stateClasses).map(v => {
+        if (newState == v) {
+            document.getElementById('state-label').classList.add(stateClasses[v]);
             return;
         }
-        $('#state-label').removeClass(v);
-    });
+        document.getElementById('state-label').classList.remove(stateClasses[v]);
 
-    // Encourage mapping when appropriate
+    })
     if (mapItStates.indexOf(newState) >= 0) {
-        $('#map-button').removeClass('disabled');
+        document.getElementById('map-button').classList.add('disabled');
     } else {
-        $('#map-button').addClass('disabled');
+        document.getElementById('map-button').classList.remove('disabled');
     }
 
     if (goLiveStates.indexOf(newState) >= 0) {
-        $('#live-button').removeClass('disabled');
+        document.getElementById('live-button').classList.remove('disabled');
     } else {
-        $('#live-button').addClass('disabled');
+        document.getElementById('live-button').classList.add('disabled');
     }
 
-    // Attempt to get subject and task info if available
     if (infoStates.indexOf(newState) >= 0) {
-
-        $('#info-label').removeClass('hidden');
-
+        document.getElementById('info-label').classList.remove('d-none');
         getSubjectName();
-
         getTaskName();
-
     } else {
-
-        $('#info-label').addClass('hidden');
-
-        clearTaskDetails();
-
+        document.getElementById('info-label').classList.add('d-none');
+        document.getElementById('subject-label').innerHTML = '';
     }
-
 };
 
-
-// GUI Helpers
-
-var updateMainBrain = function (brainData) {
-    // We can directly add the base64 image data. Science!
-    $('#main-brain').attr('src', brainData);
-};
-
-var addRecordCell = function (subject, record) {
-    // TODO Need to incorporate number of members for badge
-    // TODO Could fail if record is badly named
-    $('<a/>', {
-        id: record,
-        href: path.join('/', 'map', subject, record),
-        class: 'list-group-item',
-        text: record
-    }).appendTo('#record-list');
-};
-// TODO Better way to curry?
-var recordCellAdderFor = function (subject) {
-    return function (record) {
-        addRecordCell(subject, record);
-    };
-};
-
-var addSubjectCell = function (subject) {
-
-    var cellClick = function () {
-        selectSubject(subject);
-    };
-
-    // TODO Need to incorporate number of members for badge
-    $('<a/>', {
-        id: subject,
-        href: '#' + subject,
-        class: 'list-group-item',
-        text: subject,
-        on: {
-            click: cellClick
+const _checkState = () => {
+    let tryLaterIfWatching = () => {
+        if (watching) {
+            setTimeout(() => _checkState(), config.checkStateInterval);
         }
-    }).appendTo('#subject-list');
+    };
 
-};
-
-var loadBrain = function (subject) {
-
-    var brainPath = path.join(apiPath, 'brain', subject);
-
-    $.get(brainPath)
-        .done(function (brainData) {
-
-            // Update the main brain image
-            updateMainBrain(removeNewlines(brainData));
-
-        })
-        .fail(function (req, status, err) {
-
-            console.log(err);
-
-            if (req.status == 418) { // I'm a teapot (subject exists, but not brain)
-
-                // On 418 we still get a brain back
-                var brainData = req.responseText;
-                updateMainBrain(removeNewlines(brainData));
-
-            }
-
-        });
-
-};
-
-
-// Main logic
-
-var clearRecords = function () {
-    $('#record-list').empty();
-}
-
-var loadRecords = function (subject) {
-
-    var listPath = path.join(apiPath, 'list', subject);
-
-    $.getJSON(listPath)
-        .done(function (records) {
-
-            // Ensure consistent ordering
-            records.sort();
-
-            // Update the DOM for the record list
-            records.forEach(recordCellAdderFor(subject));
-
-        })
-        .fail(function (req, textStatus, err) {
-
-            // TODO Handle errors
-            console.log(err);
-
-        });
-
-};
-
-var selectSubject = function (subject) {
-
-    // Deselect everyone
-    $('#subject-list').children().removeClass('active');
-
-    if (subject.length == 0) {
-        // Nothing we can do.
+    if (!_bciConnection.connected()) {
+        _updateState('Not Connected');
+        tryLaterIfWatching();
         return;
     }
 
-    // Re-select current
-    $('#' + subject).addClass('active');
+    _bciConnection.execute('Get System State', result => {
+        let newState = result.output.trim();
+        _updateState(newState);
+        tryLaterIfWatching();
+    });
+}
 
-    // Clear records for a clean slate
-    clearRecords();
+let setupWatcher = async () => {
+    _bciConnection = new BCI2K.bciOperator();
+    let configURIRes = await fetch('/index/config/online');
+    config = await configURIRes.json();
+    let localSourceAddress = Cookies.get('sourceAddress');
+    if (localSourceAddress === undefined) {
+        localSourceAddress = config.sourceAddress;
+    }
+    _bciConnection.connect(`ws://${localSourceAddress}`).then(event => {
+            _updateState('Connected');
+            watching = true;
+            setTimeout(() => _checkState(), 0);
+            return event;
+        })
+        .catch(reason => console.log('Could not set up BCI Watcher: ' + reason));
+};
 
-    // Load the records from the server API
+let getSubjectName = async () => {
+    let subjectName = await _bciConnection.execute('Get Parameter SubjectName');
+    if (subjectName.length == 0) {
+        document.getElementById('subject-label').innerHTML = '<small>(No SubjectName set.)</small>';
+        setTimeout(() => getSubjectName(), parameterRecheckDuration);
+        return;
+    }
+    document.getElementById('subject-label').innerHTML = subjectName;
+};
+
+let getTaskName = async () => {
+    let data = await _bciConnection.execute('Get Parameter DataFile');
+    if (data.length == 0) {
+        document.getElementById('task-label').innerHTML = '<small>(No DataFile set.)</small>';
+        setTimeout(() => getTaskName(), parameterRecheckDuration);
+        return;
+    }
+    let dataPathParts = data.split(path.sep);
+    let taskName = dataPathParts[1];
+    document.getElementById('task-label').innerHTML = taskName;
+};
+
+
+let addSubjectCell = subject => {
+    let newSubject = document.createElement('a');
+    newSubject.id = subject;
+    newSubject.href = `#${subject}`;
+    newSubject.classList.add('list-group-item');
+    newSubject.innerText = subject;
+    newSubject.onclick = () => selectSubject(subject);
+    document.getElementById('subject-list').append(newSubject);
+};
+
+let loadBrain = async subject => {
+    let brainPath = `/api/brain/${subject}`;
+    let response = await fetch(brainPath);
+    let brain = await response.text();
+    document.getElementById('main-brain').setAttribute('src', brain);
+    scroll(0, 0)
+};
+
+let loadRecords = async (subject) => {
+    let listPath = `/api/list/${subject}`;
+    let listPathRes = await fetch(listPath);
+    let records = await listPathRes.json();
+    records.sort();
+    records.forEach(record => {
+        let newRecord = document.createElement('a');
+        newRecord.id = record;
+        newRecord.href = `/map/${subject}/${record}`;
+        newRecord.classList.add('list-group-item');
+        newRecord.innerText = record;
+        document.getElementById('record-list').append(newRecord);
+    });
+    scroll(0, 0)
+
+};
+let selectSubject = (subject) => {
+    document.getElementById('subject-list').querySelectorAll('.active').forEach(e => {
+        e.classList.remove('active')
+    })
+    if (subject.length == 0) {
+        return;
+    }
+    document.getElementById(subject).classList.add('active');
+    let recordList = document.getElementById('record-list')
+    while (recordList.hasChildNodes()) {
+        recordList.removeChild(recordList.firstChild);
+    }
     loadRecords(subject);
-
-    // Load the brain image from the server API
     loadBrain(subject);
 
 };
 
-var loadSubjects = function () {
-
-    var listPath = path.join(apiPath, 'list');
-
-    $.getJSON(listPath)
-        .done(function (subjects) {
-
-            // Ensure consistent ordering
-            subjects.sort();
-
-            // Update the DOM for the subject list
-            subjects.forEach(addSubjectCell);
-
-            // Check for a hash
-            // TODO Only do this on load?
-            selectFromHash(window.location.hash);
-
-        })
-        .fail(function (req, textStatus, err) {
-
-            // TODO Handle errors
-            console.log(err);
-
-        });
-
-};
-
-var selectFromHash = function (hash) {
-
-    // window.location.hash has a '#' at the front, so clip it
-    var hashSubject = hash.slice(1);
-
+let loadSubjects = async () => {
+    let listPath = `/api/list`;
+    let listPathRes = await fetch(listPath);
+    let subjects = await listPathRes.json()
+    subjects.sort();
+    subjects.forEach(addSubjectCell);
+    let hashSubject = window.location.hash.slice(1);
     selectSubject(hashSubject);
-
 };
 
-
-var setupOnlineOptions = function () {
-
-    // Setup form values
-    getSourceAddress()
-        .then(function (sourceAddress) {
-            $('#source-address').val(sourceAddress);
-        })
-        .catch(function (reason) {
-            console.log('Could not get source address for display: ' + reason);
-        });
-
-};
-
-
-// TODO Duplication
-
-var showOnlineOptions = function () {
-    $('#online-options').removeClass('hidden');
-};
-var hideOnlineOptions = function () {
-    $('#online-options').addClass('hidden');
-};
-var toggleOnlineOptions = function () {
-    if ($('#online-options').hasClass('hidden')) {
-        showOnlineOptions();
+document.getElementsByClassName('toggle-online-options')[0].onclick = () => {
+    if (document.getElementById('online-options').classList.contains('d-none')) {
+        document.getElementById('online-options').classList.remove('d-none');
     } else {
-        hideOnlineOptions();
+        document.getElementById('online-options').classList.add('d-none')
     }
 };
-
-var showNewSubject = function () {
-    $('#new-subject-options').removeClass('hidden');
-};
-var hideNewSubject = function () {
-    $('#new-subject-options').addClass('hidden');
-};
-var toggleNewSubject = function () {
-    if ($('#new-subject-options').hasClass('hidden')) {
-        showNewSubject();
+document.getElementsByClassName('toggle-new-subject')[0].onclick = () => {
+    if (document.getElementById('new-subject-options').classList.contains('d-none')) {
+        document.getElementById('new-subject-options').classList.remove('d-none');
     } else {
-        hideNewSubject();
+        document.getElementById('new-subject-options').classList.add('d-none');
     }
 };
 
 
-var updateSourceAddress = function (newSourceAddress) {
-    // Update cookie with new value
-    setSourceAddress(newSourceAddress);
-    // Reset our connection
-    bciWatcher.watching = false;
+document.getElementById('source-address-ok').onclick = () => {
+    let newSourceAddress = document.getElementById('source-address').value;
+    Cookies.set('sourceAddress', newSourceAddress);
+    watching = false;
     setupWatcher();
-};
-
-var addSubject = function (subjectId) {
-    // Make call 
-    $.ajax({
-        url: path.join(apiPath, 'data', subjectId),
-        method: 'PUT'
-    }).done(function (data, status, xhr) {
-        console.log(status);
-        console.log(data);
-    }).fail(function (xhr, status, err) {
-        console.log(status);
-        console.log(xhr.responseText);
-    });
-};
-
-
-$('#source-address-ok').on('click', function () {
-    // Get new value from form
-    var newSourceAddress = $('#source-address').val();
-    updateSourceAddress(newSourceAddress);
-    // 
     hideOnlineOptions();
-});
+};
 
-$('.toggle-online-options').on('click', function () {
-    toggleOnlineOptions();
-});
-
-$('#new-subject-ok').on('click', function () {
-    var newSubjectId = $('#new-subject-id').val();
-    addSubject(newSubjectId);
-});
-
-$('.toggle-new-subject').on('click', function () {
-    toggleNewSubject();
-});
+document.getElementById('new-subject-ok').onclick = () => {
+    let newSubjectId = document.getElementById('new-subject-id').value;
+    fetch(`/api/data/${newSubjectId}`, {
+        method: 'PUT'
+    }).then(response => {
+        addSubjectCell(newSubjectId);
+        selectSubject(newSubjectId)
+        location.href = `#${newSubjectId}`
+    })
+};
 
 
-$('.upload-sensor-geometry').on('click', function () {
 
-    // Trigger the file uploader element
-    $('#upload-sensor-geometry-input').click();
+document.getElementsByClassName('upload-sensor-geometry')[0].onclick = () => document.getElementById('upload-sensor-geometry-input').click();
+document.getElementById('upload-sensor-geometry-input').onchange = async e => {
+    let file = e.target.files[0];
+    let subject = window.location.hash.slice(1);
+    let formData = new FormData();
 
-    // TODO GUI Changes
+    formData.append('sensorGeometry', file, file.name);
 
-});
+    await fetch(`/api/geometry/${subject}`, {
+        method: 'PUT',
+        body: formData
+    })
+};
 
-$('#upload-sensor-geometry-input').on('change', function () {
+document.getElementsByClassName('upload-brain-image')[0].onclick = () => document.getElementById('upload-brain-image-input').click();
+document.getElementById('upload-brain-image-input').onchange = async e => {
+    let file = e.target.files[0];
+    let subject = window.location.hash.slice(1);
+    let formData = new FormData();
+    formData.append('brainImage', file, file.name);
 
-    console.log('PUTTING GEOMETRY');
+    let request = await fetch(`/api/brain/${subject}`, {
+        method: 'PUT',
+        body: formData
+    })
+    selectSubject(subject)
+};
 
-    var files = $(this).get(0).files;
-
-    // TODO This will fail in certain obvious cases; should be caching a
-    // current subject state variable
-    var subject = window.location.hash.slice(1);
-
-    if (files.length > 0) {
-
-        var file = files[0];
-
-        // FormData carries the payload for our PUT request
-        var formData = new FormData();
-
-        // We only care about the first file
-        // TODO Get name from jquery element somehow?
-        formData.append('sensorGeometry', file, file.name);
-
-        // Make an AJAX request
-
-        $.ajax({
-            url: path.join(apiPath, 'geometry', subject),
-            method: 'PUT',
-            data: formData,
-            processData: false,
-            contentType: false
-        }).done(function (data, status, xhr) {
-
-            // Reload the newly uploaded brain
-            selectSubject(subject);
-
-        }).fail(function (xhr, status, err) {
-
-            // TODO GUI for error
-            console.log('Upload failed :( ' + JSON.stringify(err));
-
-        });
-
-    }
-
-});
-
-
-$('.upload-brain-image').on('click', function () {
-
-    // Trigger the file uploader element
-    $('#upload-brain-image-input').click();
-
-    // TODO GUI Changes
-
-});
-
-$('#upload-brain-image-input').on('change', function () {
-
-    var files = $(this).get(0).files;
-
-    // TODO This will fail in certain obvious cases; should be caching a
-    // current subject state variable
-    var subject = window.location.hash.slice(1);
-
-    if (files.length > 0) {
-
-        var file = files[0];
-
-        // FormData carries the payload for our PUT request
-        var formData = new FormData();
-
-        // We only care about the first file
-        // TODO Get name from jquery element somehow?
-        formData.append('brainImage', file, file.name);
-
-        // Make an AJAX request
-
-        $.ajax({
-            url: path.join(apiPath, 'brain', subject),
-            method: 'PUT',
-            data: formData,
-            processData: false,
-            contentType: false
-        }).done(function (data, status, xhr) {
-
-            // Reload the newly uploaded brain
-            selectSubject(subject);
-
-        }).fail(function (xhr, status, err) {
-
-            // TODO GUI for error
-            console.log('Upload failed :( ' + JSON.stringify(err));
-
-        });
-
-    }
-
-});
-
-
-$(window).on('load', function () {
-
+window.onload = () => {
     loadSubjects();
-
-    setupOnlineOptions();
-
     setupWatcher();
-
-});
-
-
-
-//
+};

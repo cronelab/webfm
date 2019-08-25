@@ -7,8 +7,9 @@ html {
 }
 
 body {
-  /* Margin bottom by footer height */
-  margin-bottom: 60px;
+  margin-top: 0px;
+  padding-top: 0px;
+  padding-bottom: 60px;
 }
 
 .footer {
@@ -24,21 +25,8 @@ body {
   margin-top: 20px;
 }
 
-
-/* Hide file upload elements
--------------------------------------------------- */
 .upload-input {
   display: none !important;
-}
-
-
-/* Other styles
--------------------------------------------------- */
-
-/* Move down content because we have a fixed navbar that is 50px tall */
-body {
-  padding-top: 75px;
-  padding-bottom: 20px;
 }
 
 .navbar-brand {
@@ -63,8 +51,6 @@ body {
 }
 
 
-/* Re-color navbars
--------------------------------------------------- */
 .navbar-inverse {
   background-color: #397ad0;
   border-color: #316198;
