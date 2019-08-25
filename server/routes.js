@@ -8,30 +8,38 @@ const routes = (express) => {
     const router = express.Router();
 
     router.get('/map/config/ui', (req, res) => {
-        res.sendFile(path.join(__dirname, "/app", 'config/', 'fmui.json'))
+        res.sendFile(`${__dirname}/server/config/fmui.json`)
     });
 
     router.get('/index/config/online', (req, res) => {
-        res.sendFile(path.join(__dirname, "/app", 'config/', 'fmonline.json'))
+        res.sendFile(`${__dirname}/server/config/fmonline.json`)
     });
     router.get('/map/config/online', (req, res) => {
-        res.sendFile(path.join(__dirname, "/app", 'config/', 'fmonline.json'))
+        res.sendFile(`${__dirname}/server/config/fmonline.json`)
     });
     router.get('/map/config/tasks', (req, res) => {
-        res.sendFile(path.join(__dirname, "/app", 'config/', 'tasks.json'))
+        res.sendFile(`${__dirname}/server/config/tasks.json`)
     });
 
 
     router.get('/live', function (req, res) {
         res.sendFile(path.join(__dirname, "/public", "live.html"))
     });
-    router.get('/map/online', function (req, res) {
-        res.sendFile(path.join(__dirname, "/public", "map.html"))
+    router.get('/map', function (req, res) {
+        res.sendFile(`${__dirname}/dist/map.html`)
     });
 
-    router.get('/map/:subject/:record', function (req, res) {
-        res.sendFile(path.join(__dirname, "/public", "map.html"))
+    router.get('/record', function (req, res) {
+        res.sendFile(`${__dirname}/dist/record.html`)
     });
+
+    router.get('/map/online', function (req, res) {
+        res.sendFile(`${__dirname}/dist/map.html`)
+    });
+
+    // router.get('/map/:subject/:record', function (req, res) {
+    //     res.sendFile(`${__dirname}/dist/map.html`)
+    // });
 
 
     router.get("/api/list", (req, res) => {

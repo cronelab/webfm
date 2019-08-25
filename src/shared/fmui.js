@@ -1,55 +1,38 @@
 var Cookies = require('js-cookie');
-var cronelib = require('../lib/cronelib');
-var fullscreen = require('../lib/fullscreen');
-import fmbrain from './fmbrain';
-import fmraster from './fmraster';
-var fmscope = require('./fmscope');
+import cronelib from '../lib/cronelib';
+import fmbrain from '../shared/fmbrain';
+import fmraster from '../shared/fmraster';
+var fmscope = require('../map/fmscope');
 
 
 class fmui {
     constructor() {
-
+        this.cronelib = new cronelib();
         var manager = this;
-
         this.config = {};
-
         this.icons = [
             'transfer',
             'working'
         ];
-
         this.allChannels = []; // TODO Can avoid?
-
-        // Allocate members
-
         this.raster = new fmraster('#fm');
         this.brain = new fmbrain('#fm-brain');
         this.scope = new fmscope.ChannelScope('#fm-scope');
-
-        // Event hooks
-
         this.raster.onselectchannel = function (newChannel) {
             manager.brain.setSelectedChannel(newChannel);
         };
-
-        // Events
-
         this.onoptionchange = function (option, newValue) {};
-
         this.onsave = function (saveName) {};
 
     };
 
     async loadConfig(configURI) {
-
         var manager = this;
-
         let request = await fetch(configURI)
         let data = await request.json()
         manager.config = data;
         manager.setup();
     }
-
 
     _syncRasterConfig() {
         this.raster.setRowHeight(this.getRowHeight());
@@ -57,39 +40,27 @@ class fmui {
     }
 
     _mergeDefaultConfig(config) {
-
-        // Copy over any extras that might not be merged here
         var mergedConfig = config;
-
-        // For required config items, specify a default if nothing is provided
         mergedConfig.rowHeight = config.rowHeight || 5;
         mergedConfig.maxRowHeight = config.maxRowHeight || 10;
         mergedConfig.pxPerRowHeight = config.pxPerRowHeight || 5;
-
         mergedConfig.rasterExtent = config.rasterExtent || 5;
         mergedConfig.maxRasterExtent = config.maxRasterExtent || 10;
         mergedConfig.unitsPerRasterExtent = config.unitsPerRasterExtent || 1;
-
         mergedConfig.iconShowDuration = config.iconShowDuration || 100;
         mergedConfig.iconHideDelay = config.iconHideDelay || 1000;
         mergedConfig.iconHideDuration = config.iconHideDuration || 100;
-
         mergedConfig.fmMargin = config.fmMargin || {
             'left': 0,
             'right': 0,
             'top': 0,
             'bottom': 0
         };
-
         mergedConfig.chartDebounceDelay = config.chartDebounceDelay || 100;
-
         return mergedConfig;
-
     }
-
     setup() {
         var manager = this; // Capture this
-        // Incorporate the defaults with whatever we've loaded
         this.config = this._mergeDefaultConfig(this.config);
         this.rewireButtons();
         this.rewireForms();
@@ -102,7 +73,6 @@ class fmui {
     }
 
     rewireButtons() {
-
         var manager = this;
         document.getElementsByClassName('fm-zoom-in')[0].onclick = function (event) {
             event.preventDefault();
@@ -133,10 +103,6 @@ class fmui {
             manager.gainDown(event);
         };
 
-        document.getElementsByClassName('fm-toggle-fullscreen')[0].onclick = function (event) {
-            event.preventDefault();
-            manager.toggleFullscreen(event);
-        };
 
         document.getElementsByClassName('fm-show-options')[0].onclick = function (event) {
             event.preventDefault();
@@ -249,7 +215,7 @@ class fmui {
         if (guarantee) {
             updater();
         } else {
-            cronelib.debounce(updater, this.config.rasterDebounceDelay, true)();
+            this.cronelib.debounce(updater, this.config.rasterDebounceDelay, true)();
         }
     }
 
@@ -262,13 +228,13 @@ class fmui {
         if (guarantee) {
             updater();
         } else {
-            cronelib.debounce(updater, this.config.scopeDebounceDelay, true)();
+            this.cronelib.debounce(updater, this.config.scopeDebounceDelay, true)();
         }
     }
 
     updateBrain() {
         var manager = this;
-        cronelib.debounce(function () {
+        this.cronelib.debounce(function () {
             manager.brain.autoResize();
             manager.brain.update();
         }, this.config.brainDebounceDelay)();
@@ -389,20 +355,6 @@ class fmui {
 
     _topForScrollFraction(frac) {
         return frac * ($(document).height() - $(window).height());
-    }
-
-    toggleFullscreen(event) {
-        fullscreen.toggle()
-            .then(function (result) {
-                if (fullscreen.is()) {
-                    // TODO Change fullscreen button icon
-                } else {
-                    // TODO
-                }
-            })
-            .catch(function (reason) {
-                console.log('Could not toggle fullscreen: ' + reason);
-            });
     }
 
     showOptions(event) {

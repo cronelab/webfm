@@ -1,7 +1,15 @@
-import {select} from 'd3-selection';
-import {scaleLinear} from 'd3-scale';
-import {axisTop} from 'd3-axis';
-import {extent as d3_extent} from 'd3-array';
+import {
+    select
+} from 'd3-selection';
+import {
+    scaleLinear
+} from 'd3-scale';
+import {
+    axisTop
+} from 'd3-axis';
+import {
+    extent as d3_extent
+} from 'd3-array';
 
 export default function () {
 
@@ -37,10 +45,10 @@ export default function () {
         width = dIncrement * data.length;
 
         // Recycle canvas if it already exists
-        if ( selection.select( 'canvas' ).empty() ) {
+        if (selection.select('canvas').empty()) {
             canvas = selection.append('canvas');
         } else {
-            canvas = selection.select( 'canvas' );
+            canvas = selection.select('canvas');
         }
 
         canvas
@@ -49,16 +57,16 @@ export default function () {
 
         // Recycle title and value labels
         // TODO Cleaner
-        if ( selection.select( '.title' ).empty() ) {
-            selection.append( 'span' )
-                        .attr( 'class', 'title' )
-                        .text( title );
+        if (selection.select('.title').empty()) {
+            selection.append('span')
+                .attr('class', 'title')
+                .text(title);
         } else {
-            selection.select( '.title' )
-                        .text( title )
+            selection.select('.title')
+                .text(title)
         }
-        
-        if ( selection.select( '.value' ).empty() ) {
+
+        if (selection.select('.value').empty()) {
             selection.append('span')
                 .attr('class', 'value');
         }
@@ -104,7 +112,10 @@ export default function () {
             // only the current data frame is being drawn i.e. what's visible:
             for (var i = startIndex, value; i < endIndex; i++) {
                 value = data[i];
-                if (value <= 0) { negative = true; continue; }
+                if (value <= 0) {
+                    negative = true;
+                    continue;
+                }
                 if (value === undefined) continue;
                 context.fillRect(offsetX + i * increment, y(value), step, y(0) - y(value));
             }

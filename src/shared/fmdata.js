@@ -1,20 +1,19 @@
-var cronelib = require('../lib/cronelib');
-var fmstat = require('./fmstat');
+import cronelib from '../lib/cronelib';
+var fmstat = require('../map/fmstat');
 
-var fmdata = {};
 
-fmdata.Dataset = function () {
+class fmdata {
+    constructor() {
 
-    this.metadata = {};
-    this.contents = {};
-    this.displayData = {};
-    this._channelStats = {};
-    this._clean = true;
-};
+        this.metadata = {};
+        this.contents = {};
+        this.displayData = {};
+        this._channelStats = {};
+        this._clean = true;
+        this.cronelib = new cronelib();
+    }
 
-fmdata.Dataset.prototype = {
-    constructor: fmdata.Dataset,
-    _initialize: function (data) {
+    _initialize(data) {
         var dataset = this;
         return this._validate(data)
             .then(function (validatedData) {
@@ -26,8 +25,8 @@ fmdata.Dataset.prototype = {
                 return dataset._updateDisplayData()
                     .then(() => console.log('Finished display update'));
             });
-    },
-    _validate: function (data) {
+    }
+    _validate(data) {
 
         return new Promise(function (resolve, reject) {
 
@@ -114,9 +113,9 @@ fmdata.Dataset.prototype = {
                 'contents': newContents
             });
         });
-    },
+    }
 
-    _setupChannelStats: function () {
+    _setupChannelStats() {
 
         // Capture this
         var dataset = this;
@@ -221,9 +220,9 @@ fmdata.Dataset.prototype = {
         // Can't do anything for stats ¯\_(ツ)_/¯
         this._channelStats = undefined;
 
-    },
+    }
 
-    _windowInSamples: function (windowInSeconds) {
+    _windowInSamples(windowInSeconds) {
 
         // Guards
 
@@ -255,9 +254,9 @@ fmdata.Dataset.prototype = {
             end: Math.floor(windowFloat.end)
         };
 
-    },
+    }
 
-    _updateDisplayData: function () {
+    _updateDisplayData() {
 
         var dataset = this;
 
@@ -272,7 +271,7 @@ fmdata.Dataset.prototype = {
         if (this.contents.stats !== undefined) {
 
             // TODO Make configurable
-            return cronelib.forEachAsync(Object.keys(this._channelStats), function (ch) {
+            return this.cronelib.forEachAsync(Object.keys(this._channelStats), function (ch) {
                 dataset.displayData[ch] = dataset._channelStats[ch].fdrCorrectedValues(0.05);
             }, {
                 batchSize: 5
@@ -280,9 +279,9 @@ fmdata.Dataset.prototype = {
 
         }
 
-    },
+    }
 
-    _updateContentsStats: function () {
+    _updateContentsStats() {
 
         var dataset = this;
 
@@ -336,18 +335,18 @@ fmdata.Dataset.prototype = {
             dataset.contents.stats.estimators.variance[ch] = values.map(extractor('variance'));
             dataset.contents.stats.estimators.count[ch] = values.map(extractor('count'));
         });
-    },
+    }
 
-    get: function (data) {
+    get(data) {
 
         var dataset = this;
         dataset._clean = true;
         return dataset._initialize(data);
 
 
-    },
+    }
 
-    put: function (url, opts) {
+    put(url, opts) {
         var options = {
             import: false
         };
@@ -387,9 +386,9 @@ fmdata.Dataset.prototype = {
 
         });
 
-    },
+    }
 
-    setupChannels: function (channels) {
+    setupChannels(channels) {
         var dataset = this;
         this.metadata.montage = channels;
         if (this._channelStats === undefined) {
@@ -409,9 +408,9 @@ fmdata.Dataset.prototype = {
 
         this._clean = false;
 
-    },
+    }
 
-    isTimeseries: function () {
+    isTimeseries() {
 
         // If we're marked as being a timeseries, we're a timeseries
         if (this.metadata.labels.indexOf('timeseries') >= 0) {
@@ -448,13 +447,13 @@ fmdata.Dataset.prototype = {
 
         return false;
 
-    },
+    }
 
-    isClean: function () {
+    isClean() {
         return this._clean;
-    },
+    }
 
-    getTimeBounds: function () {
+    getTimeBounds() {
 
         if (!this.isTimeseries()) {
             return undefined;
@@ -469,13 +468,13 @@ fmdata.Dataset.prototype = {
             end: this.contents.times[this.contents.times.length - 1]
         };
 
-    },
+    }
 
-    updateTimes: function (times) {
+    updateTimes(times) {
         this.contents.times = times;
-    },
+    }
 
-    updateTimesFromWindow: function (timeWindow, nTimes) {
+    updateTimesFromWindow(timeWindow, nTimes) {
 
         var newTimes = [];
         for (var i = 0; i < nTimes; i++) {
@@ -484,9 +483,9 @@ fmdata.Dataset.prototype = {
 
         this.updateTimes(newTimes);
 
-    },
+    }
 
-    getTrialCount: function () {
+    getTrialCount() {
 
         if (this.contents.trials !== undefined) {
             // We have trials, so count them
@@ -517,9 +516,9 @@ fmdata.Dataset.prototype = {
         // No other way to get trial count
         return undefined;
 
-    },
+    }
 
-    dataForTime: function (time) {
+    dataForTime(time) {
 
         if (!this.isTimeseries()) {
             // Slicing by time is undefined for non-timeseries data
@@ -550,16 +549,16 @@ fmdata.Dataset.prototype = {
             return obj
         }, {});
 
-    },
+    }
 
-    updateMetadata: function (newMetadata) {
+    updateMetadata(newMetadata) {
 
         // Merge the new metadata over the top of what we currently have
         Object.assign(this.metadata, newMetadata);
 
-    },
+    }
 
-    updateBaselineWindow: function (newWindow) {
+    updateBaselineWindow(newWindow) {
 
         // Change our metadata to reflect the new window
         this.metadata.baselineWindow = newWindow;
@@ -570,19 +569,19 @@ fmdata.Dataset.prototype = {
             return Promise.resolve();
         }
 
-        return cronelib.forEachAsync(Object.keys(this._channelStats), function (ch) {
+        return this.cronelib.forEachAsync(Object.keys(this._channelStats), function (ch) {
             this._channelStats[ch].recompute(newWindowSamples);
         }, {
             batchSize: 5
         });
 
-    },
+    }
 
-    ingest: function (trialData) {
+    ingest(trialData) {
 
         var dataset = this;
 
-        return cronelib.forEachAsync(Object.keys(this._channelStats), function (ch) {
+        return this.cronelib.forEachAsync(Object.keys(this._channelStats), function (ch) {
                 dataset._channelStats[ch].ingest(trialData[ch]);
             }, {
                 batchSize: 5
@@ -609,4 +608,4 @@ fmdata.Dataset.prototype = {
 
 };
 
-module.exports = fmdata;
+export default fmdata;

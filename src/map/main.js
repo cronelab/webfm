@@ -5,6 +5,7 @@ window.$ = $;
 import "./index.scss";
 import "bootstrap";
 
+import "@fortawesome/fontawesome-free/js/all";
 
 var d3 = require('d3');
 
@@ -18,7 +19,7 @@ var fmstat = require('./fmstat');
 var fmonline = require('./fmonline');
 import fmui from './fmui'
 var fmgen = require('./fmgen');
-var fmdata = require('./fmdata');
+import fmdata from './fmdata';
 var fmfeature = require('./fmfeature');
 
 var pathComponents = window.location.pathname.split('/');
@@ -43,11 +44,7 @@ var recordName = "BrandtPictureNaming_Block1";
 
 var apiPath = '/api';
 var configPath = '/map/config';
-
-
-// Dataset
-var dataBundle = null;
-var dataset = new fmdata.Dataset();
+var dataset = new fmdata();
 
 // UI
 var uiManager = new fmui();

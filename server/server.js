@@ -24,19 +24,13 @@ let newConfig = merge(config, {
 
 
 
-if (process.env.NODE_ENV == "development") {
-    const compiler = webpack(newConfig);
-    app.use(webpackDevMiddleware(compiler, {
-        noInfo: true
-    }));
-    app.use(webpackHotMiddleware(compiler));
-} else {
-    app.use('/', express.static('./dist'));
-
-}
+const compiler = webpack(newConfig);
+app.use(webpackDevMiddleware(compiler, {
+    noInfo: true
+}));
+app.use(webpackHotMiddleware(compiler));
 app.use("/", routes(express));
 
-var rootDir = path.resolve('./public');
 var dataDir = path.resolve('./data');
 var uploadsDir = path.resolve('./uploads');
 
@@ -316,5 +310,5 @@ app.put('/api/data/:subject/:record', rawBody, function (req, res) {
 });
 
 app.listen(8080, function () {
-    console.log("Serving " + rootDir + " on " + 8080 + ":tcp");
+    console.log("Serving");
 });

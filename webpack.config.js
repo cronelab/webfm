@@ -15,8 +15,8 @@ const module = {
     devtool: devMode ? "inline-source-map" : "source-map",
 
     entry: {
-        index: './app/index/main.js',
-        map: './app/map/main.js'
+        index: './src/index/main.js',
+        record: './src/record/main.js'
     },
     module: {
         rules: [{
@@ -59,16 +59,16 @@ const module = {
         new WriteFilePlugin(),
         new HtmlWebpackPlugin({
             hash: true,
-            template: "./app/index/index.html",
+            template: "./src/index/index.html",
             filename: 'index.html',
             chunks: ['index'],
             title: 'WebFM'
         }),
         new HtmlWebpackPlugin({
             hash: true,
-            template: "./app/map/index.html",
-            filename: 'map.html',
-            chunks: ['map'],
+            template: "./src/record/index.html",
+            filename: 'record.html',
+            chunks: ['record'],
             title: 'WebFM'
         }),
     ],
