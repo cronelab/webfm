@@ -16,7 +16,8 @@ const module = {
 
     entry: {
         index: './src/index/main.js',
-        record: './src/record/main.js'
+        record: './src/record/main.js',
+        map: './src/map/main.js'
     },
     module: {
         rules: [{
@@ -69,6 +70,13 @@ const module = {
             template: "./src/record/index.html",
             filename: 'record.html',
             chunks: ['record'],
+            title: 'WebFM'
+        }),
+        new HtmlWebpackPlugin({
+            hash: true,
+            template: "./src/map/index.html",
+            filename: 'map.html',
+            chunks: ['map'],
             title: 'WebFM'
         }),
     ],

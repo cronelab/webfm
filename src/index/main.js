@@ -3,7 +3,6 @@ import "bootstrap";
 import "./index.scss";
 import "@fortawesome/fontawesome-free/js/all";
 import BCI2K from "@cronelab/bci2k";
-import Cookies from 'js-cookie'
 
 let parameterRecheckDuration = 2000;
 let _bciConnection = null;
@@ -38,9 +37,9 @@ let bciStateChange = newState => {
 
     })
     if (mapItStates.indexOf(newState) >= 0) {
-        document.getElementById('map-button').classList.add('disabled');
-    } else {
         document.getElementById('map-button').classList.remove('disabled');
+    } else {
+        document.getElementById('map-button').classList.add('disabled');
     }
 
     if (goLiveStates.indexOf(newState) >= 0) {
@@ -83,8 +82,9 @@ let setupWatcher = async () => {
     _bciConnection = new BCI2K.bciOperator();
     let configURIRes = await fetch('/index/config/online');
     config = await configURIRes.json();
-    let localSourceAddress = Cookies.get('sourceAddress');
-    if (localSourceAddress === undefined) {
+
+    let localSourceAddress = localStorage.getItem('source-address');
+    if (localSourceAddress === null) {
         localSourceAddress = config.sourceAddress;
     }
     _bciConnection.connect(`ws://${localSourceAddress}`).then(event => {
@@ -145,15 +145,17 @@ let loadRecords = async (subject) => {
     records.forEach(record => {
         let newRecord = document.createElement('a');
         newRecord.id = record;
-        newRecord.href = `/map/${subject}/${record}`;
+        newRecord.href = `/record`;
         newRecord.classList.add('list-group-item');
         newRecord.innerText = record;
+        newRecord.onclick = () => localStorage.setItem('record', record);
         document.getElementById('record-list').append(newRecord);
     });
     scroll(0, 0)
 
 };
 let selectSubject = (subject) => {
+    localStorage.setItem('subject', subject);
     document.getElementById('subject-list').querySelectorAll('.active').forEach(e => {
         e.classList.remove('active')
     })
@@ -198,10 +200,9 @@ document.getElementsByClassName('toggle-new-subject')[0].onclick = () => {
 
 document.getElementById('source-address-ok').onclick = () => {
     let newSourceAddress = document.getElementById('source-address').value;
-    Cookies.set('sourceAddress', newSourceAddress);
+    localStorage.setItem('source-address', newSourceAddress)
     watching = false;
     setupWatcher();
-    hideOnlineOptions();
 };
 
 document.getElementById('new-subject-ok').onclick = () => {
@@ -238,7 +239,7 @@ document.getElementById('upload-brain-image-input').onchange = async e => {
     let formData = new FormData();
     formData.append('brainImage', file, file.name);
 
-    let request = await fetch(`/api/brain/${subject}`, {
+    await fetch(`/api/brain/${subject}`, {
         method: 'PUT',
         body: formData
     })

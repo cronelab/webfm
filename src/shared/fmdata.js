@@ -39,47 +39,21 @@ class fmdata {
             var newMetadata = Object.assign({}, metadata);
             var newContents = Object.assign({}, contents);
 
-
-            // == metadata
-
-            // Guards
-
-            // If metadata has an '_import' attribute, something went wrong
-            // with the formation, so we reject
-            if (metadata['_import'] != undefined) {
-                reject('Loaded dataset has an "_import" metadata field, and hence is not complete.');
-                return;
-            }
-
-            // Same deal with '_export'
             if (metadata['_export'] != undefined) {
                 reject('Loaded dataset has an "_export" metadata field, and hence is not complete.');
                 return;
             }
 
-            // montage
-
             var montageFromKeys = function (keys) {
-                // TODO Provide a smart ordering from a (possibly unordered)
-                // key list
-
                 return keys;
             };
 
             if (metadata.montage === undefined) {
-
                 if (metadata.sensorGeometry !== undefined) {
-
-                    // Use the sensorGeometry
                     var geometryKeys = Object.keys(metadata.sensorGeometry);
                     newMetadata.montage = montageFromKeys(geometryKeys);
-
                 } else {
-                    // Need to resort to the contents
-
                     if (contents.values !== undefined) {
-
-                        // Use the values
                         var valuesKeys = Object.keys(contents.values);
                         newMetadata.montage = montageFromKeys(valuesKeys);
 
@@ -116,116 +90,61 @@ class fmdata {
     }
 
     _setupChannelStats() {
-
-        // Capture this
         var dataset = this;
-
         if (this.contents.values !== undefined) {
-            // values exists, so we pay no attention to stats
             this._channelStats = undefined;
             return;
         }
-
         if (this.contents.stats !== undefined) {
-            // We've got stats without, so let's use them to make our structures
-
             var stats = this.contents.stats; // convenience
-
-            // Check which distribution we have
-            // TODO For now we only support Gaussian :(
-            // TODO Error checking
-
             if (stats.distribution.toLowerCase() == 'gaussian') {
-
                 var channels = Object.keys(stats.estimators.mean);
-
                 channels.forEach(function (ch) {
-
-                    // Convenience
                     var mean = stats.estimators.mean[ch];
                     var variance = stats.estimators.variance[ch];
                     var count = stats.estimators.count[ch];
-
-                    // Wrap the estimators for each time point into
-
                     if (dataset.isTimeseries()) {
-
-                        // TODO Error checking
                         var baselineMean = stats.baseline.mean[ch];
                         var baselineVariance = stats.baseline.variance[ch];
                         var baselineCount = stats.baseline.count[ch];
-
                         var statValues = mean.map(function (d, i) {
                             return new fmstat.Gaussian(mean[i], variance[i], count[i]);
                         });
-
                         dataset._channelStats[ch] = new fmstat.ChannelStat({
                             baseline: new fmstat.Gaussian(baselineMean, baselineVariance, baselineCount),
                             values: statValues
                         });
-
                     } else {
-
-                        // TODO ChannelStat overkill for single datum?
                         dataset._channelStats[ch] = new fmstat.ChannelStat({
                             values: [new fmstat.Gaussian(mean, variance, count)]
                         });
-
                     }
-
                 });
-
             } else {
-                // Unsupported distribution
                 this._channelStats = undefined;
             }
-
             return;
-
         }
-
         if (this.contents.trials !== undefined) {
-            // We've got trials, so populate our stats with them
-            // TODO Assumes Gaussian, cause I'm dumb for the time being
-
-            // Convenience
             var trials = this.contents.trials;
-
-            // TODO Error checking
             var channels = Object.keys(trials[0]);
-
-            // Global setup
             var newChannelOpts = {};
-
             if (dataset.isTimeseries()) {
                 newChannelOpts.baselineWindow = this._windowInSamples(dataset.metadata.baselineWindow);
             }
-
             channels.forEach(function (ch) {
-
                 var newChannel = new fmstat.ChannelStat(newChannelOpts);
-
                 trials.forEach(function (trialData) {
                     newChannel.ingest(trialData[ch]);
                 });
-
                 dataset._channelStats[ch] = new fmstat.ChannelStat();
-
             });
-
             return;
-
         }
-
-        // Can't do anything for stats ¯\_(ツ)_/¯
         this._channelStats = undefined;
-
     }
 
     _windowInSamples(windowInSeconds) {
-
-        // Guards
-
         if (!this.isTimeseries()) {
             return undefined;
         }
@@ -235,7 +154,6 @@ class fmdata {
         if (!Array.isArray(this.contents.times)) {
             return undefined;
         }
-
         var totalSamples = this.contents.times.length;
         var dataWindow = {
             start: this.contents.times[0],
@@ -247,13 +165,10 @@ class fmdata {
             start: ((windowInSeconds.start - dataWindow.start) / totalTime) * totalSamples,
             end: ((windowInSeconds.end - dataWindow.start) / totalTime) * totalSamples
         }
-
-        // TODO Should it be conservative like this, or more liberal?
         return {
             start: Math.ceil(windowFloat.start),
             end: Math.floor(windowFloat.end)
         };
-
     }
 
     _updateDisplayData() {

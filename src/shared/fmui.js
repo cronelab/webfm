@@ -442,7 +442,10 @@ class fmui {
     updateSubjectRecords(newRecords) {
 
         // Clear list before populating it
-        document.getElementById('fm-cloud-records-table').empty();
+        let recordsTable = document.getElementById('fm-cloud-records-table')
+        while (recordsTable.hasChildNodes()) {
+            recordsTable.removeChild(recordsTable.firstChild);
+        }
 
         var addRecordCell = function (record) {
             var outer = $('<tr/>');

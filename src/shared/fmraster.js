@@ -4,12 +4,12 @@ var $ = require('jquery');
 
 class fmraster {
     constructor(baseNodeId) {
-        this.baseNodeId = baseNodeId; // e.g., '#fm'
+        this.baseNodeId = baseNodeId;
         this.displayOrder = null;
         this.data = null;
         this.timeScale = null;
-        this.oncursormove = function (newTime) {};
-        this.onselectchannel = function (newChannel) {};
+        this.oncursormove = newTime => {};
+        this.onselectchannel = newChannel => {};
         this.selectedChannel = null;
         this.cursorSvg = null;
         this.cursorTime = null;
@@ -49,9 +49,7 @@ class fmraster {
         var raster = this;
         this.cursorSvg = d3.select(this.baseNodeId).append('svg')
             .attr('class', 'fm-cursor-svg');
-        $(this.baseNodeId).on('click', function (event) {
-            raster._cursorClick(event);
-        });
+        document.getElementById('fm-brain').onclick = event => raster._cursorClick(event);
         this.cursorTime = 0.0;
         this.cursorSvg.append('line')
             .attr('class', 'fm-cursor-line');
@@ -67,8 +65,8 @@ class fmraster {
 
         var raster = this;
 
-        var width = $(this.baseNodeId).width();
-        var height = $(this.baseNodeId).height();
+        var width = document.getElementById('fm-brain').offsetWidth;
+        var height = document.getElementById('fm-brain').offsetHeight;
 
         d3.select(this.baseNodeId)
             .select('.fm-cursor-svg')
@@ -76,7 +74,6 @@ class fmraster {
             .attr('height', height);
 
         if (!this.timeScale) {
-            // Can't update the rest, because doing so would require the time scale
             return;
         }
 
@@ -102,7 +99,6 @@ class fmraster {
             .attr('y1', 0)
             .attr('x2', originX)
             .attr('y2', height);
-
     }
 
     _cursorClick(event) {
@@ -142,27 +138,20 @@ class fmraster {
     }
 
     setupCharts() {
-
         if (!this.displayOrder) {
-            // Can't.
             return;
         }
 
         if (!this.data) {
-            // Create some dummy data
             this.data = this._dummyData(this.displayOrder);
         }
 
         var raster = this; // Capture this.
-
-        // TODO Error checking
         var height = this.channelHeight * this.data.length;
         var width = $(this.baseNodeId).width() - this.chartMargin.left - this.chartMargin.right;
 
         var n = this.data.length;
         var step = width / this.data[0].values.length;
-
-        // Set up x axis time scale with placeholder values
         if (!this.timeScale) {
             this.timeScale = d3.scaleLinear()
                 .domain([0, width])
@@ -170,46 +159,29 @@ class fmraster {
         } else {
             this.updateTimeDomain([0, width]);
         }
-
-        // Set up horizon chart maker
         var horizonChart = d3.horizonChart();
-
-        // Join horizons to channels
         var horizons = d3.select(this.baseNodeId).selectAll('.fm-horizon')
             .data(this.data, function (d) {
                 return d.channel;
             });
-
-        // Prepare a mousemove function for the horizon charts
         var horizonMouseMove = function (event) {
 
             var newChannel = d3.select(event.currentTarget).datum().channel;
             raster.selectChannel(newChannel);
 
             if (raster.cursorLocked) {
-                // No need to update cursor, cause it's locked
                 return;
             }
-
-            // Compute new time
             var offset = $(this).offset();
             var cursorX = event.pageX - offset.left; // Works because this is parent element
             var newTime = raster.timeScale(cursorX);
-
-            // Update cursor rendering, etc etc.
             raster.updateCursor(newTime);
-
-            // Call cursor event
             raster.oncursormove(newTime);
-
         };
-
-        // And new horizons
         horizons.enter().append('div')
             .attr('class', 'fm-horizon')
             .each(function (d, i) {
-                // Setup jQuery mouse events
-                $(this).on('mousemove', horizonMouseMove);
+                this.onmousemove = horizonMouseMove;
             })
             .merge(horizons)
             .classed('fm-horizon-small', function () {

@@ -1,63 +1,49 @@
+import "./index.scss";
+import "bootstrap";
+import "@fortawesome/fontawesome-free/js/all";
 import path from 'path';
+import fmui from '../shared/fmui'
+import fmdata from '../shared/fmdata';
+
 import $ from 'jquery'
 window.jQuery = $;
 window.$ = $;
-import "./index.scss";
-import "bootstrap";
 
-import "@fortawesome/fontawesome-free/js/all";
+import {
+    OnlineDataSource
+} from './fmonline'
 
-var d3 = require('d3');
 
-var Cookies = require('js-cookie');
 var minimatch = require('minimatch');
 
-d3.horizon = require('../lib/horizon'); // New kludge
-import BCI2K from "@cronelab/bci2k";
-var cronelib = require('../lib/cronelib');
 var fmstat = require('./fmstat');
-var fmonline = require('./fmonline');
-import fmui from './fmui'
 var fmgen = require('./fmgen');
-import fmdata from './fmdata';
 var fmfeature = require('./fmfeature');
 
-var pathComponents = window.location.pathname.split('/');
-console.log(pathComponents)
-var modeString = pathComponents[2] || 'online';
 
-var onlineMode = modeString == 'online';
-// var loadMode = !onlineMode;
-let loadMode = true
+var onlineMode = true
 
-var subjectName = "PY19N015";
-var recordName = "BrandtPictureNaming_Block1";
+var subjectName = null
+var recordName = null
 
-// if (loadMode) {
-//     subjectName = pathComponents[2] || undefined;
-//     recordName = pathComponents[3] || undefined;
-// } else {
-//     subjectName = pathComponents[3] || undefined;
-//     recordName = pathComponents[4] || undefined;
-// }
+
 
 
 var apiPath = '/api';
 var configPath = '/map/config';
 var dataset = new fmdata();
 
-// UI
 var uiManager = new fmui();
-// TODO Handle rejection
 uiManager.loadConfig(path.join(configPath, 'ui'))
 
 
 // DATA SOURCE SET-UP
 var dataSource = null;
 if (onlineMode) { // Using BCI2000Web over the net
-    dataSource = new fmonline.OnlineDataSource();
+    dataSource = new OnlineDataSource();
     dataSource.onproperties = function (properties) {
         dataset.setupChannels(properties.channels);
+        console.log(properties.channels)
         updateProperties(properties);
     };
     dataSource.onBufferCreated = function () {
@@ -76,93 +62,54 @@ if (onlineMode) { // Using BCI2000Web over the net
     fetch(path.join(configPath, 'online')).then(response => response.json()).then(onlineConfig => {
         dataSource.setConfig(onlineConfig);
         prepareOnlineDataSource();
-
     })
-
-    // dataSource.loadConfig( onlineConfig, taskConfig )
-    //             .then( function() {
-    //                 prepareOnlineDataSource();
-    //             } )
-    //             .catch( function( reason ) {    // TODO Respond intelligently
-    //                 console.log( reason );
-    //             } );
-
 }
 
-var getSourceAddress = function () {
-    return new Promise(function (resolve, reject) {
-        var sourceAddress = Cookies.get('sourceAddress');
-        if (sourceAddress === undefined) {
-            var configURI = path.join(configPath, 'online');
-            fetch(configURI).then(response => response.json()).then(data => {
-                Cookies.set('sourceAddress', data.sourceAddress);
-                resolve(data.sourceAddress);
-            })
-        }
-        resolve(sourceAddress);
-    });
-};
 
-var prepareOnlineDataSource = function () {
-    getSourceAddress()
-        .then(function (sourceAddress) {
-            dataSource.connect(`ws://${sourceAddress}`)
-                .then(function () {
-                    dataset.updateMetadata({
-                        kind: 'high gamma power',
-                        labels: ['timeseries']
-                    });
-                    dataSource.getParameter('SubjectName')
-                        .then(function (result) {
-                            subjectName = result.trim();
-                            prepareSubjectDependencies(subjectName);
-                        })
-                        .catch(function (reason) {
-                            console.log('Could not obtain SubjectName: ' + reason);
-                        });
-                    dataSource.getParameter('DataFile')
-                        .then(function (result) {
-                            // TODO Error checking
-                            var taskName = result.trim().split('/')[1];
-                            prepareTaskDependencies(taskName);
-                        })
-                        .catch(function (reason) {
-                            console.log('Could not obtain DataFile: ' + reason);
-                        });
+var prepareOnlineDataSource = async function () {
+    var sourceAddress = localStorage.getItem('source-address')
+    if (sourceAddress === undefined) {
+        let request = await fetch(`${configPath}/online`);
+        let data = await request.json()
+        localStorage.setItem('source-address', data.sourceAddress);
+        resolve(data.sourceAddress);
+    }
+
+    dataSource.connect(`ws://${sourceAddress}`)
+        .then(function () {
+            dataset.updateMetadata({
+                kind: 'high gamma power',
+                labels: ['timeseries']
+            });
+            dataSource.getParameter('SubjectName')
+                .then(function (result) {
+                    subjectName = result.trim();
+                    prepareSubjectDependencies(subjectName);
                 })
-                .catch(function (reason) { // TODO Something intelligent
-                    console.log(reason);
+                .catch(function (reason) {
+                    console.log('Could not obtain SubjectName: ' + reason);
                 });
+            dataSource.getParameter('DataFile')
+                .then(function (result) {
+                    // TODO Error checking
+                    var taskName = result.trim().split('/')[1];
+                    prepareTaskDependencies(taskName);
+                })
+                .catch(function (reason) {
+                    console.log('Could not obtain DataFile: ' + reason);
+                });
+        })
+        .catch(function (reason) { // TODO Something intelligent
+            console.log(reason);
         });
 };
 
 var updateRecordListForSubject = function (theSubject) {
-
-    cronelib.promiseJSON(path.join(apiPath, 'list', theSubject))
-        .then(function (records) {
-            // Ensure consistent ordering
+    fetch(`${apiPath}/list/${theSubject}`).then(response => response.json())
+        .then(records => {
             records.sort();
-            // Update the save page with the records
             uiManager.updateSubjectRecords(records);
         })
-        .catch(function (reason) {
-            // TODO Handle errors
-            console.log(err);
-        });
-
-    // // Get a list of the existing datasets
-    // $.getJSON( path.join( apiPath, 'list', theSubject ) )
-    //     .done( function( records ) {
-    //         // Ensure consistent ordering
-    //         records.sort();
-    //         // Update the save page with the records
-    //         uiManager.updateSubjectRecords( records );
-    //     } )
-    //     .fail( function( req, textStatus, err ) {
-    //         // TODO Handle errors
-    //         console.log( err );
-    //     } );
-
 };
 
 var prepareSubjectDependencies = function (theSubject) {
@@ -272,27 +219,21 @@ var matchTaskConfig = function (taskName, config) {
     });
     return taskConfig;
 }
-var prepareTaskDependencies = function (taskName) {
-    cronelib.promiseJSON(path.join(configPath, 'tasks'))
-        .then(function (config) {
-            return new Promise(function (resolve, reject) {
-                var taskConfig = matchTaskConfig(taskName, config);
-                if (taskConfig === undefined) {
-                    reject('No suitable task config present.');
-                    return;
-                }
-                if (taskConfig.trialWindow !== undefined) {
-                    // TODO Kludgey?
-                    dataSource.dataFormatter.updateTrialWindow(taskConfig.trialWindow);
-                }
-                if (taskConfig.baselineWindow !== undefined) {
-                    dataset.updateBaselineWindow(taskConfig.baselineWindow);
-                }
-            });
-        })
-        .catch(function (reason) {
-            console.log('Could not load task config: ' + reason);
-        });
+var prepareTaskDependencies = async function (taskName) {
+
+    let request = await fetch(`${configPath}/tasks`);
+    let config = await request.json();
+
+    var taskConfig = matchTaskConfig(taskName, config);
+    if (taskConfig === undefined) {
+        return;
+    }
+    if (taskConfig.trialWindow !== undefined) {
+        dataSource.dataFormatter.updateTrialWindow(taskConfig.trialWindow);
+    }
+    if (taskConfig.baselineWindow !== undefined) {
+        dataset.updateBaselineWindow(taskConfig.baselineWindow);
+    }
     uiManager.updateTaskName(taskName);
     dataset.updateMetadata({
         setting: {
@@ -302,51 +243,6 @@ var prepareTaskDependencies = function (taskName) {
 
 };
 
-
-
-// TODO Naming semantics imply it takes dataset as argument (better design anyway)
-var prepareFromDataset = function () {
-
-    uiManager.updateSubjectName(dataset.metadata.subject);
-
-    // Update brain image & sensor geometry
-    var brainImage = dataset.metadata.brainImage;
-    var sensorGeometry = dataset.metadata.sensorGeometry;
-
-    if (brainImage === undefined) {
-        if (sensorGeometry === undefined) {}
-    } else {
-        if (sensorGeometry === undefined) {} else {
-            uiManager.brain.setup(brainImage, sensorGeometry);
-        }
-    }
-    if (dataset.metadata.setting !== undefined) {
-        if (dataset.metadata.setting.task !== undefined) {
-            uiManager.updateTaskName(dataset.metadata.setting.task);
-        } else {
-            uiManager.updateTaskName('(unknown)');
-        }
-    } else {
-        uiManager.updateTaskName('(unknown)');
-    }
-    updateProperties({
-        channels: dataset.metadata.montage
-    });
-
-};
-
-if (loadMode) { // Using data loaded from the hive
-    var infoPath = `/api/info/${subjectName}/${recordName}`;
-    fetch(infoPath).then(response => response.json())
-        .then(recordUrl => {
-            fetch(recordUrl.uri).then(response => response.json()).then(data => {
-                dataset.get(data).then(dataset => {
-                    prepareFromDataset();
-                    updateDataDisplay()
-                })
-            })
-        })
-}
 
 
 var updateProperties = properties => uiManager.updateChannelNames(properties.channels);
