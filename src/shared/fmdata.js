@@ -1,5 +1,10 @@
-import cronelib from '../lib/cronelib';
-var fmstat = require('../map/fmstat');
+import {
+    forEachAsync
+} from '../lib/cronelib';
+import {
+    Gaussian,
+    ChannelStat
+} from '../map/fmstat';
 
 
 class fmdata {
@@ -10,7 +15,6 @@ class fmdata {
         this.displayData = {};
         this._channelStats = {};
         this._clean = true;
-        this.cronelib = new cronelib();
     }
 
     _initialize(data) {
@@ -108,15 +112,15 @@ class fmdata {
                         var baselineVariance = stats.baseline.variance[ch];
                         var baselineCount = stats.baseline.count[ch];
                         var statValues = mean.map(function (d, i) {
-                            return new fmstat.Gaussian(mean[i], variance[i], count[i]);
+                            return new Gaussian(mean[i], variance[i], count[i]);
                         });
-                        dataset._channelStats[ch] = new fmstat.ChannelStat({
-                            baseline: new fmstat.Gaussian(baselineMean, baselineVariance, baselineCount),
+                        dataset._channelStats[ch] = new ChannelStat({
+                            baseline: new Gaussian(baselineMean, baselineVariance, baselineCount),
                             values: statValues
                         });
                     } else {
-                        dataset._channelStats[ch] = new fmstat.ChannelStat({
-                            values: [new fmstat.Gaussian(mean, variance, count)]
+                        dataset._channelStats[ch] = new ChannelStat({
+                            values: [new Gaussian(mean, variance, count)]
                         });
                     }
                 });
@@ -133,11 +137,11 @@ class fmdata {
                 newChannelOpts.baselineWindow = this._windowInSamples(dataset.metadata.baselineWindow);
             }
             channels.forEach(function (ch) {
-                var newChannel = new fmstat.ChannelStat(newChannelOpts);
+                var newChannel = new ChannelStat(newChannelOpts);
                 trials.forEach(function (trialData) {
                     newChannel.ingest(trialData[ch]);
                 });
-                dataset._channelStats[ch] = new fmstat.ChannelStat();
+                dataset._channelStats[ch] = new ChannelStat();
             });
             return;
         }
@@ -186,7 +190,7 @@ class fmdata {
         if (this.contents.stats !== undefined) {
 
             // TODO Make configurable
-            return this.cronelib.forEachAsync(Object.keys(this._channelStats), function (ch) {
+            return forEachAsync(Object.keys(this._channelStats), function (ch) {
                 dataset.displayData[ch] = dataset._channelStats[ch].fdrCorrectedValues(0.05);
             }, {
                 batchSize: 5
@@ -315,7 +319,7 @@ class fmdata {
                 newBaselineWindow = dataset.metadata.baselineWindow;
             }
 
-            dataset._channelStats[ch] = new fmstat.ChannelStat({
+            dataset._channelStats[ch] = new ChannelStat({
                 baselineWindow: dataset._windowInSamples(newBaselineWindow)
             });
 
@@ -484,7 +488,7 @@ class fmdata {
             return Promise.resolve();
         }
 
-        return this.cronelib.forEachAsync(Object.keys(this._channelStats), function (ch) {
+        return forEachAsync(Object.keys(this._channelStats), function (ch) {
             this._channelStats[ch].recompute(newWindowSamples);
         }, {
             batchSize: 5
@@ -496,31 +500,18 @@ class fmdata {
 
         var dataset = this;
 
-        return this.cronelib.forEachAsync(Object.keys(this._channelStats), function (ch) {
-                dataset._channelStats[ch].ingest(trialData[ch]);
-            }, {
+        return forEachAsync(Object.keys(this._channelStats), ch => dataset._channelStats[ch].ingest(trialData[ch]), {
                 batchSize: 5
-            }).then(function () {
-
-                // Update the stats structure in contents
+            }).then(() => {
                 dataset._updateContentsStats();
-
-                // Update the trials structure " "
                 if (dataset.contents.trials === undefined) {
                     dataset.contents.trials = [];
                 }
                 dataset.contents.trials.push(trialData);
-
-                // We're dirty. So dirty.
                 dataset._clean = false;
-
             })
-            .then(function () {
-                return dataset._updateDisplayData();
-            });
-
+            .then(() => dataset._updateDisplayData());
     }
-
 };
 
 export default fmdata;

@@ -1,5 +1,7 @@
 var Cookies = require('js-cookie');
-import cronelib from '../lib/cronelib';
+import {
+    debounce
+} from '../lib/cronelib';
 import fmbrain from '../shared/fmbrain';
 import fmraster from '../shared/fmraster';
 import fmscope from '../shared/fmscope'
@@ -8,7 +10,6 @@ var $ = require('jquery');
 
 class fmui {
     constructor() {
-        this.cronelib = new cronelib();
         var manager = this;
         this.config = {};
         this.icons = [
@@ -216,7 +217,7 @@ class fmui {
         if (guarantee) {
             updater();
         } else {
-            this.cronelib.debounce(updater, this.config.rasterDebounceDelay, true)();
+            debounce(updater, this.config.rasterDebounceDelay, true)();
         }
     }
 
@@ -229,13 +230,13 @@ class fmui {
         if (guarantee) {
             updater();
         } else {
-            this.cronelib.debounce(updater, this.config.scopeDebounceDelay, true)();
+            debounce(updater, this.config.scopeDebounceDelay, true)();
         }
     }
 
     updateBrain() {
         var manager = this;
-        this.cronelib.debounce(function () {
+        debounce(function () {
             manager.brain.autoResize();
             manager.brain.update();
         }, this.config.brainDebounceDelay)();

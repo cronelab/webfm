@@ -340,16 +340,6 @@ var updateBaselineWindow = function (newWindow) {
             updateDataDisplay();
             uiManager.hideIcon('working');
         });
-    /*
-    cronelib.forEachAsync( Object.keys( channelStats ), function( ch ) {
-        channelStats[ch].recompute( newWindow );
-    }, {
-        batchSize: 5
-    } ).then( function() {
-        updatePlotsPostData();
-        uiManager.hideIcon( 'working' );
-    } );
-    */
 };
 
 $(window).on('resize', function () {
