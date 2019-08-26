@@ -13,28 +13,18 @@ import {
     OnlineDataSource
 } from './fmonline'
 
-
 var minimatch = require('minimatch');
-
-var fmstat = require('./fmstat');
-var fmgen = require('./fmgen');
-var fmfeature = require('./fmfeature');
-
-
 var onlineMode = true
-
 var subjectName = null
-var recordName = null
 
 
 
 
 var apiPath = '/api';
-var configPath = '/map/config';
 var dataset = new fmdata();
 
 var uiManager = new fmui();
-uiManager.loadConfig(path.join(configPath, 'ui'))
+uiManager.loadConfig(`/map/config/ui`)
 
 
 // DATA SOURCE SET-UP
@@ -59,7 +49,8 @@ if (onlineMode) { // Using BCI2000Web over the net
         ingestSignal(rawSignal);
     };
 
-    fetch(path.join(configPath, 'online')).then(response => response.json()).then(onlineConfig => {
+    fetch(`/map/config/online`).then(response => response.json()).then(onlineConfig => {
+        localStorage.setItem('source-address', onlineConfig.sourceAddress);
         dataSource.setConfig(onlineConfig);
         prepareOnlineDataSource();
     })
@@ -68,13 +59,6 @@ if (onlineMode) { // Using BCI2000Web over the net
 
 var prepareOnlineDataSource = async function () {
     var sourceAddress = localStorage.getItem('source-address')
-    if (sourceAddress === undefined) {
-        let request = await fetch(`${configPath}/online`);
-        let data = await request.json()
-        localStorage.setItem('source-address', data.sourceAddress);
-        resolve(data.sourceAddress);
-    }
-
     dataSource.connect(`ws://${sourceAddress}`)
         .then(function () {
             dataset.updateMetadata({
@@ -112,100 +96,23 @@ var updateRecordListForSubject = function (theSubject) {
         })
 };
 
-var prepareSubjectDependencies = function (theSubject) {
+const prepareSubjectDependencies = async () => {
 
-    // Update UI elements that depend on subject
     uiManager.updateSubjectName(subjectName);
 
-    // Update our data's knowledge of subject
+    let brainResponse = await fetch(`/api/brain/${subjectName}`)
+    let imageData = await brainResponse.text()
+    let geoResponse = await fetch(`/api/geometry/${subjectName}`)
+    let sensorGeometry = await geoResponse.json()
+
     dataset.updateMetadata({
-        subject: subjectName
+        subject: subjectName,
+        brainImage: imageData,
+        'sensorGeometry': sensorGeometry
     });
+    uiManager.brain.setup(imageData, sensorGeometry);
 
-    // First we'll load the brain
-    var loadSubjectBrain = function () {
-        return new Promise(function (resolve, reject) {
-            $.get(path.join(apiPath, 'brain', theSubject))
-                .done(function (imageData) {
-                    // Put the imageData into our metadata
-                    dataset.updateMetadata({
-                        brainImage: imageData
-                    });
-                    // Pass the data down the chain
-                    resolve(imageData);
-                })
-                .fail(function (req, reason, err) {
-                    reject('Could not load subject brain: ' + reason);
-                });
-        });
-    };
-
-    // Next we'll load the sensor geometry
-    var loadSubjectGeometry = function () {
-        return new Promise(function (resolve, reject) {
-            $.get(path.join(apiPath, 'geometry', theSubject))
-                .done(function (sensorGeometry) {
-                    // Put the geometry into our metadata
-                    dataset.updateMetadata({
-                        'sensorGeometry': sensorGeometry
-                    });
-                    // Pass the data down the chain
-                    resolve(sensorGeometry);
-                })
-                .fail(function (req, reason, err) {
-                    reject('Could not load subject sensor geometry: ' + reason);
-                });
-        });
-    };
-
-    // Execute both, and collate the results
-    Promise.all([
-            loadSubjectBrain(),
-            loadSubjectGeometry()
-        ])
-        .then(function (data) {
-
-            var imageData = data[0];
-            var sensorGeometry = data[1];
-
-            // We have what we need, make the brain plot!
-            uiManager.brain.setup(imageData, sensorGeometry);
-
-        })
-        .catch(function (reason) {
-            console.log(reason);
-        });
-
-    updateRecordListForSubject(theSubject);
-
-
-    // Old method
-
-    // // First, load the brain
-    // $.get( path.join( apiPath, 'brain', theSubject ) )
-    //     .done( function( imageData ) {
-
-    //         console.log( 'Obtained subject image data.' );
-
-    //         // Now that we've got the brain, load the sensor geometry
-    //         $.getJSON( path.join( apiPath, 'geometry', theSubject ) )
-    //             .done( function( sensorGeometry ) {
-
-    //                 console.log( 'Obtained subject sensor geometry.' );
-
-    //                 // We have what we need, make the brain plot!
-    //                 uiManager.brain.setup( imageData, sensorGeometry );
-
-    //             } )
-    //             .fail( function( req, reason, err ) {
-    //                 console.log( 'Could not load subject sensor geometry: ' + reason );
-    //             } );
-
-    //     } )
-    //     .fail( function( req, reason, err ) {
-    //         console.log( 'Could not load subject brain: ' + reason );
-    //     } );
-
+    updateRecordListForSubject(subjectName);
 };
 
 var matchTaskConfig = function (taskName, config) {
@@ -221,7 +128,7 @@ var matchTaskConfig = function (taskName, config) {
 }
 var prepareTaskDependencies = async function (taskName) {
 
-    let request = await fetch(`${configPath}/tasks`);
+    let request = await fetch(`/map/config/tasks`);
     let config = await request.json();
 
     var taskConfig = matchTaskConfig(taskName, config);
@@ -242,8 +149,6 @@ var prepareTaskDependencies = async function (taskName) {
     });
 
 };
-
-
 
 var updateProperties = properties => uiManager.updateChannelNames(properties.channels);
 

@@ -2,8 +2,9 @@ var Cookies = require('js-cookie');
 import cronelib from '../lib/cronelib';
 import fmbrain from '../shared/fmbrain';
 import fmraster from '../shared/fmraster';
-var fmscope = require('../map/fmscope');
+import fmscope from '../shared/fmscope'
 
+var $ = require('jquery');
 
 class fmui {
     constructor() {
@@ -17,7 +18,7 @@ class fmui {
         this.allChannels = []; // TODO Can avoid?
         this.raster = new fmraster('#fm');
         this.brain = new fmbrain('#fm-brain');
-        this.scope = new fmscope.ChannelScope('#fm-scope');
+        this.scope = new fmscope('#fm-scope');
         this.raster.onselectchannel = function (newChannel) {
             manager.brain.setSelectedChannel(newChannel);
         };
@@ -108,10 +109,10 @@ class fmui {
             event.preventDefault();
             manager.showOptions(event);
         };
-        document.getElementsByClassName('fm-options-tab-list')[0].onclick = function (event) {
+        $('.fm-options-tab-list a').on('click', function (event) {
             event.preventDefault();
             manager.showOptionsTab(this, event);
-        };
+        });
 
         document.getElementsByClassName('fm-save-cloud')[0].onclick = function (event) {
             event.preventDefault();
@@ -122,9 +123,9 @@ class fmui {
 
     rewireForms() {
         var manager = this; // Capture this
-        // document.getElementById('fm-options-modal').on('hidden.bs.modal', function (event) {
-        //     manager.optionsHidden(event);
-        // });
+        $('#fm-options-modal').on('hidden.bs.modal', function (event) {
+            manager.optionsHidden(event);
+        });
         var updateOptions = function (updater) {
             var options = manager.getOptions();
             updater(options);
@@ -371,12 +372,12 @@ class fmui {
         $(caller).tab('show');
 
         // Deactivate the tab list
-        document.getElementsByClassName('fm-options-tab-list .list-group-item')[0].classList.remove('active');
+        $('.fm-options-tab-list .list-group-item').removeClass('active');
 
         // TODO Get Bootstrap events for tab show / hide to work
         // Selected tab is last word of hash
         var selectedTab = caller.hash.split('-').pop();
-        var scopeChannel = document.getElementById('fm-option-scope-channel').value;
+        var scopeChannel = $('#fm-option-scope-channel').val();
 
         if (selectedTab == 'scope') {
             this.scope.setup(); // TODO Necessary?
@@ -390,22 +391,6 @@ class fmui {
         // Could cause de-synch behavior if multiple instances of class
         $(caller).addClass('active');
 
-    }
-
-    setModalSize(size, event) {
-        console.log('Changing size to ' + size);
-        if (size == 'lg') {
-            document.getElementById('fm-options-modal-dialog').classList.remove('modal-sm')
-                .addClass('modal-lg');
-            return;
-        }
-        if (size == 'sm') {
-            document.getElementById('fm-options-modal-dialog').classList.remove('modal-lg')
-                .addClass('modal-sm');
-            return;
-        }
-        document.getElementById('fm-options-modal-dialog').classList.remove('modal-lg modal-sm');
-        return;
     }
 
     updateScopeMin(newMin) {
@@ -425,23 +410,16 @@ class fmui {
     updateScopeChannel(newChannel) {
         this.scope.start(newChannel);
     }
-
-
-    /* GUI Update methods */
-
     updateSubjectName(newSubjectName) {
         document.getElementsByClassName('fm-subject-name')[0].innerHTML = newSubjectName;
         document.getElementsByClassName('fm-back')[0].setAttribute('href', `/#${newSubjectName}`);
     }
-
     updateTaskName(newTaskName) {
         document.getElementsByClassName('fm-task-name')[0].innerHTML = newTaskName;
         document.getElementById('fm-option-save-name').value = newTaskName;
     }
 
     updateSubjectRecords(newRecords) {
-
-        // Clear list before populating it
         let recordsTable = document.getElementById('fm-cloud-records-table')
         while (recordsTable.hasChildNodes()) {
             recordsTable.removeChild(recordsTable.firstChild);
@@ -506,31 +484,31 @@ class fmui {
     }
 
     _populateMontageList(newChannelNames) {
-        // var manager = this;
-        // var exclusion = this.getExclusion();
-        // var montageBody = document.getElementsByClassName('fm-montage-table tbody')[0];
-        // montageBody.empty();
-        // newChannelNames.forEach(function (ch) {
-        //     var curRow = document.createElement('tr')
-        //     curRow.append($('<th scope="row" class="fm-montage-cell-channelname">' + ch + '</th>'));
-        //     var isExcludedText = exclusion[ch] ? 'Yes' : 'No';
-        //     curRow.append($('<td class="fm-montage-cell-isexcluded">' + isExcludedText + '</td>')); // TODO Check if excluded
-        //     if (exclusion[ch]) {
-        //         curRow.addClass('danger');
-        //     }
-        //     curRow.on('click', function (event) {
-        //         var selection = $(this);
-        //         var shouldExclude = !selection.hasClass('danger');
-        //         if (shouldExclude) {
-        //             manager.exclude(ch);
-        //         } else {
-        //             manager.unexclude(ch);
-        //         }
-        //         selection.toggleClass('danger');
-        //         $('.fm-montage-cell-isexcluded', this).text(shouldExclude ? 'Yes' : 'No');
-        //     });
-        //     montageBody.append(curRow);
-        // });
+        var manager = this;
+        var exclusion = this.getExclusion();
+        var montageBody = $('.fm-montage-table tbody');
+        montageBody.empty();
+        newChannelNames.forEach(function (ch) {
+            var curRow = $('<tr></tr>');
+            curRow.append($('<th scope="row" class="fm-montage-cell-channelname">' + ch + '</th>'));
+            var isExcludedText = exclusion[ch] ? 'Yes' : 'No';
+            curRow.append($('<td class="fm-montage-cell-isexcluded">' + isExcludedText + '</td>')); // TODO Check if excluded
+            if (exclusion[ch]) {
+                curRow.addClass('danger');
+            }
+            curRow.on('click', function (event) {
+                var selection = $(this);
+                var shouldExclude = !selection.hasClass('danger');
+                if (shouldExclude) {
+                    manager.exclude(ch);
+                } else {
+                    manager.unexclude(ch);
+                }
+                selection.toggleClass('danger');
+                $('.fm-montage-cell-isexcluded', this).text(shouldExclude ? 'Yes' : 'No');
+            });
+            montageBody.append(curRow);
+        });
     }
 
     getRasterExtent() {
