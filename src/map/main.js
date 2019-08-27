@@ -267,17 +267,11 @@ uiManager.raster.oncursormove = function (newTime) {
 };
 
 uiManager.onsave = function (saveName) {
-    var putUrl = path.join(apiPath, 'data', subjectName, saveName);
-    var standardImport = './.metadata';
-    dataset.put(putUrl, {
-            import: standardImport
+    dataset.put(`/api/data/${subjectName}/${saveName}`, {
+            import: './.metadata'
         })
-        .then(function (response) {
-            updateRecordListForSubject(subjectName);
-        })
-        .catch(function (reason) {
-            console.log(reason);
-        });
+        .then(response => updateRecordListForSubject(subjectName))
+        .catch(reason => console.log(reason));
 };
 
 uiManager.onoptionchange = function (option, newValue) {
