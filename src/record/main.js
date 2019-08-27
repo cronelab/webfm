@@ -5,66 +5,64 @@ import fmui from '../shared/fmui'
 import fmdata from '../shared/fmdata';
 
 
-var dataset = new fmdata();
-var uiManager = new fmui();
-
+let dataset;
+let uiManager;
 var subjectName = localStorage.getItem('subject');
 var recordName = localStorage.getItem('record');
 
-uiManager.loadConfig(`/config`)
 
-const updateProperties = properties => uiManager.updateChannelNames(properties.channels);
+window.onload = async () => {
+    uiManager = new fmui();
+    dataset = new fmdata();
+    let request = await fetch(`/config`)
+    let data = await request.json()
 
-const prepareFromDataset = () => {
+    uiManager.config.ui = data;
+    uiManager.setup();
+    uiManager.raster.oncursormove = newTime => {
+        document.getElementsByClassName('fm-time-selected')[0].innerHTML = (newTime > 0 ? '+' : '') + newTime.toFixed(3) + ' s';
+        uiManager.brain.update(dataset.dataForTime(newTime));
+    };
 
-    uiManager.updateSubjectName(dataset.metadata.subject);
-
-    let brainImage = dataset.metadata.brainImage;
-    let sensorGeometry = dataset.metadata.sensorGeometry;
-
-    if (brainImage === undefined) {
-        if (sensorGeometry === undefined) {}
-    } else {
-        if (sensorGeometry === undefined) {} else {
-            uiManager.brain.setup(brainImage, sensorGeometry);
-        }
-    }
-    if (dataset.metadata.setting !== undefined) {
-        if (dataset.metadata.setting.task !== undefined) {
-            uiManager.updateTaskName(dataset.metadata.setting.task);
-        } else {
-            uiManager.updateTaskName('(unknown)');
-        }
-    } else {
-        uiManager.updateTaskName('(unknown)');
-    }
-    updateProperties({
-        channels: dataset.metadata.montage
-    });
-};
-
-fetch(`/api/info/${subjectName}/${recordName}`).then(response => response.json())
-    .then(recordUrl => {
-        fetch(recordUrl.uri).then(response => response.json()).then(data => {
-            dataset.get(data).then(dataset => {
-                prepareFromDataset();
-                updateDataDisplay()
-            })
-        })
-    })
-
-
-const updateDataDisplay = () => {
-    uiManager.raster.update(dataset.displayData);
-    uiManager.brain.update(dataset.dataForTime(uiManager.raster.getCursorTime()));
-    let timeBounds = dataset.getTimeBounds();
-    uiManager.raster.updateTimeRange([timeBounds.start, timeBounds.end]);
 }
 
-uiManager.raster.oncursormove = newTime => {
-    uiManager.updateSelectedTime(newTime);
-    uiManager.brain.update(dataset.dataForTime(newTime));
-};
+
+
+fetch(`/api/data/${subjectName}/${recordName}`).then(response => response.json()).then(data => {
+    dataset.get(data).then(() => {
+
+        let {
+            brainImage,
+            sensorGeometry,
+            montage,
+        } = dataset.metadata;
+
+        document.getElementsByClassName('fm-subject-name')[0].innerHTML = subjectName;
+        document.getElementsByClassName('fm-subject-name')[1].innerHTML = subjectName;
+        document.getElementsByClassName('fm-back')[0].setAttribute('href', `/#${subjectName}`);
+
+        document.getElementsByClassName('fm-task-name')[0].innerHTML = dataset.metadata.setting.task;
+        document.getElementById('fm-option-save-name').value = dataset.metadata.setting.task;
+
+        uiManager.updateChannelNames(montage);
+        uiManager.raster.update(dataset.displayData);
+        uiManager.brain.setup(brainImage, sensorGeometry);
+        uiManager.brain.update(dataset.dataForTime(uiManager.raster.cursorTime));
+        let timeBounds = dataset.getTimeBounds();
+
+
+
+        if (!uiManager.raster.timeScale) {
+            return;
+        }
+        uiManager.raster.timeScale.range([timeBounds.start, timeBounds.end]);
+
+
+
+    })
+})
+
+
 
 
 window.onresize = () => uiManager.didResize();

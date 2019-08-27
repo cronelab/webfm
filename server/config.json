@@ -1,8 +1,6 @@
 {
     "online": {
-        "debug": true,
         "sourceAddress": "127.0.0.1",
-
         "checkRunningInterval": 1000,
         "checkStateInterval": 1000
     },
@@ -15,7 +13,6 @@
         "maxrasterExtent": 1000,
         "unitsPerrasterExtent": 0.5,
 
-        "iconShowDuration": 0,
         "iconHideDelay": 500,
         "iconHideDuration": 500,
 

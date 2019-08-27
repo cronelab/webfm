@@ -2,7 +2,8 @@ import "bootstrap";
 import "./index.scss";
 import "@fortawesome/fontawesome-free/js/all";
 import {
-    fetchAndStoreBrain
+    fetchAndStoreBrain,
+    fetchAndStoreGeometry
 } from '../shared/loaders'
 import path from 'path'
 
@@ -119,6 +120,8 @@ let selectSubject = async (subject) => {
         document.getElementById('main-brain').setAttribute('src', brain);
         scroll(0, 0)
     })
+
+    fetchAndStoreGeometry(subject);
 
     localStorage.setItem('subject', subject);
     document.getElementById('subject-list').querySelectorAll('.active').forEach(e => {

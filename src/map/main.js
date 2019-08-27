@@ -17,14 +17,21 @@ var onlineMode = true
 var subjectName = null
 
 
+let dataset;
+let uiManager;
+window.onload = async () => {
 
+    let request = await fetch(configURI)
+    let data = await request.json()
+
+    dataset = new fmdata();
+    uiManager = new fmui();
+    uiManager.config.ui = data;
+    uiManager.setup();
+
+}
 
 var apiPath = '/api';
-var dataset = new fmdata();
-
-var uiManager = new fmui();
-uiManager.loadConfig(`/config`)
-
 
 // DATA SOURCE SET-UP
 var dataSource = null;
@@ -97,7 +104,9 @@ var updateRecordListForSubject = function (theSubject) {
 
 const prepareSubjectDependencies = async () => {
 
-    uiManager.updateSubjectName(subjectName);
+    document.getElementsByClassName('fm-subject-name')[0].innerHTML = subjectName;
+    document.getElementsByClassName('fm-subject-name')[1].innerHTML = subjectName;
+    document.getElementsByClassName('fm-back')[0].setAttribute('href', `/#${subjectName}`);
 
     let brainResponse = await fetch(`/api/brain/${subjectName}`)
     let imageData = await brainResponse.text()
@@ -140,7 +149,10 @@ var prepareTaskDependencies = async function (taskName) {
     if (taskConfig.baselineWindow !== undefined) {
         dataset.updateBaselineWindow(taskConfig.baselineWindow);
     }
-    uiManager.updateTaskName(taskName);
+
+    document.getElementsByClassName('fm-task-name')[0].innerHTML = taskName;
+    document.getElementById('fm-option-save-name').value = taskName;
+
     dataset.updateMetadata({
         setting: {
             task: taskName
@@ -154,112 +166,36 @@ var updateProperties = properties => uiManager.updateChannelNames(properties.cha
 var ingestSignal = signal => uiManager.scope.update(signal);
 
 var startTrial = function () {
-    uiManager.showIcon('transfer');
-    uiManager.activateTrialCount();
+    $('.fm-transfer-icon').show(0);
+    document.getElementsByClassName('fm-trial-label')[0].classList.add('fm-trial-label-active');
 };
 
 var ingestTrial = function (trialData) {
-    uiManager.hideIcon('transfer');
-    uiManager.showIcon('working');
+    setTimeout(() => document.getElementsByClassName(`fm-transfer-icon`)[0].classList.add('d-none'), 500);
+    $('.fm-working-icon').show(0);
     dataset.ingest(trialData)
         .then(function () {
             updateDataDisplay();
-            uiManager.hideIcon('working');
+            setTimeout(() => document.getElementsByClassName(`fm-working-icon`)[0].classList.add('d-none'), 500);
             uiManager.updateTrialCount(dataset.getTrialCount());
-            uiManager.deactivateTrialCount();
 
+            document.getElementsByClassName('fm-trial-label')[0].classList.remove('fm-trial-label-active');
         });
 }
 var updateDataDisplay = function () {
     uiManager.raster.update(dataset.displayData);
-    uiManager.brain.update(dataset.dataForTime(uiManager.raster.getCursorTime()));
+    uiManager.brain.update(dataset.dataForTime(uiManager.raster.cursorTime));
     var timeBounds = dataset.getTimeBounds();
-    uiManager.raster.updateTimeRange([timeBounds.start, timeBounds.end]);
+    if (!uiManager.raster.timeScale) {
+        return;
+    }
+    uiManager.raster.timeScale.range([timeBounds.start, timeBounds.end]);
 }
-/*
-var updateStatistics = function( trialData ) {
 
-
-    cronelib.forEachAsync( Object.keys( channelStats ), function( ch ) {
-        channelStats[ch].ingest( trialData[ch] );
-        meanData[ch] = channelStats[ch].fdrCorrectedValues( 0.05 );
-    }, {
-        batchSize: 5
-    } ).then( function() {
-
-        // TODO
-        var trialCount = 0;
-        Object.keys( channelStats ).every( function( ch ) {
-            trialCount = channelStats[ch].valueTrials.length;
-            return false;
-        } );
-
-        updatePlotsPostData();
-
-        // GUI stuff
-        uiManager.hideIcon( 'working' );
-        uiManager.updateTrialCount( trialCount );
-        uiManager.deactivateTrialCount();
-
-    } );
-
-};
-*/
-
-// EVENT HOOKS
-
-// TODO Super kludgey to put here, but need data
-
-/*
-var dataForTime = function( time ) {
-
-    // TODO Kludge; cache this, since it doesn't change
-    var dataSamples = 0;
-    Object.keys( meanData ).every( function( ch ) {
-        dataSamples = meanData[ch].length;
-        return false;
-    } );
-
-    var trialWindow = dataSource.getTrialWindow();
-    var totalTime = trialWindow.end - trialWindow.start;
-
-    var timeIndexFloat = ((time - trialWindow.start) / totalTime) * dataSamples;
-    var timeIndex = Math.floor( timeIndexFloat );
-    var timeFrac = timeIndexFloat - timeIndex;
-
-    return Object.keys( meanData ).reduce( function( obj, ch ) {
-        obj[ch] = (1.0 - timeFrac) * meanData[ch][timeIndex] + (timeFrac) * meanData[ch][timeIndex + 1];
-        return obj
-    }, {} );
-
-};
-*/
-
-// TODO AAAAAAH I'M AN IDIOT
-/*
-var updatePlotsPostData = function() {
-
-    uiManager.raster.update( meanData );
-
-    // TODO Kludge: dataForTime is the only thing keeping routine in main
-    var meanDataSlice = dataForTime( uiManager.raster.getCursorTime() );
-    uiManager.brain.update( meanDataSlice );
-
-    // TODO Super kludge; should only need to update once ever ...
-    var trialWindow = dataSource.getTrialWindow();
-    uiManager.raster.updateTimeRange( [trialWindow.start, trialWindow.end] );
-
-};
-*/
 
 uiManager.raster.oncursormove = function (newTime) {
 
-    uiManager.updateSelectedTime(newTime);
-
-    /*
-    var meanDataSlice = dataForTime( newTime );
-    uiManager.brain.update( meanDataSlice );
-    */
+    document.getElementsByClassName('fm-time-selected')[0].innerHTML = (newTime > 0 ? '+' : '') + newTime.toFixed(3) + ' s';
 
     uiManager.brain.update(dataset.dataForTime(newTime));
 
@@ -327,11 +263,12 @@ var updateTrialWindow = function (newWindow) {
     // TODO ...
 };
 var updateBaselineWindow = function (newWindow) {
-    uiManager.showIcon('working');
+    $('.fm-working-icon').show(0);
+
     dataset.updateBaselineWindow(newWindow)
         .then(function () {
             updateDataDisplay();
-            uiManager.hideIcon('working');
+            setTimeout(() => document.getElementsByClassName(`fm-working-icon`)[0].classList.add('d-none'), 500);
         });
 };
 
