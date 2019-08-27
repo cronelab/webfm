@@ -118,15 +118,62 @@ let getTaskName = async () => {
     document.getElementById('task-label').innerHTML = taskName;
 };
 
+let PYSubjects = [];
+let otherSubjects = [];
+let addSubjectCell = subjects => {
+    PYSubjects = subjects.filter(subj => subj.substring(0, 2) == "PY")
+    otherSubjects = subjects.filter(subj => subj.substring(0, 2) != "PY")
 
-let addSubjectCell = subject => {
-    let newSubject = document.createElement('a');
-    newSubject.id = subject;
-    newSubject.href = `#${subject}`;
-    newSubject.classList.add('list-group-item');
-    newSubject.innerText = subject;
-    newSubject.onclick = () => selectSubject(subject);
-    document.getElementById('subject-list').append(newSubject);
+    let dropdowns = PYSubjects.map(subj => {
+        let dropItem = document.createElement('div')
+        dropItem.classList.add('dropdown-item')
+        dropItem.id = subj;
+        dropItem.href = `#${subj}`
+        dropItem.innerHTML = subj;
+        dropItem.onclick = () => selectSubject(subj);
+        return dropItem
+    })
+
+    let uniquePYYears = [...new Set(PYSubjects.map(year => year.substring(2, 4)))]
+    uniquePYYears.forEach(year => {
+
+        let btnGroup = document.createElement('div')
+        btnGroup.classList.add('btn-group')
+        btnGroup.classList.add('dropright')
+
+
+        let newYear = document.createElement('button');
+        newYear.classList.add('btn')
+        newYear.classList.add('btn-secondary')
+        newYear.classList.add('dropdown-toggle')
+        newYear.id = `PY${year}`
+        newYear.innerText = `PY${year}`;
+        newYear.setAttribute('data-toggle', "dropdown")
+
+
+        let dropMenu = document.createElement('div')
+        dropMenu.classList.add('dropdown-menu')
+
+        btnGroup.append(dropMenu)
+        btnGroup.append(newYear)
+
+        dropdowns.forEach((dropItem, index) => {
+            if (dropItem.innerHTML.substring(2, 4) == year) {
+                dropMenu.append(dropItem)
+            }
+        })
+        document.getElementById('subject-list').append(btnGroup);
+    })
+
+    otherSubjects.forEach(subject => {
+        let newSubject = document.createElement('a');
+        newSubject.id = subject;
+        newSubject.href = `#${subject}`;
+        newSubject.classList.add('list-group-item');
+        newSubject.innerText = subject;
+        newSubject.onclick = () => selectSubject(subject);
+        document.getElementById('subject-list').append(newSubject);
+    })
 };
 
 let loadBrain = async subject => {
@@ -154,6 +201,8 @@ let loadRecords = async (subject) => {
     scroll(0, 0)
 
 };
+
+
 let selectSubject = (subject) => {
     localStorage.setItem('subject', subject);
     document.getElementById('subject-list').querySelectorAll('.active').forEach(e => {
@@ -177,7 +226,8 @@ let loadSubjects = async () => {
     let listPathRes = await fetch(listPath);
     let subjects = await listPathRes.json()
     subjects.sort();
-    subjects.forEach(addSubjectCell);
+    addSubjectCell(subjects)
+    // subjects.forEach(addSubjectCell);
     let hashSubject = window.location.hash.slice(1);
     selectSubject(hashSubject);
 };
