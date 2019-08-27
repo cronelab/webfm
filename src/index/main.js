@@ -3,7 +3,9 @@ import "bootstrap";
 import "./index.scss";
 import "@fortawesome/fontawesome-free/js/all";
 import BCI2K from "@cronelab/bci2k";
-
+import {
+    fetchAndStoreBrain
+} from '../shared/loaders'
 let parameterRecheckDuration = 2000;
 let _bciConnection = null;
 let currentState = 'Not Connected';
@@ -176,13 +178,6 @@ let addSubjectCell = subjects => {
     })
 };
 
-let loadBrain = async subject => {
-    let brainPath = `/api/brain/${subject}`;
-    let response = await fetch(brainPath);
-    let brain = await response.text();
-    document.getElementById('main-brain').setAttribute('src', brain);
-    scroll(0, 0)
-};
 
 let loadRecords = async (subject) => {
     let listPath = `/api/list/${subject}`;
@@ -217,13 +212,14 @@ let selectSubject = (subject) => {
         recordList.removeChild(recordList.firstChild);
     }
     loadRecords(subject);
-    loadBrain(subject);
-
+    fetchAndStoreBrain(subject).then(brain => {
+        document.getElementById('main-brain').setAttribute('src', brain);
+        scroll(0, 0)
+    })
 };
 
 let loadSubjects = async () => {
-    let listPath = `/api/list`;
-    let listPathRes = await fetch(listPath);
+    let listPathRes = await fetch(`/api/list`);
     let subjects = await listPathRes.json()
     subjects.sort();
     addSubjectCell(subjects)
