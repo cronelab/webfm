@@ -32,7 +32,7 @@ class fmui {
         var manager = this;
         let request = await fetch(configURI)
         let data = await request.json()
-        manager.config = data;
+        manager.config.ui = data;
         manager.setup();
     }
 

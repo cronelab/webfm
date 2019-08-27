@@ -10,10 +10,7 @@ let __dirname = path.resolve(path.dirname(''));
 const routes = (express) => {
     const router = express.Router();
 
-    router.get('/map/config/ui', (req, res) => res.sendFile(`${__dirname}/server/config/fmui.json`));
-    router.get('/index/config/online', (req, res) => res.sendFile(`${__dirname}/server/config/fmonline.json`));
-    router.get('/map/config/online', (req, res) => res.sendFile(`${__dirname}/server/config/fmonline.json`));
-    router.get('/map/config/tasks', (req, res) => res.sendFile(`${__dirname}/server/config/tasks.json`));
+    router.get('/config', (req, res) => res.sendFile(`${__dirname}/server/config.json`));
 
     router.get('/live', (req, res) => res.sendFile(`${__dirname}/dist/live.html`));
     router.get('/map', (req, res) => res.sendFile(`${__dirname}/dist/map.html`));

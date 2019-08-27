@@ -1,11 +1,9 @@
 import "./index.scss";
 import "bootstrap";
 import "@fortawesome/fontawesome-free/js/all";
-import path from 'path';
 import fmui from '../shared/fmui'
 import fmdata from '../shared/fmdata';
 
-var configPath = '/map/config';
 
 var dataset = new fmdata();
 var uiManager = new fmui();
@@ -13,7 +11,7 @@ var uiManager = new fmui();
 var subjectName = localStorage.getItem('subject');
 var recordName = localStorage.getItem('record');
 
-uiManager.loadConfig(path.join(configPath, 'ui'))
+uiManager.loadConfig(`/config`)
 
 const updateProperties = properties => uiManager.updateChannelNames(properties.channels);
 

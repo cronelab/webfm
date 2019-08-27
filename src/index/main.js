@@ -61,7 +61,7 @@ let bciStateChange = newState => {
 const _checkState = () => {
     let tryLaterIfWatching = () => {
         if (watching) {
-            setTimeout(() => _checkState(), config.checkStateInterval);
+            setTimeout(() => _checkState(), config.online.checkStateInterval);
         }
     };
 
@@ -80,12 +80,12 @@ const _checkState = () => {
 
 let setupWatcher = async () => {
     _bciConnection = new BCI2K.bciOperator();
-    let configURIRes = await fetch('/index/config/online');
+    let configURIRes = await fetch('/config');
     config = await configURIRes.json();
 
     let localSourceAddress = localStorage.getItem('source-address');
     if (localSourceAddress === null) {
-        localSourceAddress = config.sourceAddress;
+        localSourceAddress = config.online.sourceAddress;
     }
     _bciConnection.connect(`ws://${localSourceAddress}`).then(event => {
             _updateState('Connected');

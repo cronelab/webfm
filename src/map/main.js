@@ -1,7 +1,6 @@
 import "./index.scss";
 import "bootstrap";
 import "@fortawesome/fontawesome-free/js/all";
-import path from 'path';
 import fmui from '../shared/fmui'
 import fmdata from '../shared/fmdata';
 
@@ -24,7 +23,7 @@ var apiPath = '/api';
 var dataset = new fmdata();
 
 var uiManager = new fmui();
-uiManager.loadConfig(`/map/config/ui`)
+uiManager.loadConfig(`/config`)
 
 
 // DATA SOURCE SET-UP
@@ -49,9 +48,9 @@ if (onlineMode) { // Using BCI2000Web over the net
         ingestSignal(rawSignal);
     };
 
-    fetch(`/map/config/online`).then(response => response.json()).then(onlineConfig => {
-        localStorage.setItem('source-address', onlineConfig.sourceAddress);
-        dataSource.setConfig(onlineConfig);
+    fetch(`/config`).then(response => response.json()).then(onlineConfig => {
+        localStorage.setItem('source-address', onlineConfig.online.sourceAddress);
+        dataSource.setConfig(onlineConfig.online);
         prepareOnlineDataSource();
     })
 }
@@ -128,10 +127,10 @@ var matchTaskConfig = function (taskName, config) {
 }
 var prepareTaskDependencies = async function (taskName) {
 
-    let request = await fetch(`/map/config/tasks`);
+    let request = await fetch(`/config`);
     let config = await request.json();
 
-    var taskConfig = matchTaskConfig(taskName, config);
+    var taskConfig = matchTaskConfig(taskName, config.tasks);
     if (taskConfig === undefined) {
         return;
     }
