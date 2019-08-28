@@ -42,8 +42,6 @@ class fmdata {
         }
         if (this.contents.stats !== undefined) {
             var stats = this.contents.stats; // convenience
-            console.log(stats)
-
             var channels = Object.keys(stats.estimators.mean);
             channels.forEach(function (ch) {
                 var mean = stats.estimators.mean[ch];
@@ -178,7 +176,6 @@ class fmdata {
     }
 
     get(data) {
-
         var dataset = this;
         dataset._clean = true;
 

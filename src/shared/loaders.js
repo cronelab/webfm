@@ -30,6 +30,7 @@ const fetchAndStoreGeometry = async subject => {
             'geometry': geometry
         }
         localStorage.setItem(`geometry`, JSON.stringify(storedGeometry));
+        console.log(geometry)
         return geometry
     }
 }

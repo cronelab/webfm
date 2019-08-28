@@ -21,7 +21,7 @@ window.onload = async () => {
     selectSubject(subjects[0]);
 
     let localSourceAddress = localStorage.getItem('source-address') || config.online.sourceAddress
-
+    localStorage.setItem('source-address', localSourceAddress)
     bciOperator.connect(`ws://${localSourceAddress}`).then(event => bciOperator.stateListen())
 };
 

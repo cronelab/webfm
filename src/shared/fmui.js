@@ -1,4 +1,3 @@
-var Cookies = require('js-cookie');
 import {
     debounce
 } from '../lib/cronelib';
@@ -108,6 +107,10 @@ class fmui {
             manager.gainDown(event);
         };
 
+        document.getElementById('clearExclusionButton').onclick = e => {
+            e.preventDefault();
+            manager.clearExclusion()
+        };
 
         document.getElementsByClassName('fm-show-options')[0].onclick = function (event) {
             event.preventDefault();
@@ -131,6 +134,7 @@ class fmui {
             manager.optionsHidden(event);
         });
         var updateOptions = function (updater) {
+            console.log("here")
             var options = manager.getOptions();
             updater(options);
             manager.setOptions(options);
@@ -472,19 +476,11 @@ class fmui {
     }
 
     getOptions() {
-        // Get the set options
-        var options = Cookies.getJSON('options');
+        let options = JSON.parse(localStorage.getItem('options'))
 
-        if (options === undefined) {
-            // Cookie isn't set, so generate default
+        if (options == undefined) {
             options = {};
-
-            // TODO Move default options into config
-
             options.stimulus = {};
-
-            // Stimulus-based alignment config
-
             options.stimulus.window = {
                 start: -1.0,
                 end: 3.0
@@ -532,70 +528,51 @@ class fmui {
             options.response.state.offValue = 0;
             options.response.state.onValue = 'x';
 
-            // Set the cookie so this doesn't happen again!
-            Cookies.set('options', options, {
-                expires: this.config.cookieExpirationDays
-            });
+            localStorage.setItem('options', JSON.stringify(options))
+
         }
 
         return options
     }
 
     setOptions(options) {
-        Cookies.set('options', options, {
-            expires: this.config.cookieExpirationDays
-        });
+        localStorage.setItem('options', JSON.stringify(options))
     }
 
     clearOptions() {
-        Cookies.remove('options');
+        localStorage.setItem('options', {})
+
         this.getOptions();
     }
 
     getExclusion() {
-        // Get the excluded channels
-        var exclusion = Cookies.getJSON('exclusion');
-
-        if (exclusion === undefined) {
-            // Cookie is not set, so generate default
-            exclusion = {};
-            // ... and set it so this doesn't happen again!
-            Cookies.set('exclusion', exclusion, {
-                expires: this.config.cookieExpirationDays
-            });
-        }
-
+        let exclusion = JSON.parse(localStorage.getItem('exclusion')) || {}
+        localStorage.setItem('exclusion', JSON.stringify(exclusion));
         return exclusion;
     }
 
-    setExclusion(exclusion) {
-        Cookies.set('exclusion', exclusion, {
-            expires: this.config.cookieExpirationDays
-        });
-    }
-
     clearExclusion() {
-        Cookies.remove('exclusion');
-        this.getExclusion();
+        let exclusion = this.getExclusion();
+        Object.keys(exclusion).forEach(ch => {
+            exclusion[ch] = false
+            localStorage.setItem('exclusion', JSON.stringify(exclusion))
+        });
+        [].forEach.call(document.getElementsByClassName('fm-montage-cell-isexcluded'), a => a.innerText = "No")
+        this.raster.setDisplayOrder(this.allChannels.filter(this.channelFilter()));
+
     }
 
     exclude(channel) {
-        // TODO Check if channel is in allChannels?
         var exclusion = this.getExclusion();
         exclusion[channel] = true;
-        this.setExclusion(exclusion);
-
-        // Update raster display
+        localStorage.setItem('exclusion', JSON.stringify(exclusion))
         this.raster.setDisplayOrder(this.allChannels.filter(this.channelFilter()));
     }
 
     unexclude(channel) {
-        // TODO Better behavior: Check if channel is in exclusion, then delete
         var exclusion = this.getExclusion();
         exclusion[channel] = false;
-        this.setExclusion(exclusion);
-
-        // Update raster display
+        localStorage.setItem('exclusion', JSON.stringify(exclusion))
         this.raster.setDisplayOrder(this.allChannels.filter(this.channelFilter()));
     }
 
