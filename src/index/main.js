@@ -18,7 +18,7 @@ window.onload = async () => {
 
     subjects.sort();
     addSubjectCell(subjects)
-    selectSubject(window.location.hash.slice(1));
+    selectSubject(subjects[0]);
 
     let localSourceAddress = localStorage.getItem('source-address') || config.online.sourceAddress
 

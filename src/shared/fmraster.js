@@ -1,6 +1,5 @@
 import * as d3 from "d3";
 d3.horizonChart = require('../lib/horizon-chart-custom.js').default;
-var $ = require('jquery');
 
 class fmraster {
     constructor(baseNodeId) {
@@ -140,7 +139,7 @@ class fmraster {
         }
 
         var raster = this;
-        var width = $(this.baseNodeId).width() - this.chartMargin.left - this.chartMargin.right;
+        var width = parseFloat(getComputedStyle(document.getElementById('fm'), null).width.replace("px", "")) - this.chartMargin.left - this.chartMargin.right;
         var step = width / this.data[0].values.length;
         if (!this.timeScale) {
             this.timeScale = d3.scaleLinear()
@@ -165,8 +164,9 @@ class fmraster {
             if (raster.cursorLocked) {
                 return;
             }
-            var offset = $(this).offset();
-            var cursorX = event.pageX - offset.left; // Works because this is parent element
+
+            var offset = this.getBoundingClientRect()
+            var cursorX = event.pageX - offset.left + document.body.scrollLeft;
             var newTime = raster.timeScale(cursorX);
             raster.updateCursor(newTime);
             raster.oncursormove(newTime);

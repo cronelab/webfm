@@ -289,20 +289,13 @@ class fmdata {
 
             // TODO Doing two stringifys to support re-writing of _import
             // Better way?
-
-            $.ajax({
-                    url: url,
-                    method: 'PUT',
-                    data: JSON.stringify(dataToSend)
-                })
-                .done(function (data) {
-                    dataset._clean = true; // We just put, so everything is clean
-                    resolve(data);
-                })
-                .fail(function (req, reason, err) {
-                    reject('Error putting WebFM file to ' + url + ': ' + reason);
-                });
-
+            fetch(url, {
+                method: 'PUT',
+                body: JSON.stringify(dataToSend)
+            }).then(data => {
+                dataset._clean = true; // We just put, so everything is clean
+                resolve(data);
+            })
         });
 
     }

@@ -3,11 +3,6 @@ import "bootstrap";
 import "@fortawesome/fontawesome-free/js/all";
 import fmui from '../shared/fmui'
 import fmdata from '../shared/fmdata';
-
-import $ from 'jquery'
-window.jQuery = $;
-window.$ = $;
-
 import {
     OnlineDataSource
 } from './fmonline'
@@ -21,14 +16,71 @@ let dataset;
 let uiManager;
 window.onload = async () => {
 
-    let request = await fetch(configURI)
+    let request = await fetch(`/config`)
     let data = await request.json()
 
     dataset = new fmdata();
     uiManager = new fmui();
     uiManager.config.ui = data;
     uiManager.setup();
+    uiManager.raster.oncursormove = newTime => {
+        document.getElementsByClassName('fm-time-selected')[0].innerHTML = (newTime > 0 ? '+' : '') + newTime.toFixed(3) + ' s';
+        uiManager.brain.update(dataset.dataForTime(newTime));
+    };
 
+    uiManager.onsave = function (saveName) {
+        dataset.put(`/api/data/${subjectName}/${saveName}`, {
+                import: './.metadata'
+            })
+            .then(response => updateRecordListForSubject(subjectName))
+            .catch(reason => console.log(reason));
+    };
+
+    uiManager.onoptionchange = function (option, newValue) {
+
+        if (option == 'stim-trial-start') {
+            // updateTrialWindow( { start: newValue } );
+        }
+        if (option == 'stim-trial-end') {
+            // updateTrialWindow( { end: newValue } );
+        }
+
+        if (option == 'stim-baseline-start') {
+            updateBaselineWindow({
+                start: newValue
+            });
+        }
+        if (option == 'stim-baseline-end') {
+            updateBaselineWindow({
+                end: newValue
+            });
+        }
+
+        if (option == 'stim-timing') {
+            if (onlineMode) {
+                dataSource.dataFormatter.updateTimingMode(newValue);
+            }
+        }
+        if (option == 'stim-channel') {
+            if (onlineMode) {
+                dataSource.dataFormatter.updateTimingChannel(newValue);
+            }
+        }
+        if (option == 'stim-off') {
+            if (onlineMode) {
+                dataSource.dataFormatter.updateThreshold({
+                    offValue: newValue
+                });
+            }
+        }
+        if (option == 'stim-on') {
+            if (onlineMode) {
+                dataSource.dataFormatter.updateThreshold({
+                    onValue: newValue
+                });
+            }
+        }
+    };
 }
 
 var apiPath = '/api';
@@ -166,13 +218,13 @@ var updateProperties = properties => uiManager.updateChannelNames(properties.cha
 var ingestSignal = signal => uiManager.scope.update(signal);
 
 var startTrial = function () {
-    $('.fm-transfer-icon').show(0);
+    document.getElementsByClassName('fm-transfer-icon')[0].style.display = '';
     document.getElementsByClassName('fm-trial-label')[0].classList.add('fm-trial-label-active');
 };
 
 var ingestTrial = function (trialData) {
     setTimeout(() => document.getElementsByClassName(`fm-transfer-icon`)[0].classList.add('d-none'), 500);
-    $('.fm-working-icon').show(0);
+    document.getElementsByClassName(`fm-working-icon`)[0].style.display = '';
     dataset.ingest(trialData)
         .then(function () {
             updateDataDisplay();
@@ -193,67 +245,8 @@ var updateDataDisplay = function () {
 }
 
 
-uiManager.raster.oncursormove = function (newTime) {
 
-    document.getElementsByClassName('fm-time-selected')[0].innerHTML = (newTime > 0 ? '+' : '') + newTime.toFixed(3) + ' s';
 
-    uiManager.brain.update(dataset.dataForTime(newTime));
-
-};
-
-uiManager.onsave = function (saveName) {
-    dataset.put(`/api/data/${subjectName}/${saveName}`, {
-            import: './.metadata'
-        })
-        .then(response => updateRecordListForSubject(subjectName))
-        .catch(reason => console.log(reason));
-};
-
-uiManager.onoptionchange = function (option, newValue) {
-
-    if (option == 'stim-trial-start') {
-        // updateTrialWindow( { start: newValue } );
-    }
-    if (option == 'stim-trial-end') {
-        // updateTrialWindow( { end: newValue } );
-    }
-
-    if (option == 'stim-baseline-start') {
-        updateBaselineWindow({
-            start: newValue
-        });
-    }
-    if (option == 'stim-baseline-end') {
-        updateBaselineWindow({
-            end: newValue
-        });
-    }
-
-    if (option == 'stim-timing') {
-        if (onlineMode) {
-            dataSource.dataFormatter.updateTimingMode(newValue);
-        }
-    }
-    if (option == 'stim-channel') {
-        if (onlineMode) {
-            dataSource.dataFormatter.updateTimingChannel(newValue);
-        }
-    }
-    if (option == 'stim-off') {
-        if (onlineMode) {
-            dataSource.dataFormatter.updateThreshold({
-                offValue: newValue
-            });
-        }
-    }
-    if (option == 'stim-on') {
-        if (onlineMode) {
-            dataSource.dataFormatter.updateThreshold({
-                onValue: newValue
-            });
-        }
-    }
-};
 
 var updateTiming = function (newMode) {
     // dataSource.dataFormatter.update
@@ -263,7 +256,7 @@ var updateTrialWindow = function (newWindow) {
     // TODO ...
 };
 var updateBaselineWindow = function (newWindow) {
-    $('.fm-working-icon').show(0);
+    document.getElementsByClassName(`fm-working-icon`)[0].style.display = '';
 
     dataset.updateBaselineWindow(newWindow)
         .then(function () {
@@ -272,12 +265,15 @@ var updateBaselineWindow = function (newWindow) {
         });
 };
 
-$(window).on('resize', function () {
-    uiManager.didResize();
-});
 
-$(window).on('beforeunload', function () {
+
+window.onresize = e => {
+    uiManager.didResize();
+
+}
+
+window.onbeforeunload = () => {
     if (!dataset.isClean()) {
         return "There are unsaved changes to your map. Are you sure you want to leave?";
     }
-});
+}
