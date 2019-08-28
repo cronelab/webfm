@@ -2,7 +2,8 @@ import "bootstrap";
 import "./index.scss";
 import "@fortawesome/fontawesome-free/js/all";
 import {
-    fetchAndStoreBrain
+    fetchAndStoreBrain,
+    fetchAndStoreGeometry
 } from '../shared/loaders'
 import path from 'path'
 
@@ -17,7 +18,7 @@ window.onload = async () => {
 
     subjects.sort();
     addSubjectCell(subjects)
-    selectSubject(window.location.hash.slice(1));
+    selectSubject(subjects[0]);
 
     let localSourceAddress = localStorage.getItem('source-address') || config.online.sourceAddress
 
@@ -42,13 +43,27 @@ bciOperator.onStateChange = currentState => {
         stateLabel.classList.remove(stateClasses[v]);
     })
     if (currentState == 'Running') {
+        document.getElementById('info-label').classList.remove('d-none');
+
         document.getElementById('map-button').classList.remove('disabled');
     } else {
         document.getElementById('map-button').classList.add('disabled');
+        document.getElementById('info-label').classList.add('d-none');
+
     }
 
-    bciOperator.getSubjectName().then(subjectName => document.getElementById('subject-label').innerHTML = subjectName)
-    bciOperator.getTaskName().then(taskName => document.getElementById('task-label').innerHTML = taskName.split(path.sep)[1])
+    bciOperator.getSubjectName().then(subjectName => {
+        document.getElementById('subject-label').innerHTML = subjectName.trim()
+        localStorage.setItem('mapping_subject', subjectName.trim())
+        fetchAndStoreBrain(subjectName.trim())
+        fetchAndStoreGeometry(subjectName.trim())
+        selectSubject(subjectName.trim())
+
+    })
+    bciOperator.getTaskName().then(taskName => {
+        document.getElementById('task-label').innerHTML = taskName.split(path.sep)[1]
+        localStorage.setItem('mapping_task', taskName.split(path.sep)[1])
+    })
 }
 
 let addSubjectCell = subjects => {
@@ -119,6 +134,8 @@ let selectSubject = async (subject) => {
         document.getElementById('main-brain').setAttribute('src', brain);
         scroll(0, 0)
     })
+
+    fetchAndStoreGeometry(subject);
 
     localStorage.setItem('subject', subject);
     document.getElementById('subject-list').querySelectorAll('.active').forEach(e => {

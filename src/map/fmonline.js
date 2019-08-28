@@ -4,119 +4,54 @@ import BCI2K from "@cronelab/bci2k";
 class OnlineDataSource {
     constructor() {
         var manager = this;
-        this.onproperties = function (properties) {};
-        this.onBufferCreated = function () {};
-        this.onRawSignal = function (rawSignal) {};
-        this.onFeatureSignal = function (featureSignal) {};
-        this.onStartTrial = function () {};
-        this.ontrial = function (trialData) {};
-        this.onSystemStateChange = function (newState) {};
+        this.onproperties = properties => {};
+        this.onBufferCreated = () => {};
+        this.onRawSignal = rawSignal => {};
+        this.onFeatureSignal = featureSignal => {};
+        this.onStartTrial = () => {};
+        this.ontrial = trialData => {};
+        this.onSystemStateChange = newState => {};
         this._bciConnection = new BCI2K.bciOperator();
-        this._bciRunning = false;
+        this._bciSourceConnection = new BCI2K.bciData();
+        this._bciFilterConnection = new BCI2K.bciData();
+
         this.dataFormatter = new DataFormatter();
-        this.dataFormatter.onBufferCreated = function () {
-            manager.onBufferCreated();
-        }
-        this.dataFormatter.onSourceSignal = function (rawSignal) {
-            manager.onRawSignal(rawSignal);
-        };
-        this.dataFormatter.onFeatureSignal = function (featureSignal) {
-            manager.onFeatureSignal(featureSignal);
-        };
-        this.dataFormatter.ontrial = function (trialData) {
-            manager.ontrial(trialData);
-        };
-        this.dataFormatter.onStartTrial = function () {
-            manager.onStartTrial();
-        };
-        this.dataFormatter.onFeatureProperties = function (properties) {
-            manager.onproperties(properties);
-        };
+        this.dataFormatter.onBufferCreated = () => manager.onBufferCreated()
+        this.dataFormatter.onSourceSignal = rawSignal => manager.onRawSignal(rawSignal);
+        this.dataFormatter.onFeatureSignal = featureSignal => manager.onFeatureSignal(featureSignal);
+        this.dataFormatter.ontrial = trialData => manager.ontrial(trialData);
+        this.dataFormatter.onStartTrial = () => manager.onStartTrial();
+        this.dataFormatter.onFeatureProperties = properties => manager.onproperties(properties);
         this.config = {};
     }
     connect(address) {
         var manager = this; // Capture this for nested functions
-        if (address === undefined) {
-            address = this.config.sourceAddress;
-        }
         return this._bciConnection.connect(address)
-            .then(function (event) {
-                manager._bciDidConnect(event);
-            });
-    }
-    setConfig(config) {
-        this.config = config;
-    }
-
-    _bciDidConnect(event) {
-        var manager = this;
-        this.ensureRunning()
-            .then(function () {
-                manager._connectToData();
-            })
-            .catch(function (reason) {
-                console.log('Could not ensure BCI2K is running: ' + reason);
-            });
-    }
-    ensureRunning() {
-        var manager = this;
-        return new Promise(function (resolve, reject) {
-            if (manager._bciRunning) {
-                resolve(true);
-                return;
-            }
-            var checkRunning = function checkRunning() {
-                var executed = false;
-                if (!manager._bciConnection.connected()) {
-                    setTimeout(checkRunning, manager.config.checkRunningInterval);
-                    return;
-                }
-                manager._bciConnection.execute('Get System State', function (result) {
-                    if (result.output.search('Running') >= 0) {
-                        resolve(true);
-                    } else if (result.output.search('Resting') >= 0 && executed == false) {
-                        executed = true;
+            .then(event => {
+                this._bciConnection.stateListen()
+                this._bciConnection.onStateChange = currentState => {
+                    if (currentState == "Running") {
+                        console.log("Do ittt")
                         manager._connectToData();
+
+                    } else {
+                        console.log("STOP!")
                     }
-                    setTimeout(checkRunning, manager.config.checkRunningInterval);
-                });
-            };
-            setTimeout(checkRunning, manager.config.checkRunningInterval);
-        });
+                }
+
+            });
     }
 
-    getParameter(parameter) {
-        return this._bciConnection.execute('Get Parameter ' + parameter);
-    }
-    getTrialWindow() {
-        return this.dataFormatter.trialWindow;
-    }
-    getTrialLength() {
-        // TODO Private member?
-        return this.dataFormatter._trialBlocks;
-    }
+
     _connectToData() {
         var manager = this;
-        this._bciConnection.tap('Source')
-            .then(function (dataConnection) {
-                if (manager.config.debug) {
-                    console.log('Source tapped.');
-                }
-                manager.dataFormatter._connectSource(dataConnection);
-            })
-            .catch(function (reason) {
-                console.log('Could not connect to Source: ' + reason);
-            });
-        this._bciConnection.tap('SpectralOutput')
-            .then(function (dataConnection) {
-                if (manager.config.debug) {
-                    console.log('SpectralOutput tapped.');
-                }
-                manager.dataFormatter._connectFeature(dataConnection);
-            })
-            .catch(function (reason) {
-                console.log('Could not connect to SpectralOutput: ' + reason);
-            });
+        this._bciSourceConnection.connect("ws://127.0.0.1:20100").then(dataConnection => {
+            manager.dataFormatter._connectSource(this._bciSourceConnection)
+        })
+        this._bciFilterConnection.connect("ws://127.0.0.1:20203").then(dataConnection => {
+            manager.dataFormatter._connectFeature(this._bciFilterConnection)
+
+        })
     }
 }
 
@@ -161,13 +96,13 @@ class DataFormatter {
         this.previousState = null;
         this.stateBlockNumber = 0;
         this.trialEndBlockNumber = null;
-        this.onBufferCreated = function () {};
-        this.onSourceSignal = function (rawData) {};
-        this.onFeatureSignal = function (featureData) {};
-        this.onStartTrial = function () {};
-        this.ontrial = function (trialData) {};
-        this.onSourceProperties = function (properties) {};
-        this.onFeatureProperties = function (properties) {};
+        this.onBufferCreated = () => {};
+        this.onSourceSignal = rawData => {};
+        this.onFeatureSignal = featureData => {};
+        this.onStartTrial = () => {};
+        this.ontrial = trialData => {};
+        this.onSourceProperties = properties => {};
+        this.onFeatureProperties = properties => {};
     }
     updateTrialWindow(newWindow) {
         if (!newWindow) {

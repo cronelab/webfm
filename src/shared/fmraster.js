@@ -1,6 +1,5 @@
 import * as d3 from "d3";
 d3.horizonChart = require('../lib/horizon-chart-custom.js').default;
-var $ = require('jquery');
 
 class fmraster {
     constructor(baseNodeId) {
@@ -49,7 +48,7 @@ class fmraster {
         var raster = this;
         this.cursorSvg = d3.select(this.baseNodeId).append('svg')
             .attr('class', 'fm-cursor-svg');
-        document.getElementById('fm-brain').onclick = event => raster._cursorClick(event);
+        document.getElementById('fm').onclick = event => raster._cursorClick(event);
         this.cursorTime = 0.0;
         this.cursorSvg.append('line')
             .attr('class', 'fm-cursor-line');
@@ -126,16 +125,6 @@ class fmraster {
 
     }
 
-    getCursorTime() {
-        return this.cursorTime;
-    }
-
-    _dummyData(channels) {
-        return channels.reduce(function (obj, ch) {
-            obj[ch] = [0.0];
-            return obj;
-        });
-    }
 
     setupCharts() {
         if (!this.displayOrder) {
@@ -143,21 +132,24 @@ class fmraster {
         }
 
         if (!this.data) {
-            this.data = this._dummyData(this.displayOrder);
+            return this.displayOrder.reduce(function (obj, ch) {
+                obj[ch] = [0.0];
+                return obj;
+            });
         }
 
-        var raster = this; // Capture this.
-        var height = this.channelHeight * this.data.length;
-        var width = $(this.baseNodeId).width() - this.chartMargin.left - this.chartMargin.right;
-
-        var n = this.data.length;
+        var raster = this;
+        var width = parseFloat(getComputedStyle(document.getElementById('fm'), null).width.replace("px", "")) - this.chartMargin.left - this.chartMargin.right;
         var step = width / this.data[0].values.length;
         if (!this.timeScale) {
             this.timeScale = d3.scaleLinear()
                 .domain([0, width])
                 .range([0, 1]);
         } else {
-            this.updateTimeDomain([0, width]);
+            if (!this.timeScale) {
+                return;
+            }
+            this.timeScale.domain([0, width]);
         }
         var horizonChart = d3.horizonChart();
         var horizons = d3.select(this.baseNodeId).selectAll('.fm-horizon')
@@ -172,8 +164,9 @@ class fmraster {
             if (raster.cursorLocked) {
                 return;
             }
-            var offset = $(this).offset();
-            var cursorX = event.pageX - offset.left; // Works because this is parent element
+
+            var offset = this.getBoundingClientRect()
+            var cursorX = event.pageX - offset.left + document.body.scrollLeft;
             var newTime = raster.timeScale(cursorX);
             raster.updateCursor(newTime);
             raster.oncursormove(newTime);
@@ -197,18 +190,8 @@ class fmraster {
             });
         horizons.exit().remove();
     }
-    updateTimeDomain(newDomain) {
-        if (!this.timeScale) {
-            return;
-        }
-        this.timeScale.domain(newDomain);
-    }
-    updateTimeRange(newRange) {
-        if (!this.timeScale) {
-            return;
-        }
-        this.timeScale.range(newRange);
-    }
+
+
 
     update(newData) {
         if (newData !== undefined) {
@@ -219,17 +202,15 @@ class fmraster {
     }
 
     _updateData(newData) {
-        this.data = this._reformatData(newData);
-    }
-
-    _reformatData(data) {
-        return this.displayOrder.map(function (ch) {
+        this.data = this.displayOrder.map(ch => {
             return {
                 channel: ch,
-                values: data[ch]
+                values: newData[ch]
             };
         });
     }
+
+
 
     setDisplayOrder(newDisplayOrder) {
         this.displayOrder = newDisplayOrder;

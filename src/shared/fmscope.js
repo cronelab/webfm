@@ -41,7 +41,7 @@ class fmscope {
     }
 
     autoResize() {
-        var width = $(this.baseNodeId).width() - (this.plotMargin.left + this.plotMargin.right);
+        var width = parseFloat(getComputedStyle(document.getElementById('fm-scope'), null).width.replace("px", "")) - (this.plotMargin.left + this.plotMargin.right)
         var height = this.plotHeight;
         if (width <= 0 || height <= 0) {
             return;

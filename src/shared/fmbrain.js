@@ -32,12 +32,7 @@ class fmbrain {
         this.dotColorsDomain = [-9, -5, -2, -0.01, 0.0, 0.01, 2, 5, 9];
     };
 
-    _defaultData(channels) {
-        return channels.reduce((obj, ch) => {
-            obj[ch] = 0.0;
-            return obj;
-        }, {});
-    };
+
 
     _reformatForDisplay(data) {
         var brain = this;
@@ -76,8 +71,24 @@ class fmbrain {
         var brain = this;
         this.imageData = imageData;
         this.sensorGeometry = sensorGeometry;
-        this.data = this._defaultData(Object.keys(this.sensorGeometry));
+
+
+
+        this.data = Object.keys(this.sensorGeometry).reduce((obj, ch) => {
+            obj[ch] = 0.0;
+            return obj;
+        }, {});
+
+
+
+
+
+
         this.size.width = document.getElementById('fm-brain').offsetWidth - (this.margin.left + this.margin.right);
+
+
+
+
         this.dotXScale = d3.scaleLinear() // u -> x
             .domain([0, 1])
             .range([0, this.size.width]);

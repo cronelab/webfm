@@ -27,7 +27,7 @@ const fetchAndStoreGeometry = async subject => {
         let geometry = await response.json();
         let storedGeometry = {
             'subject': subject,
-            'brain': geometry
+            'geometry': geometry
         }
         localStorage.setItem(`geometry`, JSON.stringify(storedGeometry));
         return geometry

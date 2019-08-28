@@ -18,77 +18,18 @@ class fmdata {
     }
 
     _initialize(data) {
-        var dataset = this;
-        return this._validate(data)
-            .then(function (validatedData) {
-                dataset.metadata = validatedData.metadata;
-                dataset.contents = validatedData.contents;
-                dataset._setupChannelStats();
-            })
-            .then(function () {
-                return dataset._updateDisplayData()
-                    .then(() => console.log('Finished display update'));
-            });
+
     }
     _validate(data) {
+        return new Promise((resolve, reject) => {
 
-        return new Promise(function (resolve, reject) {
-
-            // Convenience
-            var metadata = data.metadata;
-            var contents = data.contents;
-
-            // Make new copies for returning
-            // TODO These aren't deep copies; should they be?
-            var newMetadata = Object.assign({}, metadata);
-            var newContents = Object.assign({}, contents);
-
-            if (metadata['_export'] != undefined) {
-                reject('Loaded dataset has an "_export" metadata field, and hence is not complete.');
-                return;
-            }
-
-            var montageFromKeys = function (keys) {
-                return keys;
-            };
-
-            if (metadata.montage === undefined) {
-                if (metadata.sensorGeometry !== undefined) {
-                    var geometryKeys = Object.keys(metadata.sensorGeometry);
-                    newMetadata.montage = montageFromKeys(geometryKeys);
-                } else {
-                    if (contents.values !== undefined) {
-                        var valuesKeys = Object.keys(contents.values);
-                        newMetadata.montage = montageFromKeys(valuesKeys);
-
-                    } else {
-                        if (contents.stats !== undefined) {
-                            if (contents.stats.estimators !== undefined) {
-                                var estimatorKeys = Object.keys(content.stats.estimators);
-                                var firstEstimatorKeys = Object.keys(content.stats.estimators[estimatorKeys[0]]);
-                                newMetadata.montage = montageFromKeys(firstEstimatorKeys);
-                            } else {
-                                reject('Loaded dataset has no information about recording channels.');
-                                return;
-                            }
-                        } else {
-                            reject('Loaded dataset has no information about recording channels.');
-                            return;
-                        }
-                    }
-                }
-            }
-            if (metadata.labels === undefined) {
-                // TODO Can we infer anything?
-                newMetadata.labels = [];
-            }
-            if (contents.values === undefined && contents.stats === undefined && contents.trials === undefined) {
+            if (data.contents.values === undefined && data.contents.stats === undefined && data.contents.trials === undefined) {
                 reject('Loaded dataset lacks content.');
                 return;
             }
             resolve({
-                'metadata': newMetadata,
-                'contents': newContents
+                'metadata': Object.assign({}, data.metadata),
+                'contents': Object.assign({}, data.contents)
             });
         });
     }
@@ -101,32 +42,31 @@ class fmdata {
         }
         if (this.contents.stats !== undefined) {
             var stats = this.contents.stats; // convenience
-            if (stats.distribution.toLowerCase() == 'gaussian') {
-                var channels = Object.keys(stats.estimators.mean);
-                channels.forEach(function (ch) {
-                    var mean = stats.estimators.mean[ch];
-                    var variance = stats.estimators.variance[ch];
-                    var count = stats.estimators.count[ch];
-                    if (dataset.isTimeseries()) {
-                        var baselineMean = stats.baseline.mean[ch];
-                        var baselineVariance = stats.baseline.variance[ch];
-                        var baselineCount = stats.baseline.count[ch];
-                        var statValues = mean.map(function (d, i) {
-                            return new Gaussian(mean[i], variance[i], count[i]);
-                        });
-                        dataset._channelStats[ch] = new ChannelStat({
-                            baseline: new Gaussian(baselineMean, baselineVariance, baselineCount),
-                            values: statValues
-                        });
-                    } else {
-                        dataset._channelStats[ch] = new ChannelStat({
-                            values: [new Gaussian(mean, variance, count)]
-                        });
-                    }
-                });
-            } else {
-                this._channelStats = undefined;
-            }
+            console.log(stats)
+
+            var channels = Object.keys(stats.estimators.mean);
+            channels.forEach(function (ch) {
+                var mean = stats.estimators.mean[ch];
+                var variance = stats.estimators.variance[ch];
+                var count = stats.estimators.count[ch];
+                if (dataset.isTimeseries()) {
+                    var baselineMean = stats.baseline.mean[ch];
+                    var baselineVariance = stats.baseline.variance[ch];
+                    var baselineCount = stats.baseline.count[ch];
+                    var statValues = mean.map(function (d, i) {
+                        return new Gaussian(mean[i], variance[i], count[i]);
+                    });
+                    dataset._channelStats[ch] = new ChannelStat({
+                        baseline: new Gaussian(baselineMean, baselineVariance, baselineCount),
+                        values: statValues
+                    });
+                } else {
+                    dataset._channelStats[ch] = new ChannelStat({
+                        values: [new Gaussian(mean, variance, count)]
+                    });
+                }
+            });
+
             return;
         }
         if (this.contents.trials !== undefined) {
@@ -176,44 +116,25 @@ class fmdata {
     }
 
     _updateDisplayData() {
-
         var dataset = this;
-
         if (this.contents.values !== undefined) {
-
-            // We have values, so just use them for display
             this.displayData = this.contents.values;
             return Promise.resolve();
-
         }
 
         if (this.contents.stats !== undefined) {
-
-            // TODO Make configurable
             return forEachAsync(Object.keys(this._channelStats), function (ch) {
                 dataset.displayData[ch] = dataset._channelStats[ch].fdrCorrectedValues(0.05);
             }, {
                 batchSize: 5
             });
-
         }
-
     }
 
     _updateContentsStats() {
-
         var dataset = this;
-
-        // TODO This notation may not be strict enough ...
         this.contents.stats = this.contents.stats || {};
-        // TODO ... may require this
-        // if ( this.contents.stats === undefined ) {
-        //     this.contents.stats = {};
-        // }
-
-        // TODO Hard-coded to be Gaussian at present
         this.contents.stats.distribution = 'gaussian';
-
         this.contents.stats.baseline = this.contents.stats.baseline || {};
         this.contents.stats.baseline.mean = this.contents.stats.baseline.mean || {};
         this.contents.stats.baseline.variance = this.contents.stats.baseline.variance || {};
@@ -260,7 +181,15 @@ class fmdata {
 
         var dataset = this;
         dataset._clean = true;
-        return dataset._initialize(data);
+
+        return this._validate(data)
+            .then(validatedData => {
+                dataset.metadata = validatedData.metadata;
+                dataset.contents = validatedData.contents;
+                dataset._setupChannelStats();
+            })
+            .then(() => dataset._updateDisplayData());
+
 
 
     }
@@ -289,20 +218,13 @@ class fmdata {
 
             // TODO Doing two stringifys to support re-writing of _import
             // Better way?
-
-            $.ajax({
-                    url: url,
-                    method: 'PUT',
-                    data: JSON.stringify(dataToSend)
-                })
-                .done(function (data) {
-                    dataset._clean = true; // We just put, so everything is clean
-                    resolve(data);
-                })
-                .fail(function (req, reason, err) {
-                    reject('Error putting WebFM file to ' + url + ': ' + reason);
-                });
-
+            fetch(url, {
+                method: 'PUT',
+                body: JSON.stringify(dataToSend)
+            }).then(data => {
+                dataset._clean = true; // We just put, so everything is clean
+                resolve(data);
+            })
         });
 
     }

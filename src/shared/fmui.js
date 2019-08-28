@@ -10,7 +10,7 @@ var $ = require('jquery');
 
 class fmui {
     constructor() {
-        var manager = this;
+        let manager = this;
         this.config = {};
         this.icons = [
             'transfer',
@@ -20,26 +20,13 @@ class fmui {
         this.raster = new fmraster('#fm');
         this.brain = new fmbrain('#fm-brain');
         this.scope = new fmscope('#fm-scope');
-        this.raster.onselectchannel = function (newChannel) {
+        this.raster.onselectchannel = newChannel => {
             manager.brain.setSelectedChannel(newChannel);
         };
-        this.onoptionchange = function (option, newValue) {};
-        this.onsave = function (saveName) {};
+        this.onoptionchange = (option, newValue) => {};
+        this.onsave = saveName => {};
 
     };
-
-    async loadConfig(configURI) {
-        var manager = this;
-        let request = await fetch(configURI)
-        let data = await request.json()
-        manager.config.ui = data;
-        manager.setup();
-    }
-
-    _syncRasterConfig() {
-        this.raster.setRowHeight(this.getRowHeight());
-        this.raster.setExtent(this.getRasterExtent());
-    }
 
     _mergeDefaultConfig(config) {
         var mergedConfig = config;
@@ -62,16 +49,16 @@ class fmui {
         return mergedConfig;
     }
     setup() {
-        var manager = this; // Capture this
         this.config = this._mergeDefaultConfig(this.config);
         this.rewireButtons();
         this.rewireForms();
-        this.icons.forEach(function (icon) {
-            manager.hideIcon(icon);
+        this.icons.forEach(icon => {
+            setTimeout(() => document.getElementsByClassName(`fm-${icon}-icon`)[0].classList.add('d-none'), 500);
         });
         this.raster.setup(); // TODO Always will fail for charts until
         this._populateOptions(this.getOptions());
-        this._syncRasterConfig();
+        this.raster.setRowHeight(this.getRowHeight());
+        this.raster.setExtent(this.getRasterExtent());
     }
 
     rewireButtons() {
@@ -90,12 +77,28 @@ class fmui {
             }
             manager.zoomOut(event);
         };
+
         document.getElementsByClassName('fm-gain-up')[0].onclick = function (event) {
             event.preventDefault();
             if (event.target.classList.contains('disabled')) {
                 return;
             }
-            manager.gainUp(event);
+            // Update UI-internal gain measure
+            manager.config.rasterExtent = manager.config.rasterExtent - 1;
+            if (manager.config.rasterExtent < 1) {
+                manager.config.rasterExtent = 1;
+                return;
+            }
+            manager._updateGainClasses();
+
+            // Alter raster parameters
+            manager.raster.setExtent(manager.getRasterExtent());
+
+            // Redraw the raster with a guarantee
+            manager.updateRaster(true);
+
+
+
         };
         document.getElementsByClassName('fm-gain-down')[0].onclick = function (event) {
             event.preventDefault();
@@ -180,32 +183,20 @@ class fmui {
 
 
         document.getElementById('fm-option-scope-channel').onchange = function (event) {
-            manager.updateScopeChannel(this.value);
+            manager.scope.start(this.value);
         };
 
         document.getElementById('fm-option-scope-min').onchange = function (event) {
             manager.updateScopeMin((this.value == '') ? null : +this.value);
         };
         document.getElementById('fm-option-scope-max').onchange = function (event) {
-            manager.updateScopeMax((this.value == '') ? null : +this.value);
+
+            if (isNaN((this.value == '') ? null : +this.value)) {
+                return;
+            }
+            manager.scope.setMaxTarget((this.value == '') ? null : +this.value);
         };
 
-    }
-
-    showIcon(iconName) {
-        var showDuration = this.config.iconShowDuration || 0;
-        $('.fm-' + iconName + '-icon').show(showDuration);
-    }
-
-    hideIcon(iconName) {
-        // If properties aren't set, use 0
-        // TODO As above.
-        var hideDelay = this.config.iconHideDelay || 0;
-        var hideDuration = this.config.iconHideDuration || 0;
-
-        setTimeout(function () {
-            document.getElementsByClassName(`fm-${iconName}-icon`)[0].classList.add('d-none');
-        }, hideDelay);
     }
 
     updateRaster(guarantee) {
@@ -333,23 +324,6 @@ class fmui {
 
     }
 
-    gainUp(event) {
-
-        // Update UI-internal gain measure
-        this.config.rasterExtent = this.config.rasterExtent - 1;
-        if (this.config.rasterExtent < 1) {
-            this.config.rasterExtent = 1;
-            return;
-        }
-        this._updateGainClasses();
-
-        // Alter raster parameters
-        this.raster.setExtent(this.getRasterExtent());
-
-        // Redraw the raster with a guarantee
-        this.updateRaster(true);
-
-    }
 
     _getScrollFraction() {
         return $(window).scrollTop() / ($(document).height() - $(window).height());
@@ -401,24 +375,7 @@ class fmui {
         this.scope.setMinTarget(newMin);
     }
 
-    updateScopeMax(newMax) {
-        if (isNaN(newMax)) {
-            return;
-        }
-        this.scope.setMaxTarget(newMax);
-    }
 
-    updateScopeChannel(newChannel) {
-        this.scope.start(newChannel);
-    }
-    updateSubjectName(newSubjectName) {
-        document.getElementsByClassName('fm-subject-name')[0].innerHTML = newSubjectName;
-        document.getElementsByClassName('fm-back')[0].setAttribute('href', `/#${newSubjectName}`);
-    }
-    updateTaskName(newTaskName) {
-        document.getElementsByClassName('fm-task-name')[0].innerHTML = newTaskName;
-        document.getElementById('fm-option-save-name').value = newTaskName;
-    }
 
     updateSubjectRecords(newRecords) {
         let recordsTable = document.getElementById('fm-cloud-records-table')
@@ -426,22 +383,16 @@ class fmui {
             recordsTable.removeChild(recordsTable.firstChild);
         }
 
-        var addRecordCell = function (record) {
+        newRecords.forEach(record => {
             var outer = $('<tr/>');
             var inner = $('<td/>', {
                 text: record
             });
             inner.appendTo(outer);
             outer.appendTo('#fm-cloud-records-table');
-        };
-
-        newRecords.forEach(addRecordCell);
-
+        });
     }
 
-    updateSelectedTime(newTime) {
-        document.getElementsByClassName('fm-time-selected')[0].innerHTML = (newTime > 0 ? '+' : '') + newTime.toFixed(3) + ' s';
-    }
 
     _populateOptions(options) {
         // Stimulus windows
@@ -661,14 +612,6 @@ class fmui {
         this.allChannels = newChannelNames;
         this._populateMontageList(this.allChannels);
         this.raster.setDisplayOrder(this.allChannels.filter(this.channelFilter()));
-    }
-
-    activateTrialCount() {
-        document.getElementsByClassName('fm-trial-label')[0].classList.add('fm-trial-label-active');
-    }
-
-    deactivateTrialCount() {
-        document.getElementsByClassName('fm-trial-label')[0].classList.remove('fm-trial-label-active');
     }
 
     updateTrialCount(newCount) {
