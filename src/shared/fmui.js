@@ -183,7 +183,7 @@ class fmui {
 
 
         document.getElementById('fm-option-scope-channel').onchange = function (event) {
-            this.scope.start(this.value);
+            manager.scope.start(this.value);
         };
 
         document.getElementById('fm-option-scope-min').onchange = function (event) {
@@ -194,10 +194,8 @@ class fmui {
             if (isNaN((this.value == '') ? null : +this.value)) {
                 return;
             }
-            this.scope.setMaxTarget((this.value == '') ? null : +this.value);
+            manager.scope.setMaxTarget((this.value == '') ? null : +this.value);
         };
-
-
 
     }
 
