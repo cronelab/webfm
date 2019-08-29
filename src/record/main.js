@@ -7,11 +7,14 @@ import fmdata from '../shared/fmdata';
 
 let dataset;
 let uiManager;
-var subjectName = localStorage.getItem('subject');
-var recordName = localStorage.getItem('record');
-
+var subjectName;
+var recordName;
 
 window.onload = async () => {
+    subjectName = localStorage.getItem('subject');
+    recordName = localStorage.getItem('record');
+
+
     let request = await fetch(`/config`)
     let data = await request.json()
     dataset = new fmdata();
@@ -27,11 +30,6 @@ window.onload = async () => {
     fetch(`/api/data/${subjectName}/${recordName}`).then(response => response.json()).then(data => {
         dataset.get(data).then((x) => {
 
-            let {
-                brainImage,
-                sensorGeometry,
-                montage,
-            } = dataset.metadata;
 
             document.getElementsByClassName('fm-subject-name')[0].innerHTML = subjectName;
             document.getElementsByClassName('fm-subject-name')[1].innerHTML = subjectName;
@@ -40,9 +38,9 @@ window.onload = async () => {
             document.getElementsByClassName('fm-task-name')[0].innerHTML = dataset.metadata.setting.task;
             document.getElementById('fm-option-save-name').value = dataset.metadata.setting.task;
 
-            uiManager.updateChannelNames(montage);
+            uiManager.updateChannelNames(dataset.metadata.montage);
             uiManager.raster.update(dataset.displayData);
-            uiManager.brain.setup(brainImage, sensorGeometry);
+            uiManager.brain.setup(JSON.parse(localStorage.getItem('brain')).brain, JSON.parse(localStorage.getItem('geometry')).geometry);
             uiManager.brain.update(dataset.dataForTime(uiManager.raster.cursorTime));
             let timeBounds = dataset.getTimeBounds();
 

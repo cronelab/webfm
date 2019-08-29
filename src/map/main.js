@@ -11,11 +11,12 @@ let dataset;
 let uiManager;
 let subject;
 let task;
-window.onload = async () => {
-    subject = localStorage.getItem('mapping_subject').trim();
 
+window.onload = async () => {
     let request = await fetch(`/config`)
     let config = await request.json()
+    subject = localStorage.getItem('subject')
+
     task = localStorage.getItem('mapping_task')
     dataset = new fmdata();
     uiManager = new fmui();
@@ -94,7 +95,7 @@ window.onload = async () => {
     });
 
     uiManager.brain.setup(imageData, sensorGeometry);
-    updateRecordListForSubject(subject);
+    // updateRecordListForSubject(subject);
 
 
     var taskConfig = JSON.parse(JSON.stringify(config.tasks.default || {}));
@@ -132,7 +133,6 @@ dataSource.ontrial = trialData => {
             updateDataDisplay();
             setTimeout(() => document.getElementsByClassName(`fm-working-icon`)[0].classList.add('d-none'), 500);
             uiManager.updateTrialCount(dataset.getTrialCount());
-
             document.getElementsByClassName('fm-trial-label')[0].classList.remove('fm-trial-label-active');
         });
 }
@@ -147,10 +147,6 @@ var updateRecordListForSubject = function (theSubject) {
         })
 };
 
-
-
-
-
 var updateDataDisplay = function () {
     uiManager.raster.update(dataset.displayData);
     uiManager.brain.update(dataset.dataForTime(uiManager.raster.cursorTime));
@@ -162,16 +158,9 @@ var updateDataDisplay = function () {
 }
 
 
-
-
-
-var updateTiming = function (newMode) {
-    // dataSource.dataFormatter.update
-}
-var updateTrialThreshold = function (newThreshold) {};
-var updateTrialWindow = function (newWindow) {
-    // TODO ...
-};
+var updateTiming = (newMode) => {}
+var updateTrialThreshold = (newThreshold) => {};
+var updateTrialWindow = (newWindow) => {}
 var updateBaselineWindow = function (newWindow) {
     document.getElementsByClassName(`fm-working-icon`)[0].style.display = '';
 
@@ -182,12 +171,7 @@ var updateBaselineWindow = function (newWindow) {
         });
 };
 
-
-
-window.onresize = e => {
-    uiManager.didResize();
-
-}
+window.onresize = e => uiManager.didResize()
 
 window.onbeforeunload = () => {
     if (!dataset.isClean()) {

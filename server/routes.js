@@ -26,6 +26,8 @@ const routes = (express) => {
     router.get('/api/list/:subject', (req, res) => {
         let subject = req.params.subject;
         fs.readdir(`./data/${subject}`, (err, records) => {
+            //Need something here if name isn't in the records
+            if (err) throw Error;
             let _records = records.filter(f => path.extname(f) == '.fm').map(z => z.split('.')[0]);
             res.status(200).json(_records)
         })

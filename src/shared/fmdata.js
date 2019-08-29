@@ -1,7 +1,4 @@
 import {
-    forEachAsync
-} from '../lib/cronelib';
-import {
     Gaussian,
     ChannelStat
 } from '../map/fmstat';
@@ -17,9 +14,6 @@ class fmdata {
         this._clean = true;
     }
 
-    _initialize(data) {
-
-    }
     _validate(data) {
         return new Promise((resolve, reject) => {
 
@@ -113,6 +107,7 @@ class fmdata {
         };
     }
 
+
     _updateDisplayData() {
         var dataset = this;
         if (this.contents.values !== undefined) {
@@ -121,12 +116,30 @@ class fmdata {
         }
 
         if (this.contents.stats !== undefined) {
-            return forEachAsync(Object.keys(this._channelStats), function (ch) {
+            return Object.keys(this._channelStats).forEach(ch => {
                 dataset.displayData[ch] = dataset._channelStats[ch].fdrCorrectedValues(0.05);
-            }, {
-                batchSize: 5
-            });
+            })
         }
+    }
+
+
+    ingest(trialData) {
+        return new Promise((resolve, reject) => {
+            var dataset = this;
+
+            Object.keys(this._channelStats).forEach(ch => dataset._channelStats[ch].ingest(trialData[ch]))
+
+            dataset._updateContentsStats();
+            if (dataset.contents.trials === undefined) {
+                dataset.contents.trials = [];
+            }
+            dataset.contents.trials.push(trialData);
+            dataset._clean = false;
+            dataset._updateDisplayData()
+            resolve()
+        })
+
+
     }
 
     _updateContentsStats() {
@@ -175,6 +188,7 @@ class fmdata {
         });
     }
 
+    //This is only for Record
     get(data) {
         var dataset = this;
         dataset._clean = true;
@@ -407,30 +421,12 @@ class fmdata {
             return Promise.resolve();
         }
 
-        return forEachAsync(Object.keys(this._channelStats), function (ch) {
-            this._channelStats[ch].recompute(newWindowSamples);
-        }, {
-            batchSize: 5
-        });
+        return Object.keys(this._channelStats).forEach(ch => this._channelStats[ch].recompute(newWindowSamples))
+
 
     }
 
-    ingest(trialData) {
 
-        var dataset = this;
-
-        return forEachAsync(Object.keys(this._channelStats), ch => dataset._channelStats[ch].ingest(trialData[ch]), {
-                batchSize: 5
-            }).then(() => {
-                dataset._updateContentsStats();
-                if (dataset.contents.trials === undefined) {
-                    dataset.contents.trials = [];
-                }
-                dataset.contents.trials.push(trialData);
-                dataset._clean = false;
-            })
-            .then(() => dataset._updateDisplayData());
-    }
 };
 
 export default fmdata;

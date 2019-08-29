@@ -1,6 +1,3 @@
-import {
-    debounce
-} from '../lib/cronelib';
 import fmbrain from '../shared/fmbrain';
 import fmraster from '../shared/fmraster';
 import fmscope from '../shared/fmscope'
@@ -26,6 +23,24 @@ class fmui {
         this.onsave = saveName => {};
 
     };
+
+
+    debounce(func, wait, immediate) {
+        var timeout;
+        return function () {
+            var context = this,
+                args = arguments;
+            var later = function () {
+                timeout = null;
+                if (!immediate) func.apply(context, args);
+            };
+            var callNow = immediate && !timeout;
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+            if (callNow) func.apply(context, args);
+        };
+    };
+
 
     _mergeDefaultConfig(config) {
         var mergedConfig = config;
@@ -60,6 +75,30 @@ class fmui {
         this.raster.setExtent(this.getRasterExtent());
     }
 
+    zoom(event, which) {
+        this.config.rowHeight = this.config.rowHeight + which;
+
+        if (which == 1) {
+            if (this.config.rowHeight < 1) {
+                this.config.rowHeight = 1;
+                return;
+            }
+
+        } else {
+            console.log("here")
+            if (this.config.rowHeight > this.config.maxRowHeight) {
+                this.config.rowHeight = this.config.maxRowHeight;
+                return;
+            }
+        }
+        this._updateZoomClasses();
+        var prevScrollFraction = this._getScrollFraction();
+        this.raster.setRowHeight(this.getRowHeight());
+        this.updateRaster(true);
+        $(document).scrollTop(this._topForScrollFraction(prevScrollFraction));
+
+    }
+
     rewireButtons() {
         var manager = this;
         document.getElementsByClassName('fm-zoom-in')[0].onclick = function (event) {
@@ -67,14 +106,14 @@ class fmui {
             if (event.target.classList.contains('disabled')) {
                 return;
             }
-            manager.zoomIn(event);
+            manager.zoom(event, 1);
         };
         document.getElementsByClassName('fm-zoom-out')[0].onclick = function (event) {
             event.preventDefault();
             if (event.target.classList.contains('disabled')) {
                 return;
             }
-            manager.zoomOut(event);
+            manager.zoom(event, -1);
         };
 
         document.getElementsByClassName('fm-gain-up')[0].onclick = function (event) {
@@ -206,9 +245,7 @@ class fmui {
     updateRaster(guarantee) {
 
         var manager = this;
-        var updater = function () {
-            manager.raster.update();
-        };
+        var updater = () => manager.raster.update();
         if (guarantee) {
             updater();
         } else {
@@ -229,14 +266,14 @@ class fmui {
         }
     }
 
-    updateBrain() {
-        var manager = this;
-        debounce(function () {
-            manager.brain.autoResize();
-            manager.brain.update();
-        }, this.config.brainDebounceDelay)();
+    // updateBrain() {
+    //     var manager = this;
+    //     debounce(function () {
+    //         manager.brain.autoResize();
+    //         manager.brain.update();
+    //     }, this.config.brainDebounceDelay)();
 
-    }
+    // }
 
     _updateZoomClasses() {
         if (this.config.rowHeight >= this.config.maxRowHeight) {
@@ -262,51 +299,6 @@ class fmui {
         } else {
             document.getElementsByClassName('fm-gain-up')[0].classList.remove('disabled');
         }
-    }
-
-    zoomIn(event) {
-
-        // Update UI-internal gain measure
-        this.config.rowHeight = this.config.rowHeight + 1;
-        if (this.config.rowHeight > this.config.maxRowHeight) {
-            this.config.rowHeight = this.config.maxRowHeight;
-            return; // Only update if we actually change
-        }
-
-        this._updateZoomClasses();
-
-        // Cache the scroll state before our manipulations
-        // TODO Use row in middle of viewport, not fraction of scrolling
-        var prevScrollFraction = this._getScrollFraction();
-        // Alter raster parameters
-        this.raster.setRowHeight(this.getRowHeight());
-        // Redraw the raster with a guarantee
-        this.updateRaster(true);
-        //Restore the scroll state
-        $(document).scrollTop(this._topForScrollFraction(prevScrollFraction));
-
-    }
-
-    zoomOut(event) {
-
-        // Update UI-internal gain measure
-        this.config.rowHeight = this.config.rowHeight - 1;
-        if (this.config.rowHeight < 1) {
-            this.config.rowHeight = 1;
-            return;
-        }
-        this._updateZoomClasses();
-
-        // Cache the scroll state before our manipulations
-        // TODO Use row in middle of viewport, not fraction of scrolling
-        var prevScrollFraction = this._getScrollFraction();
-        // Alter raster parameters
-        this.raster.setRowHeight(this.getRowHeight());
-        // Redraw the raster with a guarantee
-        this.updateRaster(true);
-        // Restore the scroll state
-        $(document).scrollTop(this._topForScrollFraction(prevScrollFraction));
-
     }
 
     gainDown(event) {

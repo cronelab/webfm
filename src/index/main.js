@@ -44,26 +44,26 @@ bciOperator.onStateChange = currentState => {
     })
     if (currentState == 'Running') {
         document.getElementById('info-label').classList.remove('d-none');
-
         document.getElementById('map-button').classList.remove('disabled');
+        bciOperator.getSubjectName().then(subjectName => {
+            document.getElementById('subject-label').innerHTML = subjectName.trim()
+            localStorage.setItem('mapping_subject', subjectName.trim())
+            fetchAndStoreBrain(subjectName.trim())
+            fetchAndStoreGeometry(subjectName.trim())
+            selectSubject(subjectName.trim())
+
+        })
+        bciOperator.getTaskName().then(taskName => {
+            document.getElementById('task-label').innerHTML = taskName.split(path.sep)[1]
+            localStorage.setItem('mapping_task', taskName.split(path.sep)[1])
+        })
     } else {
         document.getElementById('map-button').classList.add('disabled');
         document.getElementById('info-label').classList.add('d-none');
 
     }
 
-    bciOperator.getSubjectName().then(subjectName => {
-        document.getElementById('subject-label').innerHTML = subjectName.trim()
-        localStorage.setItem('mapping_subject', subjectName.trim())
-        fetchAndStoreBrain(subjectName.trim())
-        fetchAndStoreGeometry(subjectName.trim())
-        selectSubject(subjectName.trim())
 
-    })
-    bciOperator.getTaskName().then(taskName => {
-        document.getElementById('task-label').innerHTML = taskName.split(path.sep)[1]
-        localStorage.setItem('mapping_task', taskName.split(path.sep)[1])
-    })
 }
 
 let addSubjectCell = subjects => {

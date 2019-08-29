@@ -70,7 +70,7 @@ class fmbrain {
     setup(imageData, sensorGeometry) {
         var brain = this;
         this.imageData = imageData;
-        this.sensorGeometry = sensorGeometry;
+        this.sensorGeometry = JSON.parse(localStorage.getItem('geometry')).geometry;
 
 
 
@@ -78,16 +78,7 @@ class fmbrain {
             obj[ch] = 0.0;
             return obj;
         }, {});
-
-
-
-
-
-
         this.size.width = document.getElementById('fm-brain').offsetWidth - (this.margin.left + this.margin.right);
-
-
-
 
         this.dotXScale = d3.scaleLinear() // u -> x
             .domain([0, 1])
