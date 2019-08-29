@@ -1,5 +1,16 @@
-import * as d3 from 'd3'
-
+import {
+    scaleLinear,
+} from 'd3-scale';
+import {
+    select
+} from "d3-selection";
+import {
+    line
+} from "d3-shape";
+import {
+    axisBottom,
+    axisLeft
+} from "d3-axis"
 class fmscope {
     constructor(baseNodeId) {
         this.baseNodeId = baseNodeId;
@@ -55,29 +66,29 @@ class fmscope {
             .attr('height', height + this.plotMargin.top + this.plotMargin.bottom);
         this.plotXScale.range([0, width]);
         this.plotYScale.range([height, 0]);
-        d3.select('.fm-scope-axis-x')
+        select('.fm-scope-axis-x')
             .attr('transform', 'translate(' + 0 + ',' + height + ')');
     }
 
     _setupPlot() {
         var scope = this;
-        this.plotSvg = d3.select(this.baseNodeId).append('svg')
+        this.plotSvg = select(this.baseNodeId).append('svg')
             .attr('class', 'fm-scope-plot');
         var g = this.plotSvg.append('g')
             .attr('transform', 'translate(' + this.plotMargin.left + ',' + this.plotMargin.top + ')');
-        this.plotXScale = d3.scaleLinear()
+        this.plotXScale = scaleLinear()
             .domain([0, this.windowSamples - 1]);
-        this.plotYScale = d3.scaleLinear()
+        this.plotYScale = scaleLinear()
             .domain(this.dataExtent);
-        this.plotLine = d3.line()
+        this.plotLine = line()
             .x(function (d, i) {
                 return scope.plotXScale(i);
             })
             .y(function (d) {
                 return scope.plotYScale(d);
             });
-        this.plotXAxis = d3.axisBottom(this.plotXScale);
-        this.plotYAxis = d3.axisLeft(this.plotYScale);
+        this.plotXAxis = axisBottom(this.plotXScale);
+        this.plotYAxis = axisLeft(this.plotYScale);
         g.append('g')
             .attr('class', 'axis fm-scope-axis-x');
         g.append('g')
@@ -117,14 +128,14 @@ class fmscope {
     }
 
     _updatePlot() {
-        var s1 = d3.select('.fm-scope-axis-x');
+        var s1 = select('.fm-scope-axis-x');
         s1.call(this.plotXAxis);
-        d3.select('.fm-scope-axis-y')
+        select('.fm-scope-axis-y')
             .call(this.plotYAxis);
         if (!this.data) {
             return;
         }
-        d3.select('.fm-scope-line')
+        select('.fm-scope-line')
             .datum(this.data)
             .attr('d', this.plotLine);
     }

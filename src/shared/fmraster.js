@@ -1,5 +1,10 @@
-import * as d3 from "d3";
-d3.horizonChart = require('../lib/horizon-chart-custom.js').default;
+import {
+    select
+} from "d3-selection";
+import {
+    scaleLinear,
+} from 'd3-scale';
+let horizonChart = require('./horizon-chart-custom.js').default;
 
 class fmraster {
     constructor(baseNodeId) {
@@ -46,7 +51,7 @@ class fmraster {
     }
     setupCursor() {
         var raster = this;
-        this.cursorSvg = d3.select(this.baseNodeId).append('svg')
+        this.cursorSvg = select(this.baseNodeId).append('svg')
             .attr('class', 'fm-cursor-svg');
         document.getElementById('fm').onclick = event => raster._cursorClick(event);
         this.cursorTime = 0.0;
@@ -64,10 +69,10 @@ class fmraster {
 
         var raster = this;
 
-        var width = document.getElementById('fm-brain').offsetWidth;
-        var height = document.getElementById('fm-brain').offsetHeight;
+        var width = document.getElementById('fm').offsetWidth;
+        var height = document.getElementById('fm').offsetHeight;
 
-        d3.select(this.baseNodeId)
+        select(this.baseNodeId)
             .select('.fm-cursor-svg')
             .attr('width', width)
             .attr('height', height);
@@ -78,12 +83,10 @@ class fmraster {
 
         var cursorX = this.timeScale.invert(this.cursorTime);
 
-        d3.select(this.baseNodeId)
+        select(this.baseNodeId)
             .select('.fm-cursor-svg')
             .select('.fm-cursor-line')
-            .classed('fm-cursor-locked', function () {
-                return raster.cursorLocked;
-            })
+            .classed('fm-cursor-locked', () => raster.cursorLocked)
             .attr('x1', cursorX)
             .attr('y1', 0)
             .attr('x2', cursorX)
@@ -91,7 +94,7 @@ class fmraster {
 
         var originX = this.timeScale.invert(0.0);
 
-        d3.select(this.baseNodeId)
+        select(this.baseNodeId)
             .select('.fm-cursor-svg')
             .select('.fm-cursor-origin-line')
             .attr('x1', originX)
@@ -142,7 +145,7 @@ class fmraster {
         var width = parseFloat(getComputedStyle(document.getElementById('fm'), null).width.replace("px", "")) - this.chartMargin.left - this.chartMargin.right;
         var step = width / this.data[0].values.length;
         if (!this.timeScale) {
-            this.timeScale = d3.scaleLinear()
+            this.timeScale = scaleLinear()
                 .domain([0, width])
                 .range([0, 1]);
         } else {
@@ -151,30 +154,27 @@ class fmraster {
             }
             this.timeScale.domain([0, width]);
         }
-        var horizonChart = d3.horizonChart();
-        var horizons = d3.select(this.baseNodeId).selectAll('.fm-horizon')
+        horizonChart = horizonChart();
+        var horizons = select(this.baseNodeId).selectAll('.fm-horizon')
             .data(this.data, function (d) {
                 return d.channel;
             });
-        var horizonMouseMove = function (event) {
-
-            var newChannel = d3.select(event.currentTarget).datum().channel;
-            raster.selectChannel(newChannel);
-
-            if (raster.cursorLocked) {
-                return;
-            }
-
-            var offset = this.getBoundingClientRect()
-            var cursorX = event.pageX - offset.left + document.body.scrollLeft;
-            var newTime = raster.timeScale(cursorX);
-            raster.updateCursor(newTime);
-            raster.oncursormove(newTime);
-        };
         horizons.enter().append('div')
             .attr('class', 'fm-horizon')
             .each(function (d, i) {
-                this.onmousemove = horizonMouseMove;
+                this.onmousemove = event => {
+                    raster.selectChannel(select(event.currentTarget).datum().channel);
+
+                    if (raster.cursorLocked) {
+                        return;
+                    }
+                    var newTime = raster.timeScale(event.pageX - this.getBoundingClientRect().left + document.body.scrollLeft);
+                    //line moving across raster
+                    raster.updateCursor(newTime);
+
+                    //Puts dots on the brain
+                    raster.oncursormove(newTime);
+                };
             })
             .merge(horizons)
             .classed('fm-horizon-small', function () {

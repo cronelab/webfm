@@ -1,5 +1,10 @@
-import * as d3 from "d3";
-
+import {
+    scaleLinear,
+    scaleSqrt
+} from 'd3-scale';
+import {
+    select
+} from "d3-selection";
 
 class fmbrain {
     constructor(baseNodeId) {
@@ -30,6 +35,7 @@ class fmbrain {
         this.extent = 10.0; // TODO Expose
         this.dotColors = ["#313695", "#4575b4", "#74add1", "#abd9e9", "#000000", "#fee090", "#fdae61", "#f46d43", "#d73027"];
         this.dotColorsDomain = [-9, -5, -2, -0.01, 0.0, 0.01, 2, 5, 9];
+
     };
 
 
@@ -80,17 +86,17 @@ class fmbrain {
         }, {});
         this.size.width = document.getElementById('fm-brain').offsetWidth - (this.margin.left + this.margin.right);
 
-        this.dotXScale = d3.scaleLinear() // u -> x
+        this.dotXScale = scaleLinear() // u -> x
             .domain([0, 1])
             .range([0, this.size.width]);
-        this.dotYScale = d3.scaleLinear() // v -> y
+        this.dotYScale = scaleLinear() // v -> y
             .domain([0, 1])
             .range([1, 0]);
-        this.dotRadiusScale = d3.scaleSqrt()
+        this.dotRadiusScale = scaleSqrt()
             .domain([0, this.extent])
             .range([this.dotMinRadius, this.dotMaxRadius])
             .clamp(true);
-        this.dotColorScale = d3.scaleLinear()
+        this.dotColorScale = scaleLinear()
             .domain(this.dotColorsDomain)
             .range(this.dotColors)
             .clamp(true);
@@ -100,7 +106,7 @@ class fmbrain {
                 brain.autoResize();
                 brain.update();
             });
-        this.brainSvg = d3.select(this.baseNodeId).append('svg')
+        this.brainSvg = select(this.baseNodeId).append('svg')
             .attr('class', 'fm-brain-svg');
         var g = this.brainSvg.append('g')
             .attr('transform', 'translate(' + this.margin.left + ',' + this.margin.top + ')');
@@ -132,24 +138,12 @@ class fmbrain {
         return 'visible';
     }
     _dotX(d) {
-        var pos = this.sensorGeometry[d.channel];
-        if (isNaN(pos.u)) {
-            return -this.dotXScale(this.dotMaxRadius);
-        }
-        return this.dotXScale(pos.u);
+        return this.dotXScale(this.sensorGeometry[d.channel].u);
     }
     _dotY(d) {
-        var pos = this.sensorGeometry[d.channel];
-        // TODO Bad way to handle errors
-        if (isNaN(pos.u)) {
-            return -this.dotXScale(this.dotMaxRadius);
-        }
-        return this.dotYScale(pos.v);
+        return this.dotYScale(this.sensorGeometry[d.channel].v);
     }
     _dotRadius(d) {
-        if (isNaN(d.value)) {
-            return this.dotXScale(this.dotRadiusScale(Math.abs(0.0)));
-        }
         return this.dotXScale(this.dotRadiusScale(Math.abs(d.value)));
     }
     _dotPosition(dot) {
@@ -176,7 +170,7 @@ class fmbrain {
         this.size.height = height;
         this.dotXScale.range([0, this.size.width]);
         this.dotYScale.range([this.size.height, 0]);
-        var baseSelection = d3.select(this.baseNodeId);
+        var baseSelection = select(this.baseNodeId);
         baseSelection.select('.fm-brain-svg')
             .attr('width', this.size.width + this.margin.left + this.margin.right)
             .attr('height', this.size.height + this.margin.top + this.margin.bottom);
@@ -185,7 +179,7 @@ class fmbrain {
             .attr('height', this.size.height);
         baseSelection.selectAll('.fm-brain-dot')
             .call(this._dotPosition.bind(this))
-            .sort(this._dotOrder.bind(this));
+        // .sort(this._dotOrder.bind(this));
     }
     autoResize() {
         if (!this.aspect) {
@@ -206,19 +200,16 @@ class fmbrain {
             return;
         }
         var brain = this;
-        var brainDots = d3.select(this.baseNodeId).select('.fm-brain-dots').selectAll('.fm-brain-dot')
-            .data(this._reformatForDisplay(this.data), function (d) {
-                return d.channel;
-            });
+        var brainDots = select(this.baseNodeId).select('.fm-brain-dots').selectAll('.fm-brain-dot')
+            .data(this._reformatForDisplay(this.data), d => d.channel);
+
         brainDots.enter().append('circle')
             .attr('class', 'fm-brain-dot')
             .merge(brainDots)
-            .classed('fm-brain-dot-selected', function (d) {
-                return d.channel == brain.selectedChannel;
-            })
+            .classed('fm-brain-dot-selected', d => d.channel == brain.selectedChannel)
             .style('fill', this._dotFill.bind(this))
             .call(this._dotPosition.bind(this))
-            .sort(this._dotOrder.bind(this));
+        // .sort(this._dotOrder.bind(this));
     }
 
     setSelectedChannel(newChannel) {
