@@ -2,7 +2,7 @@ import fmbrain from '../shared/fmbrain';
 import fmraster from '../shared/fmraster';
 import fmscope from '../shared/fmscope'
 
-var $ = require('jquery');
+let $ = require('jquery');
 
 class fmui {
     constructor() {
@@ -26,15 +26,15 @@ class fmui {
 
 
     debounce(func, wait, immediate) {
-        var timeout;
-        return function () {
-            var context = this,
+        let timeout;
+        return () => {
+            let context = this,
                 args = arguments;
-            var later = function () {
+            let later = function () {
                 timeout = null;
                 if (!immediate) func.apply(context, args);
             };
-            var callNow = immediate && !timeout;
+            let callNow = immediate && !timeout;
             clearTimeout(timeout);
             timeout = setTimeout(later, wait);
             if (callNow) func.apply(context, args);
@@ -187,43 +187,32 @@ class fmui {
             updater(options);
             manager.setOptions(options);
         };
-        document.getElementById('fm-option-stim-timing-state').onclick = function (event) {
-            document.getElementById('fm-option-stim-timing-state').prop('checked', true);
-            document.getElementById('fm-option-stim-timing-signal').prop('checked', false);
-            updateOptions(function (options) {
-                options.stimulus.timingStrategy = 'state';
-            });
+        document.getElementById('fm-option-stim-timing-state').onclick = (event) => {
+            document.getElementById('fm-option-stim-timing-state').checked = true;
+            document.getElementById('fm-option-stim-timing-signal').checked = false;
+            updateOptions(options => options.stimulus.timingStrategy = 'state');
             manager.onoptionchange('stim-timing', 'state');
         };
-        document.getElementById('fm-option-stim-timing-signal').onclick = function (event) {
-            document.getElementById('fm-option-stim-timing-state').prop('checked', false);
-            document.getElementById('fm-option-stim-timing-signal').prop('checked', true);
-
-            updateOptions(function (options) {
-                options.stimulus.timingStrategy = 'signal';
-            });
+        document.getElementById('fm-option-stim-timing-signal').onclick = event => {
+            document.getElementById('fm-option-stim-timing-state').checked = false;
+            document.getElementById('fm-option-stim-timing-signal').checked = true;
+            updateOptions(options => options.stimulus.timingStrategy = 'signal');
             manager.onoptionchange('stim-timing', 'signal');
         };
 
         document.getElementById('fm-option-stim-channel').onchange = function (event) {
             var newValue = this.value;
-            updateOptions(function (options) {
-                options.stimulus.signal.channel = newValue;
-            });
+            updateOptions(options => options.stimulus.signal.channel = newValue);
             manager.onoptionchange('stim-channel', newValue);
         };
         document.getElementById('fm-option-stim-off').onchange = function (event) {
             var newValue = +this.value;
-            updateOptions(function (options) {
-                options.stimulus.signal.offValue = newValue;
-            });
+            updateOptions(options => options.stimulus.signal.offValue = newValue);
             manager.onoptionchange('stim-off', newValue);
         };
         document.getElementById('fm-option-stim-on').onchange = function (event) {
             var newValue = +this.value;
-            updateOptions(function (options) {
-                options.stimulus.signal.onValue = newValue;
-            });
+            updateOptions(options => options.stimulus.signal.onValue = newValue);
             manager.onoptionchange('stim-on', newValue);
         };
 
@@ -260,8 +249,8 @@ class fmui {
 
     updateScope(guarantee) {
         var manager = this;
-        var updater = function () {
-            manager.scope.autoResize();
+        var updater = () => {
+            // manager.scope.autoResize();
             manager.scope.update();
         };
         if (guarantee) {

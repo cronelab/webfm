@@ -15,7 +15,6 @@ class fmbrain {
         this.dotColorScale = null;
         this.dotXScale = null;
         this.dotYScale = null;
-        // this.brainSvg = null;
         this.aspect = null;
         this.size = {
             width: 0,
@@ -53,16 +52,12 @@ class fmbrain {
         var brain = this;
         let imageData = JSON.parse(localStorage.getItem('brain')).brain;
         this.sensorGeometry = JSON.parse(localStorage.getItem('geometry')).geometry;
-
-
-
         this.data = Object.keys(this.sensorGeometry).reduce((obj, ch) => {
             obj[ch] = 0.0;
             return obj;
         }, {});
         this.size.width = document.getElementById('fm-brain').offsetWidth - (this.margin.left + this.margin.right);
-
-        this.dotXScale = scaleLinear() // u -> x
+        this.dotXScale = scaleLinear()
             .domain([0, 1])
             .range([0, this.size.width]);
 
@@ -113,7 +108,6 @@ class fmbrain {
     }
 
     resize(width, height) {
-        // if (!this.brainSvg) return
         this.size.width = width;
         this.size.height = height;
         this.dotXScale.range([0, this.size.width]);
@@ -133,26 +127,17 @@ class fmbrain {
             .sort(this._dotOrder.bind(this));
     }
     autoResize() {
-        if (!this.aspect) {
-            return;
-        }
+        if (!this.aspect) return;
         var width = document.getElementById('fm-brain').offsetWidth - (this.margin.left + this.margin.right);
         var height = width / this.aspect;
-        if (width <= 0 || height <= 0) {
-            return;
-        }
+        if (width <= 0 || height <= 0) return;
         this.resize(width, height);
     }
-
-
-
 
     update(newData) {
 
         if (newData !== undefined) this.data = newData;
-        // if (!this.brainSvg) return;
         var brain = this;
-
         var brainDots = select('#fm-brain').select('.fm-brain-dots').selectAll('.fm-brain-dot')
             .data(Object.keys(this.data).filter(ch => {
                 if (Object.keys(brain.sensorGeometry).indexOf(ch) < 0) return false;

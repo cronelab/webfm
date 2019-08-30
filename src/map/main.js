@@ -56,21 +56,21 @@ window.onload = async () => {
         }
 
         if (option == 'stim-timing') {
-            dataSource.dataFormatter.updateTimingMode(newValue);
+            if (newValue == 'state') {
+                dataSource.dataFormatter._stateTiming = true;
+            } else {
+                dataSource.dataFormatter._stateTiming = false;
+            }
         }
         if (option == 'stim-channel') {
-            dataSource.dataFormatter.updateTimingChannel(newValue);
+            if (!newValue) return;
+            dataSource.dataFormatter._timingChannel = newValue;
         }
-        if (option == 'stim-off') {
-            dataSource.dataFormatter.updateThreshold({
-                offValue: newValue
-            });
-        }
-        if (option == 'stim-on') {
-            dataSource.dataFormatter.updateThreshold({
-                onValue: newValue
-            });
-        }
+
+
+
+        if (option == 'stim-off') dataSource.dataFormatter.threshold.offValue = newValue
+        if (option == 'stim-on') dataSource.dataFormatter.threshold.onValue = newValue
     };
 
     var sourceAddress = localStorage.getItem('source-address')
@@ -83,7 +83,8 @@ window.onload = async () => {
 
     let imageData = JSON.parse(localStorage.getItem('brain')).brain
     let sensorGeometry = JSON.parse(localStorage.getItem('geometry')).geometry
-    dataset.updateMetadata({
+
+    Object.assign(dataset.metadata, {
         kind: 'high gamma power',
         labels: ['timeseries'],
         subject: subject,
@@ -93,6 +94,7 @@ window.onload = async () => {
             task: task
         }
     });
+
 
     uiManager.brain.setup(imageData, sensorGeometry);
     // updateRecordListForSubject(subject);
@@ -104,7 +106,7 @@ window.onload = async () => {
     });
 
     if (taskConfig.trialWindow !== undefined) {
-        dataSource.dataFormatter.updateTrialWindow(taskConfig.trialWindow);
+        dataSource.updateTrialWindow(taskConfig.trialWindow);
     }
     if (taskConfig.baselineWindow !== undefined) {
         dataset.updateBaselineWindow(taskConfig.baselineWindow);
@@ -119,7 +121,7 @@ dataSource.onproperties = properties => {
 
 };
 dataSource.onBufferCreated = () => {
-    dataset.updateTimesFromWindow(dataSource.dataFormatter.trialWindow, dataSource.dataFormatter._trialBlocks);
+    dataset.updateTimesFromWindow(dataSource.trialWindow, dataSource._trialBlocks);
 };
 dataSource.onStartTrial = () => {
     document.getElementsByClassName('fm-transfer-icon')[0].style.display = '';
@@ -141,11 +143,30 @@ dataSource.onRawSignal = rawSignal => uiManager.scope.update(rawSignal);
 
 var updateRecordListForSubject = function (theSubject) {
     fetch(`/api/list/${theSubject}`).then(response => response.json())
-        .then(records => {
-            records.sort();
-            uiManager.updateSubjectRecords(records);
+        .then(newRecords => {
+            newRecords.sort();
+            let recordsTable = document.getElementById('fm-cloud-records-table')
+            while (recordsTable.hasChildNodes()) {
+                recordsTable.removeChild(recordsTable.firstChild);
+            }
+
+            newRecords.forEach(record => {
+                var outer = $('<tr/>');
+                var inner = $('<td/>', {
+                    text: record
+                });
+                inner.appendTo(outer);
+                outer.appendTo('#fm-cloud-records-table');
+            });
         })
 };
+
+
+
+
+
+
+
 
 var updateDataDisplay = function () {
     uiManager.raster.update(dataset.displayData);

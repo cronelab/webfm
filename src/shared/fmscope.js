@@ -88,9 +88,7 @@ class fmscope {
     }
     setup() {
         this._setupData();
-        if (!this.plotSvg) {
-            this._setupPlot();
-        }
+        if (!this.plotSvg) this._setupPlot();
         this.update();
     }
 

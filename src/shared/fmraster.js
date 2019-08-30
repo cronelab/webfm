@@ -22,7 +22,7 @@ class fmraster {
             'width': 0,
             'height': 0
         };
-        this.chartMin = 0.0; // TODO Expose to manager
+        this.chartMin = 0.0;
         this.chartMax = 7.5;
         this.channelHeight = 15;
         this.channelHeightCutoff = 14;
@@ -49,11 +49,13 @@ class fmraster {
         this.setupCharts();
         this.setupCursor();
     }
+
+
     setupCursor() {
         var raster = this;
         this.cursorSvg = select(this.baseNodeId).append('svg')
             .attr('class', 'fm-cursor-svg');
-        document.getElementById('fm').onclick = event => raster._cursorClick(event);
+        document.getElementById('fm').onclick = event => raster.toggleCursor();
         this.cursorTime = 0.0;
         this.cursorSvg.append('line')
             .attr('class', 'fm-cursor-line');
@@ -62,49 +64,31 @@ class fmraster {
         this.updateCursor();
     }
     updateCursor(newTime) {
-
-        if (newTime !== undefined) {
-            this.cursorTime = newTime;
-        }
-
+        if (newTime !== undefined) this.cursorTime = newTime;
         var raster = this;
-
-        var width = document.getElementById('fm').offsetWidth;
         var height = document.getElementById('fm').offsetHeight;
-
         select(this.baseNodeId)
             .select('.fm-cursor-svg')
-            .attr('width', width)
+            .attr('width', document.getElementById('fm').offsetWidth)
             .attr('height', height);
-
-        if (!this.timeScale) {
-            return;
-        }
-
-        var cursorX = this.timeScale.invert(this.cursorTime);
+        if (!this.timeScale) return;
 
         select(this.baseNodeId)
             .select('.fm-cursor-svg')
             .select('.fm-cursor-line')
             .classed('fm-cursor-locked', () => raster.cursorLocked)
-            .attr('x1', cursorX)
+            .attr('x1', this.timeScale.invert(this.cursorTime))
             .attr('y1', 0)
-            .attr('x2', cursorX)
+            .attr('x2', this.timeScale.invert(this.cursorTime))
             .attr('y2', height);
-
-        var originX = this.timeScale.invert(0.0);
 
         select(this.baseNodeId)
             .select('.fm-cursor-svg')
             .select('.fm-cursor-origin-line')
-            .attr('x1', originX)
+            .attr('x1', this.timeScale.invert(0.0))
             .attr('y1', 0)
-            .attr('x2', originX)
+            .attr('x2', this.timeScale.invert(0.0))
             .attr('y2', height);
-    }
-
-    _cursorClick(event) {
-        this.toggleCursor();
     }
 
     lockCursor() {
@@ -127,11 +111,8 @@ class fmraster {
     }
 
     setupCharts() {
-        if (!this.displayOrder) {
-            return;
-        }
+        if (!this.displayOrder) return;
         if (!this.data) {
-            console.log(this.data)
             return this.displayOrder.reduce(function (obj, ch) {
                 obj[ch] = [0.0];
                 return obj;
@@ -145,16 +126,12 @@ class fmraster {
                 .domain([0, width])
                 .range([0, 1]);
         } else {
-            if (!this.timeScale) {
-                return;
-            }
+            if (!this.timeScale) return;
             this.timeScale.domain([0, width]);
         }
         let horizonChart1 = horizonChart();
         var horizons = select(this.baseNodeId).selectAll('.fm-horizon')
-            .data(this.data, function (d) {
-                return d.channel;
-            });
+            .data(this.data, d => d.channel);
         horizons.enter().append('div')
             .attr('class', 'fm-horizon')
             .each(function (d, i) {
@@ -167,9 +144,7 @@ class fmraster {
                 };
             })
             .merge(horizons)
-            .classed('fm-horizon-small', function () {
-                return (raster.channelHeight <= raster.channelHeightCutoff);
-            })
+            .classed('fm-horizon-small', () => (raster.channelHeight <= raster.channelHeightCutoff))
             .each(function (d, i) {
                 horizonChart1.title(d.channel)
                     .height(raster.channelHeight)
@@ -183,9 +158,7 @@ class fmraster {
 
 
     update(newData) {
-        if (newData !== undefined) {
-            this._updateData(newData);
-        }
+        if (newData !== undefined) this._updateData(newData);
         this.setupCharts();
         this.updateCursor();
     }
@@ -203,9 +176,7 @@ class fmraster {
 
     setDisplayOrder(newDisplayOrder) {
         this.displayOrder = newDisplayOrder;
-        if (!this.data) {
-            return;
-        }
+        if (!this.data) return;
         var dictData = this.data.reduce(function (obj, x) {
             obj[x.channel] = x.values;
             return obj;
@@ -215,9 +186,7 @@ class fmraster {
 
 
     selectChannel(newChannel) {
-        if (newChannel == this.selectedChannel) {
-            return;
-        }
+        if (newChannel == this.selectedChannel) return;
         this.selectedChannel = newChannel;
         this.onselectchannel(newChannel);
     };
