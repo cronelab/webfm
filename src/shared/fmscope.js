@@ -42,22 +42,15 @@ class fmscope {
             this.dataExtent = [-32768, 32767];
             this.targetExtent = [null, null];
         } else {
-            if (!this.dataExtent) {
-                this.dataExtent = [-100, 100];
-            }
-            if (!this.targetExtent) {
-                this.targetExtent = [null, null];
-            }
+            if (!this.dataExtent) this.dataExtent = [-100, 100];
+            if (!this.targetExtent) this.targetExtent = [null, null];
         }
     }
 
     autoResize() {
         var width = parseFloat(getComputedStyle(document.getElementById('fm-scope'), null).width.replace("px", "")) - (this.plotMargin.left + this.plotMargin.right)
         var height = this.plotHeight;
-        if (width <= 0 || height <= 0) {
-            return;
-        }
-
+        if (width <= 0 || height <= 0) return;
         this._resizePlot(width, height);
     }
 
@@ -81,12 +74,8 @@ class fmscope {
         this.plotYScale = scaleLinear()
             .domain(this.dataExtent);
         this.plotLine = line()
-            .x(function (d, i) {
-                return scope.plotXScale(i);
-            })
-            .y(function (d) {
-                return scope.plotYScale(d);
-            });
+            .x((d, i) => scope.plotXScale(i))
+            .y((d) => scope.plotYScale(d));
         this.plotXAxis = axisBottom(this.plotXScale);
         this.plotYAxis = axisLeft(this.plotYScale);
         g.append('g')
@@ -107,24 +96,16 @@ class fmscope {
 
     start(newChannel) {
         if (newChannel == this.channel) {
-            if (this.scoping) {
-                return;
-            }
+            if (this.scoping) return;
         }
         if (newChannel !== undefined) {
             this.channel = newChannel;
         } else {
-            if (this.scoping) {
-                return;
-            }
+            if (this.scoping) return;
         }
         this.scoping = true;
         this._setupData();
         this.update();
-    }
-
-    stop() {
-        this.scoping = false;
     }
 
     _updatePlot() {
@@ -141,35 +122,22 @@ class fmscope {
     }
 
     update(newData) {
-        if (!this.scoping) {
-            return;
-        }
-        if (newData !== undefined) {
-            this._receiveSignal(newData);
-        }
+        if (!this.scoping) return;
+        if (newData !== undefined) this._receiveSignal(newData);
         this._updatePlot();
-    }
-
-    updateProperties(properties) {
-        console.log(properties);
-        this.properties = properties;
     }
 
     _pushSamples(samples) {
         var scope = this;
-        samples.forEach(function (s) {
+        samples.forEach(s => {
             scope.data.shift();
             scope.data.push(s);
         });
     }
 
     _updateScale() {
-        var dataMin = this.data.reduce(function (acc, d) {
-            return Math.min(acc, d);
-        });
-        var dataMax = this.data.reduce(function (acc, d) {
-            return Math.max(acc, d);
-        });
+        var dataMin = this.data.reduce((acc, d) => Math.min(acc, d));
+        var dataMax = this.data.reduce((acc, d) => Math.max(acc, d));
         var targetMin = 0;
         var targetMax = 0;
         if (!this.targetExtent) {
@@ -182,29 +150,14 @@ class fmscope {
         this.dataExtent[0] = this.dataExtent[0] + this.extentSnap * (targetMin - this.dataExtent[0]);
         this.dataExtent[1] = this.dataExtent[1] + this.extentSnap * (targetMax - this.dataExtent[1]);
         this.plotYScale.domain(this.dataExtent);
-
     }
 
     _receiveSignal(signal) {
-        if (!this.scoping) {
-            return;
-        }
-        if (!this.channel) {
-            return;
-        }
-        if (Object.keys(signal).indexOf(this.channel) < 0) {
-            return;
-        }
+        if (!this.scoping) return;
+        if (!this.channel) return;
+        if (Object.keys(signal).indexOf(this.channel) < 0) return;
         this._pushSamples(signal[this.channel]);
         this._updateScale();
-    }
-
-    setMinTarget(newTarget) {
-        this.targetExtent[0] = newTarget;
-    }
-
-    setMaxTarget(newTarget) {
-        this.targetExtent[1] = newTarget;
     }
 
 }

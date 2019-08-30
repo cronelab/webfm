@@ -37,7 +37,7 @@ class fmdata {
         if (this.contents.stats !== undefined) {
             var stats = this.contents.stats; // convenience
             var channels = Object.keys(stats.estimators.mean);
-            channels.forEach(function (ch) {
+            channels.forEach(ch => {
                 var mean = stats.estimators.mean[ch];
                 var variance = stats.estimators.variance[ch];
                 var count = stats.estimators.count[ch];
@@ -45,9 +45,7 @@ class fmdata {
                     var baselineMean = stats.baseline.mean[ch];
                     var baselineVariance = stats.baseline.variance[ch];
                     var baselineCount = stats.baseline.count[ch];
-                    var statValues = mean.map(function (d, i) {
-                        return new Gaussian(mean[i], variance[i], count[i]);
-                    });
+                    var statValues = mean.map((d, i) => new Gaussian(mean[i], variance[i], count[i]));
                     dataset._channelStats[ch] = new ChannelStat({
                         baseline: new Gaussian(baselineMean, baselineVariance, baselineCount),
                         values: statValues
@@ -81,29 +79,16 @@ class fmdata {
     }
 
     _windowInSamples(windowInSeconds) {
-        if (!this.isTimeseries()) {
-            return undefined;
-        }
-        if (this.contents === undefined) {
-            return undefined;
-        }
-        if (!Array.isArray(this.contents.times)) {
-            return undefined;
-        }
-        var totalSamples = this.contents.times.length;
-        var dataWindow = {
-            start: this.contents.times[0],
-            end: this.contents.times[this.contents.times.length - 1]
-        };
-        var totalTime = dataWindow.end - dataWindow.start;
-
-        var windowFloat = {
-            start: ((windowInSeconds.start - dataWindow.start) / totalTime) * totalSamples,
-            end: ((windowInSeconds.end - dataWindow.start) / totalTime) * totalSamples
-        }
+        if (!this.isTimeseries()) return undefined;
+        if (this.contents === undefined) return undefined;
+        if (!Array.isArray(this.contents.times)) return undefined;
+        let dataStart = this.contents.times[0]
+        let dataEnd = this.contents.times[this.contents.times.length - 1]
+        let windowStart = ((windowInSeconds.start - dataStart) / dataEnd - dataStart) * this.contents.times.length
+        let windowEnd = ((windowInSeconds.end - dataStart) / dataEnd - dataStart) * this.contents.times.length
         return {
-            start: Math.ceil(windowFloat.start),
-            end: Math.floor(windowFloat.end)
+            start: Math.ceil(windowStart),
+            end: Math.floor(windowEnd)
         };
     }
 
@@ -379,7 +364,6 @@ class fmdata {
 
         var dataset = this;
 
-        // TODO Bit of a kludge to get length of first element of an object
         var dataSamples = 0;
         Object.keys(this.displayData).every(function (ch) {
             dataSamples = dataset.displayData[ch].length;
@@ -390,9 +374,8 @@ class fmdata {
             start: this.contents.times[0],
             end: this.contents.times[this.contents.times.length - 1]
         };
-        var totalTime = dataWindow.end - dataWindow.start;
 
-        var timeIndexFloat = ((time - dataWindow.start) / totalTime) * dataSamples;
+        var timeIndexFloat = ((time - dataWindow.start) / (dataWindow.end - dataWindow.start)) * dataSamples;
         var timeIndex = Math.floor(timeIndexFloat);
         var timeFrac = timeIndexFloat - timeIndex;
 
@@ -400,33 +383,15 @@ class fmdata {
             obj[ch] = (1.0 - timeFrac) * dataset.displayData[ch][timeIndex] + (timeFrac) * dataset.displayData[ch][timeIndex + 1];
             return obj
         }, {});
-
     }
 
-    updateMetadata(newMetadata) {
-
-        // Merge the new metadata over the top of what we currently have
-        Object.assign(this.metadata, newMetadata);
-
-    }
 
     updateBaselineWindow(newWindow) {
-
-        // Change our metadata to reflect the new window
         this.metadata.baselineWindow = newWindow;
-
-        // Update our ChannelStats objects' internals
         var newWindowSamples = this._windowInSamples(newWindow);
-        if (newWindowSamples === undefined) {
-            return Promise.resolve();
-        }
-
+        if (newWindowSamples === undefined) return Promise.resolve();
         return Object.keys(this._channelStats).forEach(ch => this._channelStats[ch].recompute(newWindowSamples))
-
-
     }
-
-
 };
 
 export default fmdata;

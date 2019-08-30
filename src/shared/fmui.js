@@ -14,7 +14,7 @@ class fmui {
         ];
         this.allChannels = []; // TODO Can avoid?
         this.raster = new fmraster('#fm');
-        this.brain = new fmbrain('#fm-brain');
+        this.brain = new fmbrain();
         this.scope = new fmscope('#fm-scope');
         this.raster.onselectchannel = newChannel => {
             manager.brain.setSelectedChannel(newChannel);
@@ -71,8 +71,11 @@ class fmui {
         });
         this.raster.setup(); // TODO Always will fail for charts until
         this._populateOptions(this.getOptions());
-        this.raster.setRowHeight(this.getRowHeight());
-        this.raster.setExtent(this.getRasterExtent());
+        this.raster.channelHeight = this.getRowHeight()
+        this.raster.chartMax = this.getRasterExtent();
+
+
+
     }
 
     zoom(event, which) {
@@ -85,7 +88,6 @@ class fmui {
             }
 
         } else {
-            console.log("here")
             if (this.config.rowHeight > this.config.maxRowHeight) {
                 this.config.rowHeight = this.config.maxRowHeight;
                 return;
@@ -93,11 +95,36 @@ class fmui {
         }
         this._updateZoomClasses();
         var prevScrollFraction = this._getScrollFraction();
-        this.raster.setRowHeight(this.getRowHeight());
+        this.raster.channelHeight = this.getRowHeight();
         this.updateRaster(true);
         $(document).scrollTop(this._topForScrollFraction(prevScrollFraction));
 
     }
+
+    gainAdjust(event, which) {
+        // if (event.target.classList.contains('disabled')) return
+        if (which == "Down") {
+            console.log(this.config.rasterExtent)
+            this.config.rasterExtent = this.config.rasterExtent + 1;
+            if (this.config.rasterExtent > this.config.maxPlotExtent) {
+                this.config.rasterExtent = this.config.maxPlotExtent;
+                return;
+            }
+        } else {
+            console.log(this.config.rasterExtent)
+
+            this.config.rasterExtent = this.config.rasterExtent - 1;
+            if (this.config.rasterExtent < 1) {
+                this.config.rasterExtent = 1;
+                return;
+            }
+        }
+        // this._updateGainClasses();
+        this.raster.chartMax = this.getRasterExtent();
+
+        this.updateRaster(true);
+    }
+
 
     rewireButtons() {
         var manager = this;
@@ -116,35 +143,17 @@ class fmui {
             manager.zoom(event, -1);
         };
 
-        document.getElementsByClassName('fm-gain-up')[0].onclick = function (event) {
+        document.getElementById('gainDown').onclick = (event) => {
             event.preventDefault();
-            if (event.target.classList.contains('disabled')) {
-                return;
-            }
-            // Update UI-internal gain measure
-            manager.config.rasterExtent = manager.config.rasterExtent - 1;
-            if (manager.config.rasterExtent < 1) {
-                manager.config.rasterExtent = 1;
-                return;
-            }
-            manager._updateGainClasses();
-
-            // Alter raster parameters
-            manager.raster.setExtent(manager.getRasterExtent());
-
-            // Redraw the raster with a guarantee
-            manager.updateRaster(true);
-
-
+            manager.gainAdjust(event, "Down")
 
         };
-        document.getElementsByClassName('fm-gain-down')[0].onclick = function (event) {
+        document.getElementById('gainUp').onclick = (event) => {
             event.preventDefault();
-            if (event.target.classList.contains('disabled')) {
-                return;
-            }
-            manager.gainDown(event);
+            manager.gainAdjust(event, "Up")
         };
+
+
 
         document.getElementById('clearExclusionButton').onclick = e => {
             e.preventDefault();
@@ -233,13 +242,9 @@ class fmui {
             manager.updateScopeMin((this.value == '') ? null : +this.value);
         };
         document.getElementById('fm-option-scope-max').onchange = function (event) {
-
-            if (isNaN((this.value == '') ? null : +this.value)) {
-                return;
-            }
-            manager.scope.setMaxTarget((this.value == '') ? null : +this.value);
+            if (isNaN((this.value == '') ? null : +this.value)) return;
+            manager.scope.targetExtent[1] = (this.value == '') ? null : +this.value;
         };
-
     }
 
     updateRaster(guarantee) {
@@ -249,7 +254,7 @@ class fmui {
         if (guarantee) {
             updater();
         } else {
-            debounce(updater, this.config.rasterDebounceDelay, true)();
+            this.debounce(updater, this.config.rasterDebounceDelay, true)();
         }
     }
 
@@ -262,7 +267,7 @@ class fmui {
         if (guarantee) {
             updater();
         } else {
-            debounce(updater, this.config.scopeDebounceDelay, true)();
+            this.debounce(updater, this.config.scopeDebounceDelay, true)();
         }
     }
 
@@ -290,35 +295,18 @@ class fmui {
 
     _updateGainClasses() {
         if (this.config.rasterExtent >= this.config.maxRasterExtent) {
-            document.getElementsByClassName('fm-gain-down')[0].classList.add('disabled');
+            document.getElementById('gainDown').classList.add('disabled');
         } else {
-            document.getElementsByClassName('fm-gain-down')[0].classList.remove('disabled');
+            document.getElementById('gainDown').classList.remove('disabled');
         }
         if (this.config.rasterExtent <= 1) {
-            document.getElementsByClassName('fm-gain-up')[0].classList.add('disabled');
+            document.getElementById('gainUp').classList.add('disabled');
         } else {
-            document.getElementsByClassName('fm-gain-up')[0].classList.remove('disabled');
+            document.getElementById('gainUp').classList.remove('disabled');
         }
     }
 
-    gainDown(event) {
 
-        // Update UI-internal gain measure
-        this.config.rasterExtent = this.config.rasterExtent + 1;
-        if (this.config.rasterExtent > this.config.maxPlotExtent) {
-            this.config.rasterExtent = this.config.maxPlotExtent;
-            return;
-        }
-
-        this._updateGainClasses();
-
-        // Alter raster parameters
-        this.raster.setExtent(this.getRasterExtent());
-
-        // Redraw the raster with a guarantee
-        this.updateRaster(true);
-
-    }
 
 
     _getScrollFraction() {
@@ -334,7 +322,8 @@ class fmui {
     }
 
     optionsHidden(event) {
-        this.scope.stop();
+        this.scope.scoping = false;
+
     }
 
     showOptionsTab(caller, event) {
@@ -354,7 +343,8 @@ class fmui {
             this.scope.setup(); // TODO Necessary?
             this.scope.start(scopeChannel ? scopeChannel : undefined);
         } else {
-            this.scope.stop();
+            this.scope.scoping = false;
+
         }
 
         // Activate the caller
@@ -368,26 +358,11 @@ class fmui {
         if (isNaN(newMin)) {
             return;
         }
-        this.scope.setMinTarget(newMin);
+        this.scope.targetExtent[0] = newMin;
     }
 
 
 
-    updateSubjectRecords(newRecords) {
-        let recordsTable = document.getElementById('fm-cloud-records-table')
-        while (recordsTable.hasChildNodes()) {
-            recordsTable.removeChild(recordsTable.firstChild);
-        }
-
-        newRecords.forEach(record => {
-            var outer = $('<tr/>');
-            var inner = $('<td/>', {
-                text: record
-            });
-            inner.appendTo(outer);
-            outer.appendTo('#fm-cloud-records-table');
-        });
-    }
 
 
     _populateOptions(options) {

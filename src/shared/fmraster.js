@@ -123,24 +123,20 @@ class fmraster {
             this.unlockCursor();
             return;
         }
-
         this.lockCursor();
-
     }
-
 
     setupCharts() {
         if (!this.displayOrder) {
             return;
         }
-
         if (!this.data) {
+            console.log(this.data)
             return this.displayOrder.reduce(function (obj, ch) {
                 obj[ch] = [0.0];
                 return obj;
             });
         }
-
         var raster = this;
         var width = parseFloat(getComputedStyle(document.getElementById('fm'), null).width.replace("px", "")) - this.chartMargin.left - this.chartMargin.right;
         var step = width / this.data[0].values.length;
@@ -154,7 +150,7 @@ class fmraster {
             }
             this.timeScale.domain([0, width]);
         }
-        horizonChart = horizonChart();
+        let horizonChart1 = horizonChart();
         var horizons = select(this.baseNodeId).selectAll('.fm-horizon')
             .data(this.data, function (d) {
                 return d.channel;
@@ -164,15 +160,9 @@ class fmraster {
             .each(function (d, i) {
                 this.onmousemove = event => {
                     raster.selectChannel(select(event.currentTarget).datum().channel);
-
-                    if (raster.cursorLocked) {
-                        return;
-                    }
+                    if (raster.cursorLocked) return
                     var newTime = raster.timeScale(event.pageX - this.getBoundingClientRect().left + document.body.scrollLeft);
-                    //line moving across raster
                     raster.updateCursor(newTime);
-
-                    //Puts dots on the brain
                     raster.oncursormove(newTime);
                 };
             })
@@ -181,8 +171,7 @@ class fmraster {
                 return (raster.channelHeight <= raster.channelHeightCutoff);
             })
             .each(function (d, i) {
-                // Call Horizon chart rendering
-                horizonChart.title(d.channel)
+                horizonChart1.title(d.channel)
                     .height(raster.channelHeight)
                     .step(step)
                     .extent([raster.chartMin, raster.chartMax])
@@ -223,22 +212,13 @@ class fmraster {
         }, {});
         this._updateData(dictData);
     }
-    setExtent(newExtent) {
-        this.chartMax = newExtent;
-    }
-    setRowHeight(newHeight) {
-        this.channelHeight = newHeight;
-    }
 
-    setSelectedChannel(newChannel) {
-        this.selectedChannel = newChannel;
-    }
 
     selectChannel(newChannel) {
         if (newChannel == this.selectedChannel) {
             return;
         }
-        this.setSelectedChannel(newChannel);
+        this.selectedChannel = newChannel;
         this.onselectchannel(newChannel);
     };
 }
