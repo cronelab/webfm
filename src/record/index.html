@@ -50,18 +50,18 @@
 
 
 
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+  <nav class="navbar navbar-expand-lg navbar-light bg-light" id="optionsNav">
+    <!-- <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
       aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
-    </button>
+    </button> -->
 
 
-    <div class="collapse navbar-collapse"">
+    <!-- <div class="collapse navbar-collapse""> -->
 
-      <ul class=" navbar-nav">
+    <ul class=" navbar-nav">
       <li class="nav-item">
-        <p class="navbar-link fm-time-label"><span class="fm-time-selected">0.000 s</span></p>
+        <p class="nav-link fm-time-label"><span class="fm-time-selected">0.000 s</span></p>
       </li>
       <li class="nav-item" id="play-button">
         <a class="nav-link" href="#"><span class="fas fa-play" id="play-button-icon"></span></a>
@@ -72,31 +72,20 @@
       <li class="nav-item fm-zoom-out">
         <a class="nav-link" href="#"><span class="fas fa-search-minus"></span></a>
       </li>
-      <li class="fm-gain-up">
-        <a class="nav-link" href="#"><span class="fas fa-volume-up"></span></a>
-      </li>
-      <li class="fm-gain-down">
-        <a class="nav-link" href="#"><span class="fas fa-volume-down"></span></a>
-      </li>
-      </ul>
 
-      <ul class="nav navbar-nav navbar-right">
+      <a class="nav-link" href="#" id="gainUp">
+        <i class="nav-item fas fa-volume-up"></i>
+      </a>
+      <a class="nav-link" href="#" id="gainDown">
+        <i class="nav-item fas fa-volume-down"></i>
+      </a>
 
-        <li class="dropdown fm-dataset-list">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-            aria-expanded="false">High gamma (70–110 Hz) <span class="caret"></span></a>
-          <ul class="dropdown-menu">
-            <li class="dropdown-header">CCEP</li>
-            <li role="separator" class="divider"></li>
-            <li class="dropdown-header">CCSR</li>
-          </ul>
-        </li>
-        <li class="fm-show-options">
-          <a class="" href="#"><span class="fas fa-cog"></span></a>
-        </li>
-      </ul>
+      <a class="nav-link fm-show-options" href="#">
+        <i class="nav-item fas fa-cog"></i>
+      </a>
+    </ul>
 
-    </div>
+    <!-- </div> -->
   </nav>
 
 
@@ -183,63 +172,55 @@
 
                   <h4>Stimulus</h4>
 
-                  <form class="form-horizontal">
-                    <div class="form-group">
-                      <label class="col-md-3 col-sm-4 control-label">Trial window</label>
-                      <label for="fm-option-stim-trial-start" class="col-md-1 col-sm-1 control-label">Start</label>
-                      <div class="col-md-2 col-sm-3">
-                        <input type="text" class="form-control" id="fm-option-stim-trial-start" placeholder="-1.0">
-                      </div>
-                      <label for="fm-option-stim-trial-end" class="col-md-1 col-sm-1 control-label">End</label>
-                      <div class="col-md-2 col-sm-3">
-                        <input type="text" class="form-control" id="fm-option-stim-trial-end" placeholder="3.0">
-                      </div>
+                  <div class="form-group row">
+                    <label class="col-md-3 col-sm-4 control-label">Trial window</label>
+                    <label for="fm-option-stim-trial-start" class="col-md-1 col-sm-1 control-label">Start</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-stim-trial-start" placeholder="-1.0">
                     </div>
-                  </form>
+                    <label for="fm-option-stim-trial-end" class="col-md-1 col-sm-1 control-label">End</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-stim-trial-end" placeholder="3.0">
+                    </div>
+                  </div>
 
-                  <form class="form-horizontal">
-                    <div class="form-group">
-                      <label class="col-md-3 col-sm-4 control-label">Baseline</label>
-                      <label for="fm-option-stim-baseline-start" class="col-md-1 col-sm-1 control-label">Start</label>
-                      <div class="col-md-2 col-sm-3">
-                        <input type="text" class="form-control" id="fm-option-stim-baseline-start" placeholder="-1.0">
-                      </div>
-                      <label for="fm-option-stim-baseline-end" class="col-md-1 col-sm-1 control-label">End</label>
-                      <div class="col-md-2 col-sm-3">
-                        <input type="text" class="form-control" id="fm-option-stim-baseline-end" placeholder="-0.2">
-                      </div>
+                  <div class="form-group row">
+                    <label class="col-md-3 col-sm-4 control-label">Baseline</label>
+                    <label for="fm-option-stim-baseline-start" class="col-md-1 col-sm-1 control-label">Start</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-stim-baseline-start" placeholder="-1.0">
                     </div>
-                  </form>
+                    <label for="fm-option-stim-baseline-end" class="col-md-1 col-sm-1 control-label">End</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-stim-baseline-end" placeholder="-0.2">
+                    </div>
+                  </div>
 
                   <h4>Response</h4>
 
-                  <form class="form-horizontal">
-                    <div class="form-group">
-                      <label class="col-md-3 col-sm-4 control-label">Trial window</label>
-                      <label for="fm-option-resp-trial-start" class="col-md-1 col-sm-1 control-label">Start</label>
-                      <div class="col-md-2 col-sm-3">
-                        <input type="text" class="form-control" id="fm-option-resp-trial-start" placeholder="-1.0">
-                      </div>
-                      <label for="fm-option-resp-trial-end" class="col-md-1 col-sm-1 control-label">End</label>
-                      <div class="col-md-2 col-sm-3">
-                        <input type="text" class="form-control" id="fm-option-resp-trial-end" placeholder="3.0">
-                      </div>
+                  <div class="form-group row">
+                    <label class="col-md-3 col-sm-4 control-label">Trial window</label>
+                    <label for="fm-option-resp-trial-start" class="col-md-1 col-sm-1 control-label">Start</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-resp-trial-start" placeholder="-1.0">
                     </div>
-                  </form>
+                    <label for="fm-option-resp-trial-end" class="col-md-1 col-sm-1 control-label">End</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-resp-trial-end" placeholder="3.0">
+                    </div>
+                  </div>
 
-                  <form class="form-horizontal">
-                    <div class="form-group">
-                      <label class="col-md-3 col-sm-4 control-label">Baseline</label>
-                      <label for="fm-option-resp-baseline-start" class="col-md-1 col-sm-1 control-label">Start</label>
-                      <div class="col-md-2 col-sm-3">
-                        <input type="text" class="form-control" id="fm-option-resp-baseline-start" placeholder="-1.0">
-                      </div>
-                      <label for="fm-option-resp-baseline-end" class="col-md-1 col-sm-1 control-label">End</label>
-                      <div class="col-md-2 col-sm-3">
-                        <input type="text" class="form-control" id="fm-option-resp-baseline-end" placeholder="-0.2">
-                      </div>
+                  <div class="form-group row">
+                    <label class="col-md-3 col-sm-4 control-label">Baseline</label>
+                    <label for="fm-option-resp-baseline-start" class="col-md-1 col-sm-1 control-label">Start</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-resp-baseline-start" placeholder="-1.0">
                     </div>
-                  </form>
+                    <label for="fm-option-resp-baseline-end" class="col-md-1 col-sm-1 control-label">End</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-resp-baseline-end" placeholder="-0.2">
+                    </div>
+                  </div>
 
                   <hr />
 
@@ -257,107 +238,98 @@
 
                   <h4>Stimulus</h4>
 
-                  <form class="form-horizontal">
-                    <div class="form-group">
-                      <div class="radio col-md-3 col-sm-4">
-                        <label>
-                          <input type="radio" name="fm-option-stim-timing" id="fm-option-stim-timing-state"
-                            value="state">
-                          State timing
-                        </label>
-                      </div>
-                      <div class="col-md-3 col-sm-7">
-                        <input type="text" class="form-control" id="fm-option-stim-state" placeholder="State">
-                      </div>
-                      <label for="fm-option-stim-state-off"
-                        class="col-md-1 col-sm-4 visible-sm visible-xs control-label text-center"></label>
-                      <div class="col-md-2 col-sm-3">
-                        <input type="text" class="form-control" id="fm-option-stim-state-off" placeholder="Off">
-                      </div>
-                      <label for="fm-option-stim-state-on"
-                        class="col-md-1 col-sm-1 hidden-xs control-label text-center">&xrarr;</label>
-                      <div class="col-md-2 col-sm-3">
-                        <input type="text" class="form-control" id="fm-option-stim-state-on" placeholder="On">
-                      </div>
+                  <div class="form-group row">
+                    <div class="radio col-md-3 col-sm-4">
+                      <label>
+                        <input type="radio" name="fm-option-stim-timing" id="fm-option-stim-timing-state" value="state">
+                        State timing
+                      </label>
                     </div>
-                  </form>
+                    <div class="col-md-3 col-sm-7">
+                      <input type="text" class="form-control" id="fm-option-stim-state" placeholder="State">
+                    </div>
+                    <label for="fm-option-stim-state-off"
+                      class="col-md-1 col-sm-4 visible-sm visible-xs control-label text-center"></label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-stim-state-off" placeholder="Off">
+                    </div>
+                    <label for="fm-option-stim-state-on"
+                      class="col-md-1 col-sm-1 hidden-xs control-label text-center">&xrarr;</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-stim-state-on" placeholder="On">
+                    </div>
+                  </div>
 
-                  <form class="form-horizontal">
-                    <div class="form-group">
-                      <div class="radio col-md-3 col-sm-4">
-                        <label>
-                          <input type="radio" name="fm-option-stim-timing" id="fm-option-stim-timing-signal"
-                            value="signal">
-                          Signal timing
-                        </label>
-                      </div>
-                      <div class="col-md-3 col-sm-7">
-                        <input type="text" class="form-control" id="fm-option-stim-channel" placeholder="Channel">
-                      </div>
-                      <label for="fm-option-stim-off"
-                        class="col-md-1 col-sm-4 visible-sm visible-xs control-label text-center"></label>
-                      <div class="col-md-2 col-sm-3">
-                        <input type="text" class="form-control" id="fm-option-stim-off" placeholder="Off">
-                      </div>
-                      <label for="fm-option-stim-on"
-                        class="col-md-1 col-sm-1 hidden-xs control-label text-center">&xrarr;</label>
-                      <div class="col-md-2 col-sm-3">
-                        <input type="text" class="form-control" id="fm-option-stim-on" placeholder="On">
-                      </div>
+                  <div class="form-group row">
+                    <div class="radio col-md-3 col-sm-4">
+                      <label>
+                        <input type="radio" name="fm-option-stim-timing" id="fm-option-stim-timing-signal"
+                          value="signal">
+                        Signal timing
+                      </label>
                     </div>
-                  </form>
+                    <div class="col-md-3 col-sm-7">
+                      <input type="text" class="form-control" id="fm-option-stim-channel" placeholder="Channel">
+                    </div>
+                    <label for="fm-option-stim-off"
+                      class="col-md-1 col-sm-4 visible-sm visible-xs control-label text-center"></label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-stim-off" placeholder="Off">
+                    </div>
+                    <label for="fm-option-stim-on"
+                      class="col-md-1 col-sm-1 hidden-xs control-label text-center">&xrarr;</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-stim-on" placeholder="On">
+                    </div>
+                  </div>
 
                   <h4>Response</h4>
 
-                  <form class="form-horizontal">
-                    <div class="form-group">
-                      <div class="radio col-md-3 col-sm-4">
-                        <label>
-                          <input type="radio" name="fm-option-resp-timing" id="fm-option-resp-timing-standard"
-                            value="standard" checked>
-                          Standard timing
-                        </label>
-                      </div>
-                      <div class="col-md-3 col-sm-7">
-                        <input type="text" class="form-control" id="fm-option-resp-state" placeholder="State">
-                      </div>
-                      <label for="fm-option-resp-state-off"
-                        class="col-md-1 col-sm-4 visible-sm visible-xs control-label text-center"></label>
-                      <div class="col-md-2 col-sm-3">
-                        <input type="text" class="form-control" id="fm-option-resp-state-off" placeholder="Off">
-                      </div>
-                      <label for="fm-option-resp-state-on"
-                        class="col-md-1 col-sm-1 hidden-xs control-label text-center">&xrarr;</label>
-                      <div class="col-md-2 col-sm-3">
-                        <input type="text" class="form-control" id="fm-option-resp-state-on" placeholder="On">
-                      </div>
+                  <div class="form-group row">
+                    <div class="radio col-md-3 col-sm-4">
+                      <label>
+                        <input type="radio" name="fm-option-resp-timing" id="fm-option-resp-timing-standard"
+                          value="standard" checked>
+                        Standard timing
+                      </label>
                     </div>
-                  </form>
+                    <div class="col-md-3 col-sm-7">
+                      <input type="text" class="form-control" id="fm-option-resp-state" placeholder="State">
+                    </div>
+                    <label for="fm-option-resp-state-off"
+                      class="col-md-1 col-sm-4 visible-sm visible-xs control-label text-center"></label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-resp-state-off" placeholder="Off">
+                    </div>
+                    <label for="fm-option-resp-state-on"
+                      class="col-md-1 col-sm-1 hidden-xs control-label text-center">&xrarr;</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-resp-state-on" placeholder="On">
+                    </div>
+                  </div>
 
-                  <form class="form-horizontal">
-                    <div class="form-group">
-                      <div class="radio col-md-3 col-sm-4">
-                        <label>
-                          <input type="radio" name="fm-option-resp-timing" id="fm-option-resp-timing-precision"
-                            value="precision">
-                          Precision timing
-                        </label>
-                      </div>
-                      <div class="col-md-3 col-sm-7">
-                        <input type="text" class="form-control" id="fm-option-resp-channel" placeholder="Channel">
-                      </div>
-                      <label for="fm-option-resp-off"
-                        class="col-md-1 col-sm-4 visible-sm visible-xs control-label text-center"></label>
-                      <div class="col-md-2 col-sm-3">
-                        <input type="text" class="form-control" id="fm-option-resp-off" placeholder="Off">
-                      </div>
-                      <label for="fm-option-resp-on"
-                        class="col-md-1 col-sm-1 hidden-xs control-label text-center">&xrarr;</label>
-                      <div class="col-md-2 col-sm-3">
-                        <input type="text" class="form-control" id="fm-option-resp-on" placeholder="On">
-                      </div>
+                  <div class="form-group row">
+                    <div class="radio col-md-3 col-sm-4">
+                      <label>
+                        <input type="radio" name="fm-option-resp-timing" id="fm-option-resp-timing-precision"
+                          value="precision">
+                        Precision timing
+                      </label>
                     </div>
-                  </form>
+                    <div class="col-md-3 col-sm-7">
+                      <input type="text" class="form-control" id="fm-option-resp-channel" placeholder="Channel">
+                    </div>
+                    <label for="fm-option-resp-off"
+                      class="col-md-1 col-sm-4 visible-sm visible-xs control-label text-center"></label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-resp-off" placeholder="Off">
+                    </div>
+                    <label for="fm-option-resp-on"
+                      class="col-md-1 col-sm-1 hidden-xs control-label text-center">&xrarr;</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-resp-on" placeholder="On">
+                    </div>
+                  </div>
 
                   <hr />
 
@@ -372,17 +344,15 @@
                     <span class="text-warning">Doing this will <strong>restart WebFM.</strong></span>
                   </p>
 
-                  <form class="form-horizontal">
-                    <div class="form-group">
-                      <label for="fm-option-nuke-cookies" class="col-md-3 col-sm-4 control-label">
-                        Nuke cookies
-                      </label>
-                      <div class="col-md-9 col-sm-8">
-                        <button type="submit" class="btn btn-warning" id="fm-option-nuke-cookies"><span
-                            class="glyphicon glyphicon-fire"></span>&emsp;OBLITERATE</button>
-                      </div>
+                  <div class="form-group row">
+                    <label for="fm-option-nuke-cookies" class="col-md-3 col-sm-4 control-label">
+                      Nuke cookies
+                    </label>
+                    <div class="col-md-9 col-sm-8">
+                      <button type="submit" class="btn btn-warning" id="fm-option-nuke-cookies"><span
+                          class="glyphicon glyphicon-fire"></span>&emsp;OBLITERATE</button>
                     </div>
-                  </form>
+                  </div>
 
                 </div> <!-- tabpanel (options) -->
 
@@ -423,22 +393,20 @@
                     a <strong>Min</strong> or <strong>Max</strong> value.
                   </p>
 
-                  <form class="form-horizontal">
-                    <div class="form-group">
-                      <label for="fm-option-scope-channel" class="col-md-2 col-sm-3 control-label">Channel</label>
-                      <div class="col-md-3 col-sm-7">
-                        <input type="text" class="form-control" id="fm-option-scope-channel" placeholder="ainp1">
-                      </div>
-                      <label for="fm-option-scope-min" class="col-md-1 col-sm-3 control-label">Min</label>
-                      <div class="col-md-2 col-sm-3">
-                        <input type="text" class="form-control" id="fm-option-scope-min" placeholder="-100">
-                      </div>
-                      <label for="fm-option-scope-max" class="col-md-1 col-sm-1 control-label">Max</label>
-                      <div class="col-md-2 col-sm-3">
-                        <input type="text" class="form-control" id="fm-option-scope-max" placeholder="100">
-                      </div>
+                  <div class="form-group">
+                    <label for="fm-option-scope-channel" class="col-md-2 col-sm-3 control-label">Channel</label>
+                    <div class="col-md-3 col-sm-7">
+                      <input type="text" class="form-control" id="fm-option-scope-channel" placeholder="ainp1">
                     </div>
-                  </form>
+                    <label for="fm-option-scope-min" class="col-md-1 col-sm-3 control-label">Min</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-scope-min" placeholder="-100">
+                    </div>
+                    <label for="fm-option-scope-max" class="col-md-1 col-sm-1 control-label">Max</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-scope-max" placeholder="100">
+                    </div>
+                  </div>
 
                   <div id="fm-scope"></div>
 
@@ -536,6 +504,56 @@
 
       </div>
     </div>
+
+
+    <script>
+      //Make the DIV element draggagle:
+      dragElement(document.getElementById("fm-brain"));
+
+      function dragElement(elmnt) {
+        var pos1 = 0,
+          pos2 = 0,
+          pos3 = 0,
+          pos4 = 0;
+        if (document.getElementById(elmnt.id + "header")) {
+          /* if present, the header is where you move the DIV from:*/
+          document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
+        } else {
+          /* otherwise, move the DIV from anywhere inside the DIV:*/
+          elmnt.onmousedown = dragMouseDown;
+        }
+
+        function dragMouseDown(e) {
+          e = e || window.event;
+          e.preventDefault();
+          // get the mouse cursor position at startup:
+          pos3 = e.clientX;
+          pos4 = e.clientY;
+          document.onmouseup = closeDragElement;
+          // call a function whenever the cursor moves:
+          document.onmousemove = elementDrag;
+        }
+
+        function elementDrag(e) {
+          e = e || window.event;
+          e.preventDefault();
+          // calculate the new cursor position:
+          pos1 = pos3 - e.clientX;
+          pos2 = pos4 - e.clientY;
+          pos3 = e.clientX;
+          pos4 = e.clientY;
+          // set the element's new position:
+          elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+          elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+        }
+
+        function closeDragElement() {
+          /* stop moving when mouse button is released:*/
+          document.onmouseup = null;
+          document.onmousemove = null;
+        }
+      }
+    </script>
   </div>
 
 

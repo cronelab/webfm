@@ -50,18 +50,11 @@
 
 
 
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light" id="optionsNav">
 
-
-    <div class="collapse navbar-collapse"">
-
-      <ul class=" navbar-nav">
+    <ul class=" navbar-nav">
       <li class="nav-item">
-        <p class="navbar-link fm-time-label"><span class="fm-time-selected">0.000 s</span></p>
+        <p class="nav-link fm-time-label"><span class="fm-time-selected">0.000 s</span></p>
       </li>
       <li class="nav-item" id="play-button">
         <a class="nav-link" href="#"><span class="fas fa-play" id="play-button-icon"></span></a>
@@ -72,31 +65,19 @@
       <li class="nav-item fm-zoom-out">
         <a class="nav-link" href="#"><span class="fas fa-search-minus"></span></a>
       </li>
-      <li class="fm-gain-up">
-        <a class="nav-link" href="#"><span class="fas fa-volume-up"></span></a>
-      </li>
-      <li class="fm-gain-down">
-        <a class="nav-link" href="#"><span class="fas fa-volume-down"></span></a>
-      </li>
-      </ul>
 
-      <ul class="nav navbar-nav navbar-right">
+      <a class="nav-link" href="#" id="gainUp">
+        <i class="nav-item fas fa-volume-up"></i>
+      </a>
+      <a class="nav-link" href="#" id="gainDown">
+        <i class="nav-item fas fa-volume-down"></i>
+      </a>
 
-        <li class="dropdown fm-dataset-list">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-            aria-expanded="false">High gamma (70–110 Hz) <span class="caret"></span></a>
-          <ul class="dropdown-menu">
-            <li class="dropdown-header">CCEP</li>
-            <li role="separator" class="divider"></li>
-            <li class="dropdown-header">CCSR</li>
-          </ul>
-        </li>
-        <li class="fm-show-options">
-          <a class="" href="#"><span class="fas fa-cog"></span></a>
-        </li>
-      </ul>
+      <a class="nav-link fm-show-options" href="#">
+        <i class="nav-item fas fa-cog"></i>
+      </a>
+    </ul>
 
-    </div>
   </nav>
 
 
@@ -510,6 +491,56 @@
 
       </div>
     </div>
+
+
+    <script>
+      //Make the DIV element draggagle:
+      dragElement(document.getElementById("fm-brain"));
+
+      function dragElement(elmnt) {
+        var pos1 = 0,
+          pos2 = 0,
+          pos3 = 0,
+          pos4 = 0;
+        if (document.getElementById(elmnt.id + "header")) {
+          /* if present, the header is where you move the DIV from:*/
+          document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
+        } else {
+          /* otherwise, move the DIV from anywhere inside the DIV:*/
+          elmnt.onmousedown = dragMouseDown;
+        }
+
+        function dragMouseDown(e) {
+          e = e || window.event;
+          e.preventDefault();
+          // get the mouse cursor position at startup:
+          pos3 = e.clientX;
+          pos4 = e.clientY;
+          document.onmouseup = closeDragElement;
+          // call a function whenever the cursor moves:
+          document.onmousemove = elementDrag;
+        }
+
+        function elementDrag(e) {
+          e = e || window.event;
+          e.preventDefault();
+          // calculate the new cursor position:
+          pos1 = pos3 - e.clientX;
+          pos2 = pos4 - e.clientY;
+          pos3 = e.clientX;
+          pos4 = e.clientY;
+          // set the element's new position:
+          elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+          elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+        }
+
+        function closeDragElement() {
+          /* stop moving when mouse button is released:*/
+          document.onmouseup = null;
+          document.onmousemove = null;
+        }
+      }
+    </script>
   </div>
 
 
