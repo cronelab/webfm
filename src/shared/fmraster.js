@@ -7,8 +7,7 @@ import {
 let horizonChart = require('./horizon-chart-custom.js').default;
 
 class fmraster {
-    constructor(baseNodeId) {
-        this.baseNodeId = baseNodeId;
+    constructor() {
         this.displayOrder = null;
         this.data = null;
         this.timeScale = null;
@@ -18,11 +17,6 @@ class fmraster {
         this.cursorSvg = null;
         this.cursorTime = null;
         this.cursorLocked = false;
-        this.cursorSize = {
-            'width': 0,
-            'height': 0
-        };
-        this.chartMin = 0.0;
         this.chartMax = 7.5;
         this.channelHeight = 15;
         this.channelHeightCutoff = 14;
@@ -32,48 +26,19 @@ class fmraster {
             bottom: 0,
             left: 0
         };
-        this.rangeColors = [
-            "#313695",
-            "#4575b4",
-            "#74add1",
-            "#abd9e9",
-            "#ffffff",
-            "#fee090",
-            "#fdae61",
-            "#f46d43",
-            "#d73027"
-        ];
     };
 
-    setup() {
-        this.setupCharts();
-        this.setupCursor();
-    }
-
-
-    setupCursor() {
-        var raster = this;
-        this.cursorSvg = select(this.baseNodeId).append('svg')
-            .attr('class', 'fm-cursor-svg');
-        document.getElementById('fm').onclick = event => raster.toggleCursor();
-        this.cursorTime = 0.0;
-        this.cursorSvg.append('line')
-            .attr('class', 'fm-cursor-line');
-        this.cursorSvg.append('line')
-            .attr('class', 'fm-cursor-origin-line');
-        this.updateCursor();
-    }
     updateCursor(newTime) {
         if (newTime !== undefined) this.cursorTime = newTime;
         var raster = this;
         var height = document.getElementById('fm').offsetHeight;
-        select(this.baseNodeId)
+        select('#fm')
             .select('.fm-cursor-svg')
             .attr('width', document.getElementById('fm').offsetWidth)
             .attr('height', height);
         if (!this.timeScale) return;
 
-        select(this.baseNodeId)
+        select('#fm')
             .select('.fm-cursor-svg')
             .select('.fm-cursor-line')
             .classed('fm-cursor-locked', () => raster.cursorLocked)
@@ -82,7 +47,7 @@ class fmraster {
             .attr('x2', this.timeScale.invert(this.cursorTime))
             .attr('y2', height);
 
-        select(this.baseNodeId)
+        select('#fm')
             .select('.fm-cursor-svg')
             .select('.fm-cursor-origin-line')
             .attr('x1', this.timeScale.invert(0.0))
@@ -91,23 +56,15 @@ class fmraster {
             .attr('y2', height);
     }
 
-    lockCursor() {
-        this.cursorLocked = true;
-        this.updateCursor();
-    }
-
-    unlockCursor() {
-        this.cursorLocked = false;
-        this.updateCursor();
-    }
-
     toggleCursor() {
 
         if (this.cursorLocked) {
-            this.unlockCursor();
+            this.cursorLocked = false;
+            this.updateCursor();
             return;
         }
-        this.lockCursor();
+        this.cursorLocked = true;
+        this.updateCursor();
     }
 
     setupCharts() {
@@ -130,7 +87,7 @@ class fmraster {
             this.timeScale.domain([0, width]);
         }
         let horizonChart1 = horizonChart();
-        var horizons = select(this.baseNodeId).selectAll('.fm-horizon')
+        var horizons = select('#fm').selectAll('.fm-horizon')
             .data(this.data, d => d.channel);
         horizons.enter().append('div')
             .attr('class', 'fm-horizon')
@@ -149,7 +106,7 @@ class fmraster {
                 horizonChart1.title(d.channel)
                     .height(raster.channelHeight)
                     .step(step)
-                    .extent([raster.chartMin, raster.chartMax])
+                    .extent([0, raster.chartMax])
                     .call(this, d.values);
             });
         horizons.exit().remove();

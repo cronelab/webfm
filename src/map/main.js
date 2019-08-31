@@ -7,12 +7,19 @@ import {
     OnlineDataSource
 } from './fmonline'
 
+import Worker from '../shared/source.worker.js';
+const myWorker = new Worker();
 let dataset;
 let uiManager;
 let subject;
 let task;
 
 window.onload = async () => {
+    // myWorker.postMessage("Connect!")
+    // myWorker.onmessage = e => {
+    //     console.log(e.data.state);
+    //     console.log(e.data.data)
+    // }
     let request = await fetch(`/config`)
     let config = await request.json()
     subject = localStorage.getItem('subject')

@@ -21,7 +21,6 @@ window.onload = async () => {
         dataset.get(data).then(x => {
             document.getElementsByClassName('fm-subject-name')[0].innerHTML = subjectName;
             document.getElementsByClassName('fm-subject-name')[1].innerHTML = subjectName;
-            document.getElementsByClassName('fm-back')[0].setAttribute('href', `/#${subjectName}`);
             document.getElementsByClassName('fm-task-name')[0].innerHTML = dataset.metadata.setting.task;
             document.getElementById('fm-option-save-name').value = dataset.metadata.setting.task;
             uiManager.updateChannelNames(dataset.metadata.montage);
@@ -36,6 +35,9 @@ window.onload = async () => {
         document.getElementsByClassName('fm-time-selected')[0].innerHTML = `${(newTime > 0 ? '+' : '')}${newTime.toFixed(3)} s`;
         uiManager.brain.update(dataset.dataForTime(newTime));
     };
+    document.getElementById('playButton').onclick = e => {
+        uiManager.brain.update(dataset.dataForTime(0));
+    }
 }
 
 window.onresize = () => uiManager.didResize();

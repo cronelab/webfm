@@ -1,21 +1,19 @@
-import fmbrain from '../shared/fmbrain';
-import fmraster from '../shared/fmraster';
-import fmscope from '../shared/fmscope'
-
+import fmbrain from './fmbrain';
+import fmraster from './fmraster';
+import fmscope from './fmscope'
+import {
+    select
+} from "d3-selection";
 let $ = require('jquery');
 
 class fmui {
     constructor() {
         let manager = this;
         this.config = {};
-        this.icons = [
-            'transfer',
-            'working'
-        ];
-        this.allChannels = []; // TODO Can avoid?
+        this.allChannels = [];
         this.raster = new fmraster('#fm');
         this.brain = new fmbrain();
-        this.scope = new fmscope('#fm-scope');
+        this.scope = new fmscope();
         this.raster.onselectchannel = newChannel => {
             manager.brain.setSelectedChannel(newChannel);
         };
@@ -50,7 +48,6 @@ class fmui {
         mergedConfig.rasterExtent = config.rasterExtent || 5;
         mergedConfig.maxRasterExtent = config.maxRasterExtent || 10;
         mergedConfig.unitsPerRasterExtent = config.unitsPerRasterExtent || 1;
-        mergedConfig.iconShowDuration = config.iconShowDuration || 100;
         mergedConfig.iconHideDelay = config.iconHideDelay || 1000;
         mergedConfig.iconHideDuration = config.iconHideDuration || 100;
         mergedConfig.fmMargin = config.fmMargin || {
@@ -63,21 +60,23 @@ class fmui {
         return mergedConfig;
     }
     setup() {
+        let manager = this;
         this.config = this._mergeDefaultConfig(this.config);
         this.rewireButtons();
         this.rewireForms();
-        this.icons.forEach(icon => {
-            setTimeout(() => document.getElementsByClassName(`fm-${icon}-icon`)[0].classList.add('d-none'), 500);
-        });
-        this.raster.setup(); // TODO Always will fail for charts until
+        this.raster.cursorTime = 0.0;
+        this.raster.setupCharts();
+        this.raster.cursorSvg = select('#fm').append('svg').attr('class', 'fm-cursor-svg');
+        document.getElementById('fm').onclick = function (event) {
+            manager.raster.toggleCursor()
+        };
+        this.raster.cursorSvg.append('line').attr('class', 'fm-cursor-line');
+        this.raster.cursorSvg.append('line').attr('class', 'fm-cursor-origin-line');
+        this.raster.updateCursor();
         this._populateOptions(this.getOptions());
         this.raster.channelHeight = this.getRowHeight()
         this.raster.chartMax = this.getRasterExtent();
-
-
-
     }
-
     zoom(event, which) {
         this.config.rowHeight = this.config.rowHeight + which;
 

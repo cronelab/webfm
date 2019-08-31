@@ -48,8 +48,17 @@ const module = {
                         loader: "sass-loader",
                     }
                 ]
+            },
+            {
+                test: /\.worker\.js$/,
+                use: {
+                    loader: 'worker-loader'
+                }
             }
         ]
+    },
+    optimization: {
+        usedExports: true
     },
     plugins: [
         new CleanWebpackPlugin.CleanWebpackPlugin(),

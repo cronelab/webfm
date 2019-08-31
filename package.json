@@ -1,6 +1,6 @@
 {
   "name": "webfm",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "A web-based functional mapping utility.",
   "main": "server/server.js",
   "scripts": {
@@ -10,6 +10,7 @@
   "author": "Max Collard <collard@jhu.edu>",
   "license": "SEE LICENSE IN LICENSE.md",
   "type": "module",
+  "sideEffects": false,
   "dependencies": {
     "@babel/core": "^7.5.5",
     "@babel/plugin-proposal-class-properties": "^7.5.5",

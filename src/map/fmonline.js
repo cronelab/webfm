@@ -12,17 +12,12 @@ class OnlineDataSource {
         this._bciConnection = new BCI2K.bciOperator();
         this._bciSourceConnection = new BCI2K.bciData();
         this._bciFilterConnection = new BCI2K.bciData();
-        this.config = {};
         this._stateTiming = true;
         this._timingChannel = 'ainp1';
         this._timingState = 'StimulusCode';
         this.threshold = {
             offValue: 0.0,
             onValue: 1.0
-        };
-        this.featureBand = {
-            low: 70.0,
-            high: 110.0
         };
         this.trialWindow = {
             start: -1.0,
@@ -79,7 +74,7 @@ class OnlineDataSource {
             arr.push(Array.apply(null, new Array(windowLengthBlocks)).map(Number.prototype.valueOf, 0));
             return arr;
         }, []);
-        this._trialBlocks = Math.ceil(this.trialWindow.end - this.trialWindow.start / blockLengthSeconds);
+        this._trialBlocks = Math.ceil((this.trialWindow.end - this.trialWindow.start) / blockLengthSeconds);
         this._postTrialBlocks = Math.ceil(this.trialWindow.end / blockLengthSeconds);
         console.log('Created feature buffer: ' + this.featureChannels.length + ' channels x ' + windowLengthBlocks + ' samples.');
         this.canProcess = true;

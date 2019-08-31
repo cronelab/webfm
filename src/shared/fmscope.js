@@ -12,8 +12,7 @@ import {
     axisLeft
 } from "d3-axis"
 class fmscope {
-    constructor(baseNodeId) {
-        this.baseNodeId = baseNodeId;
+    constructor() {
         this.scoping = false;
         this.channel = null;
         this.data = null;
@@ -65,7 +64,7 @@ class fmscope {
 
     _setupPlot() {
         var scope = this;
-        this.plotSvg = select(this.baseNodeId).append('svg')
+        this.plotSvg = select('#fm-scope').append('svg')
             .attr('class', 'fm-scope-plot');
         var g = this.plotSvg.append('g')
             .attr('transform', 'translate(' + this.plotMargin.left + ',' + this.plotMargin.top + ')');
