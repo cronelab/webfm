@@ -7,12 +7,14 @@ import {
     OnlineDataSource
 } from './fmonline'
 
-import Worker from '../shared/source.worker.js';
-const myWorker = new Worker();
+// import Worker from '../shared/source.worker.js';
+// const myWorker = new Worker();
 let dataset;
 let uiManager;
 let subject;
 let task;
+import Worker from '../shared/dataIndex.worker';
+const dataIndexer = new Worker();
 
 window.onload = async () => {
     // myWorker.postMessage("Connect!")
@@ -177,7 +179,27 @@ var updateRecordListForSubject = function (theSubject) {
 
 var updateDataDisplay = function () {
     uiManager.raster.update(dataset.displayData);
-    uiManager.brain.update(dataset.dataForTime(uiManager.raster.cursorTime));
+
+    var dataWindow = {
+        start: dataset.contents.times[0],
+        end: dataset.contents.times[dataset.contents.times.length - 1]
+    };
+
+    dataIndexer.postMessage({
+        displayData: dataset.displayData,
+        newTime: uiManager.raster.cursorTime,
+        dataWindow: dataWindow
+    });
+    dataIndexer.onmessage = e => {
+        uiManager.brain.update(e.data);
+        // uiManager.brain.update(dataset.dataForTime(uiManager.raster.cursorTime));
+
+    }
+
+
+
+
+
     var timeBounds = dataset.getTimeBounds();
     if (!uiManager.raster.timeScale) {
         return;

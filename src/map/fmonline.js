@@ -97,7 +97,7 @@ class OnlineDataSource {
 
     _processFeatureSignal(signal) {
         if (!this.canProcess) {
-            console.log("Received feature signal, but can't process it.");
+            console.warn("Received feature signal, but can't process it.");
             return;
         }
         this.featureBlockNumber += 1;
@@ -115,7 +115,7 @@ class OnlineDataSource {
         this.onFeatureSignal(this._formatData("Feature", computedFeatures));
     }
     _processStateVector(state) {
-        if (!this.canProcess) console.log("Received a state signal, but can't process it.");
+        if (!this.canProcess) console.warn("Received a state signal, but can't process it.");
         this.stateBlockNumber += 1;
         if (this._stateTiming) state[this._timingState].some(s => this._updateTimingState(s));
     }
@@ -129,7 +129,7 @@ class OnlineDataSource {
     _timingStateChanged(newState) {
         if (newState == 0) return;
         if (this.trialEndBlockNumber) {
-            console.log('WARNING Received new trial state, but already in a trial. Ignoring.');
+            console.warn('WARNING Received new trial state, but already in a trial. Ignoring.');
             return;
         }
         this.trialEndBlockNumber = (this.stateBlockNumber - 1) + this._postTrialBlocks;
@@ -162,7 +162,7 @@ class OnlineDataSource {
             };
             this._bciSourceConnection.onGenericSignal = signal => {
                 if (!this.canProcess) {
-                    console.log("Received source signal, but can't process it.");
+                    console.warn("Received source signal, but can't process it.");
                     return;
                 }
                 this.sourceBlockNumber += 1;

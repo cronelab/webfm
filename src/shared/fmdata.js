@@ -3,7 +3,6 @@ import {
     ChannelStat
 } from '../map/fmstat';
 
-
 class fmdata {
     constructor() {
 
@@ -356,33 +355,30 @@ class fmdata {
     }
 
     dataForTime(time) {
-
-        if (!this.isTimeseries()) {
-            // Slicing by time is undefined for non-timeseries data
-            return undefined;
-        }
-
+        if (!this.isTimeseries()) return undefined;
         var dataset = this;
-
         var dataSamples = 0;
         Object.keys(this.displayData).every(function (ch) {
             dataSamples = dataset.displayData[ch].length;
-            return false; // Makes it so we only execute once
+            return false;
         });
 
         var dataWindow = {
             start: this.contents.times[0],
             end: this.contents.times[this.contents.times.length - 1]
         };
-
         var timeIndexFloat = ((time - dataWindow.start) / (dataWindow.end - dataWindow.start)) * dataSamples;
         var timeIndex = Math.floor(timeIndexFloat);
         var timeFrac = timeIndexFloat - timeIndex;
 
-        return Object.keys(this.displayData).reduce(function (obj, ch) {
-            obj[ch] = (1.0 - timeFrac) * dataset.displayData[ch][timeIndex] + (timeFrac) * dataset.displayData[ch][timeIndex + 1];
+        let disp = Object.keys(dataset.displayData).reduce(function (obj, ch) {
+            let ins = dataset.displayData[ch]
+            obj[ch] = (1.0 - timeFrac) * ins[timeIndex] + (timeFrac) * ins[timeIndex + 1];
             return obj
         }, {});
+
+        return disp
+
     }
 
 
