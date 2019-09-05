@@ -61,24 +61,6 @@ const routes = express => {
 
 
 
-
-
-  // //Brain
-  //       //Load the jpg, if jpg doesn't exist, load data from the .metadata file
-  //       if (fs.existsSync(`${dataDir}/${subject}/${subject}.jpg`)) {
-  //         res.sendFile(`${subject}.jpg`, { root: `${dataDir}/${subject}/` });
-  //       } else {
-  //         getSubjectMetadata(subject)
-  //           .then(metadata => res.status(200).send(metadata.brainImage))
-  //           .catch(err => console.log(err));
-  //       }
-  //     } else {
-  //       console.log("subject not found");
-  //     }
-  //   });
-  // });
-
-
   router.get("/api/brain/:subject", (req, res) => {
     let subject = req.params.subject;
     fs.readdir("./data", (err, subjects) => {
@@ -109,14 +91,17 @@ const routes = express => {
     let subject = req.params.subject;
     fs.readdir("./data", (err, subjects) => {
       if (subjects.indexOf(subject) > -1) {
-        if (fs.existsSync(`./data/${subject}/.metadata`)) {
+        if (fs.existsSync(`./data/${subject}/info/channels.json`)) {
+          res.sendFile(`channels.json`, {
+            root: `./data/${subject}/info`
+          });
+        } else if (fs.existsSync(`./data/${subject}/.metadata`)) {
           let metadata = JSON.parse(
             fs.readFileSync(`./data/${subject}/.metadata`)
           );
           res.status(200).send(metadata.sensorGeometry);
         }
       } else {
-        console.log("Send it");
         let sensorGeometry = {
           placeHolder: {
             u: 0.0,
@@ -345,21 +330,6 @@ export default routes;
 //     });
 //   });
 
-//   //Geometry
-//   router.get("/api/:subject/geometry", (req, res) => {
-//     let subject = req.params.subject;
-//     fs.readdir(dataDir, (err, subjects) => {
-//       if (subjects.indexOf(subject) > -1) {
-//         if (fs.existsSync(`${dataDir}/${subject}/info/channels.json`)) {
-//           res.sendFile(`channels.json`, {
-//             root: `${dataDir}/${subject}/info`
-//           });
-//         } else {}
-//       } else {
-//         console.log("subject not found");
-//       }
-//     })
-//   })
 //   router.put("/api/:subject/geometry", (req, res) => {
 //     let returnObject = {}
 //     req.body.electrodeName.forEach((name, i) => {
@@ -372,22 +342,6 @@ export default routes;
 //   router.put("/api/:subject/notes", (req, res) => {
 //     console.log(req.body.note)
 //     fs.writeFile(`./data/${req.params.subject}/info/notes.txt`, req.body.note, (err) => console.log(err))
-//   });
-//   //Brain
-//   router.get("/api/:subject/brain", (req, res) => {
-//     let subject = req.params.subject;
-//     fs.readdir(dataDir, (err, subjects) => {
-//       if (subjects.indexOf(subject) > -1) {
-//         //Load the jpg, if jpg doesn't exist, load data from the .metadata file
-//         if (fs.existsSync(`${dataDir}/${subject}/info/reconstruction.jpg`)) {
-//           res.sendFile(`reconstruction.jpg`, {
-//             root: `${dataDir}/${subject}/info`
-//           });
-//         }
-//       } else {
-//         console.log("subject not found");
-//       }
-//     });
 //   });
 //   router.post("/api/:subject/brain", (req, res) => {
 //     if (!fs.existsSync(`./data/${req.params.subject}/info`)) {

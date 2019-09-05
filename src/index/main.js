@@ -477,3 +477,9 @@ document.getElementById('saveNotes').onclick = () => {
   })
 }
 document.getElementsByClassName("main-brain")[0].ondblclick = e => $('#exampleModal').modal("show")
+$('#exampleModal').on('hidden.bs.modal', function () {
+  console.log("closed modal")
+  $(".table_striped").remove();
+  select(".fm-brain-svg").remove();
+
+})
