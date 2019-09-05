@@ -4,8 +4,8 @@
   "description": "A web-based functional mapping utility.",
   "main": "server/server.js",
   "scripts": {
-    "dev": "NODE_ENV=development nodemon --experimental-modules server/server.js  --ignore 'dist/*'",
-    "start": "NODE_ENV=production nodemon --experimental-modules server/server.js  --ignore 'dist/*'"
+    "dev": "NODE_ENV=development nodemon --experimental-modules server/server.js  --ignore ['dist/*', 'migration/*']",
+    "start": "NODE_ENV=production nodemon --experimental-modules server/server.js --ignore ['dist/*', 'migration/*']"
   },
   "author": "Max Collard <collard@jhu.edu>",
   "license": "SEE LICENSE IN LICENSE.md",
@@ -22,7 +22,7 @@
     "babel-loader": "^8.0.6",
     "bootstrap": "^4.3.1",
     "clean-webpack-plugin": "^3.0.0",
-    "css-loader": "^3.2.0",
+    "compression": "^1.7.4",
     "d3-axis": "^1.0.12",
     "d3-scale": "^3.0.1",
     "d3-selection": "^1.4.0",

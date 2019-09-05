@@ -554,5 +554,6 @@ class fmui {
         this.updateScope();
         this.brain.autoResize();
     }
+  
 };
 export default fmui;

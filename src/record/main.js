@@ -25,7 +25,7 @@ window.onload = async () => {
             document.getElementById('fm-option-save-name').value = dataset.metadata.setting.task;
             uiManager.updateChannelNames(dataset.metadata.montage);
             uiManager.raster.update(dataset.displayData);
-            uiManager.brain.setup(JSON.parse(localStorage.getItem('brain')).brain, JSON.parse(localStorage.getItem('geometry')).geometry);
+            uiManager.brain.setup(JSON.parse(localStorage.getItem('brain')).data, JSON.parse(localStorage.getItem('geometry')).data);
             uiManager.brain.update(dataset.dataForTime(uiManager.raster.cursorTime));
             if (!uiManager.raster.timeScale) return;
             uiManager.raster.timeScale.range([dataset.getTimeBounds().start, dataset.getTimeBounds().end]);

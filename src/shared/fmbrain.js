@@ -50,8 +50,8 @@ class fmbrain {
     }
     setup() {
         var brain = this;
-        let imageData = JSON.parse(localStorage.getItem('brain')).brain;
-        this.sensorGeometry = JSON.parse(localStorage.getItem('geometry')).geometry;
+        let imageData = JSON.parse(localStorage.getItem('brain')).data;
+        this.sensorGeometry = JSON.parse(localStorage.getItem('geometry')).data;
         this.data = Object.keys(this.sensorGeometry).reduce((obj, ch) => {
             obj[ch] = 0.0;
             return obj;
