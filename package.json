@@ -4,7 +4,7 @@
   "description": "A web-based functional mapping utility.",
   "main": "server/server.js",
   "scripts": {
-    "dev": "NODE_ENV=development nodemon --experimental-modules server/server.js  --ignore ['dist/*', 'migration/*']",
+    "dev": "NODE_ENV=development nodemon --experimental-modules server/server.js  --ignore 'dist/*' --ignore 'migration/*' --ignore 'data/*'] --delay 1500ms",
     "start": "NODE_ENV=production nodemon --experimental-modules server/server.js --ignore ['dist/*', 'migration/*']"
   },
   "author": "Max Collard <collard@jhu.edu>",

@@ -59,19 +59,47 @@ const routes = express => {
     });
   });
 
+
+
+
+
+  // //Brain
+  //       //Load the jpg, if jpg doesn't exist, load data from the .metadata file
+  //       if (fs.existsSync(`${dataDir}/${subject}/${subject}.jpg`)) {
+  //         res.sendFile(`${subject}.jpg`, { root: `${dataDir}/${subject}/` });
+  //       } else {
+  //         getSubjectMetadata(subject)
+  //           .then(metadata => res.status(200).send(metadata.brainImage))
+  //           .catch(err => console.log(err));
+  //       }
+  //     } else {
+  //       console.log("subject not found");
+  //     }
+  //   });
+  // });
+
+
   router.get("/api/brain/:subject", (req, res) => {
     let subject = req.params.subject;
     fs.readdir("./data", (err, subjects) => {
       if (subjects.indexOf(subject) > -1) {
-        if (fs.existsSync(`./data/${subject}/.metadata`)) {
-          let metadata = JSON.parse(
-            fs.readFileSync(`./data/${subject}/.metadata`)
-          );
-          res.status(200).send(metadata.brainImage);
-        } else {
-          res.status(400).send({
-            message: "This is an error!"
+        if (fs.existsSync(`./data/${subject}/info/reconstruction.jpg`)) {
+          res.sendFile(`reconstruction.jpg`, {
+            root: `./data/${subject}/info/`
           });
+          console.log('sent jpg')
+        } else {
+          console.log('trying metadata')
+          if (fs.existsSync(`./data/${subject}/.metadata`)) {
+            let metadata = JSON.parse(
+              fs.readFileSync(`./data/${subject}/.metadata`)
+            );
+            res.status(200).send(metadata.brainImage);
+          } else {
+            res.status(400).send({
+              message: "This is an error!"
+            });
+          }
         }
       }
     });
