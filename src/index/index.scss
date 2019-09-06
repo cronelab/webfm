@@ -56,17 +56,10 @@ body {
   width: 1000px
 }
 
-
-// .fm-brain-dot.fm-brain-dot-selected {
-//   stroke: #ffff00;
-//   stroke-width: 3px;
-// }
-
 .footer {
   position: absolute;
   bottom: 0;
   width: 100%;
-  /* Set the fixed height of the footer here */
   height: 60px;
   background-color: #f5f5f5;
 }
@@ -95,8 +88,6 @@ body {
 #record-list .list-group-item {
   font-size: 14px;
 }
-
-
 
 #electrodeHolder {
   padding-left: 0%;

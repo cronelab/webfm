@@ -91,7 +91,10 @@ let addSubjectCell = subjects => {
     dropItem.id = subj;
     dropItem.href = `#${subj}`;
     dropItem.innerHTML = subj;
-    dropItem.onclick = () => selectSubject(subj);
+    dropItem.onclick = (e) => {
+      e.stopPropagation();
+      selectSubject(subj)
+    };
     return dropItem;
   });
 
@@ -179,9 +182,28 @@ let selectSubject = async subject => {
   while (recordList.hasChildNodes()) {
     recordList.removeChild(recordList.firstChild);
   }
-  fetchAndStoreGeometry(subject);
+
+
+
+  let btnGroup1 = document.createElement("div");
+  btnGroup1.classList.add("btn-group");
+  btnGroup1.classList.add("dropleft");
+
+  let dropMenu1 = document.createElement("div");
+  dropMenu1.classList.add("dropdown-menu");
+  btnGroup1.append(dropMenu1);
 
   if (fm_records.length != 0) {
+    let recordType = document.createElement("button");
+    recordType.classList.add("btn");
+    recordType.classList.add("btn-secondary");
+    recordType.classList.add("dropdown-toggle");
+    // recordType.id = `PY${year}`;
+    recordType.innerText = `FM`;
+    recordType.setAttribute("data-toggle", "dropdown");
+    btnGroup1.append(recordType);
+    document.getElementById("record-list").append(btnGroup1);
+
     fm_records.sort();
     fm_records.forEach(record => {
       let newRecord = document.createElement("a");
@@ -190,21 +212,67 @@ let selectSubject = async subject => {
       newRecord.classList.add("list-group-item");
       newRecord.innerText = record;
       newRecord.onclick = () => localStorage.setItem("record", record);
-      document.getElementById("record-list").append(newRecord);
+      dropMenu1.append(newRecord);
     });
   }
+
+
+
+
+
+
+  let btnGroup2 = document.createElement("div");
+  btnGroup2.classList.add("btn-group");
+  btnGroup2.classList.add("dropleft");
+
+  let dropMenu2 = document.createElement("div");
+  dropMenu2.style.border = 0;
+
+  dropMenu2.classList.add("dropdown-menu");
+  btnGroup2.append(dropMenu2);
+
   if (cortStim_records.length != 0) {
+    let recordType = document.createElement("button");
+    recordType.classList.add("btn");
+    recordType.classList.add("btn-secondary");
+    recordType.classList.add("dropdown-toggle");
+    // recordType.id = `PY${year}`;
+    recordType.innerText = `Cortical Stimulation`;
+    recordType.setAttribute("data-toggle", "dropdown");
+    btnGroup2.append(recordType);
+    document.getElementById("record-list").append(btnGroup2);
+
     let newRecord = document.createElement("a");
     newRecord.id = `cortstim_${subject}`;
     newRecord.href = `/api/${subject}/cortstim`;
     newRecord.classList.add("list-group-item");
     newRecord.innerText = 'Cortstim';
-    newRecord.style.backgroundColor = 'blue'
     newRecord.onclick = () => localStorage.setItem("record", record);
-    document.getElementById("record-list").append(newRecord);
+    dropMenu2.append(newRecord);
   }
 
+
+  let btnGroup3 = document.createElement("div");
+  btnGroup3.classList.add("btn-group");
+  btnGroup3.classList.add("dropleft");
+
+  let dropMenu3 = document.createElement("div");
+  dropMenu3.classList.add("dropdown-menu");
+  btnGroup3.append(dropMenu3);
+
+
   if (hg_records.length != 0) {
+    let recordType = document.createElement("button");
+    recordType.classList.add("btn");
+    recordType.classList.add("btn-secondary");
+    recordType.classList.add("dropdown-toggle");
+    // recordType.id = `PY${year}`;
+    recordType.innerText = `HG`;
+    recordType.style.color = 'red'
+    recordType.setAttribute("data-toggle", "dropdown");
+    btnGroup3.append(recordType);
+    document.getElementById("record-list").append(btnGroup3);
+
     hg_records.sort();
     hg_records.forEach(record => {
       let newRecord = document.createElement("a");
@@ -213,10 +281,30 @@ let selectSubject = async subject => {
       newRecord.classList.add("list-group-item");
       newRecord.innerText = record;
       newRecord.onclick = () => localStorage.setItem("record", record);
-      document.getElementById("record-list").append(newRecord);
+      dropMenu3.append(newRecord);
     });
   }
+
+  let btnGroup4 = document.createElement("div");
+  btnGroup4.classList.add("btn-group");
+  btnGroup4.classList.add("dropleft");
+
+  let dropMenu4 = document.createElement("div");
+  dropMenu4.style.border = 0;
+  dropMenu4.classList.add("dropdown-menu");
+  btnGroup4.append(dropMenu4);
+
   if (ccep_records.length != 0) {
+    let recordType = document.createElement("button");
+    recordType.classList.add("btn");
+    recordType.classList.add("btn-secondary");
+    recordType.classList.add("dropdown-toggle");
+    // recordType.id = `PY${year}`;
+    recordType.innerText = `CCEPS`;
+    recordType.setAttribute("data-toggle", "dropdown");
+    btnGroup4.append(recordType);
+    document.getElementById("record-list").append(btnGroup4);
+
     ccep_records.sort();
     ccep_records.forEach(record => {
       let newRecord = document.createElement("a");
@@ -224,10 +312,8 @@ let selectSubject = async subject => {
       newRecord.href = `/CCEPS`;
       newRecord.classList.add("list-group-item");
       newRecord.innerText = record;
-      newRecord.style.backgroundColor = 'green'
-
       newRecord.onclick = () => localStorage.setItem("CCEP_Record", record);
-      document.getElementById("record-list").append(newRecord);
+      dropMenu4.append(newRecord);
     });
   }
   scroll(0, 0);
