@@ -5,9 +5,6 @@ import {
 } from "fs";
 import formidable from "formidable";
 // import multer from 'multer'
-// import loadJsonFile from "load-json-file";
-// const infoDir = "./data/info";
-// const dataDir = "./data";
 let __dirname = path.resolve(path.dirname(""));
 
 const routes = express => {
@@ -38,9 +35,13 @@ const routes = express => {
     });
   });
 
-    router.get("/cortstim", (req, res) =>
-      res.sendFile(path.join(__dirname, "/dist", "/cortstim.html"))
-    );
+  router.get("/cortstim", (req, res) =>
+    res.sendFile(path.join(__dirname, "/dist", "/cortstim.html"))
+  );
+
+  router.get("/cceps", (req, res) =>
+    res.sendFile(path.join(__dirname, "/dist", "/cceps.html"))
+  );
 
   router.get("/api/brain/:subject", (req, res) => {
     let subject = req.params.subject;
@@ -50,9 +51,7 @@ const routes = express => {
           res.sendFile(`reconstruction.jpg`, {
             root: `./data/${subject}/info/`
           });
-          console.log('sent jpg')
         } else {
-          console.log('trying metadata')
           if (fs.existsSync(`./data/${subject}/.metadata`)) {
             let metadata = JSON.parse(
               fs.readFileSync(`./data/${subject}/.metadata`)
@@ -99,19 +98,31 @@ const routes = express => {
     let _result = await loadJsonFile(resultsPath);
     return _result;
   };
- //Cortstim directory
- router.get("/api/:subject/records/cortstim", (req, res) => {
-  let subject = req.params.subject;
-  fs.readdir(`./data/${subject}/data/cortstim`, (err, files) => {
-    let _records = files.filter(f => path.extname(f) == ".pdf");
-    var file = fs.readFileSync(`./data/${subject}/data/cortstim/${_records[0]}`);
-res.setHeader('Content-Type', 'application/pdf');
-res.send(file)
-    // getCortStim('PY18N007', files[4]).then(x => {
-    //   res.send(x.Trial);
-    // })
+  //Cortstim directory
+  router.get("/api/:subject/records/cortstim", (req, res) => {
+    let subject = req.params.subject;
+    fs.readdir(`./data/${subject}/data/cortstim`, (err, files) => {
+      if (files != undefined) {
+        let _records = files.filter(f => path.extname(f) == ".pdf").map(z => z.split(".")[0]);
+        res.status(200).json(_records)
+      }
+      else {
+        res.status(404).end()
+      }
+    });
   });
-});
+  //Cortstim pdf
+  router.get("/api/:subject/cortstim", (req, res) => {
+    let subject = req.params.subject;
+    fs.readdir(`./data/${subject}/data/cortstim`, (err, files) => {
+      if (files != undefined) {
+        let _records = files.filter(f => path.extname(f) == ".pdf");
+        var file = fs.readFileSync(`./data/${subject}/data/cortstim/${_records[0]}`);
+        res.setHeader('Content-Type', 'application/pdf');
+        res.send(file)
+      }
+    });
+  });
   //Send a list of high gamma records
   router.get("/api/:subject/records/HG", (req, res) => {
     let subject = req.params.subject;
@@ -121,10 +132,11 @@ res.send(file)
           let cleanRecords = records.map(f => f.split('.')[0])
           res.status(200).json(cleanRecords)
         } else {
-          res.status(200).json(['No records to show'])
+          res.status(404).end()
+
         }
       } else {
-        res.status(200).json(['No records to show'])
+        res.status(404).end()
       }
     });
   });
@@ -136,14 +148,65 @@ res.send(file)
       res.status(200).json(cleanRecords)
     });
   });
+  //Send a list of HG records (v1 format)
   router.get("/api/:subject/records/FM", (req, res) => {
     let subject = req.params.subject;
     fs.readdir(`./data/${subject}`, (err, records) => {
-      let _records = records.filter(f => path.extname(f) == ".fm").map(z => z.split(".")[0]);
-      res.status(200).json(_records);
+      if (records != undefined) {
+        if (records.length != 0) {
+          let _records = records.filter(f => path.extname(f) == ".fm").map(z => z.split(".")[0]);
+          res.status(200).json(_records);
+        } else {
+          res.status(404).end()
+
+        }
+      } else {
+        res.status(404).end()
+      }
     });
   })
 
+  //Send a list of CCEP records
+  router.get("/api/:subject/records/CCEPS", (req, res) => {
+    let subject = req.params.subject;
+    fs.readdir(`./data/${subject}/data/CCEPS`, (err, records) => {
+      if (records != undefined) {
+        if (records.length != 0) {
+          let _records = records.filter(f => !f.includes("map")).map(z => z.split(".")[0])
+          res.status(200).json(_records);
+        } else {
+          res.status(404).end()
+        }
+      } else {
+        res.status(404).end()
+      }
+    })
+  })
+  //Send CCEP images
+  router.get("/api/:subject/CCEPS_response/:record", (req, res) => {
+    let subject = req.params.subject;
+    let record = req.params.record;
+    fs.readdir(`./data/${subject}/data/CCEPS/`, (err, subjects) => {
+      if (fs.existsSync(`./data/${subject}/data/CCEPS/${record}.jpg`)) {
+        res.sendFile(`${record}.jpg`, {
+          root: `./data/${subject}/data/CCEPS/`
+        });
+      }
+    });
+  })
+  //Send CCEP images
+  router.get("/api/:subject/CCEPS_map/:record", (req, res) => {
+    let subject = req.params.subject;
+    let record = req.params.record;
+    console.log(record)
+    fs.readdir(`./data/${subject}/data/CCEPS/`, (err, subjects) => {
+      if (fs.existsSync(`./data/${subject}/data/CCEPS/${record}_map.jpg`)) {
+        res.sendFile(`${record}_map.jpg`, {
+          root: `./data/${subject}/data/CCEPS/`
+        });
+      }
+    });
+  })
   //   //Record
   //   router.get("/api/:subject/:record/:info", (req, res) => {
   //     let subject = req.params.subject;
@@ -427,7 +490,7 @@ const Record            = require('./schemas/mongo')
         res.send(record.map( a => {return a.geometry})[0])
         }))
     });
-    
+
     //Add new subject to the database
     router.put( '/api/data/:subject', ( req, res ) => {
         let subject = req.params.subject;
@@ -437,7 +500,7 @@ const Record            = require('./schemas/mongo')
             console.log("Record already exists!")
         }
         else{
-            let newRecord= new Record({ 
+            let newRecord= new Record({
             identifier: subject})
             newRecord.save();
         }
@@ -455,6 +518,6 @@ const Record            = require('./schemas/mongo')
         }))
     });
 
-    return router;  
+    return router;
  }
 */

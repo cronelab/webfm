@@ -24,7 +24,14 @@ window.onload = async () => {
   if (subjects.length > 0) {
     subjects.sort();
     addSubjectCell(subjects);
-    selectSubject(subjects[0]);
+    let currentSubject = localStorage.getItem("subject")
+    if (currentSubject != null) {
+      selectSubject(currentSubject);
+    }
+    else {
+      selectSubject(subjects[0]);
+
+    }
   }
 
   let localSourceAddress =
@@ -133,9 +140,25 @@ let selectSubject = async subject => {
   localStorage.setItem("subject", subject);
 
   let fmlistPathRes = await fetch(`/api/${subject}/records/FM`);
-  let fm_records = await fmlistPathRes.json();
+  let fm_records = [];
+  if (fmlistPathRes.status != 404) {
+    fm_records = await fmlistPathRes.json();
+  }
   let hglistPathRes = await fetch(`/api/${subject}/records/HG`);
-  let hg_records = await hglistPathRes.json();
+  let hg_records = [];
+  if (hglistPathRes.status != 404) {
+    hg_records = await hglistPathRes.json();
+  }
+  let cortStimlistPathRes = await fetch(`/api/${subject}/records/cortstim`);
+  let cortStim_records = [];
+  if (cortStimlistPathRes.status != 404) {
+    cortStim_records = await cortStimlistPathRes.json();
+  }
+  let cceplistPathRes = await fetch(`/api/${subject}/records/CCEPS`);
+  let ccep_records = [];
+  if (cceplistPathRes.status != 404) {
+    ccep_records = await cceplistPathRes.json();
+  }
 
   fetchAndStoreBrain(subject).then(brain => {
     document.getElementsByClassName("main-brain")[0].src = brain;
@@ -166,10 +189,21 @@ let selectSubject = async subject => {
       newRecord.href = `/record`;
       newRecord.classList.add("list-group-item");
       newRecord.innerText = record;
-      newRecord.onclick = () => localStorage.setItem("record", fm_records);
+      newRecord.onclick = () => localStorage.setItem("record", record);
       document.getElementById("record-list").append(newRecord);
     });
   }
+  if (cortStim_records.length != 0) {
+    let newRecord = document.createElement("a");
+    newRecord.id = `cortstim_${subject}`;
+    newRecord.href = `/api/${subject}/cortstim`;
+    newRecord.classList.add("list-group-item");
+    newRecord.innerText = 'Cortstim';
+    newRecord.style.backgroundColor = 'blue'
+    newRecord.onclick = () => localStorage.setItem("record", record);
+    document.getElementById("record-list").append(newRecord);
+  }
+
   if (hg_records.length != 0) {
     hg_records.sort();
     hg_records.forEach(record => {
@@ -178,7 +212,21 @@ let selectSubject = async subject => {
       newRecord.href = `/record`;
       newRecord.classList.add("list-group-item");
       newRecord.innerText = record;
-      newRecord.onclick = () => localStorage.setItem("record", hg_records);
+      newRecord.onclick = () => localStorage.setItem("record", record);
+      document.getElementById("record-list").append(newRecord);
+    });
+  }
+  if (ccep_records.length != 0) {
+    ccep_records.sort();
+    ccep_records.forEach(record => {
+      let newRecord = document.createElement("a");
+      newRecord.id = record;
+      newRecord.href = `/CCEPS`;
+      newRecord.classList.add("list-group-item");
+      newRecord.innerText = record;
+      newRecord.style.backgroundColor = 'green'
+
+      newRecord.onclick = () => localStorage.setItem("CCEP_Record", record);
       document.getElementById("record-list").append(newRecord);
     });
   }
@@ -469,9 +517,9 @@ document.getElementById("createSubject").onclick = () => {
   }
   let formData = new FormData(subjFile)
   fetch(`/api/${document.getElementById('subjectEntry').value}/brain`, {
-      method: 'post',
-      body: formData,
-    }).then(res => res.text())
+    method: 'post',
+    body: formData,
+  }).then(res => res.text())
     .then(response => {
       loadBrain(`${document.getElementById('subjectEntry').value}`)
     })

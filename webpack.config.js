@@ -16,57 +16,57 @@ const module = {
   entry: {
     index: "./src/index/main.js",
     record: "./src/record/main.js",
-    map: "./src/map/main.js"
+    map: "./src/map/main.js",
     // cortstim: "./cortstim/cortstim.js",
     // streamSaver: "./streamSaver/index.js",
-    // cceps: "./CCEPS/index.js"
+    cceps: "./src/CCEPS/index.js"
   },
   module: {
     rules: [{
-        test: /\.js$/,
-        exclude: /node_modules/,
-        loader: "babel-loader",
-        options: {
-          presets: ["@babel/preset-env"],
-          plugins: [
-            "@babel/plugin-syntax-dynamic-import",
-            "@babel/plugin-transform-modules-commonjs",
-            "@babel/plugin-transform-runtime",
-            "@babel/plugin-proposal-class-properties"
-          ],
-          cacheDirectory: true
-        }
-      },
-      {
-        test: /\.(fbx)$/,
-        use: [{
-          loader: "file-loader",
-          options: {
-            name: "[path][name].[ext]",
-            presets: ["env"]
-          }
-        }],
-        test: /\.(sa|sc|c)ss$/,
-        use: [{
-            loader: devMode ? "style-loader" : MiniCssExtractPlugin.loader
-          },
-          {
-            loader: "css-loader"
-          },
-          {
-            loader: "postcss-loader"
-          },
-          {
-            loader: "sass-loader"
-          }
-        ]
-      },
-      {
-        test: /\.worker\.js$/,
-        use: {
-          loader: "worker-loader"
-        }
+      test: /\.js$/,
+      exclude: /node_modules/,
+      loader: "babel-loader",
+      options: {
+        presets: ["@babel/preset-env"],
+        plugins: [
+          "@babel/plugin-syntax-dynamic-import",
+          "@babel/plugin-transform-modules-commonjs",
+          "@babel/plugin-transform-runtime",
+          "@babel/plugin-proposal-class-properties"
+        ],
+        cacheDirectory: true
       }
+    },
+    {
+      test: /\.(fbx)$/,
+      use: [{
+        loader: "file-loader",
+        options: {
+          name: "[path][name].[ext]",
+          presets: ["env"]
+        }
+      }],
+      test: /\.(sa|sc|c)ss$/,
+      use: [{
+        loader: devMode ? "style-loader" : MiniCssExtractPlugin.loader
+      },
+      {
+        loader: "css-loader"
+      },
+      {
+        loader: "postcss-loader"
+      },
+      {
+        loader: "sass-loader"
+      }
+      ]
+    },
+    {
+      test: /\.worker\.js$/,
+      use: {
+        loader: "worker-loader"
+      }
+    }
     ]
   },
   optimization: {
@@ -108,6 +108,13 @@ const module = {
       template: "./src/map/index.html",
       filename: "map.html",
       chunks: ["map"],
+      title: "WebFM"
+    }),
+    new HtmlWebpackPlugin({
+      hash: true,
+      template: "./src/CCEPS/index.html",
+      filename: "cceps.html",
+      chunks: ["cceps"],
       title: "WebFM"
     })
   ],
