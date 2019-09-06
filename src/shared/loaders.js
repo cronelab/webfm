@@ -1,3 +1,12 @@
+import {
+  Scene,
+  PerspectiveCamera,
+  WebGLRenderer,
+  HemisphereLight
+} from "three";
+import FBXLoader from 'three-fbx-loader'
+import OrbitControls from 'three-orbitcontrols'
+
 const fetchAndStoreBrain = async subject => {
   let storedBrain = localStorage.getItem(`brain`);
   if (JSON.parse(storedBrain) != null && storedBrain.subject == subject) {
@@ -48,7 +57,106 @@ const fetchAndStoreGeometry = async subject => {
   }
 };
 
+
+let load3DBrain = subject => {
+  let brainContainer = document.getElementById('fm-brain-3D');
+  let loader = new FBXLoader();
+  let scene = new Scene();
+  let camera = new PerspectiveCamera(45, 640 / 480, 0.1, 50000);
+  let renderer = new WebGLRenderer({
+    antialias: true
+  });
+  let controls = new OrbitControls(camera, renderer.domElement);
+  let light = new HemisphereLight(0xffffff, 0x444444);
+  camera.position.set(500, 1000, 500);
+  renderer.setSize(640, 480);
+  light.position.set(0, 0, 10);
+  controls.target.set(100, 0, 0);
+  controls.update();
+  scene.add(light);
+  loader.load(`/api/${subject}/brain3D`, object3d => scene.add(object3d));
+  const animate = () => {
+    requestAnimationFrame(animate);
+    renderer.render(scene, camera);
+  };
+  animate();
+  brainContainer.appendChild(renderer.domElement);
+}
+
+
+let loadValues = async (subject, record) => {
+  let valuePath = `api/${subject}/${record}/values`;
+  let timePath = `api/${subject}/${record}/times`;
+  const valueResponse = await fetch(valuePath);
+  const values = await valueResponse.json();
+  const timeResponse = await fetch(timePath);
+  const times = await timeResponse.json();
+  let channels = Object.keys(values);
+  return {
+    ...values,
+    times
+  };
+}
+
+let loadStats = async (subject, record) => {
+  let statPath = `api/${subject}/${record}/stats`;
+  let timePath = `api/${subject}/${record}/times`;
+
+  const statResponse = await fetch(statPath);
+  const stats = await statResponse.json();
+  const timeResponse = await fetch(timePath);
+  const times = await timeResponse.json();
+  let channels = Object.keys(stats.estimators.mean);
+  let distributions = stats.distributions;
+  let values = channels.map(ch => {
+    let mean = stats.estimators.mean[ch];
+    let variance = stats.estimators.variance[ch];
+    let count = stats.estimators.count;
+
+    let _m2 = mean.map((d, i) => {
+      return count[i] > 1 && variance[i] !== undefined ?
+        variance[i] * (count[i] - 1) :
+        undefined;
+    });
+    let baselineMean = stats.baseline.mean[ch];
+    let baselineVariance = stats.baseline.variance[ch];
+    let baselineCount = stats.baseline.count;
+    let baseline_m2 =
+      baselineCount > 1 && baselineVariance !== undefined ?
+      baselineVariance * (baselineCount - 1) :
+      undefined;
+    return {
+      stats: {
+        mean,
+        variance,
+        count,
+        _m2
+      },
+      baseline: {
+        mean: baselineMean,
+        variance: baselineVariance,
+        count: baselineCount,
+        _m2: baseline_m2
+      }
+    };
+  });
+  Object.keys(values).forEach(key => {
+    let newKey = channels[key];
+    values[newKey] = values[key];
+    delete values[key];
+  });
+  values = {
+    ...values,
+    times
+  };
+  // console.log(values)
+  return values;
+};
+
 export {
   fetchAndStoreBrain,
-  fetchAndStoreGeometry
+  fetchAndStoreGeometry,
+  load3DBrain,
+  loadValues,
+  loadStats
 };

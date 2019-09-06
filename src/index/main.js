@@ -132,9 +132,10 @@ let addSubjectCell = subjects => {
 let selectSubject = async subject => {
   localStorage.setItem("subject", subject);
 
-  let listPath = `/api/list/${subject}`;
-  let listPathRes = await fetch(listPath);
-  let records = await listPathRes.json();
+  let fmlistPathRes = await fetch(`/api/${subject}/records/FM`);
+  let fm_records = await fmlistPathRes.json();
+  let hglistPathRes = await fetch(`/api/${subject}/records/HG`);
+  let hg_records = await hglistPathRes.json();
 
   fetchAndStoreBrain(subject).then(brain => {
     document.getElementsByClassName("main-brain")[0].src = brain;
@@ -151,25 +152,37 @@ let selectSubject = async subject => {
     });
   document.getElementById(subject).classList.add("active");
 
-  if (records.length != 0) {
-    fetchAndStoreGeometry(subject);
+  let recordList = document.getElementById("record-list");
+  while (recordList.hasChildNodes()) {
+    recordList.removeChild(recordList.firstChild);
+  }
+  fetchAndStoreGeometry(subject);
 
-    let recordList = document.getElementById("record-list");
-    while (recordList.hasChildNodes()) {
-      recordList.removeChild(recordList.firstChild);
-    }
-    records.sort();
-    records.forEach(record => {
+  if (fm_records.length != 0) {
+    fm_records.sort();
+    fm_records.forEach(record => {
       let newRecord = document.createElement("a");
       newRecord.id = record;
       newRecord.href = `/record`;
       newRecord.classList.add("list-group-item");
       newRecord.innerText = record;
-      newRecord.onclick = () => localStorage.setItem("record", record);
+      newRecord.onclick = () => localStorage.setItem("record", fm_records);
       document.getElementById("record-list").append(newRecord);
     });
-    scroll(0, 0);
   }
+  if (hg_records.length != 0) {
+    hg_records.sort();
+    hg_records.forEach(record => {
+      let newRecord = document.createElement("a");
+      newRecord.id = record;
+      newRecord.href = `/record`;
+      newRecord.classList.add("list-group-item");
+      newRecord.innerText = record;
+      newRecord.onclick = () => localStorage.setItem("record", hg_records);
+      document.getElementById("record-list").append(newRecord);
+    });
+  }
+  scroll(0, 0);
 };
 
 document.getElementsByClassName("toggle-online-options")[0].onclick = () => {

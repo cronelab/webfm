@@ -31,35 +31,16 @@ const routes = express => {
       res.status(200).json(_subjects);
     });
   });
-
-  router.get("/api/list/:subject", (req, res) => {
-    let subject = req.params.subject;
-    if (subject != "undefined") {
-      fs.readdir(`./data/${subject}`, (err, records) => {
-        //Need something here if name isn't in the records
-        if (err) throw Error;
-        let _records = records
-          .filter(f => path.extname(f) == ".fm")
-          .map(z => z.split(".")[0]);
-        res.status(200).json(_records);
-      });
-    } else {
-      res.send(JSON.stringify({
-        test: "test"
-      }));
-    }
-  });
-  router.get("/api/info/:subject/:record", (req, res) => {
-    let subject = req.params.subject;
-    let record = req.params.record;
-    res.json({
-      subject: subject,
-      record: record,
-      uri: path.join("/", "api", "data", subject, record)
+  //List of subjects
+  router.get("/api/subjects", (req, res) => {
+    fs.readdir('./data', (err, subjects) => {
+      res.status(200).json(subjects);
     });
   });
 
-
+    router.get("/cortstim", (req, res) =>
+      res.sendFile(path.join(__dirname, "/dist", "/cortstim.html"))
+    );
 
   router.get("/api/brain/:subject", (req, res) => {
     let subject = req.params.subject;
@@ -113,6 +94,77 @@ const routes = express => {
     });
   });
 
+  const getCortStim = async (subject, results) => {
+    const resultsPath = path.join(dataDir, subject, results);
+    let _result = await loadJsonFile(resultsPath);
+    return _result;
+  };
+ //Cortstim directory
+ router.get("/api/:subject/records/cortstim", (req, res) => {
+  let subject = req.params.subject;
+  fs.readdir(`./data/${subject}/data/cortstim`, (err, files) => {
+    let _records = files.filter(f => path.extname(f) == ".pdf");
+    var file = fs.readFileSync(`./data/${subject}/data/cortstim/${_records[0]}`);
+res.setHeader('Content-Type', 'application/pdf');
+res.send(file)
+    // getCortStim('PY18N007', files[4]).then(x => {
+    //   res.send(x.Trial);
+    // })
+  });
+});
+  //Send a list of high gamma records
+  router.get("/api/:subject/records/HG", (req, res) => {
+    let subject = req.params.subject;
+    fs.readdir(`./data/${subject}/data/HG`, (err, records) => {
+      if (records != undefined) {
+        if (records.length != 0) {
+          let cleanRecords = records.map(f => f.split('.')[0])
+          res.status(200).json(cleanRecords)
+        } else {
+          res.status(200).json(['No records to show'])
+        }
+      } else {
+        res.status(200).json(['No records to show'])
+      }
+    });
+  });
+  //Send a list of evoked potential records
+  router.get("/api/:subject/records/EP", (req, res) => {
+    let subject = req.params.subject;
+    fs.readdir(`./data/${subject}/data/EP`, (err, records) => {
+      let cleanRecords = records.filter(e => path.extname(e) == '.json').map(f => f.split('.')[0])
+      res.status(200).json(cleanRecords)
+    });
+  });
+  router.get("/api/:subject/records/FM", (req, res) => {
+    let subject = req.params.subject;
+    fs.readdir(`./data/${subject}`, (err, records) => {
+      let _records = records.filter(f => path.extname(f) == ".fm").map(z => z.split(".")[0]);
+      res.status(200).json(_records);
+    });
+  })
+
+  //   //Record
+  //   router.get("/api/:subject/:record/:info", (req, res) => {
+  //     let subject = req.params.subject;
+  //     let record = `${req.params.record}.json`;
+  //     let info = req.params.info;
+  //     getRecord(subject, record).then(recordFile => {
+  //       let infoToSend = recordFile.contents[`${info}`];
+  //       res.status(200).json(infoToSend);
+  //     });
+  //   });
+  router.get("/api/info/:subject/:record", (req, res) => {
+    let subject = req.params.subject;
+    let record = req.params.record;
+    res.json({
+      subject: subject,
+      record: record,
+      uri: path.join("/", "api", "data", subject, record)
+    });
+  });
+
+
   router.get("/api/data/:subject/:record", (req, res) => {
     var subject = req.params.subject;
     var record = req.params.record;
@@ -161,6 +213,7 @@ const routes = express => {
     }
   });
 
+  //Add a new geometry file
   router.put("/api/geometry/:subject", async (req, res) => {
     let subject = req.params.subject;
     if (fs.existsSync(`./data/${subject}`)) {
@@ -225,21 +278,6 @@ export default routes;
 //   return _record;
 // };
 
-// const getCortStim = async (subject, results) => {
-//   const resultsPath = path.join(dataDir, subject, results);
-//   let _result = await loadJsonFile(resultsPath);
-//   return _result;
-// };
-
-// const routes = (express) => {
-//   const router = express.Router();
-
-//   router.get("/replay", (req, res) =>
-//     res.sendFile(path.join(__dirname, "/dist", "/replay.html"))
-//   );
-//   router.get("/cortstim", (req, res) =>
-//     res.sendFile(path.join(__dirname, "/dist", "/cortstim.html"))
-//   );
 //   router.get("/cceps", (req, res) =>
 //     res.sendFile(path.join(__dirname, "/dist", "/CCEPS.html"))
 //   );
@@ -283,52 +321,6 @@ export default routes;
 //       res.send(significantChannels);
 
 //     }
-
-//   //Cortstim directory
-//   router.get("/api/cortstim", (req, res) => {
-//     fs.readdir(`${infoDir}/PY18N007`, (err, files) => {
-//       getCortStim('PY18N007', files[4]).then(x => {
-//         res.send(x.Trial);
-//       })
-//     });
-//   });
-
-//   //List of subjects
-//   router.get("/api/subjects", (req, res) => {
-//     fs.readdir(dataDir, (err, subjects) => {
-//       res.status(200).json(subjects);
-//     });
-//   });
-
-//   //List of records
-//   router.get("/api/:subject/records/HG", (req, res) => {
-//     let subject = req.params.subject;
-//     let epDir = path.join(dataDir, subject, 'data', 'HG');
-//     fs.readdir(epDir, (err, records) => {
-//       let cleanRecords = records.map(f => f.split('.')[0])
-//       res.status(200).json(cleanRecords)
-//     });
-//   });
-
-//   router.get("/api/:subject/records/EP", (req, res) => {
-//     let subject = req.params.subject;
-//     let epDir = path.join(dataDir, subject, 'data', 'EP');
-//     fs.readdir(epDir, (err, records) => {
-//       let cleanRecords = records.filter(e => path.extname(e) == '.json').map(f => f.split('.')[0])
-//       res.status(200).json(cleanRecords)
-//   });
-//   });
-
-//   //Record
-//   router.get("/api/:subject/:record/:info", (req, res) => {
-//     let subject = req.params.subject;
-//     let record = `${req.params.record}.json`;
-//     let info = req.params.info;
-//     getRecord(subject, record).then(recordFile => {
-//       let infoToSend = recordFile.contents[`${info}`];
-//       res.status(200).json(infoToSend);
-//     });
-//   });
 
 //   router.put("/api/:subject/geometry", (req, res) => {
 //     let returnObject = {}
@@ -391,7 +383,78 @@ export default routes;
 //     fs.writeFile(`./data/${req.params.subject}/data/timeSeries.json`, JSON.stringify(req.body), (err) => console.log(err))
 //   })
 
-//   return router;
-// };
 
-// export default routes
+/*react-conversion project
+const Record            = require('./schemas/mongo')
+
+
+    //Sends an array of all subjects in the database
+    router.get( '/api/subjects', ( req, res )=> {
+        Record.find({},((err,record)=>{
+        res.send(record.map((a)=> {return a.identifier}))
+        }))
+    } );
+
+    //Sends a blob of the subjects brain image
+    router.get( '/api/brain/:subject', ( req, res ) => {
+        let subject = req.params.subject;
+        Record.find({identifier: subject},((err,record)=>{
+        if (err) throw err;
+            res.contentType('image/png');
+            res.end(record[0].brainImage,'binary')
+        }))
+    } );
+    //Sends a list of all records in the subjects database document
+    router.get( '/api/list/:subject', ( req, res ) => {
+        let subject     = req.params.subject;
+        Record.find({identifier: subject},((err,record)=>{
+        if (err) throw err;
+        res.send(record.map( a => {return Object.keys(a.task)})[0])
+        }))
+    });
+
+    //Sends a particular record
+    router.get( '/api/data/:subject/:record', ( req, res ) => {
+
+        var subject = req.params.subject;
+        var record = req.params.record;
+    });
+    //Sends the electrode montage
+    router.get( '/api/geometry/:subject', ( req, res ) => {
+        var subject = req.params.subject;
+        Record.find({identifier: subject},((err,record)=>{
+        if (err) throw err;
+        res.send(record.map( a => {return a.geometry})[0])
+        }))
+    });
+    
+    //Add new subject to the database
+    router.put( '/api/data/:subject', ( req, res ) => {
+        let subject = req.params.subject;
+        Record.find({identifier: subject},((err,record)=>{
+        if (err) throw err;
+        if(record.length){
+            console.log("Record already exists!")
+        }
+        else{
+            let newRecord= new Record({ 
+            identifier: subject})
+            newRecord.save();
+        }
+        }))
+    })
+
+    //Add subjects brain image to the databse
+    router.post( '/api/brain/:subject', ( req, res ) => {
+        var subject = req.params.subject;
+        let imageFile = req.files.file;
+        Record.find({identifier: subject},((err,record)=>{
+        if (err) throw err;
+        record[0].brainImage = imageFile.data;
+        record[0].save();
+        }))
+    });
+
+    return router;  
+ }
+*/
