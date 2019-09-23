@@ -2,19 +2,19 @@ import BCI2K from "@cronelab/bci2k";
 
 class OnlineDataSource {
     constructor() {
-        this.onproperties = properties => {};
-        this.onBufferCreated = () => {};
-        this.onRawSignal = rawSignal => {};
-        this.onFeatureSignal = featureSignal => {};
-        this.onStartTrial = () => {};
-        this.ontrial = trialData => {};
-        this.onSystemStateChange = newState => {};
+        this.onproperties = properties => { };
+        this.onBufferCreated = () => { };
+        this.onRawSignal = rawSignal => { };
+        this.onFeatureSignal = featureSignal => { };
+        this.onStartTrial = () => { };
+        this.ontrial = trialData => { };
+        this.onSystemStateChange = newState => { };
         this._bciConnection = new BCI2K.bciOperator();
         this._bciSourceConnection = new BCI2K.bciData();
         this._bciFilterConnection = new BCI2K.bciData();
         this._stateTiming = true;
-        this._timingChannel = 'ainp1';
-        this._timingState = 'StimulusCode';
+        this._timingChannel = JSON.parse(localStorage.getItem('options')).stimulus.signal.channel || 'ainp1'
+        this._timingState = JSON.parse(localStorage.getItem('options')).stimulus.state.name || 'StimulusCode'
         this.threshold = {
             offValue: 0.0,
             onValue: 1.0
@@ -58,10 +58,11 @@ class OnlineDataSource {
             });
     }
     _allPropertiesReceived() {
+        // console.log(this)
         let featureFreqs = this.featureProperties.elements.map(e => {
             this.featureProperties.elementunit.offset + (e * this.featureProperties.elementunit.gain)
         });
-        console.log(featureFreqs)
+        // console.log(featureFreqs)
         this._featureKernel = featureFreqs.map(f => 1.0 / featureFreqs.length);
         this._setupBuffers();
     }
@@ -145,12 +146,12 @@ class OnlineDataSource {
 
     _connectToData() {
         var manager = this;
-        this._bciSourceConnection.connect("ws://127.0.0.1:20100").then(dataConnection => {
+        this._bciSourceConnection.connect(`ws://${localStorage.getItem('source-address')}:20100`).then(dataConnection => {
             this._bciSourceConnection.onSignalProperties = properties => {
                 this.sourceProperties = properties;
                 this.sourceChannels = properties.channels;
                 if (!this._stateTiming) {
-                    if (manager.formatter.sourceChannels.indexOf(manager.formatter._timingChannel) < 0) {
+                    if (manager.sourceChannels.indexOf(manager._timingChannel) < 0) {
                         console.log('Timing channel not detected; falling back to imprecise timing.');
                         this._stateTiming = true;
                         this.sourceBufferChannels = [];
@@ -185,7 +186,7 @@ class OnlineDataSource {
             };
         })
 
-        this._bciFilterConnection.connect("ws://127.0.0.1:20203").then(dataConnection => {
+        this._bciFilterConnection.connect(`ws://${localStorage.getItem('source-address')}:20203`).then(dataConnection => {
             let manager = this;
             manager._bciFilterConnection.onSignalProperties = properties => {
                 manager.featureProperties = properties;

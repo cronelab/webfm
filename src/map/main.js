@@ -26,10 +26,9 @@ window.onload = async () => {
     let config = await request.json()
     subject = localStorage.getItem('subject')
 
-    task = localStorage.getItem('mapping_task')
+    task = localStorage.getItem('task')
     dataset = new fmdata();
     uiManager = new fmui();
-    uiManager.config.ui = config;
     uiManager.setup();
     uiManager.raster.oncursormove = newTime => {
         document.getElementsByClassName('fm-time-selected')[0].innerHTML = (newTime > 0 ? '+' : '') + newTime.toFixed(3) + ' s';
@@ -38,8 +37,8 @@ window.onload = async () => {
 
     uiManager.onsave = saveName => {
         dataset.put(`/api/data/${subject}/${saveName}`, {
-                import: './.metadata'
-            })
+            import: './.metadata'
+        })
             .then(response => updateRecordListForSubject(subject))
             .catch(reason => console.log(reason));
     };
@@ -66,20 +65,24 @@ window.onload = async () => {
 
         if (option == 'stim-timing') {
             if (newValue == 'state') {
-                dataSource.dataFormatter._stateTiming = true;
+                dataSource._stateTiming = true;
             } else {
-                dataSource.dataFormatter._stateTiming = false;
+                dataSource._stateTiming = false;
             }
         }
         if (option == 'stim-channel') {
             if (!newValue) return;
-            dataSource.dataFormatter._timingChannel = newValue;
+            dataSource._timingChannel = newValue;
+        }
+        if (option == 'state-name') {
+            if (!newValue) return;
+            dataSource._timingState = newValue;
         }
 
 
 
-        if (option == 'stim-off') dataSource.dataFormatter.threshold.offValue = newValue
-        if (option == 'stim-on') dataSource.dataFormatter.threshold.onValue = newValue
+        if (option == 'stim-off') dataSource.threshold.offValue = newValue
+        if (option == 'stim-on') dataSource.threshold.onValue = newValue
     };
 
     var sourceAddress = localStorage.getItem('source-address')
@@ -195,11 +198,6 @@ var updateDataDisplay = function () {
         // uiManager.brain.update(dataset.dataForTime(uiManager.raster.cursorTime));
 
     }
-
-
-
-
-
     var timeBounds = dataset.getTimeBounds();
     if (!uiManager.raster.timeScale) {
         return;
@@ -207,10 +205,6 @@ var updateDataDisplay = function () {
     uiManager.raster.timeScale.range([timeBounds.start, timeBounds.end]);
 }
 
-
-var updateTiming = (newMode) => {}
-var updateTrialThreshold = (newThreshold) => {};
-var updateTrialWindow = (newWindow) => {}
 var updateBaselineWindow = function (newWindow) {
     document.getElementsByClassName(`fm-working-icon`)[0].style.display = '';
 

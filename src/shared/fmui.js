@@ -17,9 +17,23 @@ class fmui {
         this.raster.onselectchannel = newChannel => {
             manager.brain.setSelectedChannel(newChannel);
         };
-        this.onoptionchange = (option, newValue) => {};
-        this.onsave = saveName => {};
-
+        this.onoptionchange = (option, newValue) => { };
+        this.onsave = saveName => { };
+        this.config.rowHeight = 3;
+        this.config.maxRowHeight = 10;
+        this.config.pxPerRowHeight = 5;
+        this.config.rasterExtent = 5;
+        this.config.maxRasterExtent = 10;
+        this.config.unitsPerRasterExtent = 1;
+        this.config.iconHideDelay = 1000;
+        this.config.iconHideDuration = 100;
+        this.config.fmMargin = {
+            'left': 0,
+            'right': 0,
+            'top': 0,
+            'bottom': 0
+        };
+        this.config.chartDebounceDelay = 100;
     };
 
 
@@ -40,28 +54,9 @@ class fmui {
     };
 
 
-    _mergeDefaultConfig(config) {
-        var mergedConfig = config;
-        mergedConfig.rowHeight = config.rowHeight || 5;
-        mergedConfig.maxRowHeight = config.maxRowHeight || 10;
-        mergedConfig.pxPerRowHeight = config.pxPerRowHeight || 5;
-        mergedConfig.rasterExtent = config.rasterExtent || 5;
-        mergedConfig.maxRasterExtent = config.maxRasterExtent || 10;
-        mergedConfig.unitsPerRasterExtent = config.unitsPerRasterExtent || 1;
-        mergedConfig.iconHideDelay = config.iconHideDelay || 1000;
-        mergedConfig.iconHideDuration = config.iconHideDuration || 100;
-        mergedConfig.fmMargin = config.fmMargin || {
-            'left': 0,
-            'right': 0,
-            'top': 0,
-            'bottom': 0
-        };
-        mergedConfig.chartDebounceDelay = config.chartDebounceDelay || 100;
-        return mergedConfig;
-    }
+
     setup() {
         let manager = this;
-        this.config = this._mergeDefaultConfig(this.config);
         this.rewireButtons();
         this.rewireForms();
         this.raster.cursorTime = 0.0;
@@ -75,11 +70,12 @@ class fmui {
         this.raster.updateCursor();
         this._populateOptions(this.getOptions());
         this.raster.channelHeight = this.getRowHeight()
+        console.log(this.raster.channelHeight)
         this.raster.chartMax = this.getRasterExtent();
     }
     zoom(event, which) {
         this.config.rowHeight = this.config.rowHeight + which;
-
+        console.log(this.config.rowHeight)
         if (which == 1) {
             if (this.config.rowHeight < 1) {
                 this.config.rowHeight = 1;
@@ -127,48 +123,37 @@ class fmui {
 
     rewireButtons() {
         var manager = this;
-        document.getElementsByClassName('fm-zoom-in')[0].onclick = function (event) {
+        document.getElementsByClassName('fm-zoom-in')[0].onclick = event => {
             event.preventDefault();
-            if (event.target.classList.contains('disabled')) {
-                return;
-            }
             manager.zoom(event, 1);
         };
-        document.getElementsByClassName('fm-zoom-out')[0].onclick = function (event) {
+        document.getElementsByClassName('fm-zoom-out')[0].onclick = event => {
             event.preventDefault();
-            if (event.target.classList.contains('disabled')) {
-                return;
-            }
             manager.zoom(event, -1);
         };
-
-        document.getElementById('gainDown').onclick = (event) => {
+        document.getElementById('gainDown').onclick = event => {
             event.preventDefault();
             manager.gainAdjust(event, "Down")
-
         };
-        document.getElementById('gainUp').onclick = (event) => {
+        document.getElementById('gainUp').onclick = event => {
             event.preventDefault();
             manager.gainAdjust(event, "Up")
         };
-
-
-
         document.getElementById('clearExclusionButton').onclick = e => {
             e.preventDefault();
             manager.clearExclusion()
         };
-
-        document.getElementsByClassName('fm-show-options')[0].onclick = function (event) {
+        document.getElementsByClassName('fm-show-options')[0].onclick = event => {
             event.preventDefault();
             manager.showOptions(event);
         };
-        $('.fm-options-tab-list a').on('click', function (event) {
+
+        // $('.fm-options-tab-list a').on('click', function (event) {
+        document.getElementsByClassName('fm-show-options')[0].onclick = event => {
             event.preventDefault();
             manager.showOptionsTab(this, event);
-        });
-
-        document.getElementsByClassName('fm-save-cloud')[0].onclick = function (event) {
+        };
+        document.getElementsByClassName('fm-save-cloud')[0].onclick = event => {
             event.preventDefault();
             manager.onsave(document.getElementById('fm-option-save-name').value);
         };
@@ -212,6 +197,23 @@ class fmui {
         document.getElementById('fm-option-stim-on').onchange = function (event) {
             var newValue = +this.value;
             updateOptions(options => options.stimulus.signal.onValue = newValue);
+            manager.onoptionchange('stim-on', newValue);
+        };
+
+
+        document.getElementById('fm-option-stim-state').onchange = function (event) {
+            var newValue = this.value;
+            updateOptions(options => options.stimulus.state.name = newValue);
+            manager.onoptionchange('stim-channel', newValue);
+        };
+        document.getElementById('fm-option-stim-state-off').onchange = function (event) {
+            var newValue = +this.value;
+            updateOptions(options => options.stimulus.state.offValue = newValue);
+            manager.onoptionchange('stim-off', newValue);
+        };
+        document.getElementById('fm-option-stim-state-on').onchange = function (event) {
+            var newValue = +this.value;
+            updateOptions(options => options.stimulus.state.onValue = newValue);
             manager.onoptionchange('stim-on', newValue);
         };
 
@@ -295,8 +297,6 @@ class fmui {
     }
 
 
-
-
     _getScrollFraction() {
         return $(window).scrollTop() / ($(document).height() - $(window).height());
     }
@@ -317,28 +317,30 @@ class fmui {
     showOptionsTab(caller, event) {
 
         // Show the caller's tab
-        $(caller).tab('show');
+        // $(caller).tab('show');
+        $('#fm-options-modal').modal("show")
+
 
         // Deactivate the tab list
         $('.fm-options-tab-list .list-group-item').removeClass('active');
 
         // TODO Get Bootstrap events for tab show / hide to work
         // Selected tab is last word of hash
-        var selectedTab = caller.hash.split('-').pop();
-        var scopeChannel = $('#fm-option-scope-channel').val();
+        // var selectedTab = caller.hash.split('-').pop();
+        // var scopeChannel = $('#fm-option-scope-channel').val();
 
-        if (selectedTab == 'scope') {
-            this.scope.setup(); // TODO Necessary?
-            this.scope.start(scopeChannel ? scopeChannel : undefined);
-        } else {
-            this.scope.scoping = false;
+        // if (selectedTab == 'scope') {
+        //     this.scope.setup(); // TODO Necessary?
+        //     this.scope.start(scopeChannel ? scopeChannel : undefined);
+        // } else {
+        //     this.scope.scoping = false;
 
-        }
+        // }
 
         // Activate the caller
         // TODO Deactivation is with class behavior, but this is specific instance
         // Could cause de-synch behavior if multiple instances of class
-        $(caller).addClass('active');
+        // $(caller).addClass('active');
 
     }
 
@@ -350,21 +352,12 @@ class fmui {
     }
 
 
-
-
-
     _populateOptions(options) {
         // Stimulus windows
         document.getElementById('fm-option-stim-trial-start').value = options.stimulus.window.start
         document.getElementById('fm-option-stim-trial-end').value = options.stimulus.window.end
         document.getElementById('fm-option-stim-baseline-start').value = options.stimulus.baselineWindow.start
         document.getElementById('fm-option-stim-baseline-end').value = options.stimulus.baselineWindow.end
-
-        // Response windows
-        document.getElementById('fm-option-resp-trial-start').value = options.response.window.start
-        document.getElementById('fm-option-resp-trial-end').value = options.response.window.end
-        document.getElementById('fm-option-resp-baseline-start').value = options.response.baselineWindow.start
-        document.getElementById('fm-option-resp-baseline-end').value = options.response.baselineWindow.end
 
         // // Timing strategy
         // document.getElementById('fm-option-stim-timing-state').prop('checked', options.stimulus.timingStrategy == 'state');
@@ -379,18 +372,12 @@ class fmui {
         document.getElementById('fm-option-stim-on').value = options.stimulus.signal.onValue
         this.onoptionchange('stim-on', options.stimulus.signal.onValue);
 
-        document.getElementById('fm-option-stim-state').vaue = options.stimulus.state.name;
+        document.getElementById('fm-option-stim-state').value = options.stimulus.state.name;
         document.getElementById('fm-option-stim-state-off').value = options.stimulus.state.offValue
         document.getElementById('fm-option-stim-state-on').value = options.stimulus.state.onValue
-
-        // Response thresholding
-        document.getElementById('fm-option-resp-channel').value = options.response.signal.channel
-        document.getElementById('fm-option-resp-off').value = options.response.signal.offValue
-        document.getElementById('fm-option-resp-on').value = options.response.signal.onValue
-
-        document.getElementById('fm-option-resp-state').value = options.response.state.name
-        document.getElementById('fm-option-resp-state-off').value = options.response.state.offValue
-        document.getElementById('fm-option-resp-state-on').value = options.response.state.onValue
+        this.onoptionchange('state-name', options.stimulus.state.name);
+        this.onoptionchange('stim-off', options.stimulus.state.offValue);
+        this.onoptionchange('stim-on', options.stimulus.state.onValue);
 
     }
 
@@ -427,11 +414,12 @@ class fmui {
     }
 
     getRowHeight() {
+
         return this.config.rowHeight * this.config.pxPerRowHeight;
     }
 
     getOptions() {
-        let options = JSON.parse(localStorage.getItem('options'))
+        let options = JSON.parse(localStorage.getItem('options')) || null
 
         if (options == undefined) {
             options = {};
@@ -457,31 +445,6 @@ class fmui {
             options.stimulus.state.name = 'StimulusCode';
             options.stimulus.state.offValue = 0;
             options.stimulus.state.onValue = 'x';
-
-            // Response-based alignment config
-
-            options.response = {};
-            options.response.window = {
-                start: -2.0,
-                end: 2.0
-            };
-            options.response.baselineWindow = {
-                start: -2.0,
-                end: -1.6
-            };
-
-            options.response.timingStrategy = 'state';
-
-            options.response.signal = {};
-            options.response.signal.channel = 'ainp2';
-            options.response.signal.offValue = 0;
-            options.response.signal.onValue = 1;
-            options.response.signal.threshold = 0.2;
-
-            options.response.state = {};
-            options.response.state.name = 'RespCode';
-            options.response.state.offValue = 0;
-            options.response.state.onValue = 'x';
 
             localStorage.setItem('options', JSON.stringify(options))
 
@@ -554,6 +517,6 @@ class fmui {
         this.updateScope();
         this.brain.autoResize();
     }
-  
+
 };
 export default fmui;
