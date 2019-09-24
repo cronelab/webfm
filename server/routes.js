@@ -321,7 +321,22 @@ const routes = express => {
       });
     }
   });
-
+  //3D brain
+  router.get("/api/:subject/brain3D", (req, res) => {
+    let subject = req.params.subject;
+    fs.readdir('./data', (err, subjects) => {
+      if (subjects.indexOf(subject) > -1) {
+        //Load the fbx file
+        if (fs.existsSync(`./data/${subject}/info/reconstruction.fbx`)) {
+          res.sendFile(`reconstruction.fbx`, {
+            root: `./data/${subject}/info`
+          });
+        }
+      } else {
+        console.log("subject not found");
+      }
+    });
+  });
   //Add a new record
   router.put("/api/data/:subject/:record", rawBody, (req, res) => {
     let subject = req.params.subject;
@@ -424,22 +439,7 @@ export default routes;
 //       }
 //     })
 //   })
-//   //3D brain
-//   router.get("/api/:subject/brain3D", (req, res) => {
-//     let subject = req.params.subject;
-//     fs.readdir(dataDir, (err, subjects) => {
-//       if (subjects.indexOf(subject) > -1) {
-//         //Load the fbx file
-//         if (fs.existsSync(`${dataDir}/${subject}/info/reconstruction.fbx`)) {
-//           res.sendFile(`reconstruction.fbx`, {
-//             root: `${dataDir}/${subject}/info`
-//           });
-//         }
-//       } else {
-//         console.log("subject not found");
-//       }
-//     });
-//   });
+
 
 //   router.post('/api/:subject/data/save', (req, res) => {
 //     console.log(req.body)
