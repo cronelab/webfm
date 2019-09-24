@@ -25,19 +25,12 @@
 
   .nav-link {
     font-size: 1.5em !important;
-
-
-
   }
-
   .fm-show-options {
     position: absolute;
     right: 0;
   }
 }
-
-
-
 
 .navbar-default {
   background-color: rgba(248, 248, 248, 0.9);
@@ -49,11 +42,6 @@
 
   .navbar-brand {
     color: #fffff6;
-  }
-
-  .navbar-brand:hover,
-  .navbar-brand:focus {
-    color: #fffdbb;
   }
 
   .navbar-text {
@@ -113,18 +101,6 @@
 @media (max-width: 767px) {
   .navbar-inverse .navbar-nav .open .dropdown-menu>li>a {
     color: #fffff6;
-  }
-
-  .navbar-inverse .navbar-nav .open .dropdown-menu>li>a:hover,
-  .navbar-inverse .navbar-nav .open .dropdown-menu>li>a:focus {
-    color: #fffdbb;
-  }
-
-  .navbar-inverse .navbar-nav .open .dropdown-menu>.active>a,
-  .navbar-inverse .navbar-nav .open .dropdown-menu>.active>a:hover,
-  .navbar-inverse .navbar-nav .open .dropdown-menu>.active>a:focus {
-    color: #fffdbb;
-    background-color: #316198;
   }
 }
 

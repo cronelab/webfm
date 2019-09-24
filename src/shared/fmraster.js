@@ -11,8 +11,8 @@ class fmraster {
         this.displayOrder = null;
         this.data = null;
         this.timeScale = null;
-        this.oncursormove = newTime => {};
-        this.onselectchannel = newChannel => {};
+        this.oncursormove = newTime => { };
+        this.onselectchannel = newChannel => { };
         this.selectedChannel = null;
         this.cursorSvg = null;
         this.cursorTime = null;

@@ -1,6 +1,9 @@
 import "bootstrap";
 import "./index.scss";
+import { SourceStream } from '../map/SourceStream'
+
 window.onload = async e => {
+    let Online = new SourceStream();
     let subject = localStorage.getItem("subject")
     let record = localStorage.getItem("CCEP_Record")
     let base64Flag = "data:image/jpeg;base64,";
@@ -20,4 +23,6 @@ window.onload = async e => {
     bytes2.forEach(b => (binary2 += String.fromCharCode(b)));
     responseMap2 = base64Flag + window.btoa(binary2);
     document.getElementById("Map").src = responseMap2;
+    Online.connect(`ws://${localStorage.getItem('source-address')}`);
+
 }

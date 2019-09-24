@@ -24,18 +24,18 @@ window.onload = () => {
     loadCortstim();
     loadDots();
     loadBrain('PY18N007');
-    loadGeometry('PY18N007').then(x=>{
+    loadGeometry('PY18N007').then(x => {
         Object.keys(x).map((ch, i) => {
-            if(ch=='ENCL5'){
-            console.log(Object.values(x)[i].u)
-            console.log(Object.values(x)[i+1])
-            // ctx.beginPath();
-            // ctx.moveTo(Object.values(x)[i].u*1244, Object.values(x)[i].v*1532);
-            // ctx.lineTo(Object.values(x)[i+1].u*1244, Object.values(x)[i+1].v*1532);
-            // ctx.strokeStyle = "#FF0000";
-            // ctx.stroke();
-        }
+            if (ch == 'ENCL5') {
+                console.log(Object.values(x)[i].u)
+                console.log(Object.values(x)[i + 1])
+                // ctx.beginPath();
+                // ctx.moveTo(Object.values(x)[i].u*1244, Object.values(x)[i].v*1532);
+                // ctx.lineTo(Object.values(x)[i+1].u*1244, Object.values(x)[i+1].v*1532);
+                // ctx.strokeStyle = "#FF0000";
+                // ctx.stroke();
+            }
 
         })
-});
+    });
 }

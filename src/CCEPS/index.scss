@@ -1,1 +1,33 @@
 @import "~bootstrap/scss/bootstrap";
+
+.navbar-inverse {
+  background-color: #397ad0;
+  border-color: #316198;
+  height: 30px;
+
+  .navbar-brand {
+    color: #fffff6;
+    position: absolute;
+    width: 100%;
+    left: 0;
+    text-align: center;
+    margin: 0 auto;
+    font-size: 28px;
+  }
+
+  .navbar-text {
+    color: #fffff6;
+  }
+}
+
+
+
+html {
+  position: relative;
+  min-height: 100%;
+  height: 100%;
+}
+
+body {
+  margin-bottom: 40px;
+}
