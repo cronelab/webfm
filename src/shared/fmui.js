@@ -62,15 +62,12 @@ class fmui {
         this.raster.cursorTime = 0.0;
         this.raster.setupCharts();
         this.raster.cursorSvg = select('#fm').append('svg').attr('class', 'fm-cursor-svg');
-        document.getElementById('fm').onclick = function (event) {
-            manager.raster.toggleCursor()
-        };
+        document.getElementById('fm').onclick = event => manager.raster.toggleCursor();
         this.raster.cursorSvg.append('line').attr('class', 'fm-cursor-line');
         this.raster.cursorSvg.append('line').attr('class', 'fm-cursor-origin-line');
         this.raster.updateCursor();
         this._populateOptions(this.getOptions());
         this.raster.channelHeight = this.getRowHeight()
-        console.log(this.raster.channelHeight)
         this.raster.chartMax = this.getRasterExtent();
     }
     zoom(event, which) {
@@ -162,11 +159,8 @@ class fmui {
 
     rewireForms() {
         var manager = this; // Capture this
-        $('#fm-options-modal').on('hidden.bs.modal', function (event) {
-            manager.optionsHidden(event);
-        });
+        $('#fm-options-modal').on('hidden.bs.modal', event => manager.optionsHidden(event));
         var updateOptions = function (updater) {
-            console.log("here")
             var options = manager.getOptions();
             updater(options);
             manager.setOptions(options);
@@ -200,21 +194,36 @@ class fmui {
             manager.onoptionchange('stim-on', newValue);
         };
 
+        document.getElementById('fm-option-stim-trial-start').onchange = event => {
+            updateOptions(options => options.stimulus.window.start = parseInt(event.target.value));
+        };
+        document.getElementById('fm-option-stim-trial-end').onchange = event => {
+            updateOptions(options => options.stimulus.window.end = parseInt(event.target.value));
+        };
 
-        document.getElementById('fm-option-stim-state').onchange = function (event) {
-            var newValue = this.value;
-            updateOptions(options => options.stimulus.state.name = newValue);
-            manager.onoptionchange('stim-channel', newValue);
+        document.getElementById('fm-option-stim-baseline-start').onchange = event => {
+            updateOptions(options => options.stimulus.baselineWindow.start = parseInt(event.target.value));
         };
-        document.getElementById('fm-option-stim-state-off').onchange = function (event) {
-            var newValue = +this.value;
-            updateOptions(options => options.stimulus.state.offValue = newValue);
-            manager.onoptionchange('stim-off', newValue);
+        document.getElementById('fm-option-stim-baseline-end').onchange = event => {
+            updateOptions(options => options.stimulus.baselineWindow.end = parseInt(event.target.value));
         };
-        document.getElementById('fm-option-stim-state-on').onchange = function (event) {
-            var newValue = +this.value;
-            updateOptions(options => options.stimulus.state.onValue = newValue);
-            manager.onoptionchange('stim-on', newValue);
+
+
+        document.getElementById('fm-option-stim-state').onchange = event => {
+            updateOptions(options => options.stimulus.state.name = event.target.value);
+            manager.onoptionchange('stim-channel', event.target.value);
+        };
+        document.getElementById('fm-option-stim-state-off').onchange = event => {
+            updateOptions(options => options.stimulus.state.offValue = event.target.value);
+            manager.onoptionchange('stim-off', event.target.value);
+        };
+        document.getElementById('fm-option-stim-state-on').onchange = event => {
+            updateOptions(options => options.stimulus.state.onValue = event.target.value);
+            manager.onoptionchange('stim-on', event.target.value);
+        };
+        document.getElementById('fm-option-stim-state-exclude').onchange = event => {
+            updateOptions(options => options.stimulus.state.exclude = event.target.value);
+            manager.onoptionchange('stim-exclude', event.target.value);
         };
 
 
@@ -445,6 +454,7 @@ class fmui {
             options.stimulus.state.name = 'StimulusCode';
             options.stimulus.state.offValue = 0;
             options.stimulus.state.onValue = 'x';
+            options.stimulus.state.exclude = 99;
 
             localStorage.setItem('options', JSON.stringify(options))
 

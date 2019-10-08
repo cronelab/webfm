@@ -6,12 +6,12 @@ import {
   fetchAndStoreGeometry
 } from "../shared/loaders";
 import path from "path";
-import BCI2K from "@cronelab/bci2k";
+import BCI2K from "bci2k";
 import {
   select
 } from "d3-selection";
 import * as THREE from "three";
-var OrbitControls = require("three-orbit-controls")(THREE);
+// var OrbitControls = require("three-orbit-controls")(THREE);
 var FBXLoader = require('three-fbx-loader');
 
 let bciOperator = new BCI2K.bciOperator();
@@ -40,49 +40,43 @@ window.onload = async () => {
     }
   }
 
-  let brainContainer = document.getElementById("fm-brain-container");
-  camera = new THREE.PerspectiveCamera(45, 640 / 480, 0.1, 30000);
-  camera.position.set(500, 1000, 500);
+  // let brainContainer = document.getElementById("fm-brain-container");
+  // camera = new THREE.PerspectiveCamera(45, 640 / 480, 0.1, 30000);
+  // camera.position.set(500, 1000, 500);
 
-  scene = new THREE.Scene();
+  // scene = new THREE.Scene();
 
-  light = new THREE.HemisphereLight(0xffffff, 0x444444);
-  light.position.set(0, 200, 0);
-  scene.add(light);
+  // light = new THREE.HemisphereLight(0xffffff, 0x444444);
+  // light.position.set(0, 200, 0);
+  // scene.add(light);
 
-  var loader = new FBXLoader();
-  loader.load('/api/PY18N016/brain3D', object => {
-    console.log(object);
-    console.log(object);
-    scene.add(object);
-
-  })
+  // var loader = new FBXLoader();
+  // loader.load('/api/PY18N016/brain3D', object => scene.add(object))
 
 
-  renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.domElement.id = "fm-brain-3D";
+  // renderer = new THREE.WebGLRenderer({ antialias: true });
+  // renderer.setPixelRatio(window.devicePixelRatio);
+  // renderer.domElement.id = "fm-brain-3D";
 
-  brainContainer.appendChild(renderer.domElement);
+  // brainContainer.appendChild(renderer.domElement);
 
-  renderer.setSize(brainContainer.offsetWidth, brainContainer.offsetHeight);
-  camera.aspect = brainContainer.offsetWidth / brainContainer.offsetHeight;
-  camera.updateProjectionMatrix();
+  // renderer.setSize(brainContainer.offsetWidth, brainContainer.offsetHeight);
+  // camera.aspect = brainContainer.offsetWidth / brainContainer.offsetHeight;
+  // camera.updateProjectionMatrix();
 
-  controls = new OrbitControls(camera, renderer.domElement);
-  controls.target.set(100, 0, 0);
-  controls.update();
-  window.addEventListener("resize", onWindowResize, false);
-  // renderer.domElement.classList.add("d-none");
+  // controls = new OrbitControls(camera, renderer.domElement);
+  // controls.target.set(100, 0, 0);
+  // controls.update();
+  // window.addEventListener("resize", onWindowResize, false);
+  // // renderer.domElement.classList.add("d-none");
 
-  animate();
+  // animate();
   let localSourceAddress =
-    localStorage.getItem("source-address") || config.online.sourceAddress;
+    localStorage.getItem("source-address") || "127.0.0.1";
   localStorage.setItem("source-address", localSourceAddress);
   bciOperator
     .connect(`ws://${localSourceAddress}`)
     .then(event => bciOperator.stateListen());
-
 };
 
 bciOperator.onStateChange = currentState => {

@@ -1,4 +1,4 @@
-import BCI2K from "@cronelab/bci2k";
+import BCI2K from "bci2k";
 
 class SourceStream {
     constructor() {

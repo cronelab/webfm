@@ -1,4 +1,4 @@
-import BCI2K from "@cronelab/bci2k";
+import BCI2K from "bci2k";
 
 class OnlineDataSource {
     constructor() {
@@ -19,12 +19,12 @@ class OnlineDataSource {
             offValue: 0.0,
             onValue: 1.0
         };
-        this.trialWindow = {
+        this.trialWindow = JSON.parse(localStorage.getItem('options')).stimulus.state.window || {
             start: -1.0,
-            end: 3.0
+            end: 2.0
         };
         this._bufferPadding = 0.5;
-        this._bufferWindow = {
+        this._bufferWindow = JSON.parse(localStorage.getItem('options')).stimulus.state.baselineWindow || {
             start: this.trialWindow.start - this._bufferPadding,
             end: this.trialWindow.end + this._bufferPadding
         };
@@ -45,7 +45,6 @@ class OnlineDataSource {
         this.previousState = null;
         this.stateBlockNumber = 0;
         this.trialEndBlockNumber = null;
-
     }
     connect(address) {
         var manager = this;
@@ -124,17 +123,23 @@ class OnlineDataSource {
     _updateTimingState(newState) {
         if (newState == this.previousState) return false;
         this.previousState = newState;
-        this._timingStateChanged(newState);
-        return true;
-    }
-    _timingStateChanged(newState) {
-        if (newState == 0) return;
-        if (this.trialEndBlockNumber) {
-            console.warn('WARNING Received new trial state, but already in a trial. Ignoring.');
-            return;
+        let localOptions = JSON.parse(localStorage.getItem('options'))
+        let thresholdValue = localOptions.stimulus.state.onValue
+        let exclusionState = localOptions.stimulus.state.exclude
+        console.log(thresholdValue);
+        if (newState == thresholdValue || thresholdValue == 'x' || thresholdValue == 'X' || newState == parseInt(exclusionState)) {
+            if (newState == 0) return;
+            if (this.trialEndBlockNumber) {
+                console.warn('WARNING Received new trial state, but already in a trial. Ignoring.');
+                return;
+            }
+            this.trialEndBlockNumber = (this.stateBlockNumber - 1) + this._postTrialBlocks;
+            this.onStartTrial();
+            return true;
         }
-        this.trialEndBlockNumber = (this.stateBlockNumber - 1) + this._postTrialBlocks;
-        this.onStartTrial();
+        else {
+            return false;
+        }
     }
     _formatData(type, inputData) {
         let data = (type == "Source") ? this.sourceChannels : this.featureChannels;

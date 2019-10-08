@@ -5,7 +5,7 @@ import {
   HemisphereLight
 } from "three";
 import FBXLoader from 'three-fbx-loader'
-import OrbitControls from 'three-orbitcontrols'
+// import OrbitControls from 'three-orbitcontrols'
 
 const fetchAndStoreBrain = async subject => {
   let storedBrain = localStorage.getItem(`brain`);
@@ -123,8 +123,8 @@ let loadStats = async (subject, record) => {
     let baselineCount = stats.baseline.count;
     let baseline_m2 =
       baselineCount > 1 && baselineVariance !== undefined ?
-      baselineVariance * (baselineCount - 1) :
-      undefined;
+        baselineVariance * (baselineCount - 1) :
+        undefined;
     return {
       stats: {
         mean,

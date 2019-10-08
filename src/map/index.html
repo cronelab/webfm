@@ -204,6 +204,11 @@
                     <div class="col-md-2 col-sm-3">
                       <input type="text" class="form-control" id="fm-option-stim-state-on" placeholder="x">
                     </div>
+                    <label for="fm-option-stim-state-exclude"
+                      class="col-md-1 col-sm-1 hidden-xs control-label text-center">&xrarr;</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-stim-state-exclude" placeholder="99">
+                    </div>
                   </div>
 
                   <div class="form-group row">
@@ -229,13 +234,13 @@
                     </div>
                   </div>
                   <hr />
-
+                  <!-- 
                   <h3>Event Triggers</h3>
                   <p>
                     Set options relating to how events are triggered from the received data. When using precision
                     timing, you can use the <strong><span class="glyphicon glyphicon-eye-open"></span> Scope</strong>
                     tool to identify reasonable threshold values.
-                  </p>
+                  </p> -->
 
                   <p>
                     For state timing, an on value of "<strong>x</strong>" indicates triggering on any nonzero state
@@ -251,17 +256,17 @@
                   <p>
                     <strong>WebFM</strong> uses local storage to store commonly set
                     settings locally, so that you don't need to re-enter them
-                    every time you reload the page. If you'd like to clear these
-                    out and get a fresh start, hit the button below.
+                    every time you reload the page.
                   </p>
-                  <p>
-                    <span class="text-warning">Doing this will <strong>restart WebFM.</strong></span>
+                  <p> If you'd like to clear these or save new defaults, click the buttons below.
                   </p>
 
                   <button type="submit" class="btn btn-warning" id="fm-option-nuke-cookies"><span
-                      class="glyphicon glyphicon-fire"></span>&emsp;Empty storage</button>
+                      class="glyphicon glyphicon-fire"></span>Clear</button>
+                  <button type="submit" class="btn btn-primary" id="fm-option-save"><span
+                      class="glyphicon glyphicon-fire"></span>Save</button>
 
-                </div> <!-- tabpanel (options) -->
+                </div>
 
                 <div id="fm-options-content-montage" role="tabpanel" class="tab-pane">
 
@@ -378,7 +383,7 @@
                     <dd class="col-sm-9">Original Matlab implementation (OFM) </dd>
                     <dt class="col-sm-3"><a href="https://www.linkedin.com/in/matthewfifer/">Matt Fifer</a></dt>
                     <dd class="col-sm-9">Original Matlab implementation (OFM) </dd>
-                    <dt class="col-sm-3"><a href="https://med.nyu.edu/faculty/adeen-flinker">Adden Flinker</a></dt>
+                    <dt class="col-sm-3"><a href="https://med.nyu.edu/faculty/adeen-flinker">Adeen Flinker</a></dt>
                     <dd class="col-sm-9">Original OFM algorithm</dd>
                   </dl>
                   <hr>

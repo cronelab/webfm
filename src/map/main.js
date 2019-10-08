@@ -46,10 +46,10 @@ window.onload = async () => {
     uiManager.onoptionchange = function (option, newValue) {
 
         if (option == 'stim-trial-start') {
-            // updateTrialWindow( { start: newValue } );
+            updateTrialWindow({ start: newValue });
         }
         if (option == 'stim-trial-end') {
-            // updateTrialWindow( { end: newValue } );
+            updateTrialWindow({ end: newValue });
         }
 
         if (option == 'stim-baseline-start') {
@@ -114,6 +114,7 @@ window.onload = async () => {
 
     var taskConfig = JSON.parse(JSON.stringify(config.tasks.default || {}));
     Object.keys(config.tasks).every(function (configTask) {
+        console.log(taskConfig)
         Object.assign(taskConfig, config.tasks[configTask]);
     });
 
