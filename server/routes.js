@@ -107,7 +107,7 @@ const routes = express => {
         res.status(200).json(_records)
       }
       else {
-        res.status(404).end()
+        res.status(204).end()
       }
     });
   });
@@ -133,10 +133,9 @@ const routes = express => {
           res.status(200).json(cleanRecords)
         } else {
           res.status(404).end()
-
         }
       } else {
-        res.status(404).end()
+        res.status(204).end()
       }
     });
   });
@@ -161,7 +160,7 @@ const routes = express => {
 
         }
       } else {
-        res.status(404).end()
+        res.status(204).end()
       }
     });
   })
@@ -178,7 +177,7 @@ const routes = express => {
           res.status(404).end()
         }
       } else {
-        res.status(404).end()
+        res.status(204).end()
       }
     })
   })
@@ -231,6 +230,7 @@ const routes = express => {
   router.get("/api/data/:subject/:record", (req, res) => {
     var subject = req.params.subject;
     var record = req.params.record;
+    console.log(subject, record)
     let recordData = JSON.parse(
       fs.readFileSync(`./data/${subject}/${record}.fm`)
     );

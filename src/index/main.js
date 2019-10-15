@@ -76,7 +76,11 @@ window.onload = async () => {
   localStorage.setItem("source-address", localSourceAddress);
   bciOperator
     .connect(`ws://${localSourceAddress}`)
-    .then(event => bciOperator.stateListen());
+    .then(event => bciOperator.stateListen())
+    .catch(err => {
+      console.log(err)
+      bciOperator.onStateChange("Not Connected")
+    })
 };
 
 bciOperator.onStateChange = currentState => {
@@ -96,7 +100,8 @@ bciOperator.onStateChange = currentState => {
     }
     stateLabel.classList.remove(stateClasses[v]);
   });
-  if (currentState == "Running" || currentState == "Suspended") {
+
+  if (currentState == "Running" || currentState == "Suspended" || currentState == "Resting" || currentState == "Initialization") {
     bciOperator.getSubjectName().then(subjectName => {
       document.getElementById("subject-label").innerHTML = subjectName.trim();
       localStorage.setItem("subject", subjectName.trim());
@@ -110,6 +115,8 @@ bciOperator.onStateChange = currentState => {
       )[1];
       localStorage.setItem("task", taskName.split(path.sep)[1]);
     });
+    document.getElementById("map-button").classList.remove("disabled");
+    document.getElementById("info-label").classList.remove("d-none");
   } else {
     document.getElementById("map-button").classList.add("disabled");
     document.getElementById("info-label").classList.add("d-none");
@@ -181,22 +188,22 @@ let selectSubject = async subject => {
 
   let fmlistPathRes = await fetch(`/api/${subject}/records/FM`);
   let fm_records = [];
-  if (fmlistPathRes.status != 404) {
+  if (fmlistPathRes.status == 200) {
     fm_records = await fmlistPathRes.json();
   }
   let hglistPathRes = await fetch(`/api/${subject}/records/HG`);
   let hg_records = [];
-  if (hglistPathRes.status != 404) {
+  if (hglistPathRes.status == 200) {
     hg_records = await hglistPathRes.json();
   }
   let cortStimlistPathRes = await fetch(`/api/${subject}/records/cortstim`);
   let cortStim_records = [];
-  if (cortStimlistPathRes.status != 404) {
+  if (cortStimlistPathRes.status == 200) {
     cortStim_records = await cortStimlistPathRes.json();
   }
   let cceplistPathRes = await fetch(`/api/${subject}/records/CCEPS`);
   let ccep_records = [];
-  if (cceplistPathRes.status != 404) {
+  if (cceplistPathRes.status == 200) {
     ccep_records = await cceplistPathRes.json();
   }
 
@@ -219,8 +226,6 @@ let selectSubject = async subject => {
   while (recordList.hasChildNodes()) {
     recordList.removeChild(recordList.firstChild);
   }
-
-
 
   let btnGroup1 = document.createElement("div");
   btnGroup1.classList.add("btn-group");
@@ -253,11 +258,6 @@ let selectSubject = async subject => {
     });
   }
 
-
-
-
-
-
   let btnGroup2 = document.createElement("div");
   btnGroup2.classList.add("btn-group");
   btnGroup2.classList.add("dropleft");
@@ -288,7 +288,6 @@ let selectSubject = async subject => {
     dropMenu2.append(newRecord);
   }
 
-
   let btnGroup3 = document.createElement("div");
   btnGroup3.classList.add("btn-group");
   btnGroup3.classList.add("dropleft");
@@ -296,7 +295,6 @@ let selectSubject = async subject => {
   let dropMenu3 = document.createElement("div");
   dropMenu3.classList.add("dropdown-menu");
   btnGroup3.append(dropMenu3);
-
 
   if (hg_records.length != 0) {
     let recordType = document.createElement("button");
