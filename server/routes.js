@@ -337,6 +337,24 @@ const routes = express => {
       }
     });
   });
+
+  //3D brain
+  router.get("/api/:subject/brain3D_g", (req, res) => {
+    let subject = req.params.subject;
+    fs.readdir('./data', (err, subjects) => {
+      if (subjects.indexOf(subject) > -1) {
+        //Load the fbx file
+        res.set('Content-Type', 'model/fbx')
+        if (fs.existsSync(`./data/${subject}/info/reconstruction.gltf`)) {
+          res.sendFile(`reconstruction.gltf`, {
+            root: `./data/${subject}/info`
+          });
+        }
+      } else {
+        console.log("subject not found");
+      }
+    });
+  });
   //Add a new record
   router.put("/api/data/:subject/:record", rawBody, (req, res) => {
     let subject = req.params.subject;

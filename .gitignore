@@ -3,3 +3,4 @@ node_modules/
 Notes.txt
 dist/*
 migration/*
+PY19N02*/*

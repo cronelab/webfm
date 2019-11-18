@@ -354,6 +354,11 @@ let selectSubject = async subject => {
   scroll(0, 0);
 };
 
+document.getElementById('3DViewer').onclick = () => {
+  
+  location.href = `/${localStorage.getItem('subject')}`;
+}
+
 document.getElementsByClassName("toggle-online-options")[0].onclick = () => {
   if (document.getElementById("online-options").classList.contains("d-none")) {
     document.getElementById("online-options").classList.remove("d-none");

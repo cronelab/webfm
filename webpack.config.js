@@ -17,56 +17,57 @@ const module = {
     index: "./src/index/main.js",
     record: "./src/record/main.js",
     map: "./src/map/main.js",
-    // cortstim: "./cortstim/cortstim.js",
+    ml: "./src/MagicLeap/main.js",
     // streamSaver: "./streamSaver/index.js",
-    cceps: "./src/CCEPS/index.js"
+    cceps: "./src/CCEPS/index.js",
+    threeD: "./src/3DViewer/main.js"
   },
   module: {
-    rules: [{
-      test: /\.js$/,
-      exclude: /node_modules/,
-      loader: "babel-loader",
-      options: {
-        presets: ["@babel/preset-env"],
-        plugins: [
-          "@babel/plugin-syntax-dynamic-import",
-          "@babel/plugin-transform-modules-commonjs",
-          "@babel/plugin-transform-runtime",
-          "@babel/plugin-proposal-class-properties"
-        ],
-        cacheDirectory: true
-      }
-    },
-    {
-      test: /\.(fbx)$/,
-      use: [{
-        loader: "file-loader",
+    rules: [
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        loader: "babel-loader",
         options: {
-          name: "[path][name].[ext]",
-          presets: ["env"]
+          presets: ["@babel/preset-env"],
+          plugins: [
+            "@babel/plugin-syntax-dynamic-import",
+            "@babel/plugin-transform-modules-commonjs",
+            "@babel/plugin-transform-runtime",
+            "@babel/plugin-proposal-class-properties"
+          ],
+          cacheDirectory: true
         }
-      }],
-      test: /\.(sa|sc|c)ss$/,
-      use: [{
-        loader: devMode ? "style-loader" : MiniCssExtractPlugin.loader
       },
       {
-        loader: "css-loader"
+        test: /\.(png|jpe?g|gif|fbx|glb)$/i,
+        loader: 'file-loader',
+        options: {
+          name: '[path][name].[ext]',
+        },
       },
       {
-        loader: "postcss-loader"
+        test: /\.(sa|sc|c)ss$/,
+        use: [{
+          loader: devMode ? "style-loader" : MiniCssExtractPlugin.loader
+        },
+        {
+          loader: "css-loader"
+        },
+        {
+          loader: "postcss-loader"
+        },
+        {
+          loader: "sass-loader"
+        }
+        ]
       },
       {
-        loader: "sass-loader"
+        test: /\.worker\.js$/,
+        use: {
+          loader: "worker-loader"
+        }
       }
-      ]
-    },
-    {
-      test: /\.worker\.js$/,
-      use: {
-        loader: "worker-loader"
-      }
-    }
     ]
   },
   optimization: {
@@ -115,6 +116,20 @@ const module = {
       template: "./src/CCEPS/index.html",
       filename: "cceps.html",
       chunks: ["cceps"],
+      title: "WebFM"
+    }),
+    new HtmlWebpackPlugin({
+      hash: true,
+      template: "./src/MagicLeap/index.html",
+      filename: "ml.html",
+      chunks: ["ml"],
+      title: "WebFM"
+    }),
+    new HtmlWebpackPlugin({
+      hash: true,
+      template: "./src/3DViewer/index.html",
+      filename: "threeD.html",
+      chunks: ["threeD"],
       title: "WebFM"
     })
   ],

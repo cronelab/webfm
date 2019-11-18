@@ -1,11 +1,16 @@
-import {
-  Scene,
-  PerspectiveCamera,
-  WebGLRenderer,
-  HemisphereLight
-} from "three";
+// import {
+//   Scene,
+//   PerspectiveCamera,
+//   WebGLRenderer,
+//   HemisphereLight
+// } from "three";
+const THREE = require('three')
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import FBXLoader from 'three-fbx-loader'
-// import OrbitControls from 'three-orbitcontrols'
+import OrbitControls from 'three-orbitcontrols'
+let manager = new THREE.LoadingManager();
+
+// import GLTFLoader from 'three-gltf-loader';
 
 const fetchAndStoreBrain = async subject => {
   let storedBrain = localStorage.getItem(`brain`);
@@ -57,6 +62,33 @@ const fetchAndStoreGeometry = async subject => {
   }
 };
 
+let load3DBrain_gltf = subject => {
+  let brainContainer = document.getElementById('fm-brain-3D');
+  let scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x000000);
+  let camera = new THREE.PerspectiveCamera(45, 640 / 480, 0.1, 50000);
+  let renderer = new THREE.WebGLRenderer({
+    antialias: true
+  });
+  let controls = new OrbitControls(camera, renderer.domElement);
+  let light = new THREE.HemisphereLight(0xffffff, 0x444444);
+  camera.position.set(0, 0, 0);
+  renderer.setSize(640, 480);
+  light.position.set(0, 0, 10);
+  controls.target.set(100, 0, 0);
+  controls.update();
+  scene.add(light);
+  let loader = new GLTFLoader()
+  loader.load(`/api/${subject}/brain3D_g`, object3d => {
+    scene.add(object3d.scene)
+  });
+  const animate = () => {
+    requestAnimationFrame(animate);
+    renderer.render(scene, camera);
+  };
+  animate();
+  brainContainer.appendChild(renderer.domElement);
+}
 
 let load3DBrain = subject => {
   let brainContainer = document.getElementById('fm-brain-3D');
@@ -74,7 +106,18 @@ let load3DBrain = subject => {
   controls.target.set(100, 0, 0);
   controls.update();
   scene.add(light);
-  loader.load(`/api/${subject}/brain3D`, object3d => scene.add(object3d));
+  loader.load(`/api/${subject}/brain3D`, object3d => {
+    console.log(object3d)
+    scene.add(object3d)
+    object3d.traverse((child) => {
+      if (child.material) {
+        for (let material of child.material) {
+          material.wireframe = true;
+        }
+      }
+    });
+
+  });
   const animate = () => {
     requestAnimationFrame(animate);
     renderer.render(scene, camera);
@@ -158,5 +201,6 @@ export {
   fetchAndStoreGeometry,
   load3DBrain,
   loadValues,
-  loadStats
+  loadStats,
+  load3DBrain_gltf
 };
