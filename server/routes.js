@@ -1,369 +1,371 @@
 import path from "path";
 import fs from "fs";
 import {
-  promises as fsp
+	promises as fsp
 } from "fs";
 import formidable from "formidable";
 // import multer from 'multer'
 let __dirname = path.resolve(path.dirname(""));
 
 const routes = express => {
-  const router = express.Router();
+	const router = express.Router();
 
-  router.get("/config", (req, res) =>
-    res.sendFile(`${__dirname}/server/config.json`)
-  );
+	router.get("/config", (req, res) =>
+		res.sendFile(`${__dirname}/server/config.json`)
+	);
+	router.get("/loader_nifti", (req, res) =>
+		res.sendFile(path.join(__dirname, "/dist", "/loader_nifti.html"))
+	);
+	router.get("/live", (req, res) =>
+		res.sendFile(`${__dirname}/dist/live.html`)
+	);
+	router.get("/map", (req, res) => res.sendFile(`${__dirname}/dist/map.html`));
+	router.get("/record", (req, res) =>
+		res.sendFile(`${__dirname}/dist/record.html`)
+	);
 
-  router.get("/live", (req, res) =>
-    res.sendFile(`${__dirname}/dist/live.html`)
-  );
-  router.get("/map", (req, res) => res.sendFile(`${__dirname}/dist/map.html`));
-  router.get("/record", (req, res) =>
-    res.sendFile(`${__dirname}/dist/record.html`)
-  );
+	router.get("/api/list", (req, res) => {
+		fs.readdir("./data", (err, subjects) => {
+			let _subjects = subjects.filter(f => f != ".gitignore");
+			res.status(200).json(_subjects);
+		});
+	});
+	//List of subjects
+	router.get("/api/subjects", (req, res) => {
+		fs.readdir('./data', (err, subjects) => {
+			res.status(200).json(subjects);
+		});
+	});
 
-  router.get("/api/list", (req, res) => {
-    fs.readdir("./data", (err, subjects) => {
-      let _subjects = subjects.filter(f => f != ".gitignore");
-      res.status(200).json(_subjects);
-    });
-  });
-  //List of subjects
-  router.get("/api/subjects", (req, res) => {
-    fs.readdir('./data', (err, subjects) => {
-      res.status(200).json(subjects);
-    });
-  });
+	router.get("/cortstim", (req, res) =>
+		res.sendFile(path.join(__dirname, "/dist", "/cortstim.html"))
+	);
 
-  router.get("/cortstim", (req, res) =>
-    res.sendFile(path.join(__dirname, "/dist", "/cortstim.html"))
-  );
+	router.get("/cceps", (req, res) =>
+		res.sendFile(path.join(__dirname, "/dist", "/cceps.html"))
+	);
 
-  router.get("/cceps", (req, res) =>
-    res.sendFile(path.join(__dirname, "/dist", "/cceps.html"))
-  );
+	router.get("/api/brain/:subject", (req, res) => {
+		let subject = req.params.subject;
+		fs.readdir("./data", (err, subjects) => {
+			if (subjects.indexOf(subject) > -1) {
+				if (fs.existsSync(`./data/${subject}/info/reconstruction.jpg`)) {
+					res.sendFile(`reconstruction.jpg`, {
+						root: `./data/${subject}/info/`
+					});
+				} else {
+					if (fs.existsSync(`./data/${subject}/.metadata`)) {
+						let metadata = JSON.parse(
+							fs.readFileSync(`./data/${subject}/.metadata`)
+						);
+						res.status(200).send(metadata.brainImage);
+					} else {
+						res.status(400).send({
+							message: "This is an error!"
+						});
+					}
+				}
+			}
+		});
+	});
 
-  router.get("/api/brain/:subject", (req, res) => {
-    let subject = req.params.subject;
-    fs.readdir("./data", (err, subjects) => {
-      if (subjects.indexOf(subject) > -1) {
-        if (fs.existsSync(`./data/${subject}/info/reconstruction.jpg`)) {
-          res.sendFile(`reconstruction.jpg`, {
-            root: `./data/${subject}/info/`
-          });
-        } else {
-          if (fs.existsSync(`./data/${subject}/.metadata`)) {
-            let metadata = JSON.parse(
-              fs.readFileSync(`./data/${subject}/.metadata`)
-            );
-            res.status(200).send(metadata.brainImage);
-          } else {
-            res.status(400).send({
-              message: "This is an error!"
-            });
-          }
-        }
-      }
-    });
-  });
+	router.get("/api/geometry/:subject", (req, res) => {
+		let subject = req.params.subject;
+		fs.readdir("./data", (err, subjects) => {
+			if (subjects.indexOf(subject) > -1) {
+				if (fs.existsSync(`./data/${subject}/info/channels.json`)) {
+					res.sendFile(`channels.json`, {
+						root: `./data/${subject}/info`
+					});
+				} else if (fs.existsSync(`./data/${subject}/.metadata`)) {
+					let metadata = JSON.parse(
+						fs.readFileSync(`./data/${subject}/.metadata`)
+					);
+					res.status(200).send(metadata.sensorGeometry);
+				}
+			} else {
+				let sensorGeometry = {
+					placeHolder: {
+						u: 0.0,
+						v: 0
+					}
+				};
+				res.send(JSON.stringify(sensorGeometry));
+			}
+		});
+	});
 
-  router.get("/api/geometry/:subject", (req, res) => {
-    let subject = req.params.subject;
-    fs.readdir("./data", (err, subjects) => {
-      if (subjects.indexOf(subject) > -1) {
-        if (fs.existsSync(`./data/${subject}/info/channels.json`)) {
-          res.sendFile(`channels.json`, {
-            root: `./data/${subject}/info`
-          });
-        } else if (fs.existsSync(`./data/${subject}/.metadata`)) {
-          let metadata = JSON.parse(
-            fs.readFileSync(`./data/${subject}/.metadata`)
-          );
-          res.status(200).send(metadata.sensorGeometry);
-        }
-      } else {
-        let sensorGeometry = {
-          placeHolder: {
-            u: 0.0,
-            v: 0
-          }
-        };
-        res.send(JSON.stringify(sensorGeometry));
-      }
-    });
-  });
+	const getCortStim = async (subject, results) => {
+		const resultsPath = path.join(dataDir, subject, results);
+		let _result = await loadJsonFile(resultsPath);
+		return _result;
+	};
+	//Cortstim directory
+	router.get("/api/:subject/records/cortstim", (req, res) => {
+		let subject = req.params.subject;
+		fs.readdir(`./data/${subject}/data/cortstim`, (err, files) => {
+			if (files != undefined) {
+				let _records = files.filter(f => path.extname(f) == ".pdf").map(z => z.split(".")[0]);
+				res.status(200).json(_records)
+			}
+			else {
+				res.status(204).end()
+			}
+		});
+	});
+	//Cortstim pdf
+	router.get("/api/:subject/cortstim", (req, res) => {
+		let subject = req.params.subject;
+		fs.readdir(`./data/${subject}/data/cortstim`, (err, files) => {
+			if (files != undefined) {
+				let _records = files.filter(f => path.extname(f) == ".pdf");
+				var file = fs.readFileSync(`./data/${subject}/data/cortstim/${_records[0]}`);
+				res.setHeader('Content-Type', 'application/pdf');
+				res.send(file)
+			}
+		});
+	});
+	//Send a list of high gamma records
+	router.get("/api/:subject/records/HG", (req, res) => {
+		let subject = req.params.subject;
+		fs.readdir(`./data/${subject}/data/HG`, (err, records) => {
+			if (records != undefined) {
+				if (records.length != 0) {
+					let cleanRecords = records.map(f => f.split('.')[0])
+					res.status(200).json(cleanRecords)
+				} else {
+					res.status(404).end()
+				}
+			} else {
+				res.status(204).end()
+			}
+		});
+	});
+	//Send a list of evoked potential records
+	router.get("/api/:subject/records/EP", (req, res) => {
+		let subject = req.params.subject;
+		fs.readdir(`./data/${subject}/data/EP`, (err, records) => {
+			let cleanRecords = records.filter(e => path.extname(e) == '.json').map(f => f.split('.')[0])
+			res.status(200).json(cleanRecords)
+		});
+	});
+	//Send a list of HG records (v1 format)
+	router.get("/api/:subject/records/FM", (req, res) => {
+		let subject = req.params.subject;
+		fs.readdir(`./data/${subject}`, (err, records) => {
+			if (records != undefined) {
+				if (records.length != 0) {
+					let _records = records.filter(f => path.extname(f) == ".fm").map(z => z.split(".")[0]);
+					res.status(200).json(_records);
+				} else {
+					res.status(404).end()
 
-  const getCortStim = async (subject, results) => {
-    const resultsPath = path.join(dataDir, subject, results);
-    let _result = await loadJsonFile(resultsPath);
-    return _result;
-  };
-  //Cortstim directory
-  router.get("/api/:subject/records/cortstim", (req, res) => {
-    let subject = req.params.subject;
-    fs.readdir(`./data/${subject}/data/cortstim`, (err, files) => {
-      if (files != undefined) {
-        let _records = files.filter(f => path.extname(f) == ".pdf").map(z => z.split(".")[0]);
-        res.status(200).json(_records)
-      }
-      else {
-        res.status(204).end()
-      }
-    });
-  });
-  //Cortstim pdf
-  router.get("/api/:subject/cortstim", (req, res) => {
-    let subject = req.params.subject;
-    fs.readdir(`./data/${subject}/data/cortstim`, (err, files) => {
-      if (files != undefined) {
-        let _records = files.filter(f => path.extname(f) == ".pdf");
-        var file = fs.readFileSync(`./data/${subject}/data/cortstim/${_records[0]}`);
-        res.setHeader('Content-Type', 'application/pdf');
-        res.send(file)
-      }
-    });
-  });
-  //Send a list of high gamma records
-  router.get("/api/:subject/records/HG", (req, res) => {
-    let subject = req.params.subject;
-    fs.readdir(`./data/${subject}/data/HG`, (err, records) => {
-      if (records != undefined) {
-        if (records.length != 0) {
-          let cleanRecords = records.map(f => f.split('.')[0])
-          res.status(200).json(cleanRecords)
-        } else {
-          res.status(404).end()
-        }
-      } else {
-        res.status(204).end()
-      }
-    });
-  });
-  //Send a list of evoked potential records
-  router.get("/api/:subject/records/EP", (req, res) => {
-    let subject = req.params.subject;
-    fs.readdir(`./data/${subject}/data/EP`, (err, records) => {
-      let cleanRecords = records.filter(e => path.extname(e) == '.json').map(f => f.split('.')[0])
-      res.status(200).json(cleanRecords)
-    });
-  });
-  //Send a list of HG records (v1 format)
-  router.get("/api/:subject/records/FM", (req, res) => {
-    let subject = req.params.subject;
-    fs.readdir(`./data/${subject}`, (err, records) => {
-      if (records != undefined) {
-        if (records.length != 0) {
-          let _records = records.filter(f => path.extname(f) == ".fm").map(z => z.split(".")[0]);
-          res.status(200).json(_records);
-        } else {
-          res.status(404).end()
+				}
+			} else {
+				res.status(204).end()
+			}
+		});
+	})
 
-        }
-      } else {
-        res.status(204).end()
-      }
-    });
-  })
-
-  //Send a list of CCEP records
-  router.get("/api/:subject/records/CCEPS", (req, res) => {
-    let subject = req.params.subject;
-    fs.readdir(`./data/${subject}/data/CCEPS`, (err, records) => {
-      if (records != undefined) {
-        if (records.length != 0) {
-          let _records = records.filter(f => !f.includes("map")).map(z => z.split(".")[0])
-          res.status(200).json(_records);
-        } else {
-          res.status(404).end()
-        }
-      } else {
-        res.status(204).end()
-      }
-    })
-  })
-  //Send CCEP images
-  router.get("/api/:subject/CCEPS_response/:record", (req, res) => {
-    let subject = req.params.subject;
-    let record = req.params.record;
-    fs.readdir(`./data/${subject}/data/CCEPS/`, (err, subjects) => {
-      if (fs.existsSync(`./data/${subject}/data/CCEPS/${record}.jpg`)) {
-        res.sendFile(`${record}.jpg`, {
-          root: `./data/${subject}/data/CCEPS/`
-        });
-      }
-    });
-  })
-  //Send CCEP images
-  router.get("/api/:subject/CCEPS_map/:record", (req, res) => {
-    let subject = req.params.subject;
-    let record = req.params.record;
-    console.log(record)
-    fs.readdir(`./data/${subject}/data/CCEPS/`, (err, subjects) => {
-      if (fs.existsSync(`./data/${subject}/data/CCEPS/${record}_map.jpg`)) {
-        res.sendFile(`${record}_map.jpg`, {
-          root: `./data/${subject}/data/CCEPS/`
-        });
-      }
-    });
-  })
-  //   //Record
-  //   router.get("/api/:subject/:record/:info", (req, res) => {
-  //     let subject = req.params.subject;
-  //     let record = `${req.params.record}.json`;
-  //     let info = req.params.info;
-  //     getRecord(subject, record).then(recordFile => {
-  //       let infoToSend = recordFile.contents[`${info}`];
-  //       res.status(200).json(infoToSend);
-  //     });
-  //   });
-  router.get("/api/info/:subject/:record", (req, res) => {
-    let subject = req.params.subject;
-    let record = req.params.record;
-    res.json({
-      subject: subject,
-      record: record,
-      uri: path.join("/", "api", "data", subject, record)
-    });
-  });
+	//Send a list of CCEP records
+	router.get("/api/:subject/records/CCEPS", (req, res) => {
+		let subject = req.params.subject;
+		fs.readdir(`./data/${subject}/data/CCEPS`, (err, records) => {
+			if (records != undefined) {
+				if (records.length != 0) {
+					let _records = records.filter(f => !f.includes("map")).map(z => z.split(".")[0])
+					res.status(200).json(_records);
+				} else {
+					res.status(404).end()
+				}
+			} else {
+				res.status(204).end()
+			}
+		})
+	})
+	//Send CCEP images
+	router.get("/api/:subject/CCEPS_response/:record", (req, res) => {
+		let subject = req.params.subject;
+		let record = req.params.record;
+		fs.readdir(`./data/${subject}/data/CCEPS/`, (err, subjects) => {
+			if (fs.existsSync(`./data/${subject}/data/CCEPS/${record}.jpg`)) {
+				res.sendFile(`${record}.jpg`, {
+					root: `./data/${subject}/data/CCEPS/`
+				});
+			}
+		});
+	})
+	//Send CCEP images
+	router.get("/api/:subject/CCEPS_map/:record", (req, res) => {
+		let subject = req.params.subject;
+		let record = req.params.record;
+		console.log(record)
+		fs.readdir(`./data/${subject}/data/CCEPS/`, (err, subjects) => {
+			if (fs.existsSync(`./data/${subject}/data/CCEPS/${record}_map.jpg`)) {
+				res.sendFile(`${record}_map.jpg`, {
+					root: `./data/${subject}/data/CCEPS/`
+				});
+			}
+		});
+	})
+	//   //Record
+	//   router.get("/api/:subject/:record/:info", (req, res) => {
+	//     let subject = req.params.subject;
+	//     let record = `${req.params.record}.json`;
+	//     let info = req.params.info;
+	//     getRecord(subject, record).then(recordFile => {
+	//       let infoToSend = recordFile.contents[`${info}`];
+	//       res.status(200).json(infoToSend);
+	//     });
+	//   });
+	router.get("/api/info/:subject/:record", (req, res) => {
+		let subject = req.params.subject;
+		let record = req.params.record;
+		res.json({
+			subject: subject,
+			record: record,
+			uri: path.join("/", "api", "data", subject, record)
+		});
+	});
 
 
-  router.get("/api/data/:subject/:record", (req, res) => {
-    var subject = req.params.subject;
-    var record = req.params.record;
-    console.log(subject, record)
-    let recordData = JSON.parse(
-      fs.readFileSync(`./data/${subject}/${record}.fm`)
-    );
-    res.status(200).send(JSON.stringify(recordData));
-  });
+	router.get("/api/data/:subject/:record", (req, res) => {
+		var subject = req.params.subject;
+		var record = req.params.record;
+		console.log(subject, record)
+		let recordData = JSON.parse(
+			fs.readFileSync(`./data/${subject}/${record}.fm`)
+		);
+		res.status(200).send(JSON.stringify(recordData));
+	});
 
-  function rawBody(req, res, next) {
-    req.setEncoding("utf8");
-    req.rawBody = "";
-    req.on("data", chunk => (req.rawBody += chunk));
-    req.on("end", () => next());
-  }
+	function rawBody(req, res, next) {
+		req.setEncoding("utf8");
+		req.rawBody = "";
+		req.on("data", chunk => (req.rawBody += chunk));
+		req.on("end", () => next());
+	}
 
-  // Put new brain image data into .metadata
-  router.put("/api/brain/:subject", async (req, res) => {
-    let subject = req.params.subject;
-    if (fs.existsSync(`./data/${subject}`)) {
-      let fileContent = await fsp.readFile(`./data/${subject}/.metadata`);
-      let metadata = JSON.parse(fileContent);
-      let oldMetadata = metadata;
-      let newMetadata = Object.assign({}, oldMetadata);
-      let form = formidable.IncomingForm();
-      form.uploadDir = "./uploads";
-      form.on("file", async function (field, file) {
-        let fileContent = await fsp.readFile(file.path);
-        let imageData2 = new Buffer(fileContent);
-        let imageData = imageData2.toString("base64");
-        let imageExtension = path.extname(file.name);
-        newMetadata.brainImage =
-          "data:image/" + imageExtension + ";base64," + imageData;
-        fs.writeFile(
-          `./data/${subject}/.metadata`,
-          JSON.stringify(newMetadata),
-          err => {
-            if (err) console.log(err);
-          }
-        );
-      });
-      form.on("end", () => {
-        res.sendStatus(201);
-      });
-      form.parse(req);
-    }
-  });
+	// Put new brain image data into .metadata
+	router.put("/api/brain/:subject", async (req, res) => {
+		let subject = req.params.subject;
+		if (fs.existsSync(`./data/${subject}`)) {
+			let fileContent = await fsp.readFile(`./data/${subject}/.metadata`);
+			let metadata = JSON.parse(fileContent);
+			let oldMetadata = metadata;
+			let newMetadata = Object.assign({}, oldMetadata);
+			let form = formidable.IncomingForm();
+			form.uploadDir = "./uploads";
+			form.on("file", async function (field, file) {
+				let fileContent = await fsp.readFile(file.path);
+				let imageData2 = new Buffer(fileContent);
+				let imageData = imageData2.toString("base64");
+				let imageExtension = path.extname(file.name);
+				newMetadata.brainImage =
+					"data:image/" + imageExtension + ";base64," + imageData;
+				fs.writeFile(
+					`./data/${subject}/.metadata`,
+					JSON.stringify(newMetadata),
+					err => {
+						if (err) console.log(err);
+					}
+				);
+			});
+			form.on("end", () => {
+				res.sendStatus(201);
+			});
+			form.parse(req);
+		}
+	});
 
-  //Add a new geometry file
-  router.put("/api/geometry/:subject", async (req, res) => {
-    let subject = req.params.subject;
-    if (fs.existsSync(`./data/${subject}`)) {
-      let fileContent = await fsp.readFile(`./data/${subject}/.metadata`);
-      let metadata = JSON.parse(fileContent);
-      let oldMetadata = metadata;
-      let newMetadata = Object.assign({}, oldMetadata);
-      let reqContentType = req.headers["content-type"].split(";")[0];
-      if (reqContentType == "application/json") {
-        newMetadata.sensorGeometry = JSON.stringify(req.body);
-        fs.writeFile(
-          `./data/${subject}/.metadata`,
-          JSON.stringify(newMetadata),
-          err => {
-            if (err) console.log(err);
-          }
-        );
-      }
-      return;
-    }
-  });
+	//Add a new geometry file
+	router.put("/api/geometry/:subject", async (req, res) => {
+		let subject = req.params.subject;
+		if (fs.existsSync(`./data/${subject}`)) {
+			let fileContent = await fsp.readFile(`./data/${subject}/.metadata`);
+			let metadata = JSON.parse(fileContent);
+			let oldMetadata = metadata;
+			let newMetadata = Object.assign({}, oldMetadata);
+			let reqContentType = req.headers["content-type"].split(";")[0];
+			if (reqContentType == "application/json") {
+				newMetadata.sensorGeometry = JSON.stringify(req.body);
+				fs.writeFile(
+					`./data/${subject}/.metadata`,
+					JSON.stringify(newMetadata),
+					err => {
+						if (err) console.log(err);
+					}
+				);
+			}
+			return;
+		}
+	});
 
-  //Add a new subject
-  router.put("/api/data/:subject", rawBody, (req, res) => {
-    let subject = req.params.subject;
-    if (!fs.existsSync(`./data/${subject}`)) {
-      fs.mkdir(`./data/${subject}`, () => {
-        let metadata = {
-          subject: subject
-        };
-        if (req.rawBody != "") {
-          let bodyData = {};
-          bodyData = JSON.parse(req.rawBody);
+	//Add a new subject
+	router.put("/api/data/:subject", rawBody, (req, res) => {
+		let subject = req.params.subject;
+		if (!fs.existsSync(`./data/${subject}`)) {
+			fs.mkdir(`./data/${subject}`, () => {
+				let metadata = {
+					subject: subject
+				};
+				if (req.rawBody != "") {
+					let bodyData = {};
+					bodyData = JSON.parse(req.rawBody);
 
-          Object.assign(metadata, bodyData);
-        }
-        fs.writeFile(
-          `./data/${subject}/.metadata`,
-          JSON.stringify(metadata),
-          err => res.sendStatus(201)
-        );
-      });
-    }
-  });
-  //3D brain
-  router.get("/api/:subject/brain3D", (req, res) => {
-    let subject = req.params.subject;
-    fs.readdir('./data', (err, subjects) => {
-      if (subjects.indexOf(subject) > -1) {
-        //Load the fbx file
-        if (fs.existsSync(`./data/${subject}/info/reconstruction.fbx`)) {
-          res.sendFile(`reconstruction.fbx`, {
-            root: `./data/${subject}/info`
-          });
-        }
-      } else {
-        console.log("subject not found");
-      }
-    });
-  });
+					Object.assign(metadata, bodyData);
+				}
+				fs.writeFile(
+					`./data/${subject}/.metadata`,
+					JSON.stringify(metadata),
+					err => res.sendStatus(201)
+				);
+			});
+		}
+	});
+	//3D brain
+	router.get("/api/:subject/brain3D", (req, res) => {
+		let subject = req.params.subject;
+		fs.readdir('./data', (err, subjects) => {
+			if (subjects.indexOf(subject) > -1) {
+				//Load the fbx file
+				if (fs.existsSync(`./data/${subject}/info/reconstruction.fbx`)) {
+					res.sendFile(`reconstruction.fbx`, {
+						root: `./data/${subject}/info`
+					});
+				}
+			} else {
+				console.log("subject not found");
+			}
+		});
+	});
 
-  //3D brain
-  router.get("/api/:subject/brain3D_g", (req, res) => {
-    let subject = req.params.subject;
-    fs.readdir('./data', (err, subjects) => {
-      if (subjects.indexOf(subject) > -1) {
-        //Load the fbx file
-        res.set('Content-Type', 'model/fbx')
-        if (fs.existsSync(`./data/${subject}/info/reconstruction.gltf`)) {
-          res.sendFile(`reconstruction.gltf`, {
-            root: `./data/${subject}/info`
-          });
-        }
-      } else {
-        console.log("subject not found");
-      }
-    });
-  });
-  //Add a new record
-  router.put("/api/data/:subject/:record", rawBody, (req, res) => {
-    let subject = req.params.subject;
-    let record = req.params.record;
-    fs.writeFile(`./data/${subject}/${record}.fm`, req.rawBody, () =>
-      res.sendStatus(201)
-    );
-  });
-  return router;
+	//3D brain
+	router.get("/api/:subject/brain3D_g", (req, res) => {
+		let subject = req.params.subject;
+		fs.readdir('./data', (err, subjects) => {
+			if (subjects.indexOf(subject) > -1) {
+				//Load the fbx file
+				res.set('Content-Type', 'model/fbx')
+				if (fs.existsSync(`./data/${subject}/info/reconstruction.gltf`)) {
+					res.sendFile(`reconstruction.gltf`, {
+						root: `./data/${subject}/info`
+					});
+				}
+			} else {
+				console.log("subject not found");
+			}
+		});
+	});
+	//Add a new record
+	router.put("/api/data/:subject/:record", rawBody, (req, res) => {
+		let subject = req.params.subject;
+		let record = req.params.record;
+		fs.writeFile(`./data/${subject}/${record}.fm`, req.rawBody, () =>
+			res.sendStatus(201)
+		);
+	});
+	return router;
 };
 export default routes;
 
