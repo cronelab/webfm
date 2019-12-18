@@ -17,12 +17,15 @@ const module = {
 		index: "./src/index/main.js",
 		record: "./src/record/main.js",
 		map: "./src/map/main.js",
-		// ml: "./src/MagicLeap/main.js",
+		ml: "./src/MagicLeap/main.js",
 		// streamSaver: "./streamSaver/index.js",
 		cceps: "./src/CCEPS/index.js",
 		threeD: "./src/3DViewer/main.js",
 		loader_nifti: "./src/loader_nifti/main.js"
 
+	},
+	node: {
+		fs: 'empty'
 	},
 	module: {
 		rules: [
@@ -36,7 +39,8 @@ const module = {
 						"@babel/plugin-syntax-dynamic-import",
 						"@babel/plugin-transform-modules-commonjs",
 						"@babel/plugin-transform-runtime",
-						"@babel/plugin-proposal-class-properties"
+						"@babel/plugin-proposal-class-properties",
+						"@babel/plugin-proposal-export-default-from"
 					],
 					cacheDirectory: true
 				}
@@ -64,12 +68,12 @@ const module = {
 				}
 				]
 			},
-			{
-				test: /\.worker\.js$/,
-				use: {
-					loader: "worker-loader"
-				}
-			}
+			// {
+			// 	test: /\.worker\.js$/,
+			// 	use: {
+			// 		loader: "worker-loader"
+			// 	}
+			// }
 		]
 	},
 	optimization: {
@@ -86,6 +90,9 @@ const module = {
 		usedExports: true
 	},
 	plugins: [
+		// new webpack.ProvidePlugin({
+		// 	THREE: 'three'
+		// }),
 		new CleanWebpackPlugin.CleanWebpackPlugin(),
 		new MiniCssExtractPlugin({
 			filename: "[name].css",

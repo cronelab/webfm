@@ -7,6 +7,12 @@ import formidable from "formidable";
 // import multer from 'multer'
 let __dirname = path.resolve(path.dirname(""));
 
+const getCortStim = async (subject, results) => {
+	const resultsPath = path.join(dataDir, subject, results);
+	let _result = await loadJsonFile(resultsPath);
+	return _result;
+};
+
 const routes = express => {
 	const router = express.Router();
 
@@ -20,6 +26,7 @@ const routes = express => {
 		res.sendFile(`${__dirname}/dist/live.html`)
 	);
 	router.get("/map", (req, res) => res.sendFile(`${__dirname}/dist/map.html`));
+	router.get("/ML", (req, res) => res.sendFile(`${__dirname}/dist/ml.html`));
 	router.get("/record", (req, res) =>
 		res.sendFile(`${__dirname}/dist/record.html`)
 	);
@@ -39,6 +46,9 @@ const routes = express => {
 
 	router.get("/cortstim", (req, res) =>
 		res.sendFile(path.join(__dirname, "/dist", "/cortstim.html"))
+	);
+	router.get("/3D", (req, res) =>
+		res.sendFile(path.join(__dirname, "/dist", "/threeD.html"))
 	);
 
 	router.get("/cceps", (req, res) =>
@@ -95,11 +105,7 @@ const routes = express => {
 		});
 	});
 
-	const getCortStim = async (subject, results) => {
-		const resultsPath = path.join(dataDir, subject, results);
-		let _result = await loadJsonFile(resultsPath);
-		return _result;
-	};
+
 	//Cortstim directory
 	router.get("/api/:subject/records/cortstim", (req, res) => {
 		let subject = req.params.subject;
@@ -145,10 +151,57 @@ const routes = express => {
 	router.get("/api/:subject/records/EP", (req, res) => {
 		let subject = req.params.subject;
 		fs.readdir(`./data/${subject}/data/EP`, (err, records) => {
-			let cleanRecords = records.filter(e => path.extname(e) == '.json').map(f => f.split('.')[0])
-			res.status(200).json(cleanRecords)
+			if (records != undefined) {
+				let cleanRecords = records.filter(e => path.extname(e) == '.json').map(f => f.split('.')[0])
+				let recordsToSend = cleanRecords.map(f => {
+					let split = f.split('_');
+					return `${split[1]}_${split[2]}_${split[3]}`
+				})
+				res.status(200).json(recordsToSend)
+			} else {
+				res.status(204).end()
+			}
 		});
 	});
+
+	router.get("/responseInfo/:subject/:task", async (req, res) => {
+		let subject = req.params.subject;
+		let task = req.params.task;
+		const responseInfoPath = `./data/${subject}/data/EP`;
+		let resInfoFile = `${responseInfoPath}/${subject}_${task}_ResponseInfo.json`;
+		if (fs.existsSync(resInfoFile)) {
+			let _result = JSON.parse(
+				fs.readFileSync(resInfoFile)
+			);
+			let significantChannels = {}
+			Object.keys(_result.significant).forEach(x => {
+				if (_result.significant[x] == 1) {
+					return significantChannels[x] = _result.significant[x]
+				}
+			})
+			res.send(Object.keys(significantChannels));
+		}
+	})
+
+	router.get("/z-score/:subject/:task", async (req, res) => {
+		let subject = req.params.subject;
+		let task = req.params.task;
+		const responseInfoPath = `./data/${subject}/data/EP`;
+		let resInfoFile = `${responseInfoPath}/${subject}_${task}_ResponseInfo.json`;
+		if (fs.existsSync(resInfoFile)) {
+			let _result = JSON.parse(
+				fs.readFileSync(resInfoFile)
+			);
+			let sigResponses = {}
+			Object.keys(_result.significant).forEach(val => {
+				if (_result.significant[val] > 0) {
+
+					sigResponses[val] = { timeToPeak: _result.zscores[val].overall[0], peak: _result.zscores[val].overall[1] }
+				}
+			})
+			res.send(JSON.stringify(sigResponses));
+		}
+	})
 	//Send a list of HG records (v1 format)
 	router.get("/api/:subject/records/FM", (req, res) => {
 		let subject = req.params.subject;

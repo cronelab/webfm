@@ -1,5 +1,8 @@
 import "bootstrap";
-import nifti from './24/brain.nii';
+// import nifti from './24/brain2diff.mgz';
+import nifti from './26/brain.nii';
+import testbrain from './26/reconstruction.glb'
+// import nifti from './24/brain.nii';
 // import nifti from './fMRIsub/T1.nii';
 // import fMRI from './fMRIsub/fMRI.nii';
 // import nifti from './brain.nii';
@@ -7,20 +10,19 @@ import "./index.scss";
 import * as dat from 'dat.gui';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import testbrain from './24/reconstruction.glb'
 import html2canvas from 'html2canvas'
 
 
 import {
-	VolumeLoader, stackHelperFactory,
+	VolumeLoader, stackHelperFactory, lutHelperFactory,
 	trackballOrthoControlFactory, orthographicCameraFactory, trackballControlFactory, UtilsCore
 } from 'ami.js';
-
 const StackHelper = stackHelperFactory(THREE);
 const CamerasOrthographic = orthographicCameraFactory(THREE);
 const ControlsOrthographic = trackballOrthoControlFactory(THREE);
 const ControlsTrackball = trackballControlFactory(THREE);
-
+const HelpersLut = lutHelperFactory(THREE);
+let lut;
 let ready = false;
 let elecs;
 let brainScene, wm, gyri, substructures;
@@ -170,15 +172,21 @@ function initRenderer2D(rendererObj) {
 
 function initHelpersStack(rendererObj, stack) {
 	rendererObj.stackHelper = new StackHelper(stack);
-
+	rendererObj.lutLayer0 = new HelpersLut(
+		'main',
+		'default',
+		'linear',
+		[[0, 0, 0, 0], [1, 1, 1, 1]],
+		[[0, 1], [1, 1]]
+	);
+	rendererObj.lutLayer0.luts = HelpersLut.presetLuts();
 	rendererObj.stackHelper.bbox.visible = false;
 	rendererObj.stackHelper.borderColor = rendererObj.sliceColor;
-	console.log(rendererObj.stackHelper)
-	console.log(rendererObj.stackHelper._slice)
-	console.log(rendererObj.stackHelper._slice.borderColor)
 	rendererObj.stackHelper._slice.borderColor = 0x000000;
 	rendererObj.stackHelper.slice.canvasWidth = rendererObj.domElement.clientWidth;
 	rendererObj.stackHelper.slice.canvasHeight = rendererObj.domElement.clientHeight;
+	// console.log(rendererObj.lutLayer0)
+	rendererObj.stackHelper.slice.lutTexture = rendererObj.lutLayer0.texture
 
 	// set camera
 	let worldbb = stack.worldBoundingBox();
@@ -210,7 +218,7 @@ function initHelpersStack(rendererObj, stack) {
 	rendererObj.stackHelper.orientation = rendererObj.camera.stackOrientation;
 	rendererObj.stackHelper.index = Math.floor(rendererObj.stackHelper.orientationMaxIndex / 2);
 	rendererObj.scene.add(rendererObj.stackHelper);
-	console.log(rendererObj.stackHelper.children)
+
 }
 function render() {
 	// we are ready when both meshes have been loaded
@@ -277,7 +285,6 @@ window.onload = function () {
 	// init threeJS
 	init();
 	let files = nifti
-
 	let loader = new VolumeLoader();
 	loader
 		.load(files)
@@ -285,11 +292,12 @@ window.onload = function () {
 			let series = loader.data[0].mergeSeries(loader.data)[0];
 			loader.free();
 			loader = null;
-			// get first stack from series
 			let stack = series.stack[0];
 			stack._frame.forEach(frame => {
 				frame._imagePosition = [-128, 128, 128]
 			})
+			console.log(stack)
+
 			stack.prepare();
 			// center 3d camera/control on the stack
 			let centerLPS = stack.worldCenter();
@@ -320,36 +328,45 @@ window.onload = function () {
 			let customContainer = document.getElementById('my-gui-container');
 			customContainer.appendChild(gui.domElement);
 
+
+			lut = new HelpersLut(
+				'slices',
+				'default',
+				'linear',
+				[[0, 0, 0, 0], [1, 1, 1, 1]],
+				[[0, 1], [1, 1]]
+			);
+			lut.luts = HelpersLut.presetLuts();
+
+			let LutFolder = gui.addFolder('LUT');
+			let lutUpdate1 = LutFolder.add(r1.stackHelper.slice, 'lut', lut.lutsAvailable());
+			let lutUpdate2 = LutFolder.add(r2.stackHelper.slice, 'lut', lut.lutsAvailable());
+			let lutUpdate3 = LutFolder.add(r3.stackHelper.slice, 'lut', lut.lutsAvailable());
+			lutUpdate1.onChange(value => {
+				lut.lut = value;
+				r1.stackHelper.slice.lutTexture = lut.texture;
+			});
+			lutUpdate2.onChange(value => {
+				lut.lut = value;
+				r2.stackHelper.slice.lutTexture = lut.texture;
+			});
+			lutUpdate3.onChange(value => {
+				lut.lut = value;
+				r3.stackHelper.slice.lutTexture = lut.texture;
+			});
+
 			// Red
-			let stackFolder1 = gui.addFolder('Axial (Red)');
-			let redChanged = stackFolder1
+			let stackFolder = gui.addFolder('Slicer');
+			let redChanged = stackFolder
 				.add(r1.stackHelper, 'index', 0, r1.stackHelper.orientationMaxIndex)
 				.step(1)
 				.listen();
-			stackFolder1
-				.add(r1.stackHelper.slice, 'interpolation', 0, 1)
-				.step(1)
-				.listen();
-
-			// Yellow
-			let stackFolder2 = gui.addFolder('Sagittal (yellow)');
-			let yellowChanged = stackFolder2
+			let yellowChanged = stackFolder
 				.add(r2.stackHelper, 'index', 0, r2.stackHelper.orientationMaxIndex)
 				.step(1)
 				.listen();
-			stackFolder2
-				.add(r2.stackHelper.slice, 'interpolation', 0, 1)
-				.step(1)
-				.listen();
-
-			// Green
-			let stackFolder3 = gui.addFolder('Coronal (green)');
-			let greenChanged = stackFolder3
+			let greenChanged = stackFolder
 				.add(r3.stackHelper, 'index', 0, r3.stackHelper.orientationMaxIndex)
-				.step(1)
-				.listen();
-			stackFolder3
-				.add(r3.stackHelper.slice, 'interpolation', 0, 1)
 				.step(1)
 				.listen();
 
@@ -675,6 +692,7 @@ window.onload = function () {
 									// color: new THREE.Color("rgb(0,100,255)"),
 									emissive: 0xf30914
 								});
+								child.scale.set(.5, .5, .5)
 							}
 						})
 						object3d.scene.rotation.set(0, 0, Math.PI)
@@ -684,6 +702,9 @@ window.onload = function () {
 						gyri = brainScene.children[2]
 						substructures = brainScene.children[1]
 						elecs = object3d.scene.children[0]
+						elecs.rotation.set(0, 0, Math.PI)
+						elecs.position.set(128, 128, 128)
+						console.log(brainScene)
 						resolve(brainScene);
 					})
 
