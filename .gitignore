@@ -5,3 +5,4 @@ migration/*
 PY19N02*/*
 src/cortstim/parser2.js
 src/cortstim/cortstiminfo.jpg
+server/build/*

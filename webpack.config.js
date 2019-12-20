@@ -3,7 +3,7 @@ import webpack from "webpack";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import CleanWebpackPlugin from "clean-webpack-plugin";
 
-import WriteFilePlugin from "write-file-webpack-plugin";
+// import WriteFilePlugin from "write-file-webpack-plugin";
 let __dirname = path.resolve(path.dirname(""));
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
 const devMode = process.env.NODE_ENV !== "production";
@@ -98,7 +98,7 @@ const module = {
 			filename: "[name].css",
 			chunkFilename: "[id].css"
 		}),
-		new WriteFilePlugin(),
+		// new WriteFilePlugin(),
 		new HtmlWebpackPlugin({
 			hash: true,
 			template: "./src/index/index.html",

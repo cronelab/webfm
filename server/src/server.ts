@@ -1,7 +1,7 @@
 import express from "express";
 import compression from "compression";
 import routes from "./routes.js";
-import config from "../webpack.config.js";
+import config from "../../webpack.config.js";
 // import graphQlRoutes from "./graphqlRoute.js";
 import webpackDevMiddleware from "webpack-dev-middleware";
 import webpackHotMiddleware from "webpack-hot-middleware";
@@ -14,7 +14,7 @@ app.use(express.json());
 
 let newConfig = merge(config, {
 	plugins: [
-		new webpack.optimize.OccurrenceOrderPlugin(),
+		new webpack.optimize.OccurrenceOrderPlugin(true),
 		new webpack.HotModuleReplacementPlugin(),
 		new webpack.NoEmitOnErrorsPlugin()
 	]
@@ -22,9 +22,7 @@ let newConfig = merge(config, {
 
 const compiler = webpack(newConfig);
 app.use(
-	webpackDevMiddleware(compiler, {
-		noInfo: true
-	})
+	webpackDevMiddleware(compiler)
 );
 app.use(webpackHotMiddleware(compiler));
 app.use("/", routes(express));

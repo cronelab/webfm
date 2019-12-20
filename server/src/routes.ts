@@ -7,11 +7,11 @@ import formidable from "formidable";
 // import multer from 'multer'
 let __dirname = path.resolve(path.dirname(""));
 
-const getCortStim = async (subject, results) => {
-	const resultsPath = path.join(dataDir, subject, results);
-	let _result = await loadJsonFile(resultsPath);
-	return _result;
-};
+// const getCortStim = async (subject, results) => {
+// 	const resultsPath = path.join(dataDir, subject, results);
+// 	let _result = await loadJsonFile(resultsPath);
+// 	return _result;
+// };
 
 const routes = express => {
 	const router = express.Router();
@@ -66,7 +66,7 @@ const routes = express => {
 				} else {
 					if (fs.existsSync(`./data/${subject}/.metadata`)) {
 						let metadata = JSON.parse(
-							fs.readFileSync(`./data/${subject}/.metadata`)
+							fs.readFileSync(`./data/${subject}/.metadata`, 'utf8')
 						);
 						res.status(200).send(metadata.brainImage);
 					} else {
@@ -89,7 +89,7 @@ const routes = express => {
 					});
 				} else if (fs.existsSync(`./data/${subject}/.metadata`)) {
 					let metadata = JSON.parse(
-						fs.readFileSync(`./data/${subject}/.metadata`)
+						fs.readFileSync(`./data/${subject}/.metadata`, 'utf8')
 					);
 					res.status(200).send(metadata.sensorGeometry);
 				}
@@ -171,7 +171,7 @@ const routes = express => {
 		let resInfoFile = `${responseInfoPath}/${subject}_${task}_ResponseInfo.json`;
 		if (fs.existsSync(resInfoFile)) {
 			let _result = JSON.parse(
-				fs.readFileSync(resInfoFile)
+				fs.readFileSync(resInfoFile, 'utf8')
 			);
 			let significantChannels = {}
 			Object.keys(_result.significant).forEach(x => {
@@ -190,7 +190,7 @@ const routes = express => {
 		let resInfoFile = `${responseInfoPath}/${subject}_${task}_ResponseInfo.json`;
 		if (fs.existsSync(resInfoFile)) {
 			let _result = JSON.parse(
-				fs.readFileSync(resInfoFile)
+				fs.readFileSync(resInfoFile, 'utf8')
 			);
 			let sigResponses = {}
 			Object.keys(_result.significant).forEach(val => {
@@ -287,7 +287,7 @@ const routes = express => {
 		var record = req.params.record;
 		console.log(subject, record)
 		let recordData = JSON.parse(
-			fs.readFileSync(`./data/${subject}/${record}.fm`)
+			fs.readFileSync(`./data/${subject}/${record}.fm`, 'utf8')
 		);
 		res.status(200).send(JSON.stringify(recordData));
 	});
@@ -303,11 +303,11 @@ const routes = express => {
 	router.put("/api/brain/:subject", async (req, res) => {
 		let subject = req.params.subject;
 		if (fs.existsSync(`./data/${subject}`)) {
-			let fileContent = await fsp.readFile(`./data/${subject}/.metadata`);
+			let fileContent = await fsp.readFile(`./data/${subject}/.metadata`, 'utf8');
 			let metadata = JSON.parse(fileContent);
 			let oldMetadata = metadata;
 			let newMetadata = Object.assign({}, oldMetadata);
-			let form = formidable.IncomingForm();
+			let form = new formidable.IncomingForm();
 			form.uploadDir = "./uploads";
 			form.on("file", async function (field, file) {
 				let fileContent = await fsp.readFile(file.path);
@@ -335,7 +335,7 @@ const routes = express => {
 	router.put("/api/geometry/:subject", async (req, res) => {
 		let subject = req.params.subject;
 		if (fs.existsSync(`./data/${subject}`)) {
-			let fileContent = await fsp.readFile(`./data/${subject}/.metadata`);
+			let fileContent = await fsp.readFile(`./data/${subject}/.metadata`, 'utf8');
 			let metadata = JSON.parse(fileContent);
 			let oldMetadata = metadata;
 			let newMetadata = Object.assign({}, oldMetadata);
