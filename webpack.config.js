@@ -3,32 +3,38 @@ import webpack from "webpack";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import CleanWebpackPlugin from "clean-webpack-plugin";
 
-// import WriteFilePlugin from "write-file-webpack-plugin";
+import WriteFilePlugin from "write-file-webpack-plugin";
 let __dirname = path.resolve(path.dirname(""));
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
 const devMode = process.env.NODE_ENV !== "production";
 
 const module = {
 	mode: devMode ? "development" : "production",
-
 	devtool: devMode ? "inline-source-map" : "source-map",
-
 	entry: {
-		index: "./src/index/main.js",
-		record: "./src/record/main.js",
-		map: "./src/map/main.js",
-		ml: "./src/MagicLeap/main.js",
+		index: "./src/index/main.ts",
+		record: "./src/record/main.ts",
+		map: "./src/map/main.ts",
 		// streamSaver: "./streamSaver/index.js",
-		cceps: "./src/CCEPS/index.js",
-		threeD: "./src/3DViewer/main.js",
-		loader_nifti: "./src/loader_nifti/main.js"
+		// cceps: "./src/CCEPS/index.js",
+		// threeD: "./src/3DViewer/main.js",
+		// loader_nifti: "./src/loader_nifti/main.js"
 
 	},
 	node: {
 		fs: 'empty'
 	},
+	resolve: {
+		// Add `.ts` and `.tsx` as a resolvable extension.
+		extensions: [".ts", ".tsx", ".js"]
+	},
 	module: {
 		rules: [
+			{
+				test: /\.tsx?$/,
+				use: 'ts-loader',
+				exclude: /node_modules/,
+			},
 			{
 				test: /\.js$/,
 				exclude: /node_modules/,
@@ -68,12 +74,12 @@ const module = {
 				}
 				]
 			},
-			// {
-			// 	test: /\.worker\.js$/,
-			// 	use: {
-			// 		loader: "worker-loader"
-			// 	}
-			// }
+			{
+				test: /\.worker\.js$/,
+				use: {
+					loader: "worker-loader"
+				}
+			}
 		]
 	},
 	optimization: {
@@ -98,7 +104,7 @@ const module = {
 			filename: "[name].css",
 			chunkFilename: "[id].css"
 		}),
-		// new WriteFilePlugin(),
+		new WriteFilePlugin(),
 		new HtmlWebpackPlugin({
 			hash: true,
 			template: "./src/index/index.html",
@@ -125,13 +131,6 @@ const module = {
 			template: "./src/CCEPS/index.html",
 			filename: "cceps.html",
 			chunks: ["cceps"],
-			title: "WebFM"
-		}),
-		new HtmlWebpackPlugin({
-			hash: true,
-			template: "./src/MagicLeap/index.html",
-			filename: "ml.html",
-			chunks: ["ml"],
 			title: "WebFM"
 		}),
 		new HtmlWebpackPlugin({

@@ -285,10 +285,17 @@ const routes = express => {
 	router.get("/api/data/:subject/:record", (req, res) => {
 		var subject = req.params.subject;
 		var record = req.params.record;
-		console.log(subject, record)
 		let recordData = JSON.parse(
 			fs.readFileSync(`./data/${subject}/${record}.fm`, 'utf8')
 		);
+		res.status(200).send(JSON.stringify(recordData));
+	});
+
+	router.get("/api/data/:subject/:record/HG", (req, res) => {
+		var subject = req.params.subject;
+		var record = req.params.record;
+		let filetoread = fs.readFileSync(`./data/${subject}/data/HG/${record}.json`, 'utf8');
+		let recordData = JSON.parse(filetoread);
 		res.status(200).send(JSON.stringify(recordData));
 	});
 

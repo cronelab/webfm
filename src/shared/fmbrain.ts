@@ -1,14 +1,29 @@
 import {
 	scaleLinear,
 	scaleSqrt
-} from 'd3-scale';
+} from "d3-scale";
 import {
 	select
 } from "d3-selection";
-import { load3DBrain_gltf } from '../shared/loaders'
-import PY19N024 from '../../data/PY19N024/info/reconstruction.glb'
+import { load3DBrain_gltf } from './loaders'
+// import PY19N024 from '../../data/PY19N024/info/reconstruction.glb'
 
 class fmbrain {
+	sensorGeometry: any;
+	selectedChannel: any;
+	data: any;
+	dotRadiusScale: any;
+	dotColorScale: any;
+	dotXScale: any;
+	dotYScale: any;
+	aspect: any;
+	size: any;
+	margin: any;
+	dotMinRadius: any;
+	dotMaxRadius: any;
+	extent: any;
+	dotColors: any;
+	dotColorsDomain: any;
 	constructor() {
 		this.sensorGeometry = null;
 		this.selectedChannel = null;
@@ -37,7 +52,7 @@ class fmbrain {
 
 	};
 
-	_getDimensionsForData(data) {
+	_getDimensionsForData(data: any) {
 		return new Promise((resolve, reject) => {
 			let image = document.createElement('img');
 			image.addEventListener('load', function () {
@@ -54,7 +69,7 @@ class fmbrain {
 		var brain = this;
 		let imageData = JSON.parse(localStorage.getItem('brain')).data;
 		this.sensorGeometry = JSON.parse(localStorage.getItem('geometry')).data;
-		this.data = Object.keys(this.sensorGeometry).reduce((obj, ch) => {
+		this.data = Object.keys(this.sensorGeometry).reduce((obj: any, ch) => {
 			obj[ch] = 0.0;
 			return obj;
 		}, {});
@@ -76,12 +91,12 @@ class fmbrain {
 			.range(this.dotColors)
 			.clamp(true);
 		this._getDimensionsForData(imageData)
-			.then(dimensions => {
+			.then((dimensions: any) => {
 				brain.aspect = dimensions.width / dimensions.height;
 				brain.autoResize();
 				brain.update();
 			});
-		load3DBrain_gltf(PY19N024)
+		// load3DBrain_gltf(PY19N024)
 
 		// this.brainSvg = 
 
@@ -98,19 +113,19 @@ class fmbrain {
 			.attr('class', 'fm-brain-dots');
 	}
 
-	_dotVisibility(d) {
+	_dotVisibility(d: any) {
 		if (d.channel == this.selectedChannel) return 'visible';
 		if (d.value == 0) return 'hidden';
 		return 'visible';
 	}
 
-	_dotOrder(a, b) {
+	_dotOrder(a: any, b: any) {
 		if (a.channel == this.selectedChannel) return +1;
 		if (b.channel == this.selectedChannel) return -1;
 		return this.dotXScale(this.dotRadiusScale(Math.abs(b.value))) - this.dotXScale(this.dotRadiusScale(Math.abs(a.value)));
 	}
 
-	resize(width, height) {
+	resize(width: any, height: any) {
 		this.size.width = width;
 		this.size.height = height;
 		this.dotXScale.range([0, this.size.width]);
@@ -124,9 +139,9 @@ class fmbrain {
 			.attr('height', this.size.height);
 		baseSelection.selectAll('.fm-brain-dot')
 			.attr('visibility', this._dotVisibility.bind(this))
-			.attr('cx', d => this.dotXScale(this.sensorGeometry[d.channel].u))
-			.attr('cy', d => this.dotYScale(this.sensorGeometry[d.channel].v))
-			.attr('r', d => this.dotXScale(this.dotRadiusScale(Math.abs(d.value))))
+			.attr('cx', (d: any) => this.dotXScale(this.sensorGeometry[d.channel].u))
+			.attr('cy', (d: any) => this.dotYScale(this.sensorGeometry[d.channel].v))
+			.attr('r', (d: any) => this.dotXScale(this.dotRadiusScale(Math.abs(d.value))))
 			.sort(this._dotOrder.bind(this));
 	}
 	autoResize() {
@@ -137,11 +152,11 @@ class fmbrain {
 		this.resize(width, height);
 	}
 
-	update(newData) {
+	update(newData?: any) {
 
 		if (newData !== undefined) this.data = newData;
 		var brain = this;
-		var brainDots = select('#fm-brain').select('.fm-brain-dots').selectAll('.fm-brain-dot')
+		var brainDots: any = select('#fm-brain').select('.fm-brain-dots').selectAll('.fm-brain-dot')
 			.data(Object.keys(this.data).filter(ch => {
 				if (Object.keys(brain.sensorGeometry).indexOf(ch) < 0) return false;
 				if (brain.sensorGeometry[ch].u === undefined || brain.sensorGeometry[ch].v === undefined) return false
@@ -151,26 +166,26 @@ class fmbrain {
 					channel: ch,
 					value: this.data[ch]
 				};
-			}), d => d.channel);
+			}), (d: any) => d.channel);
 
 		// let start = performance.now()
 
 		brainDots.enter().append('circle')
 			.attr('class', 'fm-brain-dot')
 			.merge(brainDots)
-			.classed('fm-brain-dot-selected', d => d.channel == brain.selectedChannel)
-			.style('fill', d => this.dotColorScale(d.value))
+			.classed('fm-brain-dot-selected', (d: any) => d.channel == brain.selectedChannel)
+			.style('fill', (d: any) => this.dotColorScale(d.value))
 			.attr('visibility', this._dotVisibility.bind(this))
-			.attr('cx', d => this.dotXScale(this.sensorGeometry[d.channel].u))
-			.attr('cy', d => this.dotYScale(this.sensorGeometry[d.channel].v))
-			.attr('r', d => this.dotXScale(this.dotRadiusScale(Math.abs(d.value))))
+			.attr('cx', (d: any) => this.dotXScale(this.sensorGeometry[d.channel].u))
+			.attr('cy', (d: any) => this.dotYScale(this.sensorGeometry[d.channel].v))
+			.attr('r', (d: any) => this.dotXScale(this.dotRadiusScale(Math.abs(d.value))))
 			.sort(this._dotOrder.bind(this));
 
 		// console.log(performance.now() - start)
 
 	}
 
-	setSelectedChannel(newChannel) {
+	setSelectedChannel(newChannel: any) {
 		if (newChannel == this.selectedChannel) return
 		this.selectedChannel = newChannel;
 		this.update();

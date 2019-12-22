@@ -3,18 +3,18 @@
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="">
-  <meta name="author" content="">
-  <title>WebFM</title>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="">
+	<meta name="author" content="">
+	<title>WebFM</title>
 </head>
 
 <body>
 
-  <nav class="navbar navbar-inverse navbar-fixed-top">
-    <!-- <div class="navbar-header">
+	<nav class="navbar navbar-inverse navbar-fixed-top">
+		<!-- <div class="navbar-header">
         <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
           aria-expanded="false" aria-controls="navbar">
           <span class="sr-only">Toggle navigation</span>
@@ -25,179 +25,195 @@
       </div> -->
 
 
-    <a class="navbar-brand"><span class="fm-subject-name">[subject]</span> - <span
-        class="fm-task-name">[task]</span></a>
+		<a class="navbar-brand"><span class="fm-subject-name">[subject]</span> - <span
+				class="fm-task-name">[task]</span></a>
 
-    <ul class="nav navbar-nav">
-      <li>
-        <a class="fm-back" href="/"><span class="fas fa-bars"></span></a>
-      </li>
-    </ul>
+		<ul class="nav navbar-nav">
+			<li>
+				<a class="fm-back" href="/"><span class="fas fa-bars"></span></a>
+			</li>
+		</ul>
 
-    <ul class="nav navbar-nav navbar-right">
-      <li class="fm-working-icon">
-        <a class="glyphicon-button" href="#"><span class="glyphicon glyphicon-hourglass"></span></a>
-      </li>
-      <li class="fm-transfer-icon">
-        <a class="glyphicon-button" href="#"><span class="glyphicon glyphicon-transfer"></span></a>
-      </li>
-      <li class="fm-toggle-fullscreen">
-        <a class="glyphicon-button" href="#"><span class="glyphicon glyphicon-fullscreen"></span></a>
-      </li>
-    </ul>
+		<ul class="nav navbar-nav navbar-right">
+			<li class="fm-working-icon">
+				<a class="glyphicon-button" href="#"><span class="glyphicon glyphicon-hourglass"></span></a>
+			</li>
+			<li class="fm-transfer-icon">
+				<a class="glyphicon-button" href="#"><span class="glyphicon glyphicon-transfer"></span></a>
+			</li>
+			<li class="fm-toggle-fullscreen">
+				<a class="glyphicon-button" href="#"><span class="glyphicon glyphicon-fullscreen"></span></a>
+			</li>
+		</ul>
 
-  </nav>
+	</nav>
 
 
 
-  <nav class="navbar navbar-expand-lg navbar-light bg-light" id="optionsNav">
-    <!-- <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+	<nav class="navbar navbar-expand-lg navbar-light bg-light" id="optionsNav">
+		<!-- <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
       aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button> -->
 
 
-    <!-- <div class="collapse navbar-collapse""> -->
+		<!-- <div class="collapse navbar-collapse""> -->
 
-    <ul class=" navbar-nav">
-      <li class="nav-item">
-        <p class="nav-link fm-time-label"><span class="fm-time-selected">0.000 s</span></p>
-      </li>
-      <a class="nav-link" href="#" id="playButton">
-        <i class="nav-item fas fa-play"></i>
-      </a>
-      <li class="nav-item fm-zoom-in">
-        <a class="nav-link" href="#"><span class="fas fa-search-plus"></span></a>
-      </li>
-      <li class="nav-item fm-zoom-out">
-        <a class="nav-link" href="#"><span class="fas fa-search-minus"></span></a>
-      </li>
+		<ul class=" navbar-nav">
+			<li class="nav-item">
+				<p class="nav-link fm-time-label"><span class="fm-time-selected">0.000 s</span></p>
+			</li>
+			<a class="nav-link" href="#" id="playButton">
+				<i class="nav-item fas fa-play"></i>
+			</a>
+			<li class="nav-item fm-zoom-in">
+				<a class="nav-link" href="#"><span class="fas fa-search-plus"></span></a>
+			</li>
+			<li class="nav-item fm-zoom-out">
+				<a class="nav-link" href="#"><span class="fas fa-search-minus"></span></a>
+			</li>
 
-      <a class="nav-link" href="#" id="gainUp">
-        <i class="nav-item fas fa-volume-up"></i>
-      </a>
-      <a class="nav-link" href="#" id="gainDown">
-        <i class="nav-item fas fa-volume-down"></i>
-      </a>
+			<a class="nav-link" href="#" id="gainUp">
+				<i class="nav-item fas fa-volume-up"></i>
+			</a>
+			<a class="nav-link" href="#" id="gainDown">
+				<i class="nav-item fas fa-volume-down"></i>
+			</a>
 
-      <a class="nav-link fm-show-options" href="#">
-        <i class="nav-item fas fa-cog"></i>
-      </a>
-    </ul>
+			<a class="nav-link fm-show-options" href="#">
+				<i class="nav-item fas fa-cog"></i>
+			</a>
+		</ul>
 
-    <!-- </div> -->
-  </nav>
-
-
-
-  <div class="container-fluid">
-
-    <div class="row">
-
-      <div class="col-md-5 col-sm-5">
-
-        <div id="fm"></div>
-
-      </div>
-
-      <div class="col-md-7 col-sm-7 hidden-xs" style="position:fixed; right:0px;">
-        <!-- TODO Add aspect ratio button -->
-
-		<div id="fm-brain"></div>
-		<div id="fm-brain-3D"></div>
-		
-      </div>
-
-    </div>
-
-  </div>
+		<!-- </div> -->
+	</nav>
 
 
 
-  <div id="fm-options-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="fmOptionsModal">
-    <div id="fm-options-modal-dialog" class="modal-dialog modal-lg" role="document">
-      <div class="modal-content">
+	<div class="container-fluid">
 
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-              aria-hidden="true">&times;</span></button>
-          <h4 class="modal-title" id="fmOptionsModal">Options, Tools, &amp; Goodies</h4>
-        </div>
+		<div class="row">
 
-        <div class="modal-body">
+			<div class="col-md-5 col-sm-5">
 
-          <div class="row">
+				<div id="fm"></div>
 
-            <div class="col-sm-3">
+			</div>
 
-              <div class="fm-options-tab-list list-group">
-                <a href="#fm-options-content-options" class="list-group-item active">
-                  <span class="glyphicon glyphicon-wrench"></span>&emsp;Options
-                </a>
-                <a href="#fm-options-content-montage" class="list-group-item">
-                  <span class="glyphicon glyphicon-list"></span>&emsp;Montage
-                </a>
-                <a href="#fm-options-content-scope" class="list-group-item">
-                  <span class="glyphicon glyphicon-eye-open"></span>&emsp;Scope
-                </a>
-                <a href="#fm-options-content-save" class="list-group-item">
-                  <span class="glyphicon glyphicon-cloud-upload"></span>&emsp;Save
-                </a>
-                <a class="list-group-item disabled">
-                  <span class="glyphicon glyphicon-console"></span>&emsp;Dev
-                </a>
-                <a href="#fm-options-content-about" class="list-group-item">
-                  <span class="glyphicon glyphicon-sunglasses"></span>&emsp;About
-                </a>
-              </div>
+			<div class="col-md-7 col-sm-7 hidden-xs" style="position:fixed; right:0px;">
+				<!-- TODO Add aspect ratio button -->
 
-            </div>
+				<div id="fm-brain"></div>
+				<!-- <div id="fm-brain-3D"></div> -->
 
-            <div class="col-sm-9">
+			</div>
 
-              <div class="tab-content">
+		</div>
 
-                <div id="fm-options-content-options" role="tabpanel" class="tab-pane active">
+	</div>
 
-                  <h3 style="margin-top: 6px;">Timing</h3>
-                  <p>
-                    Set the windows used for clipping data relative to events, as well as for computing baseline feature
-                    distributions.
-                  </p>
 
-                  <!--
+
+	<div id="fm-options-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="fmOptionsModal">
+		<div id="fm-options-modal-dialog" class="modal-dialog modal-lg" role="document">
+			<div class="modal-content">
+
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+							aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="fmOptionsModal">Options, Tools, &amp; Goodies</h4>
+				</div>
+
+				<div class="modal-body">
+
+					<div class="row">
+
+						<div class="col-sm-3">
+
+
+							<div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist"
+								aria-orientation="vertical">
+
+								<a data-toggle="pill" role="tab" aria-controls="v-pills-profile" aria-selected="true"
+									id="modal_options" href="#fm-options-content-options" class="nav-link active">
+									Options
+								</a>
+								<a data-toggle="pill" role="tab" aria-controls="v-pills-profile" aria-selected="false"
+									id="modal_montage" href="#fm-options-content-montage" class="nav-link">
+									Montage
+								</a>
+
+								<a data-toggle="pill" role="tab" aria-controls="v-pills-profile" aria-selected="false"
+									id="modal_scope" href="#fm-options-content-scope" class="nav-link">
+									Scope
+								</a>
+								<a data-toggle="pill" role="tab" aria-controls="v-pills-profile" aria-selected="false"
+									id="modal_save" href="#fm-options-content-save" class="nav-link">
+									Save
+								</a>
+								<a data-toggle="pill" role="tab" aria-controls="v-pills-profile" aria-selected="false"
+									id="modal_about" href="#fm-options-content-about" class="nav-link">
+									About
+								</a>
+
+							</div>
+
+						</div>
+
+						<div class="col-sm-9">
+
+							<div class="tab-content">
+
+								<div id="fm-options-content-options" role="tabpanel" class="tab-pane active">
+
+									<h3 style="margin-top: 6px;">Timing</h3>
+									<p>
+										Set the windows used for clipping data relative to events, as well as for
+										computing baseline feature
+										distributions.
+									</p>
+
+									<!--
                   <p class="text-warning">
                     Changing these options in the middle of a session <strong>resets all computed features.</strong>
                   </p>
                   -->
 
-                  <h4>Stimulus</h4>
+									<h4>Stimulus</h4>
 
-                  <div class="form-group row">
-                    <label class="col-md-3 col-sm-4 control-label">Trial window</label>
-                    <label for="fm-option-stim-trial-start" class="col-md-1 col-sm-1 control-label">Start</label>
-                    <div class="col-md-2 col-sm-3">
-                      <input type="text" class="form-control" id="fm-option-stim-trial-start" placeholder="-1.0">
-                    </div>
-                    <label for="fm-option-stim-trial-end" class="col-md-1 col-sm-1 control-label">End</label>
-                    <div class="col-md-2 col-sm-3">
-                      <input type="text" class="form-control" id="fm-option-stim-trial-end" placeholder="3.0">
-                    </div>
-                  </div>
+									<div class="form-group row">
+										<label class="col-md-3 col-sm-4 control-label">Trial window</label>
+										<label for="fm-option-stim-trial-start"
+											class="col-md-1 col-sm-1 control-label">Start</label>
+										<div class="col-md-2 col-sm-3">
+											<input type="text" class="form-control" id="fm-option-stim-trial-start"
+												placeholder="-1.0">
+										</div>
+										<label for="fm-option-stim-trial-end"
+											class="col-md-1 col-sm-1 control-label">End</label>
+										<div class="col-md-2 col-sm-3">
+											<input type="text" class="form-control" id="fm-option-stim-trial-end"
+												placeholder="3.0">
+										</div>
+									</div>
 
-                  <div class="form-group row">
-                    <label class="col-md-3 col-sm-4 control-label">Baseline</label>
-                    <label for="fm-option-stim-baseline-start" class="col-md-1 col-sm-1 control-label">Start</label>
-                    <div class="col-md-2 col-sm-3">
-                      <input type="text" class="form-control" id="fm-option-stim-baseline-start" placeholder="-1.0">
-                    </div>
-                    <label for="fm-option-stim-baseline-end" class="col-md-1 col-sm-1 control-label">End</label>
-                    <div class="col-md-2 col-sm-3">
-                      <input type="text" class="form-control" id="fm-option-stim-baseline-end" placeholder="-0.2">
-                    </div>
-                  </div>
+									<div class="form-group row">
+										<label class="col-md-3 col-sm-4 control-label">Baseline</label>
+										<label for="fm-option-stim-baseline-start"
+											class="col-md-1 col-sm-1 control-label">Start</label>
+										<div class="col-md-2 col-sm-3">
+											<input type="text" class="form-control" id="fm-option-stim-baseline-start"
+												placeholder="-1.0">
+										</div>
+										<label for="fm-option-stim-baseline-end"
+											class="col-md-1 col-sm-1 control-label">End</label>
+										<div class="col-md-2 col-sm-3">
+											<input type="text" class="form-control" id="fm-option-stim-baseline-end"
+												placeholder="-0.2">
+										</div>
+									</div>
 
-                  <h4>Response</h4>
+									<!-- <h4>Response</h4>
 
                   <div class="form-group row">
                     <label class="col-md-3 col-sm-4 control-label">Trial window</label>
@@ -237,336 +253,365 @@
                     value.
                   </p>
 
-                  <h4>Stimulus</h4>
+                  <h4>Stimulus</h4> -->
 
-                  <div class="form-group row">
-                    <div class="radio col-md-3 col-sm-4">
-                      <label>
-                        <input type="radio" name="fm-option-stim-timing" id="fm-option-stim-timing-state" value="state">
-                        State timing
-                      </label>
-                    </div>
-                    <div class="col-md-3 col-sm-7">
-                      <input type="text" class="form-control" id="fm-option-stim-state" placeholder="State">
-                    </div>
-                    <label for="fm-option-stim-state-off"
-                      class="col-md-1 col-sm-4 visible-sm visible-xs control-label text-center"></label>
-                    <div class="col-md-2 col-sm-3">
-                      <input type="text" class="form-control" id="fm-option-stim-state-off" placeholder="Off">
-                    </div>
-                    <label for="fm-option-stim-state-on"
-                      class="col-md-1 col-sm-1 hidden-xs control-label text-center">&xrarr;</label>
-                    <div class="col-md-2 col-sm-3">
-                      <input type="text" class="form-control" id="fm-option-stim-state-on" placeholder="On">
-                    </div>
-                  </div>
+									<div class="form-group row">
+										<div class="radio col-md-3 col-sm-4">
+											<label>
+												<input type="radio" name="fm-option-stim-timing"
+													id="fm-option-stim-timing-state" value="state" checked>
+												State timing
+											</label>
+										</div>
+										<div class="col-md-3 col-sm-7">
+											<input type="text" class="form-control" id="fm-option-stim-state"
+												placeholder="State">
+										</div>
+										<label for="fm-option-stim-state-off"
+											class="col-md-1 col-sm-4 visible-sm visible-xs control-label text-center"></label>
+										<div class="col-md-2 col-sm-3">
+											<input type="text" class="form-control" id="fm-option-stim-state-off"
+												placeholder="0">
+										</div>
+										<label for="fm-option-stim-state-on"
+											class="col-md-1 col-sm-1 hidden-xs control-label text-center">&xrarr;</label>
+										<div class="col-md-2 col-sm-3">
+											<input type="text" class="form-control" id="fm-option-stim-state-on"
+												placeholder="x">
+										</div>
+										<label for="fm-option-stim-state-exclude"
+											class="col-md-1 col-sm-1 hidden-xs control-label text-center">&xrarr;</label>
+										<div class="col-md-2 col-sm-3">
+											<input type="text" class="form-control" id="fm-option-stim-state-exclude"
+												placeholder="99">
+										</div>
+									</div>
 
-                  <div class="form-group row">
-                    <div class="radio col-md-3 col-sm-4">
-                      <label>
-                        <input type="radio" name="fm-option-stim-timing" id="fm-option-stim-timing-signal"
-                          value="signal">
-                        Signal timing
-                      </label>
-                    </div>
-                    <div class="col-md-3 col-sm-7">
-                      <input type="text" class="form-control" id="fm-option-stim-channel" placeholder="Channel">
-                    </div>
-                    <label for="fm-option-stim-off"
-                      class="col-md-1 col-sm-4 visible-sm visible-xs control-label text-center"></label>
-                    <div class="col-md-2 col-sm-3">
-                      <input type="text" class="form-control" id="fm-option-stim-off" placeholder="Off">
-                    </div>
-                    <label for="fm-option-stim-on"
-                      class="col-md-1 col-sm-1 hidden-xs control-label text-center">&xrarr;</label>
-                    <div class="col-md-2 col-sm-3">
-                      <input type="text" class="form-control" id="fm-option-stim-on" placeholder="On">
-                    </div>
-                  </div>
+									<div class="form-group row">
+										<div class="radio col-md-3 col-sm-4">
+											<label>
+												<input type="radio" name="fm-option-stim-timing"
+													id="fm-option-stim-timing-signal" value="signal">
+												Signal timing
+											</label>
+										</div>
+										<div class="col-md-3 col-sm-7">
+											<input type="text" class="form-control" id="fm-option-stim-channel"
+												placeholder="Channel">
+										</div>
+										<label for="fm-option-stim-off"
+											class="col-md-1 col-sm-4 visible-sm visible-xs control-label text-center"></label>
+										<div class="col-md-2 col-sm-3">
+											<input type="text" class="form-control" id="fm-option-stim-off"
+												placeholder="Off">
+										</div>
+										<label for="fm-option-stim-on"
+											class="col-md-1 col-sm-1 hidden-xs control-label text-center">&xrarr;</label>
+										<div class="col-md-2 col-sm-3">
+											<input type="text" class="form-control" id="fm-option-stim-on"
+												placeholder="On">
+										</div>
+									</div>
 
-                  <h4>Response</h4>
+									<h4>Response</h4>
 
-                  <div class="form-group row">
-                    <div class="radio col-md-3 col-sm-4">
-                      <label>
-                        <input type="radio" name="fm-option-resp-timing" id="fm-option-resp-timing-standard"
-                          value="standard" checked>
-                        Standard timing
-                      </label>
-                    </div>
-                    <div class="col-md-3 col-sm-7">
-                      <input type="text" class="form-control" id="fm-option-resp-state" placeholder="State">
-                    </div>
-                    <label for="fm-option-resp-state-off"
-                      class="col-md-1 col-sm-4 visible-sm visible-xs control-label text-center"></label>
-                    <div class="col-md-2 col-sm-3">
-                      <input type="text" class="form-control" id="fm-option-resp-state-off" placeholder="Off">
-                    </div>
-                    <label for="fm-option-resp-state-on"
-                      class="col-md-1 col-sm-1 hidden-xs control-label text-center">&xrarr;</label>
-                    <div class="col-md-2 col-sm-3">
-                      <input type="text" class="form-control" id="fm-option-resp-state-on" placeholder="On">
-                    </div>
-                  </div>
+									<div class="form-group row">
+										<div class="radio col-md-3 col-sm-4">
+											<label>
+												<input type="radio" name="fm-option-resp-timing"
+													id="fm-option-resp-timing-standard" value="standard" checked>
+												Standard timing
+											</label>
+										</div>
+										<div class="col-md-3 col-sm-7">
+											<input type="text" class="form-control" id="fm-option-resp-state"
+												placeholder="State">
+										</div>
+										<label for="fm-option-resp-state-off"
+											class="col-md-1 col-sm-4 visible-sm visible-xs control-label text-center"></label>
+										<div class="col-md-2 col-sm-3">
+											<input type="text" class="form-control" id="fm-option-resp-state-off"
+												placeholder="Off">
+										</div>
+										<label for="fm-option-resp-state-on"
+											class="col-md-1 col-sm-1 hidden-xs control-label text-center">&xrarr;</label>
+										<div class="col-md-2 col-sm-3">
+											<input type="text" class="form-control" id="fm-option-resp-state-on"
+												placeholder="On">
+										</div>
+									</div>
 
-                  <div class="form-group row">
-                    <div class="radio col-md-3 col-sm-4">
-                      <label>
-                        <input type="radio" name="fm-option-resp-timing" id="fm-option-resp-timing-precision"
-                          value="precision">
-                        Precision timing
-                      </label>
-                    </div>
-                    <div class="col-md-3 col-sm-7">
-                      <input type="text" class="form-control" id="fm-option-resp-channel" placeholder="Channel">
-                    </div>
-                    <label for="fm-option-resp-off"
-                      class="col-md-1 col-sm-4 visible-sm visible-xs control-label text-center"></label>
-                    <div class="col-md-2 col-sm-3">
-                      <input type="text" class="form-control" id="fm-option-resp-off" placeholder="Off">
-                    </div>
-                    <label for="fm-option-resp-on"
-                      class="col-md-1 col-sm-1 hidden-xs control-label text-center">&xrarr;</label>
-                    <div class="col-md-2 col-sm-3">
-                      <input type="text" class="form-control" id="fm-option-resp-on" placeholder="On">
-                    </div>
-                  </div>
+									<div class="form-group row">
+										<div class="radio col-md-3 col-sm-4">
+											<label>
+												<input type="radio" name="fm-option-resp-timing"
+													id="fm-option-resp-timing-precision" value="precision">
+												Precision timing
+											</label>
+										</div>
+										<div class="col-md-3 col-sm-7">
+											<input type="text" class="form-control" id="fm-option-resp-channel"
+												placeholder="Channel">
+										</div>
+										<label for="fm-option-resp-off"
+											class="col-md-1 col-sm-4 visible-sm visible-xs control-label text-center"></label>
+										<div class="col-md-2 col-sm-3">
+											<input type="text" class="form-control" id="fm-option-resp-off"
+												placeholder="Off">
+										</div>
+										<label for="fm-option-resp-on"
+											class="col-md-1 col-sm-1 hidden-xs control-label text-center">&xrarr;</label>
+										<div class="col-md-2 col-sm-3">
+											<input type="text" class="form-control" id="fm-option-resp-on"
+												placeholder="On">
+										</div>
+									</div>
 
-                  <hr />
+									<hr />
 
-                  <h3>Cookies</h3>
-                  <p>
-                    <strong>WebFM</strong> uses cookies to store commonly set
-                    settings locally, so that you don't need to re-enter them
-                    every time you reload the page. If you'd like to clear these
-                    out and get a fresh start, hit the button below.
-                  </p>
-                  <p>
-                    <span class="text-warning">Doing this will <strong>restart WebFM.</strong></span>
-                  </p>
+									<h3>Cookies</h3>
+									<p>
+										<strong>WebFM</strong> uses cookies to store commonly set
+										settings locally, so that you don't need to re-enter them
+										every time you reload the page. If you'd like to clear these
+										out and get a fresh start, hit the button below.
+									</p>
+									<p>
+										<span class="text-warning">Doing this will <strong>restart
+												WebFM.</strong></span>
+									</p>
 
-                  <div class="form-group row">
-                    <label for="fm-option-nuke-cookies" class="col-md-3 col-sm-4 control-label">
-                      Nuke cookies
-                    </label>
-                    <div class="col-md-9 col-sm-8">
-                      <button type="submit" class="btn btn-warning" id="fm-option-nuke-cookies"><span
-                          class="glyphicon glyphicon-fire"></span>&emsp;OBLITERATE</button>
-                    </div>
-                  </div>
+									<div class="form-group row">
+										<label for="fm-option-nuke-cookies" class="col-md-3 col-sm-4 control-label">
+											Nuke cookies
+										</label>
+										<div class="col-md-9 col-sm-8">
+											<button type="submit" class="btn btn-warning"
+												id="fm-option-nuke-cookies"><span
+													class="glyphicon glyphicon-fire"></span>&emsp;OBLITERATE</button>
+										</div>
+									</div>
 
-                </div> <!-- tabpanel (options) -->
+								</div> <!-- tabpanel (options) -->
 
-                <div id="fm-options-content-montage" role="tabpanel" class="tab-pane">
+								<div id="fm-options-content-montage" role="tabpanel" class="tab-pane">
 
-                  <h3 style="margin-top: 6px;">Montage</h3>
-                  <p>
-                    <strong>Click</strong> electrodes in the list to exclude or
-                    un-exclude them from the displayed channel raster.
-                  </p>
-                  <button id="clearExclusionButton">Clear</button>
+									<h3 style="margin-top: 6px;">Montage</h3>
+									<p>
+										<strong>Click</strong> electrodes in the list to exclude or
+										un-exclude them from the displayed channel raster.
+									</p>
+									<button id="clearExclusionButton">Clear</button>
 
-                  <table class="table table-hover table-condensed fm-montage-table">
-                    <thead>
-                      <tr>
-                        <th>Name</th>
-                        <th>Excluded</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <th scope="row">LTG01</th>
-                        <td>No</td>
-                      </tr>
-                    </tbody>
-                  </table>
+									<table class="table table-hover table-condensed fm-montage-table">
+										<thead>
+											<tr>
+												<th>Name</th>
+												<th>Excluded</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<th scope="row">LTG01</th>
+												<td>No</td>
+											</tr>
+										</tbody>
+									</table>
 
-                </div> <!-- tabpanel (montage) -->
+								</div> <!-- tabpanel (montage) -->
 
-                <div id="fm-options-content-scope" role="tabpanel" class="tab-pane">
+								<div id="fm-options-content-scope" role="tabpanel" class="tab-pane">
 
-                  <h3 style="margin-top: 6px;">Scope</h3>
+									<h3 style="margin-top: 6px;">Scope</h3>
 
-                  <p>
-                    Enter a <strong>Channel</strong> name to begin scoping live data. By default,
-                    the scale will automatically adjust to match the incoming
-                    signal; alternatively, you can fix the scale by entering
-                    a <strong>Min</strong> or <strong>Max</strong> value.
-                  </p>
+									<p>
+										Enter a <strong>Channel</strong> name to begin scoping live data. By default,
+										the scale will automatically adjust to match the incoming
+										signal; alternatively, you can fix the scale by entering
+										a <strong>Min</strong> or <strong>Max</strong> value.
+									</p>
 
-                  <div class="form-group">
-                    <label for="fm-option-scope-channel" class="col-md-2 col-sm-3 control-label">Channel</label>
-                    <div class="col-md-3 col-sm-7">
-                      <input type="text" class="form-control" id="fm-option-scope-channel" placeholder="ainp1">
-                    </div>
-                    <label for="fm-option-scope-min" class="col-md-1 col-sm-3 control-label">Min</label>
-                    <div class="col-md-2 col-sm-3">
-                      <input type="text" class="form-control" id="fm-option-scope-min" placeholder="-100">
-                    </div>
-                    <label for="fm-option-scope-max" class="col-md-1 col-sm-1 control-label">Max</label>
-                    <div class="col-md-2 col-sm-3">
-                      <input type="text" class="form-control" id="fm-option-scope-max" placeholder="100">
-                    </div>
-                  </div>
+									<div class="form-group">
+										<label for="fm-option-scope-channel"
+											class="col-md-2 col-sm-3 control-label">Channel</label>
+										<div class="col-md-3 col-sm-7">
+											<input type="text" class="form-control" id="fm-option-scope-channel"
+												placeholder="ainp1">
+										</div>
+										<label for="fm-option-scope-min"
+											class="col-md-1 col-sm-3 control-label">Min</label>
+										<div class="col-md-2 col-sm-3">
+											<input type="text" class="form-control" id="fm-option-scope-min"
+												placeholder="-100">
+										</div>
+										<label for="fm-option-scope-max"
+											class="col-md-1 col-sm-1 control-label">Max</label>
+										<div class="col-md-2 col-sm-3">
+											<input type="text" class="form-control" id="fm-option-scope-max"
+												placeholder="100">
+										</div>
+									</div>
 
-                  <div id="fm-scope"></div>
+									<div id="fm-scope"></div>
 
-                </div> <!-- tabpanel (scope) -->
+								</div> <!-- tabpanel (scope) -->
 
-                <div id="fm-options-content-save" role="tabpanel" class="tab-pane">
+								<div id="fm-options-content-save" role="tabpanel" class="tab-pane">
 
-                  <h3 style="margin-top: 6px;">Save</h3>
+									<h3 style="margin-top: 6px;">Save</h3>
 
-                  <div class="row">
+									<div class="row">
 
-                    <div class="col-md-6">
+										<div class="col-md-6">
 
-                      <p>
-                        <strong>Enter</strong> a name below to save your map to the
-                        WebFM cloud.
-                      </p>
+											<p>
+												<strong>Enter</strong> a name below to save your map to the
+												WebFM cloud.
+											</p>
 
-                      <!-- TODO Janky AF -->
-                      <form class="form-inline">
-                        <input type="text" class="form-control" id="fm-option-save-name" value="[Task]">
-                        <button type="button" class="btn btn-default fm-save-cloud"><span
-                            class="glyphicon glyphicon-cloud-upload"></span> Save</button>
-                      </form>
+											<!-- TODO Janky AF -->
+											<form class="form-inline">
+												<input type="text" class="form-control" id="fm-option-save-name"
+													value="[Task]">
+												<button type="button" class="btn btn-default fm-save-cloud"><span
+														class="glyphicon glyphicon-cloud-upload"></span> Save</button>
+											</form>
 
-                    </div>
+										</div>
 
-                    <div class="col-md-6">
+										<div class="col-md-6">
 
-                      <table class="table table-hover table-condensed">
-                        <thead>
-                          <tr>
-                            <th>Saved records for <span class="fm-subject-name">[subject]</span></th>
-                          </tr>
-                        </thead>
-                        <tbody id="fm-cloud-records-table">
-                        </tbody>
-                      </table>
+											<table class="table table-hover table-condensed">
+												<thead>
+													<tr>
+														<th>Saved records for <span
+																class="fm-subject-name">[subject]</span></th>
+													</tr>
+												</thead>
+												<tbody id="fm-cloud-records-table">
+												</tbody>
+											</table>
 
-                    </div>
+										</div>
 
-                  </div>
+									</div>
 
-                </div> <!-- tabpanel (montage) -->
+								</div> <!-- tabpanel (montage) -->
 
-                <div id="fm-options-content-about" role="tabpanel" class="tab-pane">
+								<div id="fm-options-content-about" role="tabpanel" class="tab-pane">
 
-                  <h1>WebFM <small>v1.0-alpha</small></h1>
+									<h1>WebFM <small>v1.0-alpha</small></h1>
 
-                  <p>
-                    Online functional mapping&mdash;online.
-                  </p>
+									<p>
+										Online functional mapping&mdash;online.
+									</p>
 
-                  <p>
-                    Fork me on <a href="http://github.com/cronelab/webfm">GitHub</a>.
-                  </p>
+									<p>
+										Fork me on <a href="http://github.com/cronelab/webfm">GitHub</a>.
+									</p>
 
-                  <h4 style="margin-top:30px;">Written by</h4>
+									<h4 style="margin-top:30px;">Written by</h4>
 
-                  <p>
-                    <dl class="dl-horizontal">
-                      <dt>Max Collard</dt>
-                      <dd>Web frontend, Map, Server, bci2k.js</dd>
+									<p>
+										<dl class="dl-horizontal">
+											<dt>Max Collard</dt>
+											<dd>Web frontend, Map, Server, bci2k.js</dd>
 
-                      <dt>Griffin Milsap</dt>
-                      <dd>BCI2000Web, bci2k.js</dd>
-                    </dl>
-                  </p>
+											<dt>Griffin Milsap</dt>
+											<dd>BCI2000Web, bci2k.js</dd>
+										</dl>
+									</p>
 
-                  <h4>Powered by</h4>
+									<h4>Powered by</h4>
 
-                  <p>
-                    <ul class="list-inline">
-                      <li><a href="https://github.com/griffinmilsap/bci2k.js">bci2k.js</a></li>
-                      <li>Bootstrap</li>
-                      <li>node.js</li>
-                      <li>d3</li>
-                      <li>d3-horizon-chart</li>
-                    </ul>
-                  </p>
+									<p>
+										<ul class="list-inline">
+											<li><a href="https://github.com/griffinmilsap/bci2k.js">bci2k.js</a></li>
+											<li>Bootstrap</li>
+											<li>node.js</li>
+											<li>d3</li>
+											<li>d3-horizon-chart</li>
+										</ul>
+									</p>
 
-                </div> <!-- tabpanel (about) -->
+								</div> <!-- tabpanel (about) -->
 
-              </div> <!-- tab-content -->
+							</div> <!-- tab-content -->
 
-            </div>
+						</div>
 
-          </div>
+					</div>
 
-        </div>
+				</div>
 
-        <div class="modal-footer">
-          <button type="button" class="btn btn-primary" data-dismiss="modal">Done</button>
-        </div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" data-dismiss="modal">Done</button>
+				</div>
 
-      </div>
-    </div>
-    <script>
-      //Make the DIV element draggagle:
-      dragElement(document.getElementById("fm-brain"));
+			</div>
+		</div>
+		<script>
+			//Make the DIV element draggagle:
+			dragElement(document.getElementById("fm-brain"));
 
-      function dragElement(elmnt) {
-        var pos1 = 0,
-          pos2 = 0,
-          pos3 = 0,
-          pos4 = 0;
-        if (document.getElementById(elmnt.id + "header")) {
-          /* if present, the header is where you move the DIV from:*/
-          document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
-        } else {
-          /* otherwise, move the DIV from anywhere inside the DIV:*/
-          elmnt.onmousedown = dragMouseDown;
-        }
+			function dragElement(elmnt) {
+				var pos1 = 0,
+					pos2 = 0,
+					pos3 = 0,
+					pos4 = 0;
+				if (document.getElementById(elmnt.id + "header")) {
+					/* if present, the header is where you move the DIV from:*/
+					document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
+				} else {
+					/* otherwise, move the DIV from anywhere inside the DIV:*/
+					elmnt.onmousedown = dragMouseDown;
+				}
 
-        function dragMouseDown(e) {
-          e = e || window.event;
-          e.preventDefault();
-          // get the mouse cursor position at startup:
-          pos3 = e.clientX;
-          pos4 = e.clientY;
-          document.onmouseup = closeDragElement;
-          // call a function whenever the cursor moves:
-          document.onmousemove = elementDrag;
-        }
+				function dragMouseDown(e) {
+					e = e || window.event;
+					e.preventDefault();
+					// get the mouse cursor position at startup:
+					pos3 = e.clientX;
+					pos4 = e.clientY;
+					document.onmouseup = closeDragElement;
+					// call a function whenever the cursor moves:
+					document.onmousemove = elementDrag;
+				}
 
-        function elementDrag(e) {
-          e = e || window.event;
-          e.preventDefault();
-          // calculate the new cursor position:
-          pos1 = pos3 - e.clientX;
-          pos2 = pos4 - e.clientY;
-          pos3 = e.clientX;
-          pos4 = e.clientY;
-          // set the element's new position:
-          elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-          elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
-        }
+				function elementDrag(e) {
+					e = e || window.event;
+					e.preventDefault();
+					// calculate the new cursor position:
+					pos1 = pos3 - e.clientX;
+					pos2 = pos4 - e.clientY;
+					pos3 = e.clientX;
+					pos4 = e.clientY;
+					// set the element's new position:
+					elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+					elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+				}
 
-        function closeDragElement() {
-          /* stop moving when mouse button is released:*/
-          document.onmouseup = null;
-          document.onmousemove = null;
-        }
-      }
-    </script>
-  </div>
+				function closeDragElement() {
+					/* stop moving when mouse button is released:*/
+					document.onmouseup = null;
+					document.onmousemove = null;
+				}
+			}
+		</script>
+	</div>
 
 
-  <!-- Footer -->
+	<!-- Footer -->
 
-  <footer class="footer navbar-fixed-bottom">
-    <div class="container-fluid">
-      <p class="text-muted text-right">
-        <span class="fm-trial-label">[n]</span>
-        &emsp;&middot;&emsp;
-        BCI2K: <span class="text-success fm-bci-status-label">Connected</span>
-      </p>
-    </div>
-  </footer>
+	<footer class="footer navbar-fixed-bottom">
+		<div class="container-fluid">
+			<p class="text-muted text-right">
+				<span class="fm-trial-label">[n]</span>
+				&emsp;&middot;&emsp;
+				BCI2K: <span class="text-success fm-bci-status-label">Connected</span>
+			</p>
+		</div>
+	</footer>
 
 </body>
 

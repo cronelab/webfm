@@ -1,3 +1,18 @@
 {
-	"extends": "./server/tsconfig.json",
+	"exclude": [
+		"./migration",
+		"./server",
+		"node_modules",
+		"dist",
+	],
+	"compilerOptions": {
+		"outDir": "./dist/",
+		"noImplicitAny": true,
+		"module": "es6",
+		"target": "es5",
+		"allowJs": true,
+		"sourceMap": true,
+		"strictNullChecks": false,
+		"downlevelIteration": true,
+	},
 }

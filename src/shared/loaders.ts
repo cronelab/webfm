@@ -1,19 +1,10 @@
-// import {
-//   Scene,
-//   PerspectiveCamera,
-//   WebGLRenderer,
-//   HemisphereLight
-// } from "three";
-// const THREE = require('three')
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import FBXLoader from 'three-fbx-loader'
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-//Static loader is SOOOOOOO much faster.
-// import brain from '../3DViewer/reconstruction.gltf'
+import * as THREE from "../../node_modules/three/src/Three";
+import { GLTFLoader } from '../../node_modules/three/examples/jsm/loaders/GLTFLoader';
+import { FBXLoader } from "../../node_modules/three/examples/jsm/loaders/FBXLoader"
+import { OrbitControls } from "../../node_modules/three/examples/jsm/controls/OrbitControls";
 
-const fetchAndStoreBrain = async subject => {
-	let storedBrain = localStorage.getItem(`brain`);
+const fetchAndStoreBrain = async (subject: any) => {
+	let storedBrain: any = localStorage.getItem(`brain`);
 	if (JSON.parse(storedBrain) != null && storedBrain.subject == subject) {
 		return storedBrain.brain;
 	} else {
@@ -22,11 +13,11 @@ const fetchAndStoreBrain = async subject => {
 		let resType = response.headers.get("content-type");
 		let brain;
 		if (resType.includes("image/jpeg")) {
-			let brain = await response.arrayBuffer();
+			let brainRes = await response.arrayBuffer();
 			let base64Flag = "data:image/jpeg;base64,";
 			let binary = "";
-			let bytes = [].slice.call(new Uint8Array(brain));
-			bytes.forEach(b => (binary += String.fromCharCode(b)));
+			let bytes = [].slice.call(new Uint8Array(brainRes));
+			bytes.forEach((b: any) => (binary += String.fromCharCode(b)));
 			brain = base64Flag + window.btoa(binary);
 			localStorage.setItem(`brain`, JSON.stringify({
 				subject: subject,
@@ -44,8 +35,8 @@ const fetchAndStoreBrain = async subject => {
 	}
 };
 
-const fetchAndStoreGeometry = async subject => {
-	let storedGeometry = localStorage.getItem(`geometry`);
+const fetchAndStoreGeometry = async (subject: any) => {
+	let storedGeometry: any = localStorage.getItem(`geometry`);
 	if (JSON.parse(storedGeometry) != null && storedGeometry.subject == subject) {
 		return storedGeometry.geometry;
 	} else {
@@ -60,7 +51,7 @@ const fetchAndStoreGeometry = async subject => {
 	}
 };
 
-let load3DBrain_gltf = (subject, brainContainer) => {
+let load3DBrain_gltf = (subject: any, brainContainer: any) => {
 	return new Promise((resolve, reject) => {
 		let brainContainer = document.getElementById('fm-brain-3D');
 		let scene = new THREE.Scene();
@@ -78,7 +69,7 @@ let load3DBrain_gltf = (subject, brainContainer) => {
 		controls.update();
 		scene.add(light);
 		let loader = new GLTFLoader()
-		loader.load(subject, object3d => {
+		loader.load(subject, (object3d: any) => {
 			// loader.load(`/api/${subject}/brain3D_g`, object3d => {
 			scene.add(object3d.scene)
 			let mainScene = scene.getObjectByName("Scene");
@@ -95,26 +86,26 @@ let load3DBrain_gltf = (subject, brainContainer) => {
 
 }
 
-let load3DBrain = subject => {
+let load3DBrain = (subject: any) => {
 	let brainContainer = document.getElementById('fm-brain-3D');
 	let loader = new FBXLoader();
-	let scene = new Scene();
-	let camera = new PerspectiveCamera(45, 640 / 480, 0.1, 50000);
-	let renderer = new WebGLRenderer({
+	let scene = new THREE.Scene();
+	let camera = new THREE.PerspectiveCamera(45, 640 / 480, 0.1, 50000);
+	let renderer = new THREE.WebGLRenderer({
 		antialias: true
 	});
 	let controls = new OrbitControls(camera, renderer.domElement);
-	let light = new HemisphereLight(0xffffff, 0x444444);
+	let light = new THREE.HemisphereLight(0xffffff, 0x444444);
 	camera.position.set(500, 1000, 500);
 	renderer.setSize(640, 480);
 	light.position.set(0, 0, 10);
 	controls.target.set(100, 0, 0);
 	controls.update();
 	scene.add(light);
-	loader.load(`/api/${subject}/brain3D`, object3d => {
+	loader.load(`/api/${subject}/brain3D`, (object3d: any) => {
 		console.log(object3d)
 		scene.add(object3d)
-		object3d.traverse((child) => {
+		object3d.traverse((child: any) => {
 			if (child.material) {
 				for (let material of child.material) {
 					material.wireframe = true;
@@ -132,7 +123,7 @@ let load3DBrain = subject => {
 }
 
 
-let loadValues = async (subject, record) => {
+let loadValues = async (subject: any, record: any) => {
 	let valuePath = `api/${subject}/${record}/values`;
 	let timePath = `api/${subject}/${record}/times`;
 	const valueResponse = await fetch(valuePath);
@@ -146,14 +137,14 @@ let loadValues = async (subject, record) => {
 	};
 }
 
-let loadStats = async (subject, record) => {
+let loadStats = async (subject: any, record: any) => {
 	let statPath = `api/${subject}/${record}/stats`;
 	let timePath = `api/${subject}/${record}/times`;
 
 	const statResponse = await fetch(statPath);
 	const stats = await statResponse.json();
 	const timeResponse = await fetch(timePath);
-	const times = await timeResponse.json();
+	const times: any = await timeResponse.json();
 	let channels = Object.keys(stats.estimators.mean);
 	let distributions = stats.distributions;
 	let values = channels.map(ch => {
@@ -161,7 +152,7 @@ let loadStats = async (subject, record) => {
 		let variance = stats.estimators.variance[ch];
 		let count = stats.estimators.count;
 
-		let _m2 = mean.map((d, i) => {
+		let _m2 = mean.map((d: any, i: any) => {
 			return count[i] > 1 && variance[i] !== undefined ?
 				variance[i] * (count[i] - 1) :
 				undefined;
@@ -188,14 +179,14 @@ let loadStats = async (subject, record) => {
 			}
 		};
 	});
-	Object.keys(values).forEach(key => {
-		let newKey = channels[key];
+	Object.keys(values).forEach((key: any) => {
+		let newKey: any = channels[key];
 		values[newKey] = values[key];
 		delete values[key];
 	});
 	values = {
 		...values,
-		times
+		// times
 	};
 	// console.log(values)
 	return values;

@@ -5,7 +5,7 @@ import {
 	fetchAndStoreBrain,
 	fetchAndStoreGeometry
 } from "../shared/loaders";
-import path from "path";
+import * as path from 'path';
 import BCI2K from "bci2k";
 import {
 	select
@@ -38,15 +38,15 @@ window.onload = async () => {
 	localStorage.setItem("source-address", localSourceAddress);
 	bciOperator
 		.connect(`ws://${localSourceAddress}`)
-		.then(event => bciOperator.stateListen())
-		.catch(err => {
+		.then(() => bciOperator.stateListen())
+		.catch((err: Error) => {
 			console.log(err)
 			bciOperator.onStateChange("Not Connected")
 		})
 };
 
-bciOperator.onStateChange = currentState => {
-	let stateClasses = {
+bciOperator.onStateChange = (currentState: string) => {
+	let stateClasses: any = {
 		"Not Connected": "text-muted",
 		Idle: "text-info",
 		Suspended: "text-warning",
@@ -64,14 +64,14 @@ bciOperator.onStateChange = currentState => {
 	});
 
 	if (currentState == "Running" || currentState == "Suspended" || currentState == "Resting" || currentState == "Initialization") {
-		bciOperator.getSubjectName().then(subjectName => {
+		bciOperator.getSubjectName().then((subjectName: string) => {
 			document.getElementById("subject-label").innerHTML = subjectName.trim();
 			localStorage.setItem("subject", subjectName.trim());
 			fetchAndStoreBrain(subjectName.trim());
 			fetchAndStoreGeometry(subjectName.trim());
 			//   selectSubject(subjectName.trim());
 		});
-		bciOperator.getTaskName().then(taskName => {
+		bciOperator.getTaskName().then((taskName: string) => {
 			document.getElementById("task-label").innerHTML = taskName.split(
 				path.sep
 			)[1];
@@ -85,7 +85,7 @@ bciOperator.onStateChange = currentState => {
 	}
 };
 
-let addSubjectCell = subjects => {
+let addSubjectCell = (subjects: string[]) => {
 	let PYSubjects = [];
 	let otherSubjects = [];
 	PYSubjects = subjects.filter(subj => subj.substring(0, 2) == "PY");
@@ -95,7 +95,7 @@ let addSubjectCell = subjects => {
 		let dropItem = document.createElement("div");
 		dropItem.classList.add("dropdown-item");
 		dropItem.id = subj;
-		dropItem.href = `#${subj}`;
+		// dropItem.href = `#${subj}`;
 		dropItem.innerHTML = subj;
 		dropItem.onclick = (e) => {
 			e.stopPropagation();
@@ -105,7 +105,7 @@ let addSubjectCell = subjects => {
 	});
 
 	let uniquePYYears = [
-		...new Set(PYSubjects.map(year => year.substring(2, 4)))
+		...new Set(PYSubjects.map((year: string) => year.substring(2, 4)))
 	];
 	uniquePYYears.forEach(year => {
 		let btnGroup = document.createElement("div");
@@ -126,7 +126,7 @@ let addSubjectCell = subjects => {
 		btnGroup.append(dropMenu);
 		btnGroup.append(newYear);
 
-		dropdowns.forEach((dropItem, index) => {
+		dropdowns.forEach((dropItem: any) => {
 			if (dropItem.innerHTML.substring(2, 4) == year) {
 				dropMenu.append(dropItem);
 			}
@@ -134,7 +134,7 @@ let addSubjectCell = subjects => {
 		document.getElementById("subject-list").append(btnGroup);
 	});
 
-	otherSubjects.forEach(subject => {
+	otherSubjects.forEach((subject: string) => {
 		let newSubject = document.createElement("a");
 		newSubject.id = subject;
 		newSubject.href = `#${subject}`;
@@ -145,7 +145,7 @@ let addSubjectCell = subjects => {
 	});
 };
 
-let selectSubject = async subject => {
+let selectSubject = async (subject: string) => {
 	localStorage.setItem("subject", subject);
 
 	let fmlistPathRes = await fetch(`/api/${subject}/records/FM`);
@@ -170,8 +170,8 @@ let selectSubject = async subject => {
 	}
 
 	fetchAndStoreBrain(subject).then(brain => {
-		document.getElementsByClassName("main-brain")[0].src = brain;
-		document.getElementsByClassName("main-brain")[1].src = brain;
+		(<HTMLImageElement>document.getElementsByClassName("main-brain")[0]).src = brain;
+		(<HTMLImageElement>document.getElementsByClassName("main-brain")[1]).src = brain;
 		scroll(0, 0);
 	});
 	fetchAndStoreGeometry(subject);
@@ -209,7 +209,7 @@ let selectSubject = async subject => {
 		document.getElementById("record-list").append(btnGroup1);
 
 		fm_records.sort();
-		fm_records.forEach(record => {
+		fm_records.forEach((record: string) => {
 			let newRecord = document.createElement("a");
 			newRecord.id = record;
 			newRecord.href = `/record`;
@@ -225,7 +225,7 @@ let selectSubject = async subject => {
 	btnGroup2.classList.add("dropleft");
 
 	let dropMenu2 = document.createElement("div");
-	dropMenu2.style.border = 0;
+	// dropMenu2.style.border = 0;
 
 	dropMenu2.classList.add("dropdown-menu");
 	btnGroup2.append(dropMenu2);
@@ -246,7 +246,7 @@ let selectSubject = async subject => {
 		newRecord.href = `/api/${subject}/cortstim`;
 		newRecord.classList.add("list-group-item");
 		newRecord.innerText = 'Cortstim';
-		newRecord.onclick = () => localStorage.setItem("record", record);
+		// newRecord.onclick = () => localStorage.setItem("record", record);
 		dropMenu2.append(newRecord);
 	}
 
@@ -271,10 +271,10 @@ let selectSubject = async subject => {
 		document.getElementById("record-list").append(btnGroup3);
 
 		hg_records.sort();
-		hg_records.forEach(record => {
+		hg_records.forEach((record: string) => {
 			let newRecord = document.createElement("a");
 			newRecord.id = record;
-			newRecord.href = `/record`;
+			newRecord.href = `/record?type=HG`;
 			newRecord.classList.add("list-group-item");
 			newRecord.innerText = record;
 			newRecord.onclick = () => localStorage.setItem("record", record);
@@ -287,7 +287,7 @@ let selectSubject = async subject => {
 	btnGroup4.classList.add("dropleft");
 
 	let dropMenu4 = document.createElement("div");
-	dropMenu4.style.border = 0;
+	// dropMenu4.style.border = 0;
 	dropMenu4.classList.add("dropdown-menu");
 	btnGroup4.append(dropMenu4);
 
@@ -296,7 +296,7 @@ let selectSubject = async subject => {
 		recordType.classList.add("btn");
 		recordType.innerText = `CCEPS`;
 		recordType.onclick = () => {
-			window.location = `/CCEPS?subject=${localStorage.getItem('subject')}`
+			window.location.href = `/CCEPS?subject=${localStorage.getItem('subject')}`
 		}
 		btnGroup4.append(recordType);
 
@@ -312,7 +312,7 @@ document.getElementById('3DViewer').onclick = () => {
 	location.href = `/${localStorage.getItem('subject')}`;
 }
 
-document.getElementsByClassName("toggle-online-options")[0].onclick = () => {
+(<HTMLButtonElement>document.getElementsByClassName("toggle-online-options")[0]).onclick = () => {
 	if (document.getElementById("online-options").classList.contains("d-none")) {
 		document.getElementById("online-options").classList.remove("d-none");
 	} else {
@@ -321,7 +321,7 @@ document.getElementsByClassName("toggle-online-options")[0].onclick = () => {
 	$('#exampleModal').modal("show")
 };
 
-document.getElementsByClassName("toggle-new-subject")[0].onclick = () => {
+(<HTMLButtonElement>document.getElementsByClassName("toggle-new-subject")[0]).onclick = () => {
 	if (
 		document.getElementById("new-subject-options").classList.contains("d-none")
 	) {
@@ -332,15 +332,15 @@ document.getElementsByClassName("toggle-new-subject")[0].onclick = () => {
 };
 
 document.getElementById("source-address-ok").onclick = () => {
-	let newSourceAddress = document.getElementById("source-address").value;
+	let newSourceAddress = (<HTMLInputElement>document.getElementById("source-address")).value;
 	localStorage.setItem("source-address", newSourceAddress);
 	bciOperator
 		.connect(`ws://${newSourceAddress}`)
-		.then(event => bciOperator.stateListen());
+		.then((event: any) => bciOperator.stateListen());
 };
 
 document.getElementById("new-subject-ok").onclick = () => {
-	let newSubjectId = document.getElementById("new-subject-id").value;
+	let newSubjectId = (<HTMLInputElement>document.getElementById("new-subject-id")).value;
 	fetch(`/api/data/${newSubjectId}`, {
 		method: "PUT"
 	}).then(response => {
@@ -349,19 +349,19 @@ document.getElementById("new-subject-ok").onclick = () => {
 	});
 };
 
-document.getElementsByClassName("upload-sensor-geometry")[0].onclick = () =>
+(<HTMLButtonElement>document.getElementsByClassName("upload-sensor-geometry")[0]).onclick = () =>
 	document.getElementById("upload-sensor-geometry-input").click();
-document.getElementById("upload-sensor-geometry-input").onchange = async e => {
+document.getElementById("upload-sensor-geometry-input").onchange = async (e: any) => {
 	let subject = localStorage.getItem("subject");
 
 	let file = e.target.files[0];
 	var reader = new FileReader();
-	let jsonRecord = {};
+	let jsonRecord: any = {};
 	reader.addEventListener(
 		"load",
 		() => {
-			let channelInfo = reader.result.split("\n");
-			channelInfo.forEach(ch => {
+			let channelInfo = (<string>reader.result).split("\n");
+			channelInfo.forEach((ch: string) => {
 				let channelData = ch.split(",");
 				if (channelData.length > 1) {
 					jsonRecord[channelData[0]] = {
@@ -388,9 +388,9 @@ document.getElementById("upload-sensor-geometry-input").onchange = async e => {
 	// };
 };
 
-document.getElementsByClassName("upload-brain-image")[0].onclick = () =>
+(<HTMLButtonElement>document.getElementsByClassName("upload-brain-image")[0]).onclick = () =>
 	document.getElementById("upload-brain-image-input").click();
-document.getElementById("upload-brain-image-input").onchange = e => {
+document.getElementById("upload-brain-image-input").onchange = (e: any) => {
 	let file = e.target.files[0];
 	let subject = localStorage.getItem("subject");
 	let formData = new FormData();
@@ -399,8 +399,8 @@ document.getElementById("upload-brain-image-input").onchange = e => {
 	reader.addEventListener(
 		"load",
 		() => {
-			document.getElementsByClassName("main-brain")[0].src = reader.result;
-			document.getElementsByClassName("main-brain")[1].src = reader.result;
+			(<HTMLImageElement>document.getElementsByClassName("main-brain")[0]).src = (<string>reader.result);
+			(<HTMLImageElement>document.getElementsByClassName("main-brain")[1]).src = (<string>reader.result);
 		},
 		false
 	);
@@ -412,9 +412,9 @@ document.getElementById("upload-brain-image-input").onchange = e => {
 	});
 
 };
-let brainDots
-let sensorGeometry
-let positionInfoelement
+let brainDots: any
+let sensorGeometry: any
+let positionInfoelement: any
 document.getElementById('modal-geometry-generator-tab').onclick = e => {
 
 	sensorGeometry = JSON.parse(localStorage.getItem('geometry')).data;
@@ -424,7 +424,7 @@ document.getElementById('modal-geometry-generator-tab').onclick = e => {
 				channel: ch,
 				value: 1
 			};
-		}), d => d.channel);
+		}), (d: any) => d.channel);
 
 
 	let electrodeList = document.getElementById('electrodeList')
@@ -455,12 +455,12 @@ document.getElementById('modal-geometry-generator-tab').onclick = e => {
 		brainDots.enter().append('circle')
 			.attr('class', 'fm-brain-dot')
 			.merge(brainDots)
-			.style('fill', d => 'green')
+			.style('fill', (d: any) => 'green')
 			.attr('visibility', "visible")
-			.attr('cx', d => sensorGeometry[d.channel].u * positionInfoelement.width)
-			.attr('cy', d => (1 - sensorGeometry[d.channel].v) * positionInfoelement.height)
-			.attr('r', d => 2)
-			.attr('id', d => `dot_${d.channel}`)
+			.attr('cx', (d: any) => sensorGeometry[d.channel].u * positionInfoelement.width)
+			.attr('cy', (d: any) => (1 - sensorGeometry[d.channel].v) * positionInfoelement.height)
+			.attr('r', (d: any) => 2)
+			.attr('id', (d: any) => `dot_${d.channel}`)
 
 		Object.keys(sensorGeometry).forEach(ch => {
 			let valueToPlot = {
@@ -487,22 +487,22 @@ document.getElementById('modal-geometry-generator-tab').onclick = e => {
 	}, 300)
 
 }
-const changeDots = (e, type) => {
+const changeDots = (e: any, type: any) => {
 	if (type == "highlight") {
 		document.getElementById(`dot_${e.name}`).style.fill = "red"
-		document.getElementById(`dot_${e.name}`).setAttribute('r', 5)
+		document.getElementById(`dot_${e.name}`).setAttribute('r', '5')
 		setTimeout(() => {
 			document.getElementById(`dot_${e.name}`).style.fill = "green"
-			document.getElementById(`dot_${e.name}`).setAttribute('r', 2)
+			document.getElementById(`dot_${e.name}`).setAttribute('r', '2')
 		}, 1000)
 	} else {
 		document.getElementById(`dot_${e.name}`).style.fill = "red"
-		document.getElementById(`dot_${e.name}`).setAttribute('r', 5)
+		document.getElementById(`dot_${e.name}`).setAttribute('r', '5')
 		setTimeout(() => {
 			select(`#dot_${e.name}`).remove()
 			document.getElementById('fm-brain').addEventListener('click', logger)
 
-			function logger(zed) {
+			function logger(zed: any) {
 				select('.fm-brain-dots').append('circle')
 					.attr('class', 'fm-brain-dot')
 					.style('fill', 'green')
@@ -510,9 +510,9 @@ const changeDots = (e, type) => {
 					.attr('cx', zed.offsetX)
 					.attr('cy', zed.offsetY)
 					.attr('r', 2)
-					.attr('id', `dot_${e.name}`)
-				document.getElementById(`table_${e.name}`).childNodes[1].innerText = zed.offsetX
-				document.getElementById(`table_${e.name}`).childNodes[2].innerText = zed.offsetY
+					.attr('id', `dot_${e.name}`);
+				(<HTMLInputElement>document.getElementById(`table_${e.name}`).childNodes[1]).innerText = zed.offsetX
+					(<HTMLInputElement>document.getElementById(`table_${e.name}`).childNodes[2]).innerText = zed.offsetY
 				document.getElementById('fm-brain').removeEventListener('click', logger)
 			}
 		}, 1000)
@@ -520,7 +520,7 @@ const changeDots = (e, type) => {
 }
 
 document.getElementById("geometryButton").onclick = () => {
-	let newChannel = document.getElementById('geometryCreator').value;
+	let newChannel = (<HTMLInputElement>document.getElementById('geometryCreator')).value;
 	console.log(newChannel)
 	let elecTable = document.getElementById('electrodeTable')
 	let channelEntry = document.createElement('tr')
@@ -532,7 +532,7 @@ document.getElementById("geometryButton").onclick = () => {
 	elecTable.appendChild(channelEntry)
 	document.getElementById('fm-brain').addEventListener('click', logger)
 
-	function logger(zed) {
+	function logger(zed: any) {
 		let xPos = document.createElement('td')
 		xPos.innerHTML = zed.offsetX
 		let yPos = document.createElement('td')
@@ -559,11 +559,11 @@ document.getElementById("geometryButton").onclick = () => {
 }
 
 document.getElementById("saveGeometry").onclick = () => {
-	let newSensorGeometry = {}
+	let newSensorGeometry: any = {}
 	Array.from(document.getElementById('electrodeTable').children).forEach(elec => {
-		newSensorGeometry[elec.childNodes[0].innerText] = {
-			u: parseFloat(document.getElementById(`table_${elec.childNodes[0].innerText}`).childNodes[1].innerText) / positionInfoelement.width,
-			v: (1 - parseFloat(document.getElementById(`table_${elec.childNodes[0].innerText}`).childNodes[2].innerText) / positionInfoelement.height)
+		newSensorGeometry[(<HTMLInputElement>elec.childNodes[0]).innerText] = {
+			u: parseFloat((<HTMLInputElement>document.getElementById(`table_${(<HTMLInputElement>elec.childNodes[0]).innerText}`).childNodes[1]).innerText) / positionInfoelement.width,
+			v: (1 - parseFloat((<HTMLInputElement>document.getElementById(`table_${(<HTMLInputElement>elec.childNodes[0]).innerText}`).childNodes[2]).innerText) / positionInfoelement.height)
 		}
 	})
 	localStorage.setItem(`geometry`, JSON.stringify({
@@ -589,34 +589,34 @@ document.getElementById("saveGeometry").onclick = () => {
 }
 
 document.getElementById("createSubject").onclick = () => {
-	let subjFile = document.getElementById('subjectBrainUpload');
+	let subjFile: HTMLFormElement = (<HTMLFormElement>document.getElementById('subjectBrainUpload'));
 	const data = new URLSearchParams();
-	for (const pair of new FormData(subjFile)) {
+	for (const pair in new FormData(subjFile)) {
 		data.append(pair[0], pair[1]);
 	}
 	let formData = new FormData(subjFile)
-	fetch(`/api/${document.getElementById('subjectEntry').value}/brain`, {
+	fetch(`/api/${(<HTMLInputElement>document.getElementById('subjectEntry')).value}/brain`, {
 		method: 'post',
 		body: formData,
 	}).then(res => res.text())
 		.then(response => {
-			loadBrain(`${document.getElementById('subjectEntry').value}`)
+			// loadBrain(`${document.getElementById('subjectEntry').value}`)
 		})
 		.catch(error => console.error('Error:', error));
 }
 
-document.getElementById('saveNotes').onclick = () => {
-	fetch(`/api/${document.getElementById('subjectEntry').value}/notes`, {
-		method: 'PUT',
-		body: JSON.stringify({
-			note: document.getElementById('webfmNotes').value
-		}),
-		headers: {
-			'Content-Type': 'application/json'
-		}
-	})
-}
-document.getElementsByClassName("main-brain")[0].ondblclick = e => $('#exampleModal').modal("show")
+// document.getElementById('saveNotes').onclick = () => {
+// 	fetch(`/api/${document.getElementById('subjectEntry').value}/notes`, {
+// 		method: 'PUT',
+// 		body: JSON.stringify({
+// 			note: document.getElementById('webfmNotes').value
+// 		}),
+// 		headers: {
+// 			'Content-Type': 'application/json'
+// 		}
+// 	})
+// }
+(<HTMLButtonElement>document.getElementsByClassName("main-brain")[0]).ondblclick = e => $('#exampleModal').modal("show")
 $('#exampleModal').on('hidden.bs.modal', function () {
 	console.log("closed modal")
 	$(".table_striped").remove();
