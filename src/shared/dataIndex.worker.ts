@@ -22,3 +22,5 @@ const dataForTime = (displayData: any, time: any, dataWindow: any) => {
 	ctx.postMessage(disp);
 
 }
+
+export default {} as typeof Worker & (new () => Worker);

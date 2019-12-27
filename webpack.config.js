@@ -15,6 +15,7 @@ const module = {
 		index: "./src/index/main.ts",
 		record: "./src/record/main.ts",
 		map: "./src/map/main.ts",
+		index_r: "./src/index.tsx"
 		// streamSaver: "./streamSaver/index.js",
 		// cceps: "./src/CCEPS/index.js",
 		// threeD: "./src/3DViewer/main.js",
@@ -26,7 +27,7 @@ const module = {
 	},
 	resolve: {
 		// Add `.ts` and `.tsx` as a resolvable extension.
-		extensions: [".ts", ".tsx", ".js"]
+		extensions: [".ts", ".tsx", ".js", ".jsx"]
 	},
 	module: {
 		rules: [
@@ -36,11 +37,11 @@ const module = {
 				exclude: /node_modules/,
 			},
 			{
-				test: /\.js$/,
+				test: /\.js|jsx$/,
 				exclude: /node_modules/,
 				loader: "babel-loader",
 				options: {
-					presets: ["@babel/preset-env"],
+					presets: ["@babel/preset-env", "@babel/preset-react"],
 					plugins: [
 						"@babel/plugin-syntax-dynamic-import",
 						"@babel/plugin-transform-modules-commonjs",
@@ -145,6 +146,13 @@ const module = {
 			template: "./src/loader_nifti/index.html",
 			filename: "loader_nifti.html",
 			chunks: ["loader_nifti"],
+			title: "WebFM"
+		}),
+		new HtmlWebpackPlugin({
+			hash: true,
+			template: "./src/index.html",
+			filename: "index_r.html",
+			chunks: ["index_r"],
 			title: "WebFM"
 		})
 	],

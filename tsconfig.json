@@ -2,7 +2,7 @@
 	"exclude": [
 		"./migration",
 		"./server",
-		"node_modules",
+		// "node_modules",
 		"dist",
 	],
 	"compilerOptions": {
@@ -14,5 +14,14 @@
 		"sourceMap": true,
 		"strictNullChecks": false,
 		"downlevelIteration": true,
+		"jsx": "react",
+		"typeRoots": [
+			"node_modules/@types"
+		],
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true
 	},
+	"include": [
+		"node_modules/react-bootstrap/index.d.ts"
+	],
 }

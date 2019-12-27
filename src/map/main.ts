@@ -12,7 +12,7 @@ let uiManager: any;
 let subject: any;
 let task: any;
 // import Worker from '../shared/dataIndex.worker';
-import Worker from "worker-loader!../shared/dataIndex.worker";
+import Worker from "../shared/dataIndex.worker";
 
 const dataIndexer = new Worker();
 
