@@ -601,3 +601,141 @@ const Record            = require('./schemas/mongo')
     return router;
  }
 */
+
+
+
+
+// const routes = (express) => {
+// 	const router = express.Router();
+
+// 	router.get("/api/config/", (req, res) => res.sendFile(`${__dirname}/config.json`));
+
+
+// 	router.use(bodyParser.json())
+// 	router.get("/map", (req, res) =>
+// 	  res.sendFile(path.join(__dirname, "/dist", "/map.html"))
+// 	);
+// 	router.get("/replay", (req, res) =>
+// 	  res.sendFile(path.join(__dirname, "/dist", "/replay.html"))
+// 	);
+// 	router.get("/cortstim", (req, res) =>
+// 	  res.sendFile(path.join(__dirname, "/dist", "/cortstim.html"))
+// 	);
+// 	router.get("/cceps", (req, res) =>
+// 	  res.sendFile(path.join(__dirname, "/dist", "/CCEPS.html"))
+// 	);
+
+// 	router.get("/responseInfo/:subject/:task", async (req, res) => {
+// 	  let subject = req.params.subject;
+// 	  let task = req.params.task;
+// 	  const responseInfoPath = path.join(dataDir, subject, 'data', 'EP');
+// 	  let resInfoFile = `${responseInfoPath}/${subject}_CCEPS_${task}_ResponseInfo.json`;
+// 	  if (fs.existsSync(resInfoFile)) {
+// 		let _result = await loadJsonFile(resInfoFile);
+// 		let significantChannels = {}
+// 		Object.keys(_result.significant).forEach(x => {
+// 		  if (_result.significant[x] == 1) {
+// 			return significantChannels[x] = _result.time[x]
+// 		  }
+// 		})
+// 		res.send(significantChannels);
+
+// 	  }
+// 	})
+
+// 	router.get("/api/CCEPS/:subject/:task/:data", (req, res) => {
+// 	  let subject = req.params.subject;
+// 	  let task = req.params.task;
+// 	  let data = req.params.data;
+// 	  fs.readdir(dataDir, async (err, subjects) => {
+// 		if (subjects.indexOf(subject) > -1) {
+// 		  if (data == "img") {
+// 			if (fs.existsSync(`${dataDir}/${subject}/data/EP/${subject}_${task}.jpg`)) {
+// 			  res.sendFile(`${subject}_${task}.jpg`, {
+// 				root: `${dataDir}/${subject}/data/EP`
+// 			  });
+// 			}
+// 		  } else if (data == "z-scores") {
+// 			if (fs.existsSync(`${dataDir}/${subject}/data/EP/${subject}_${task}.json`)) {
+
+// 			  let _result = await loadJsonFile(`${dataDir}/${subject}/data/EP/${subject}_${task}.json`);
+// 			  res.status(200).json(_result);
+
+// 			}
+// 		  }
+// 		}
+
+// 	  });
+// 	})
+
+// 	//Cortstim directory
+// 	router.get("/api/cortstim", (req, res) => {
+// 	  fs.readdir(`${infoDir}/PY18N007`, (err, files) => {
+// 		getCortStim('PY18N007', files[4]).then(x => {
+// 		  res.send(x.Trial);
+// 		})
+// 	  });
+// 	});
+
+// 	//List of subjects
+// 	router.get("/api/subjects", (req, res) => {
+// 	  fs.readdir(dataDir, (err, subjects) => {
+// 		res.status(200).json(subjects);
+// 	  });
+// 	});
+
+
+
+
+// 	//List of records
+// 	router.get("/api/:subject/records/HG", (req, res) => {
+// 	  let subject = req.params.subject;
+// 	  let epDir = path.join(dataDir, subject, 'data', 'HG');
+// 	  fs.readdir(epDir, (err, records) => {
+// 		let cleanRecords = records.map(f => f.split('.')[0])
+// 		res.status(200).json(cleanRecords)
+// 	  });
+// 	});
+
+// 	router.get("/api/:subject/records/EP", (req, res) => {
+// 	  let subject = req.params.subject;
+// 	  let epDir = path.join(dataDir, subject, 'data', 'EP');
+// 	  fs.readdir(epDir, (err, records) => {
+// 		let cleanRecords = records.filter(e => path.extname(e) == '.json').map(f => f.split('.')[0])
+// 		res.status(200).json(cleanRecords)
+// 	  });
+// 	});
+
+// 	//Record
+// 	router.get("/api/:subject/:record/:info", (req, res) => {
+// 	  let subject = req.params.subject;
+// 	  let record = `${req.params.record}.json`;
+// 	  let info = req.params.info;
+// 	  getRecord(subject, record).then(recordFile => {
+// 		let infoToSend = recordFile.contents[`${info}`];
+// 		res.status(200).json(infoToSend);
+// 	  });
+// 	});
+
+// 	//Geometry
+// 	router.get("/api/:subject/geometry", (req, res) => {
+// 	  let subject = req.params.subject;
+// 	  fs.readdir(dataDir, (err, subjects) => {
+// 		if (subjects.indexOf(subject) > -1) {
+// 		  if (fs.existsSync(`${dataDir}/${subject}/info/channels.json`)) {
+// 			res.sendFile(`channels.json`, {
+// 			  root: `${dataDir}/${subject}/info`
+// 			});
+// 		  } else { }
+// 		} else {
+// 		  console.log("subject not found");
+// 		}
+// 	  })
+// 	})
+
+
+
+// 	return router;
+//   };
+
+//   export default routes
