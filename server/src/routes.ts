@@ -19,17 +19,17 @@ const routes = express => {
 	router.get("/config", (req, res) =>
 		res.sendFile(`${__dirname}/server/config.json`)
 	);
-	router.get("/loader_nifti", (req, res) =>
-		res.sendFile(path.join(__dirname, "/dist", "/loader_nifti.html"))
-	);
-	router.get("/live", (req, res) =>
-		res.sendFile(`${__dirname}/dist/live.html`)
-	);
-	router.get("/map", (req, res) => res.sendFile(`${__dirname}/dist/map.html`));
-	router.get("/ML", (req, res) => res.sendFile(`${__dirname}/dist/ml.html`));
-	router.get("/record", (req, res) =>
-		res.sendFile(`${__dirname}/dist/record.html`)
-	);
+	// router.get("/loader_nifti", (req, res) =>
+	// 	res.sendFile(path.join(__dirname, "/dist", "/loader_nifti.html"))
+	// );
+	// router.get("/live", (req, res) =>
+	// 	res.sendFile(`${__dirname}/dist/live.html`)
+	// );
+	// router.get("/map", (req, res) => res.sendFile(`${__dirname}/dist/map.html`));
+	// router.get("/ML", (req, res) => res.sendFile(`${__dirname}/dist/ml.html`));
+	// router.get("/record", (req, res) =>
+	// 	res.sendFile(`${__dirname}/dist/record.html`)
+	// );
 
 	router.get("/api/list", (req, res) => {
 		fs.readdir("./data", (err, subjects) => {
@@ -44,16 +44,16 @@ const routes = express => {
 		});
 	});
 
-	router.get("/cortstim", (req, res) =>
-		res.sendFile(path.join(__dirname, "/dist", "/cortstim.html"))
-	);
-	router.get("/3D", (req, res) =>
-		res.sendFile(path.join(__dirname, "/dist", "/threeD.html"))
-	);
+	// router.get("/cortstim", (req, res) =>
+	// 	res.sendFile(path.join(__dirname, "/dist", "/cortstim.html"))
+	// );
+	// router.get("/3D", (req, res) =>
+	// 	res.sendFile(path.join(__dirname, "/dist", "/threeD.html"))
+	// );
 
-	router.get("/cceps", (req, res) =>
-		res.sendFile(path.join(__dirname, "/dist", "/cceps.html"))
-	);
+	// router.get("/cceps", (req, res) =>
+	// 	res.sendFile(path.join(__dirname, "/dist", "/cceps.html"))
+	// );
 
 	router.get("/api/brain/:subject", (req, res) => {
 		let subject = req.params.subject;

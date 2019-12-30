@@ -1,11 +1,11 @@
 
 import React, { useContext, useEffect, useState } from "react";
+import './Subjects.scss'
 import {
 	Card, InputGroup, FormControl,
 	Button, ButtonGroup, DropdownButton, Dropdown
 } from '../../node_modules/react-bootstrap'
 import { Context } from '../Context'
-
 export default function Subjects() {
 	let [context]: any = useContext(Context);
 	let [subject, setSubject] = useState('');
@@ -23,6 +23,15 @@ export default function Subjects() {
 			}
 		})()
 	}, []);
+	useEffect(() => {
+		(async () => {
+			let subject = 'PY19N024'
+			let epPath = `/api/${subject}/records/EP`;
+			let resP = await fetch(epPath);
+			let res = await resP.json();
+			context.setAllRecords({ EP: res, HG: [] })
+		})();
+	}, [])
 
 	const uploadGeometry = () => { }
 	const uploadBrain = () => {
@@ -41,8 +50,12 @@ export default function Subjects() {
 		context.setNewSubject({ name: e, geometry: null });
 	}
 
+	const selectRecord = (e) => {
+		console.log(e);
+	}
+
 	return (
-		<div>
+		<React.Fragment>
 			<Card>
 				<Card.Header>
 					<Card.Title as="h3">
@@ -60,21 +73,43 @@ export default function Subjects() {
 						onChange={handleChange}
 					/>
 					<Button onClick={createNewSubject} type="submit" id="new-subject-ok" variant="outline-secondary">Button</Button>
-
-					{/* <InputGroup.Append>
-					</InputGroup.Append> */}
 				</InputGroup>
 				<Button onClick={uploadBrain}>Upload brain</Button>
 				<Button onClick={uploadGeometry}>Upload geometry</Button>
 
-				<DropdownButton as={ButtonGroup} title="Subjects" id="subject-list" vertical style={{ "width": "100%" }}>
+				<DropdownButton as={ButtonGroup}
+					title="Subjects"
+					id="subject-list"
+					vertical
+					style={{ width: "100%" }}>
 					{context.subjects.sort().map((individualSubject: string, index: string) => {
-						return <Dropdown.Item key={index} onClick={selectSubject.bind(this, individualSubject)}>{individualSubject}</Dropdown.Item>
-						// change brain
+						return (
+							// <DropdownButton id="dropdown-item-button" title="Dropdown button">
+							// </DropdownButton>
+							<DropdownButton as={ButtonGroup}
+								key={index}
+								onClick={selectSubject.bind(this, individualSubject)}
+								title={individualSubject}
+								id="subject-record-list"
+								drop={'left'}
+							>
+								{context.records.EP.map((EPrecord: string, index: string) => {
+									return (
+										<Dropdown.Item as="button"
+											key={index}
+											id={EPrecord}
+											onClick={selectRecord.bind(this, EPrecord)}
+										>
+											{EPrecord}
+										</Dropdown.Item>
+									)
+								})}
+							</DropdownButton>
+						)
 						// load records
 					})}
 				</DropdownButton>
 			</Card>
-		</div>
+		</React.Fragment >
 	)
 }

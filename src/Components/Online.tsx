@@ -1,13 +1,36 @@
 import React, { useContext, useEffect, useRef } from "react";
 import { Card, InputGroup, Button, FormControl, ListGroup, ListGroupItem } from '../../node_modules/react-bootstrap'
-import "./Brain.scss";
 import { Context } from "../Context";
-import { fetchAndStoreBrain } from '../shared/loaders'
+
+import BCI2K from "bci2k";
+let bciOperator = new BCI2K.bciOperator();
+let bciSourceConnection = new BCI2K.bciData();
+
 
 const Online = () => {
+	let [context] = useContext(Context);
+
+	// useEffect(() => {
+	// 	bciOperator.connect("ws://127.0.0.1").then(() => {
+	// 		bciOperator.onStateChange = e => {
+	// 			context.setBciState(e);
+	// 		};
+	// 		(async () => {
+	// 			let subject = await bciOperator.execute(`Get Parameter SubjectName`);
+	// 			let dataFile = await bciOperator.execute(`Get Parameter DataFile`);
+	// 			context.setTask(dataFile.split("/")[1]);
+
+	// 			context.setNewSubject({ name: subject });
+	// 		})();
+	// 		bciSourceConnection.connect("127.0.0.1:20100").then(() => { });
+	// 		bciSourceConnection.onReceiveBlock = () => {
+	// 			context.setSourceData(bciSourceConnection.signal);
+	// 		};
+	// 	});
+	// }, []);
+
 
 	return (
-
 		<Card>
 			<Card.Header>
 				<Card.Title as="h3">
@@ -32,8 +55,8 @@ const Online = () => {
 			</Card.Header>
 			<ListGroup>
 				<ListGroupItem id="state-label" className="text-center">
-					Not Connected
-</ListGroupItem>
+					{context.bciState}
+				</ListGroupItem>
 				<ListGroupItem id="subject-label" className="text-center d-none">
 				</ListGroupItem>
 				<ListGroupItem id="task-label" className="text-center d-none">

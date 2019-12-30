@@ -25,6 +25,8 @@ export const MyProvider = (props: any) => {
 		width: null,
 		height: null
 	})
+	const [task, setTask] = useState("");
+
 	let value = {
 		subjects, setAllSubjects,
 		subject, setNewSubject,
@@ -35,7 +37,8 @@ export const MyProvider = (props: any) => {
 		online, setOnline,
 		bciState, setBciState,
 		brain, setNewBrain,
-		brainContainer, setBrainSize
+		brainContainer, setBrainSize,
+		task, setTask
 	}
 	return (
 

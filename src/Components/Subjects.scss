@@ -1,0 +1,19 @@
+@import "~bootstrap/scss/bootstrap";
+
+#subject-list + .dropdown-menu{
+		max-height: 200px;
+		max-width: 100px;
+		overflow-y: scroll;
+
+		.btn-group{
+			width: 100%;
+
+		}
+	}
+
+#subject-record-list + .dropdown-menu{
+	overflow-wrap: normal;
+	.dropdown-item{
+		width:100%
+	}
+}

@@ -11,6 +11,8 @@ const app = express();
 app.use(compression());
 app.use(express.json());
 // app.use("/", graphQlRoutes(express));
+import path from "path";
+let __dirname = path.resolve(path.dirname(""));
 
 let newConfig = merge(config, {
 	plugins: [
@@ -24,8 +26,16 @@ const compiler = webpack(newConfig);
 app.use(
 	webpackDevMiddleware(compiler)
 );
-app.use(webpackHotMiddleware(compiler));
 app.use("/", routes(express));
+
+app.get('*', function (req, res) {
+	res.sendFile(path.resolve(__dirname, "dist/index.html"), function (err) {
+		if (err) {
+			res.status(500).send(err)
+		}
+	})
+})
+// app.use(webpackHotMiddleware(compiler));
 
 app.listen(8090, () => console.log("Serving"));
 app.listen(8091, () => console.log("Serving"));

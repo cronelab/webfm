@@ -9,7 +9,7 @@ import { Context } from '../Context'
 export default function Header() {
 	const [context]: any = useContext(Context)
 	return (
-		<Navbar id="header" fixed="top">
+		<Navbar id="header" sticky="top">
 			<Button>
 				<Navbar.Brand>
 					WebFM
