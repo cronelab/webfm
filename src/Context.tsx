@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 
-export const Context = React.createContext([]);
+export const Context = React.createContext(null);
+
 
 export const MyProvider = (props: any) => {
-	const [subjects, setAllSubjects] = useState([])
+
+	const [subjects, setAllSubjects] = useState([""])
 	const [subject, setNewSubject] = useState({
 		name: "",
 		geometry: null
@@ -21,28 +23,31 @@ export const MyProvider = (props: any) => {
 	const [online, setOnline] = useState(false)
 	const [bciState, setBciState] = useState("Not Connected")
 	const [brain, setNewBrain] = useState("")
-	const [brainContainer, setBrainSize] = useState({
-		width: null,
-		height: null
-	})
 	const [task, setTask] = useState("");
-
-	let value = {
-		subjects, setAllSubjects,
-		subject, setNewSubject,
-		records, setAllRecords,
-		record, setNewRecord,
-		sourceData, setSourceData,
-		filterData, setFilterData,
-		online, setOnline,
-		bciState, setBciState,
-		brain, setNewBrain,
-		brainContainer, setBrainSize,
-		task, setTask
-	}
 	return (
+		<Context.Provider value={{
+			subjects,
+			setAllSubjects,
+			records,
+			setAllRecords,
+			record,
+			setNewRecord,
+			subject,
+			setNewSubject,
+			sourceData,
+			filterData,
+			setSourceData,
+			setFilterData,
+			online,
+			setOnline,
+			bciState,
+			setBciState,
+			brain,
+			setNewBrain,
+			task,
+			setTask
 
-		<Context.Provider value={[value]}>
+		}}>
 			{props.children}
 		</Context.Provider >
 	);

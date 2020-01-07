@@ -8,7 +8,7 @@ let bciSourceConnection = new BCI2K.bciData();
 
 
 const Online = () => {
-	let [context] = useContext(Context);
+	let { bciState } = useContext(Context);
 
 	// useEffect(() => {
 	// 	bciOperator.connect("ws://127.0.0.1").then(() => {
@@ -55,7 +55,7 @@ const Online = () => {
 			</Card.Header>
 			<ListGroup>
 				<ListGroupItem id="state-label" className="text-center">
-					{context.bciState}
+					{bciState}
 				</ListGroupItem>
 				<ListGroupItem id="subject-label" className="text-center d-none">
 				</ListGroupItem>

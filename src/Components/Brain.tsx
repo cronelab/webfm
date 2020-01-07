@@ -36,7 +36,7 @@ let GetDots = (dataList?: any) => {
 };
 
 const Brain = () => {
-	let [context]: any = useContext(Context);
+	let { subject, setNewBrain, brain }: any = useContext(Context);
 
 	// useEffect(() => {
 	// 	const dotSize = () => {
@@ -54,18 +54,13 @@ const Brain = () => {
 	// });
 
 	useEffect(() => {
-		fetchAndStoreBrain(context.subject.name).then(x => {
-			console.log(context.subject)
+		fetchAndStoreBrain(subject.name).then(x => {
 			// context.setNewSubject({ name: context.subject, geometry: null })
-			context.setNewBrain(x);
-			context.setBrainSize({
-				width: '100%',
-				height: ''
-			});
+			setNewBrain(x);
 		});
-	}, [context.subject]);
+	}, [subject]);
 
-	return <Image id="imgRA" src={context.brain} style={context.brainContainer} />;
+	return <Image id="imgRA" src={brain} style={{ width: '100%', height: '' }} />;
 };
 
 export default Brain;

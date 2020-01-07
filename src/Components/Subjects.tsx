@@ -1,14 +1,41 @@
 
 import React, { useContext, useEffect, useState } from "react";
-import './Subjects.scss'
 import {
-	Card, InputGroup, FormControl,
-	Button, ButtonGroup, DropdownButton, Dropdown
+	Card, InputGroup, FormControl, Row, Col, Container,
+	Tab, Nav, Button, Modal, ListGroup, ListGroupItem
 } from '../../node_modules/react-bootstrap'
 import { Context } from '../Context'
+import './Subjects.scss'
+
 export default function Subjects() {
-	let [context]: any = useContext(Context);
-	let [subject, setSubject] = useState('');
+	let { records, subjects, subject, setNewSubject, setNewBrain, setAllSubjects, setAllRecords }: any = useContext(Context);
+	const [show, setShow] = useState(false);
+	const handleClose = () => setShow(false);
+	const handleShow = () => setShow(true);
+	let tempArray = {}
+	const getRecords = async (subj) => {
+		let epPath = `/api/${subj}/records/EP`;
+		let hgPath = `/api/${subj}/records/HG`;
+		let epReq = await fetch(epPath);
+		let hgReq = await fetch(hgPath);
+		let epResp = null;
+		let hgResp = null;
+		if (hgReq.status != 204) {
+			hgResp = await hgReq.json();
+		}
+		else {
+			hgResp = []
+		}
+		if (epReq.status != 204) {
+			epResp = await epReq.json();
+		}
+		else {
+			epResp = [];
+		}
+		tempArray[subj] = { EP: epResp, HG: hgResp };
+		setAllRecords(tempArray)
+	};
+
 
 	useEffect(() => {
 		(async () => {
@@ -16,44 +43,121 @@ export default function Subjects() {
 			let foundSubjects = await listPathRes.json();
 			if (foundSubjects.length > 0) {
 				foundSubjects.sort();
-				context.setAllSubjects(foundSubjects);
+				foundSubjects.forEach(subject => getRecords(subject))
+				setAllSubjects(foundSubjects);
 			}
 			else {
 				console.log("Nobody can be found")
 			}
 		})()
 	}, []);
-	useEffect(() => {
-		(async () => {
-			let subject = 'PY19N024'
-			let epPath = `/api/${subject}/records/EP`;
-			let resP = await fetch(epPath);
-			let res = await resP.json();
-			context.setAllRecords({ EP: res, HG: [] })
-		})();
-	}, [])
 
 	const uploadGeometry = () => { }
 	const uploadBrain = () => {
-		context.setNewBrain("");
+		setNewBrain("");
 	}
 
 	const handleChange = (e) => {
-		setSubject(e.target.value)
+		setNewSubject(e.target.value)
 	}
 	const createNewSubject = (e) => {
-		context.setNewSubject({ name: subject, geometry: null });
-		context.setAllSubjects([...context.subjects, subject])
+		setNewSubject({ name: subject, geometry: null });
+		setAllSubjects([...subjects, subject])
 	}
 
-	const selectSubject = (e) => {
-		context.setNewSubject({ name: e, geometry: null });
+	const SubjectModal = () => {
+		return (
+			<Modal
+				show={show}
+				onHide={handleClose}
+				animation={false}
+				size="lg">
+				<Modal.Header closeButton>
+					<Modal.Title>Subject list</Modal.Title>
+				</Modal.Header>
+				<Modal.Body>
+					<SubjectList />
+				</Modal.Body>
+				<Modal.Footer>
+					<Button variant="secondary" onClick={handleClose}>
+						Close
+				</Button>
+				</Modal.Footer>
+			</Modal>
+		)
 	}
 
-	const selectRecord = (e) => {
-		console.log(e);
+	const SubjectList = () => {
+		return (
+			<Tab.Container defaultActiveKey="first">
+				<Row>
+					<Col sm={3}>
+						<Nav
+							variant="pills"
+							className="flex-column"
+							onSelect={eventKey => { console.log(records) }}
+						>
+							{subjects.map((subject, index) => {
+								return (
+									<Nav.Item key={`${subject}_${index}`}>
+										<Nav.Link eventKey={subject}>
+											{subject}
+										</Nav.Link>
+									</Nav.Item>
+								)
+							})}
+						</Nav>
+					</Col>
+					<Col sm={9}>
+						<Tab.Content>
+							{subjects.map((subject, index) => {
+								return (
+									<Tab.Pane
+										id={subject}
+										eventKey={`${subject}`}
+										key={`${subject}_${index}_pane`}>
+										<h1>{subject}</h1>
+										<Container>
+											<Row>
+												<Col>
+													<ListGroup>
+														<ListGroupItem key="EP_Records">
+															Evoked Potentials
+														</ListGroupItem>
+														{records[subject].EP.map(ep => {
+															return (
+																<ListGroupItem key={`${subject}_${ep}`}>
+																	{ep}
+																</ListGroupItem>
+															)
+														})}
+													</ListGroup>
+												</Col>
+												<Col>
+													<ListGroup>
+														<ListGroupItem key="HG_Records">
+															High Gamma
+														</ListGroupItem>
+														{records[subject].HG.map(hg => {
+															return (
+																<ListGroupItem key={`${subject}_${hg}`}>
+																	{hg}
+																</ListGroupItem>
+															)
+														})}
+													</ListGroup>
+												</Col>
+											</Row>
+										</Container>
+									</Tab.Pane>
+								)
+							})}
+						</Tab.Content>
+					</Col>
+				</Row>
+			</Tab.Container>
+		)
 	}
-
 	return (
 		<React.Fragment>
 			<Card>
@@ -77,39 +181,16 @@ export default function Subjects() {
 				<Button onClick={uploadBrain}>Upload brain</Button>
 				<Button onClick={uploadGeometry}>Upload geometry</Button>
 
-				<DropdownButton as={ButtonGroup}
+				<Button
 					title="Subjects"
 					id="subject-list"
-					vertical
-					style={{ width: "100%" }}>
-					{context.subjects.sort().map((individualSubject: string, index: string) => {
-						return (
-							// <DropdownButton id="dropdown-item-button" title="Dropdown button">
-							// </DropdownButton>
-							<DropdownButton as={ButtonGroup}
-								key={index}
-								onClick={selectSubject.bind(this, individualSubject)}
-								title={individualSubject}
-								id="subject-record-list"
-								drop={'left'}
-							>
-								{context.records.EP.map((EPrecord: string, index: string) => {
-									return (
-										<Dropdown.Item as="button"
-											key={index}
-											id={EPrecord}
-											onClick={selectRecord.bind(this, EPrecord)}
-										>
-											{EPrecord}
-										</Dropdown.Item>
-									)
-								})}
-							</DropdownButton>
-						)
-						// load records
-					})}
-				</DropdownButton>
+					style={{ width: "100%" }}
+					onClick={handleShow.bind(this)}
+				>
+					Subjects
+				</Button>
 			</Card>
+			<SubjectModal />
 		</React.Fragment >
 	)
 }

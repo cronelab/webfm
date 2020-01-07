@@ -5,7 +5,6 @@ import "./index.scss";
 import Index from './index_react/Index'
 import Record from './record_react/Record'
 import { MyProvider } from './Context'
-import RecordTable from './Components/RecordTable'
 import Header, { Footer } from './Components/Header'
 
 ReactDOM.render(
@@ -17,7 +16,7 @@ ReactDOM.render(
 					<Record />
 				</Route>
 				<Route exact path="/recordlist">
-					<RecordTable />
+					<Record />
 				</Route>
 				<Route path="/">
 					<Index />

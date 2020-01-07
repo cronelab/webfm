@@ -22,9 +22,6 @@ const routes = express => {
 	// router.get("/loader_nifti", (req, res) =>
 	// 	res.sendFile(path.join(__dirname, "/dist", "/loader_nifti.html"))
 	// );
-	// router.get("/live", (req, res) =>
-	// 	res.sendFile(`${__dirname}/dist/live.html`)
-	// );
 	// router.get("/map", (req, res) => res.sendFile(`${__dirname}/dist/map.html`));
 	// router.get("/ML", (req, res) => res.sendFile(`${__dirname}/dist/ml.html`));
 	// router.get("/record", (req, res) =>
@@ -37,12 +34,12 @@ const routes = express => {
 			res.status(200).json(_subjects);
 		});
 	});
-	//List of subjects
-	router.get("/api/subjects", (req, res) => {
-		fs.readdir('./data', (err, subjects) => {
-			res.status(200).json(subjects);
-		});
-	});
+
+
+
+
+
+
 
 	// router.get("/cortstim", (req, res) =>
 	// 	res.sendFile(path.join(__dirname, "/dist", "/cortstim.html"))
@@ -136,12 +133,13 @@ const routes = express => {
 		let subject = req.params.subject;
 		fs.readdir(`./data/${subject}/data/HG`, (err, records) => {
 			if (records != undefined) {
-				if (records.length != 0) {
-					let cleanRecords = records.map(f => f.split('.')[0])
-					res.status(200).json(cleanRecords)
-				} else {
-					res.status(404).end()
-				}
+				// if (records.length != 0) {
+				let cleanRecords = records.map(f => f.split('.')[0])
+				res.status(200).json(cleanRecords)
+				// } 
+				// else {
+				// 	res.status(204).end()
+				// }
 			} else {
 				res.status(204).end()
 			}
