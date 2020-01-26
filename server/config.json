@@ -138,7 +138,7 @@
 			-2.0,
 			3.0
 		],
-		"NYU_PictureNaming": [
+		"AF_PictureNaming": [
 			-1.0,
 			0.2,
 			-1.0,
@@ -166,7 +166,7 @@
 				"end": -0.2
 			}
 		},
-		"NYU_PictureNaming": {
+		"AF_PictureNaming": {
 			"trialWindow": {
 				"start": -1.0,
 				"end": 2.0
