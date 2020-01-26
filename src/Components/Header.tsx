@@ -10,7 +10,7 @@ export default function Header() {
 	const { subject, record }: any = useContext(Context)
 	return (
 		<Navbar id="header" sticky="top">
-			<Button>
+			<Button href="/">
 				<Navbar.Brand>
 					WebFM
 				</Navbar.Brand>
@@ -25,7 +25,7 @@ export const Footer = () => {
 	const { bciState } = useContext(Context);
 
 	return (
-		<Navbar id="footer" fixed="bottom">
+		<Navbar id="footer" sticky="bottom">
 			<Navbar.Collapse id="bciStatus">
 				<Navbar.Text>BCI2000: </Navbar.Text>
 				<Navbar.Text>{bciState}</Navbar.Text>
