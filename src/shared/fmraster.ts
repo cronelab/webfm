@@ -44,10 +44,11 @@ class fmraster {
 	updateCursor(newTime?: any) {
 		if (newTime !== undefined) this.cursorTime = newTime;
 		var raster = this;
-		var height = document.getElementById('fm').offsetHeight;
+		// var height = document.getElementById('fm').offsetHeight;
+		let height = 800
 		select('#fm')
 			.select('.fm-cursor-svg')
-			.attr('width', document.getElementById('fm').offsetWidth)
+			.attr('width', 500)//document.getElementById('fm').offsetWidth)
 			.attr('height', height);
 		if (!this.timeScale) return;
 
@@ -89,7 +90,8 @@ class fmraster {
 			});
 		}
 		var raster = this;
-		var width = parseFloat(getComputedStyle(document.getElementById('fm'), null).width.replace("px", "")) - this.chartMargin.left - this.chartMargin.right;
+		// var width = parseFloat(getComputedStyle(document.getElementById('fm'), null).width.replace("px", "")) - this.chartMargin.left - this.chartMargin.right;
+		let width = 500
 		var step = width / this.data[0].values.length;
 		if (!this.timeScale) {
 			this.timeScale = scaleLinear()
@@ -135,6 +137,9 @@ class fmraster {
 	}
 
 	_updateData(newData: any) {
+		console.log(newData)
+		console.log(this.displayOrder)
+		console.log(this)
 		this.data = this.displayOrder.map((ch: any) => {
 			return {
 				channel: ch,

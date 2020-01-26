@@ -23,7 +23,10 @@ export const MyProvider = (props: any) => {
 	const [online, setOnline] = useState(false)
 	const [bciState, setBciState] = useState("Not Connected")
 	const [brain, setNewBrain] = useState("")
+	const [brainCoord, setNewBrainCoord] = useState("")
 	const [task, setTask] = useState("");
+	const [brainType, setBrainType] = useState("2D")
+
 	return (
 		<Context.Provider value={{
 			subjects,
@@ -45,8 +48,11 @@ export const MyProvider = (props: any) => {
 			brain,
 			setNewBrain,
 			task,
-			setTask
-
+			setTask,
+			brainType,
+			setBrainType,
+			brainCoord,
+			setNewBrainCoord,
 		}}>
 			{props.children}
 		</Context.Provider >

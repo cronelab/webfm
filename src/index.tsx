@@ -2,11 +2,17 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
 import "./index.scss";
-import Index from './index_react/Index'
 import Record from './record_react/Record'
+import Map from './map_react/Map'
 import { MyProvider } from './Context'
 import Header, { Footer } from './Components/Header'
-
+import Online from './Components/Online'
+import Subjects from './Components/Subjects'
+import Brain from './Components/Brain'
+import {
+	Row, Col, Container,
+} from '../node_modules/react-bootstrap'
+import Reconstruction from './3Drecon_react/Reconstruction'
 ReactDOM.render(
 	<Router>
 		<MyProvider>
@@ -15,11 +21,29 @@ ReactDOM.render(
 				<Route exact path="/blank">
 					<Record />
 				</Route>
-				<Route exact path="/recordlist">
+				<Route exact path="/records">
 					<Record />
 				</Route>
+				<Route exact path="/map">
+					<Map />
+				</Route>
+				<Route exact path="/reconstruction">
+					<Reconstruction />
+				</Route>
 				<Route path="/">
-					<Index />
+					<Container style={{ marginTop: 5 }} fluid={true}>
+						<Row>
+							<Col>
+								<Online />
+							</Col>
+							<Col xs="6">
+								<Brain />
+							</Col>
+							<Col>
+								<Subjects />
+							</Col>
+						</Row>
+					</Container>
 				</Route>
 			</Switch>
 			<Footer></Footer>

@@ -65,16 +65,16 @@ class fmui {
 
 	setup() {
 		let manager = this;
-		this.rewireButtons();
-		this.rewireForms();
+		// this.rewireButtons();
+		// this.rewireForms();
 		this.raster.cursorTime = 0.0;
 		this.raster.setupCharts();
-		this.raster.cursorSvg = select('#fm').append('svg').attr('class', 'fm-cursor-svg');
-		document.getElementById('fm').onclick = event => manager.raster.toggleCursor();
-		this.raster.cursorSvg.append('line').attr('class', 'fm-cursor-line');
-		this.raster.cursorSvg.append('line').attr('class', 'fm-cursor-origin-line');
-		this.raster.updateCursor();
-		this._populateOptions(this.getOptions());
+		// this.raster.cursorSvg = select('#fm').append('svg').attr('class', 'fm-cursor-svg');
+		// document.getElementById('fm').onclick = event => manager.raster.toggleCursor();
+		// this.raster.cursorSvg.append('line').attr('class', 'fm-cursor-line');
+		// this.raster.cursorSvg.append('line').attr('class', 'fm-cursor-origin-line');
+		// this.raster.updateCursor();
+		// this._populateOptions(this.getOptions());
 		this.raster.channelHeight = this.getRowHeight()
 		this.raster.chartMax = this.getRasterExtent();
 	}

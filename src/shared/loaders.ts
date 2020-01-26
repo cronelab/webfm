@@ -1,54 +1,22 @@
 import * as THREE from "../../node_modules/three/src/Three";
 import { GLTFLoader } from '../../node_modules/three/examples/jsm/loaders/GLTFLoader';
-import { FBXLoader } from "../../node_modules/three/examples/jsm/loaders/FBXLoader"
 import { OrbitControls } from "../../node_modules/three/examples/jsm/controls/OrbitControls";
 
 const fetchAndStoreBrain = async (subject: any) => {
-	let storedBrain: any = localStorage.getItem(`brain`);
-	if (JSON.parse(storedBrain) != null && storedBrain.subject == subject) {
-		return storedBrain.brain;
-	} else {
-		localStorage.removeItem("brain");
-		let response = await fetch(`/api/brain/${subject}`);
-		let resType = response.headers.get("content-type");
-		let brain;
-		if (resType.includes("image/jpeg")) {
-			let brainRes = await response.arrayBuffer();
-			let base64Flag = "data:image/jpeg;base64,";
-			let binary = "";
-			let bytes = [].slice.call(new Uint8Array(brainRes));
-			bytes.forEach((b: any) => (binary += String.fromCharCode(b)));
-			brain = base64Flag + window.btoa(binary);
-			localStorage.setItem(`brain`, JSON.stringify({
-				subject: subject,
-				data: brain
-			}));
-			return brain;
-		} else {
-			brain = await response.text();
-			localStorage.setItem(`brain`, JSON.stringify({
-				subject: subject,
-				data: brain
-			}));
-			return brain;
-		}
-	}
+	let response = await fetch(`/api/brain/${subject}`);
+	let brainRes = await response.arrayBuffer();
+	let base64Flag = "data:image/jpeg;base64,";
+	let binary = "";
+	let bytes = [].slice.call(new Uint8Array(brainRes));
+	bytes.forEach((b: any) => (binary += String.fromCharCode(b)));
+	return (base64Flag + window.btoa(binary))
+
 };
 
 const fetchAndStoreGeometry = async (subject: any) => {
-	let storedGeometry: any = localStorage.getItem(`geometry`);
-	if (JSON.parse(storedGeometry) != null && storedGeometry.subject == subject) {
-		return storedGeometry.geometry;
-	} else {
-		localStorage.removeItem("geometry");
-		let response = await fetch(`/api/geometry/${subject}`);
-		let geometry = await response.json();
-		localStorage.setItem(`geometry`, JSON.stringify({
-			subject: subject,
-			data: geometry
-		}));
-		return geometry;
-	}
+	let response = await fetch(`/api/geometry/${subject}`);
+	let geometry = await response.json();
+	return geometry;
 };
 
 let load3DBrain_gltf = (subject: any, brainContainer: any) => {
@@ -86,41 +54,6 @@ let load3DBrain_gltf = (subject: any, brainContainer: any) => {
 
 }
 
-let load3DBrain = (subject: any) => {
-	let brainContainer = document.getElementById('fm-brain-3D');
-	let loader = new FBXLoader();
-	let scene = new THREE.Scene();
-	let camera = new THREE.PerspectiveCamera(45, 640 / 480, 0.1, 50000);
-	let renderer = new THREE.WebGLRenderer({
-		antialias: true
-	});
-	let controls = new OrbitControls(camera, renderer.domElement);
-	let light = new THREE.HemisphereLight(0xffffff, 0x444444);
-	camera.position.set(500, 1000, 500);
-	renderer.setSize(640, 480);
-	light.position.set(0, 0, 10);
-	controls.target.set(100, 0, 0);
-	controls.update();
-	scene.add(light);
-	loader.load(`/api/${subject}/brain3D`, (object3d: any) => {
-		console.log(object3d)
-		scene.add(object3d)
-		object3d.traverse((child: any) => {
-			if (child.material) {
-				for (let material of child.material) {
-					material.wireframe = true;
-				}
-			}
-		});
-
-	});
-	const animate = () => {
-		requestAnimationFrame(animate);
-		renderer.render(scene, camera);
-	};
-	animate();
-	brainContainer.appendChild(renderer.domElement);
-}
 
 
 let loadValues = async (subject: any, record: any) => {
@@ -195,7 +128,6 @@ let loadStats = async (subject: any, record: any) => {
 export {
 	fetchAndStoreBrain,
 	fetchAndStoreGeometry,
-	load3DBrain,
 	loadValues,
 	loadStats,
 	load3DBrain_gltf

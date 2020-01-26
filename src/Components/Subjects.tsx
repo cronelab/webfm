@@ -8,11 +8,13 @@ import { Context } from '../Context'
 import './Subjects.scss'
 
 export default function Subjects() {
-	let { records, subjects, subject, setNewSubject, setNewBrain, setAllSubjects, setAllRecords }: any = useContext(Context);
+	let { records, subjects, subject, setNewSubject, setNewBrain, setAllSubjects, setAllRecords, setNewRecord }: any = useContext(Context);
 	const [show, setShow] = useState(false);
 	const handleClose = () => setShow(false);
 	const handleShow = () => setShow(true);
 	let tempArray = {}
+
+	//Request all EP and HG records from server
 	const getRecords = async (subj) => {
 		let epPath = `/api/${subj}/records/EP`;
 		let hgPath = `/api/${subj}/records/HG`;
@@ -36,7 +38,7 @@ export default function Subjects() {
 		setAllRecords(tempArray)
 	};
 
-
+	//Request all subjects from server
 	useEffect(() => {
 		(async () => {
 			let listPathRes = await fetch(`/api/list`);
@@ -58,6 +60,7 @@ export default function Subjects() {
 	}
 
 	const handleChange = (e) => {
+		console.log(e.target.value)
 		setNewSubject(e.target.value)
 	}
 	const createNewSubject = (e) => {
@@ -95,7 +98,6 @@ export default function Subjects() {
 						<Nav
 							variant="pills"
 							className="flex-column"
-							onSelect={eventKey => { console.log(records) }}
 						>
 							{subjects.map((subject, index) => {
 								return (
@@ -121,12 +123,14 @@ export default function Subjects() {
 											<Row>
 												<Col>
 													<ListGroup>
-														<ListGroupItem key="EP_Records">
+														<ListGroupItem key="EP_Records" style={{ backgroundColor: "#00f" }}>
 															Evoked Potentials
 														</ListGroupItem>
 														{records[subject].EP.map(ep => {
 															return (
-																<ListGroupItem key={`${subject}_${ep}`}>
+																<ListGroupItem key={`${subject}_${ep}`}
+																	action href={`/records?subject=${subject}&type=EP&record=${ep}`}
+																>
 																	{ep}
 																</ListGroupItem>
 															)
@@ -135,12 +139,15 @@ export default function Subjects() {
 												</Col>
 												<Col>
 													<ListGroup>
-														<ListGroupItem key="HG_Records">
+														<ListGroupItem key="HG_Records" style={{ backgroundColor: "#00f" }}>
 															High Gamma
 														</ListGroupItem>
 														{records[subject].HG.map(hg => {
+
 															return (
-																<ListGroupItem key={`${subject}_${hg}`}>
+																<ListGroupItem key={`${subject}_${hg}`}
+																	action href={`/records?subject=${subject}&type=HG&record=${hg}`}
+																>
 																	{hg}
 																</ListGroupItem>
 															)
@@ -155,7 +162,7 @@ export default function Subjects() {
 						</Tab.Content>
 					</Col>
 				</Row>
-			</Tab.Container>
+			</Tab.Container >
 		)
 	}
 	return (
