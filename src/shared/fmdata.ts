@@ -1,7 +1,7 @@
 import {
 	Gaussian,
 	ChannelStat
-} from '../map/fmstat';
+} from '../map_react/map/fmstat';
 
 class fmdata {
 	metadata: any;

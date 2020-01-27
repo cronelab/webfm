@@ -8,14 +8,11 @@ import { Brain_3D } from "../Components/Brain_3D";
 import DataHeader from '../Components/DataHeader'
 import HighGamma from '../Components/HighGamma'
 import EvokedPotentials from "../Components/EvokedPotentials";
-import CCSR from "../Components/CCSR"
+import { HeatMap } from "../Components/HeatMap";
 export default React.memo(function Record() {
 	const { brainType, setNewSubject, setNewRecord, brainCoord } = useContext(Context)
-	const [brainCoords, setBrainCoords] = useState({})
 	var urlParams = new URLSearchParams(window.location.search);
-	let actualCoords = {}
 	const [scene, setScene] = useState();
-
 	useEffect(() => {
 		let recordType = urlParams.get('type');
 		let recordName = urlParams.get('record');
@@ -24,26 +21,11 @@ export default React.memo(function Record() {
 		setNewRecord({ name: recordName, type: recordType });
 	}, [])
 
-	useEffect(() => {
-		if (brainCoord.length > 0) {
-			let brainCoordinates = JSON.parse(brainCoord)
-			let brainContainer = document.getElementById('brain')
 
-			//@ts-ignore
-			Object.keys(brainCoordinates).forEach(electrodes => {
-				let vals = brainCoordinates[electrodes]
-				actualCoords[electrodes] = {
-					u: vals.u * brainContainer.offsetWidth,
-					v: (1 - vals.v) * brainContainer.offsetHeight,
-					location: vals.location
-				}
-			})
-			setBrainCoords(actualCoords)
-		}
-	}, [brainCoord])
 
 	const BrainChoice = () => {
 		if (brainType == "2D") {
+
 			return <Brain ></Brain>
 		}
 		else if (brainType == "3D") {
@@ -57,14 +39,13 @@ export default React.memo(function Record() {
 
 	const SetRecordType = () => {
 		if (urlParams.get('type') == 'HG') {
-
 			return <HighGamma scene={scene}></HighGamma>
 		}
 		else if (urlParams.get('type') == 'EP') {
-			return <EvokedPotentials locations={brainCoords}></EvokedPotentials>
+			return <EvokedPotentials ></EvokedPotentials>
 		}
 		else if (urlParams.get('type') == 'CCSR') {
-			return <CCSR></CCSR>
+			return <HeatMap></HeatMap>
 		}
 	}
 
@@ -72,33 +53,13 @@ export default React.memo(function Record() {
 		<div className="Record">
 			<DataHeader></DataHeader>
 
-			<Container fluid={true}>
-				<Row>
-					<Col xs={6}>
+			<Container fluid={true} style={{ "height": "100%" }}>
+				<Row style={{ "height": "100%", "paddingBottom": 50 }}>
+					<Col xs={6} style={{ "paddingBottom": "50px", "paddingLeft": "0px" }}>
 						<SetRecordType ></SetRecordType>
-
 					</Col>
-					<Col xs={6}>
-
+					<Col xs={6} style={{ "paddingBottom": "50px", "paddingLeft": "0px" }}>
 						<BrainChoice ></BrainChoice>
-						<div id="imgContainer" style={{ "height": "100%", "width": "100%" }}>
-							{/* <div id="imgContainer"> */}
-							{/* <svg> */}
-							<svg style={{ "height": "100%", "width": "100%" }}>
-								{Object.keys(brainCoords).map((key, index) => {
-									return (
-										<circle
-											key={`${key}_circle`}
-											id={`${key}_circle`}
-											cx={brainCoords[key].u}
-											cy={brainCoords[key].v}
-											r="2"
-											fill="purple"
-										/>
-									);
-								})}
-							</svg>
-						</div>
 					</Col>
 				</Row>
 			</Container>

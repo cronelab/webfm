@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { scaleLinear } from 'd3-scale'
 import {
 	select, selectAll, mouse
@@ -6,11 +6,13 @@ import {
 import { extent, max, min } from 'd3-array'
 import { line } from 'd3-shape'
 import {
-	OverlayTrigger, Popover, Tooltip
+	OverlayTrigger, Tooltip
 } from '../../node_modules/react-bootstrap'
 import '../record_react/Record.scss'
-
+import { Context } from '../Context'
 import { interpolateRdBu, interpolatePuOr, interpolateRdYlBu, interpolateSpectral } from 'd3-scale-chromatic'
+
+
 
 export default function EvokedPotentials(props) {
 	const [data, setData] = useState();
@@ -20,6 +22,9 @@ export default function EvokedPotentials(props) {
 	const [zeroMark, setZeroMark] = useState(0);
 	const [zScores, setZScores] = useState([])
 	const [anatomicalLocation, setAnatomicalLocation] = useState([])
+
+
+	const { brainCoord, brain } = useContext(Context);
 
 	useEffect(() => {
 		var urlParams = new URLSearchParams(window.location.search);
@@ -54,7 +59,6 @@ export default function EvokedPotentials(props) {
 					.domain(extent(data[electrode].times))
 					.range([0, 40]);
 
-				console.log()
 
 				select(`#${electrode}_container`).append('line').attr('x1', x(500)).attr('y1', 0).attr('x2', x(500)).attr('y2', 40).attr('stroke', 'red').attr('stroke-width', '1')
 
@@ -68,19 +72,20 @@ export default function EvokedPotentials(props) {
 					)
 				let xCoord = document.getElementById(`${electrode}_circle`) ? parseFloat(document.getElementById(`${electrode}_circle`).getAttribute('cx')) : 0
 				let yCoord = document.getElementById(`${electrode}_circle`) ? parseFloat(document.getElementById(`${electrode}_circle`).getAttribute('cy')) : 0
-				return [xCoord, yCoord, data[electrode].zscores, props.locations[electrode]]
+				let parsedCoords = JSON.parse(brainCoord)
+				return [xCoord, yCoord, data[electrode].zscores, parsedCoords[electrode]]
 			})
-
 			let circle1 = document.getElementById(`${stimulatingElectrodes[0]}_circle`)
 			let circle2 = document.getElementById(`${stimulatingElectrodes[1]}_circle`)
 			let xPos = (parseFloat(circle1.getAttribute('cx')) + parseFloat(circle2.getAttribute('cx'))) / 2
 			let yPos = (parseFloat(circle1.getAttribute('cy')) + parseFloat(circle2.getAttribute('cy'))) / 2
-			select('#imgContainer').select('svg').append('circle').attr('cx', xPos).attr('cy', yPos).attr('r', 5).attr('fill', 'white')
+			select('#imgContainer').select('svg').append('circle').attr('cx', xPos).attr('cy', yPos).attr('r', 10).attr('fill', 'blue')
+			// }
 			let zscores = responseGeometry.map(elec => elec[2][1].toFixed(1))
 			setZScores(zscores)
-			console.log(responseGeometry)
+
 			let locations = responseGeometry.map(elec => {
-				if (elec[0] != 0) {
+				if (elec[0] != 0 && elec[3] != undefined) {
 					return elec[3]["location"]
 				}
 				else return "Unknown"

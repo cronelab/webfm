@@ -61,7 +61,10 @@ const Online = () => {
 				</ListGroupItem>
 				<ListGroupItem id="task-label" className="text-center d-none">
 				</ListGroupItem>
-				<Button id="map-button" className="disabled text-center">
+				<Button id="map-button" className="text-center"
+					// <Button id="map-button" className="disabled text-center"
+					href={`/map?subject=${'PY20N001'}&type=HG&record=${'AF_SentenceCompletion'}`}
+				>
 					Map
 </Button>
 			</ListGroup>
