@@ -186,9 +186,7 @@ const routes = express => {
 			})
 		} else {
 			res.status(204).end()
-
 		}
-
 	})
 
 	//3D brain
@@ -209,6 +207,24 @@ const routes = express => {
 			}
 		});
 	});
+
+	//Cortstim
+
+
+	router.get("/api/data/:subject/cortstim", (req, res) => {
+		let subject = req.params.subject;
+		let resFile = `./data/${subject}/data/cortstim/cortstim.json`;
+		if (fs.existsSync(resFile)) {
+			let _result = JSON.parse(
+				fs.readFileSync(resFile, 'utf8')
+			);
+
+			res.send(_result);
+		}
+		else {
+			res.status(204).end()
+		}
+	})
 
 	//* PUT routes
 
