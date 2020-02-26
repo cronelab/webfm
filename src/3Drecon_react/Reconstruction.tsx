@@ -73,12 +73,12 @@ const Reconstruction = () => {
 	const initHelpersStack = (rendererObj, stack) => {
 		rendererObj.stackHelper = new StackHelper(stack);
 
-		console.log(rendererObj)
+		console.log(rendererObj.domElement)
 		rendererObj.stackHelper.bbox.visible = false;
 		rendererObj.stackHelper.borderColor = rendererObj.sliceColor;
 		rendererObj.stackHelper._slice.borderColor = 0x000000;
-		rendererObj.stackHelper.slice.canvasWidth = rendererObj.domElement.clientWidth;
-		rendererObj.stackHelper.slice.canvasHeight = rendererObj.domElement.clientHeight;
+		// rendererObj.stackHelper.slice.canvasWidth = rendererObj.domElement.clientWidth;
+		// rendererObj.stackHelper.slice.canvasHeight = rendererObj.domElement.clientHeight;
 
 		// set camera
 		let worldbb = stack.worldBoundingBox();
@@ -250,6 +250,45 @@ const Reconstruction = () => {
 		}
 		r1.controls.addEventListener('OnScroll', onScroll);
 
+		const clickedObj = (event) => {
+
+			const raycaster = new THREE.Raycaster();
+			//@ts-ignore
+			const canvas = event.target.parentElement;
+			const mouse = {
+				x: ((event.clientX - canvas.offsetLeft) / canvas.clientWidth) * 2 - 1,
+				y: -((event.clientY - canvas.offsetTop) / canvas.clientHeight) * 2 + 1,
+			};
+			let myMouse = new THREE.Vector2();
+			myMouse.x = ( event.clientX /  canvas.clientWidth) * 2 - 1;
+			myMouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+			//@ts-ignore
+			raycaster.setFromCamera(myMouse, r0.camera);
+			//@ts-ignore
+			const gyriIntersects = raycaster.intersectObjects(r0.scene.getObjectByName("Gyri").children, true);
+			if(gyriIntersects.length > 0){
+			//@ts-ignore
+				// intersects[0].object.material.color = new THREE.Color('rgb(1,1,1)')
+				gyriIntersects[0].object.visible = false
+			}
+			//@ts-ignore
+			const subIntersects = raycaster.intersectObjects(r0.scene.getObjectByName("Brain").children, true);
+			if(subIntersects.length > 0){
+			//@ts-ignore
+				// intersects[0].object.material.color = new THREE.Color('rgb(1,1,1)')
+				subIntersects[0].object.visible = false
+			}
+
+			// console.log(r0.scene.children[1])
+	}
+		r0.domElement.addEventListener('click', clickedObj);
+
+
+
+
+
+
+
 
 		let load3DBrain_gltf = () => {
 			return new Promise((resolve, reject) => {
@@ -265,13 +304,14 @@ const Reconstruction = () => {
 					elecs = object3d.scene.children[0]
 					elecs.rotation.set(0, 0, Math.PI)
 					elecs.position.set(128, 128, 128)
+	wm.visible = false;		
+
 					resolve(brainScene);
 				})
 
 			})
 		}
 		load3DBrain_gltf()
-
 
 	}, [])
 
@@ -293,8 +333,8 @@ const Reconstruction = () => {
 					// r0.camera.updateProjectionMatrix();
 					// r0.controls.target.set(centerLPS.x, centerLPS.y, centerLPS.z);
 
-					initHelpersStack(r1, stack);
-					r0.scene.add(r1.scene);
+					// initHelpersStack(r1, stack);
+					// r0.scene.add(r1.scene);
 				})
 
 		}
@@ -305,7 +345,7 @@ const Reconstruction = () => {
 		<Container fluid style={{ "height": "100%" }}>
 			<div id="my-gui-container"></div>
 			<Row id="main">
-				<Col md={7} id="r0"></Col>
+				<Col md={7} id="r0" ></Col>
 				<Col md={5} id="slices">
 					<Row className="renderer" id="r1" ></Row>
 					<Row className="renderer" id="r2" ></Row>

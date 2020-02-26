@@ -2,13 +2,13 @@ import React, { useState, useContext } from 'react';
 import { ToggleButton, ButtonToolbar, ToggleButtonGroup, Navbar, Container, Button } from '../../node_modules/react-bootstrap'
 import { Context } from '../Context'
 
-const DataHeader = () => {
-	const { brainType, setBrainType, mapData, setMapData } = useContext(Context);
+const DataHeader = (props) => {
+	const { mapData, setMapData } = useContext(Context);
 	const [defaultChoice, setDefaultChoice] = useState(1)
 
 	const brainSetter = e => {
-		if (e == 1) { setBrainType("2D") }
-		else if (e == 2) { setBrainType("3D") }
+		if (e == 1) { props.setBrainType("2D") }
+		else if (e == 2) { props.setBrainType("3D") }
 	}
 
 	const dataChanger = e => {
@@ -52,7 +52,8 @@ const DataHeader = () => {
 		<Container fluid style={{ "padding": "0" }}>
 			<Navbar id="dataHeader" fixed="top" expand="lg" variant="dark" bg="dark" style={{ "marginTop": "60px" }}>
 				<EPSelector></EPSelector>
-
+				<Button id="sweepButton">Sweep</Button>
+				<Button id="dataTimer" variant="info">0.0s</Button>
 				<ButtonToolbar style={{ "position": "absolute", "right": "0px" }}>
 					<ToggleButtonGroup
 						name="options"
@@ -63,7 +64,6 @@ const DataHeader = () => {
 						<ToggleButton value={1}>2D</ToggleButton>
 						<ToggleButton value={2}>3D</ToggleButton>
 					</ToggleButtonGroup>
-
 				</ButtonToolbar>
 			</Navbar>
 		</Container>

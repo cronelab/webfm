@@ -7,6 +7,7 @@ const Brain = (props) => {
 	let { subject, setNewBrainCoord, setNewBrain, brain, brainCoord }: any = useContext(Context);
 	if (subject.name == "") subject.name = "PY17N005"
 	const [brainCoords, setBrainCoords] = useState({})
+	const [dots, setDots] = useState()
 	let actualCoords = {}
 
 	//Initial render once all the subjects are queried
@@ -26,32 +27,40 @@ const Brain = (props) => {
 					location: vals.location
 				}
 			})
-			setNewBrainCoord(JSON.stringify(actualCoords))
-			setBrainCoords(actualCoords)
+			setDots(<svg style={{ "height": "100%", "width": "100%" }}>
 
+				{Object.keys(actualCoords).map((key, index) => {
+					return (
+						<circle
+							key={`${key}_circle`}
+							id={`${key}_circle`}
+							cx={actualCoords[key].u}
+							cy={actualCoords[key].v}
+							data-location={actualCoords[key]["location"]}
+							r="2"
+							fill="white"
+						/>
+					);
+				})}
+			</svg>)
+			// console.log(actualCoords)
+			// setBrainCoords(actualCoords)
+			// setNewBrainCoord(dots.toString())
 		})
 
 	}, [subject])
 
+	useEffect(() => {
+		if (dots != undefined) {
+			setNewBrainCoord(JSON.stringify(dots))
+		}
 
+	}, [dots])
 
 	return (
 		<>
 			<div id="imgContainer" style={{ "height": "100%", "width": "100%", "marginTop": "50px", "position": "fixed" }}>
-				<svg style={{ "height": "100%", "width": "100%" }}>
-					{Object.keys(brainCoords).map((key, index) => {
-						return (
-							<circle
-								key={`${key}_circle`}
-								id={`${key}_circle`}
-								cx={brainCoords[key].u}
-								cy={brainCoords[key].v}
-								r="2"
-								fill="white"
-							/>
-						);
-					})}
-				</svg>
+				{dots}
 			</div>
 			<Image id="brain" src={brain} style={{ "marginTop": "50px", "zIndex": -1 }} fluid />
 		</>

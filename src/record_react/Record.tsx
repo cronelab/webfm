@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef } from "react";
+import React, { useState, useEffect, useContext, useMemo } from "react";
 import {
 	Container, Row, Col, Button
 } from '../../node_modules/react-bootstrap'
@@ -9,10 +9,13 @@ import DataHeader from '../Components/DataHeader'
 import HighGamma from '../Components/HighGamma'
 import EvokedPotentials from "../Components/EvokedPotentials";
 import { HeatMap } from "../Components/HeatMap";
+
 export default React.memo(function Record() {
-	const { brainType, setNewSubject, setNewRecord, brainCoord } = useContext(Context)
+	const { setNewSubject, setNewRecord, brainCoord } = useContext(Context)
 	var urlParams = new URLSearchParams(window.location.search);
 	const [scene, setScene] = useState();
+	const [brainType, setBrainType] = useState("2D")
+
 	useEffect(() => {
 		let recordType = urlParams.get('type');
 		let recordName = urlParams.get('record');
@@ -21,12 +24,14 @@ export default React.memo(function Record() {
 		setNewRecord({ name: recordName, type: recordType });
 	}, [])
 
-
+	// useEffect(() => {
+	// 	console.log(brainType)
+	// }, [brainType])
 
 	const BrainChoice = () => {
 		if (brainType == "2D") {
 
-			return <Brain ></Brain>
+			return <Brain brainType={brainType} ></Brain>
 		}
 		else if (brainType == "3D") {
 			let props = {
@@ -39,7 +44,7 @@ export default React.memo(function Record() {
 
 	const SetRecordType = () => {
 		if (urlParams.get('type') == 'HG') {
-			return <HighGamma scene={scene}></HighGamma>
+			return <HighGamma ></HighGamma>
 		}
 		else if (urlParams.get('type') == 'EP') {
 			return <EvokedPotentials ></EvokedPotentials>
@@ -51,7 +56,7 @@ export default React.memo(function Record() {
 
 	return (
 		<div className="Record">
-			<DataHeader></DataHeader>
+			<DataHeader setBrainType={setBrainType}></DataHeader>
 
 			<Container fluid={true} style={{ "height": "100%" }}>
 				<Row style={{ "height": "100%", "paddingBottom": 50 }}>

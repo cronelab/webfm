@@ -3,8 +3,9 @@ import "./index.scss";
 import * as dat from 'dat.gui';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import html2canvas from 'html2canvas'
+import html2canvas from 'html2canvas';
 
+import $ from 'jquery';
 
 import {
 	VolumeLoader, stackHelperFactory, lutHelperFactory, NiftiParser,
@@ -275,6 +276,7 @@ function init() {
 
 
 window.onload = async () => {
+
 	init();
 
 
@@ -378,6 +380,7 @@ window.onload = async () => {
 						document.body.appendChild(canvas)
 					});
 				}
+				this.Transparency = true;
 			}
 
 			let electrodeController = function () {
@@ -393,11 +396,33 @@ window.onload = async () => {
 
 			let text = new meshController();
 			let meshToggler = gui.addFolder('Mesh');
+			let transparencyToggler = gui.addFolder('Transparency');
+			let transToggler = transparencyToggler.add(text,'Transparency', true).listen();
 			// let screenshot = meshToggler.add(text, "screenshot").listen();
 			let fullMeshToggler = meshToggler.add(text, "Mesh", false).listen()
 			let cortexMeshToggler = meshToggler.add(text, "Cortex", false).listen()
 			let wmMeshToggler = meshToggler.add(text, "WM", false).listen()
 			let subMeshToggler = meshToggler.add(text, "Substructures", false).listen()
+
+			transToggler.onChange(val=> {
+				if(val == true){
+					brainScene.traverse(child => {
+						if (child instanceof THREE.Mesh && child.parent.name != "Electrodes") {
+							child.material.transparent = true;
+							child.material.opacity = .5
+						}
+					})	
+				}
+				else{
+					brainScene.traverse(child => {
+						if (child instanceof THREE.Mesh && child.parent.name != "Electrodes") {
+							child.material.transparent = false;
+						}
+					})	
+				}
+			})
+
+
 			fullMeshToggler.onChange(val => {
 				if (val == false) {
 					wm.visible = false
@@ -687,7 +712,6 @@ window.onload = async () => {
 			let load3DBrain_gltf = () => {
 				return new Promise((resolve, reject) => {
 					let loader = new GLTFLoader()
-					console.log(subject)
 					loader.load(`/api/${subject}/brain3D_g`, object3d => {
 						object3d.scene.traverse(child => {
 							if (child instanceof THREE.Mesh && child.parent.name != "Electrodes") {
@@ -696,19 +720,14 @@ window.onload = async () => {
 							}
 							if (child instanceof THREE.Mesh && child.parent.name == "Electrodes") {
 								let colorVals = {
-									"LBT": [1.000, 0.000, 0.000],
-									"LFS": [0.000, 0.000, 1.000],
-									"LAFO": [1.000, 0.502, 0.000],
-									"LAST": [0.000, 1.000, 1.000],
-									"LMFO": [0.000, 1.000, 0.000],
-									"LPFO": [1.000, 0.000, 1.000],
-									"LPST": [0.502, 0.000, 1.000],
-									"LPH": [1.000, 1.000, 0.000],
-									"LAH": [0.000, 0.251, 0.000],
-									"LAM": [0.502, 0.000, 0.000]
+									"RA": [1.000 ,0.000 ,0.502],
+									"RAH": [0.000 ,0.502 ,0.000],
+									"LTP": [0.000 ,1.000 ,1.000],
+									"LBT": [1.000 ,1.000 ,0.000],
+									"LA": [1.000 ,0.502 ,0.000],
+									"LAH": [0.000 ,1.000 ,0.000],
+									"LPH": [0.502 ,0.000 ,1.000],
 								}
-								// console.log(JSON.parse(colorVals))
-
 
 								let [elecName, elecNumber] = child.name.replace(/\'/g, '').split(/(\d+)/).filter(Boolean);
 								if (colorVals[elecName] != undefined) {
@@ -733,6 +752,7 @@ window.onload = async () => {
 						elecs.rotation.set(0, 0, Math.PI)
 						elecs.position.set(128, 128, 128)
 						resolve(brainScene);
+						console.log(object3d)
 					})
 
 				})
@@ -756,4 +776,8 @@ window.onload = async () => {
 			window.console.log('oops... something went wrong...');
 			window.console.log(error);
 		});
+		// $('#alertModal').modal({
+		// 	show:true
+		// })
+	
 };

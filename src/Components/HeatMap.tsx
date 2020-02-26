@@ -1,5 +1,4 @@
 import React, { useState, useContext, useEffect } from 'react';
-import './HeatMap.scss'
 import { interpolateRdBu, interpolatePuOr, interpolateRdYlBu, interpolateSpectral, interpolatePlasma } from 'd3-scale-chromatic'
 import {
 	select, selectAll, mouse
@@ -18,6 +17,7 @@ export function HeatMap() {
 	const [responses, setResponses] = useState({ timePoint: 0, value: 0 })
 
 	const { brainCoord, mapData, setMapData } = useContext(Context)
+	const sleep = m => new Promise(r => setTimeout(r, m));
 
 	useEffect(() => {
 		var urlParams = new URLSearchParams(window.location.search);
@@ -41,10 +41,7 @@ export function HeatMap() {
 			else {
 				dataset = mapData
 			}
-			console.log(mapData)
 			let names = Object.keys(respData.lgData.times).map(channel => {
-				respData.lgData.times[`${channel}`] = respData.lgData.times[`${channel}`].lowGamma
-				respData.hgData.times[`${channel}`] = respData.hgData.times[`${channel}`].highGamma
 				minVals.push(Math.min(...respData[`${dataset}`].times[`${channel}`]))
 				maxVals.push(Math.max(...respData[`${dataset}`].times[`${channel}`]))
 				return channel
@@ -58,6 +55,8 @@ export function HeatMap() {
 			setResponses(respData[`${dataset}`]["sscore"])
 
 			setData(respData[`${dataset}`].times)
+
+
 		})()
 	}, [mapData])
 
@@ -78,6 +77,15 @@ export function HeatMap() {
 		let svgWidth = mapHolder.width.baseVal.value
 		//@ts-ignore
 		let svgHeight = mapHolder.height.baseVal.value
+
+
+
+		let parsedCoords = JSON.parse(brainCoord)
+		let locData = {}
+		parsedCoords.props.children.forEach(dot => {
+			let key = dot.key.split("_")[0]
+			locData[key] = dot.props["data-location"]
+		})
 		return (
 			<OverlayTrigger
 				placement="auto"
@@ -90,7 +98,7 @@ export function HeatMap() {
 							<br />
 							DR: <strong>{`${parseFloat(responses[`${props.elec}`].DR[1]).toFixed(1) + 451} @ ${responses[`${props.elec}`].DR[0]}`}</strong>.
 							<br></br>
-							<strong>{JSON.parse(brainCoord)[props.elec]["location"]}</strong>
+							<strong>{locData[props.elec]}</strong>
 						</div>
 					</Tooltip>
 				}
