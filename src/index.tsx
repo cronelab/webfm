@@ -9,6 +9,7 @@ import Header, { Footer } from './Components/Header'
 import Online from './Components/Online'
 import Subjects from './Components/Subjects'
 import Brain from './Components/Brain'
+import Cortstim from './Components/Cortstim'
 import {
 	Row, Col, Container,
 } from '../node_modules/react-bootstrap'
@@ -29,6 +30,9 @@ ReactDOM.render(
 				</Route>
 				<Route exact path="/reconstruction">
 					<Reconstruction />
+				</Route>
+				<Route exact path="/cortstim">
+					<Cortstim />
 				</Route>
 				<Route path="/">
 					<Container style={{ marginTop: 5 }} fluid={true}>

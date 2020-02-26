@@ -3,12 +3,11 @@ import * as horizon from "d3-horizon-chart";
 import {
 	select, selectAll, mouse
 } from "d3-selection";
+import { scaleLinear } from "d3-scale"
 import fmdata from '../shared/fmdata'
 import fmui from '../shared/fmui'
-import { scaleLinear } from 'd3-scale'
 import { extent, max, min } from 'd3-array'
 import '../record_react/Record.scss'
-import * as THREE from "../../node_modules/three/src/Three";
 
 export default function HighGamma(props) {
 
@@ -18,7 +17,27 @@ export default function HighGamma(props) {
 	const [displayData, setDisplayData] = useState({});
 	const [isMounted, setMounted] = useState(false);
 	const [times, setTimes] = useState();
+	let locked = false;
+	const [colors, setColors] = useState([
+		"#313695",
+		"#4575b4",
+		"#74add1",
+		"#abd9e9",
+		"#ffffff",
+		"#fee090",
+		"#fdae61",
+		"#f46d43",
+		"#d73027"
+	])
+
 	let chartContainer;
+	let dotColorScale = scaleLinear()
+		//@ts-ignore
+		.domain([-9, -5, -2, -0.01, 0.0, 0.01, 2, 5, 9])
+		//@ts-ignore
+		.range(colors)
+		.clamp(true);
+
 	useEffect(() => {
 		(async () => {
 			let request = await fetch(`/config`)
@@ -44,16 +63,18 @@ export default function HighGamma(props) {
 			setMounted(true)
 		})()
 	}, [])
+
 	useEffect(() => {
 		chartContainer = document.getElementById("fm");
 
+		// document.getElementById('sweepButton').onclick = async () => {
+		// 	for (let i = 250; i < 900; i++) {
+		// 		await sleep(10)
+		// 		lineAndDotUpdate(i);
+		// 	}
+		// }
+
 		if (isMounted) {
-
-			// let threeDElectrodes = props.scene.getObjectByName("Electrodes")
-			if (props.scene) {
-
-			}
-			let locked = false;
 			let x = scaleLinear()
 				.domain(extent(times))
 				.range([0, chartContainer.offsetWidth]);
@@ -62,21 +83,10 @@ export default function HighGamma(props) {
 
 			let horizonChart = horizon
 				.horizonChart()
-				.height(30)
+				.height(15)
 				// @ts-ignore
 				.step(chartContainer.offsetWidth / displayData[Object.keys(displayData)[0]].length)
-				.colors([
-					"#313695",
-					"#4575b4",
-					"#74add1",
-					"#abd9e9",
-					// "#ffffff",
-					"#fee090",
-					"#fdae61",
-					"#f46d43",
-					"#d73027"
-				]);
-			console.log(displayData)
+				.colors(colors);
 			selectAll(".fm-horizon")
 				// @ts-ignore
 				.data(Object.values(displayData))
@@ -87,34 +97,60 @@ export default function HighGamma(props) {
 			setHeight(chartContainer.offsetHeight)
 			setWidth(chartContainer.offsetWidth)
 
-			selectAll(".fm-horizon").on("click", (d, i) => {
+			selectAll(".fm-horizon").on("click", () => {
 				locked = !locked;
 			});
-			selectAll(".fm-horizon")
-				.on("mousemove", (d, i, nodes) => {
-					// @ts-ignore
-					let goal = x.invert(mouse(nodes[i])[0]);
-					let answer = times.reduce((prev, curr) => Math.abs(curr - goal) < Math.abs(prev - goal) ? curr : prev);
 
-					console.log(props.scene.getObjectByName("Electrodes").children[0].material.color)
-					// @ts-ignore
-					Object.values(times).map((x, i) => {
-						console.log(nodes[i])
-						// @ts-ignore
-						if (x == answer) cursorLineMover(mouse(nodes[i])[0], i)
-					});
+			selectAll(".fm-horizon")
+				.on("mousemove", () => {
+					if (!locked) {
+						let firstHorizon = document.getElementsByClassName('fm-horizon')[0]
+						//@ts-ignore
+						let position = mouse(firstHorizon)[0];
+						lineAndDotUpdate(position);
+					}
 				})
-			const cursorLineMover = (position, dataIndex) => {
-				if (!locked) {
-					select(".cursorLine")
-						.attr("x1", position)
-						.attr("y1", 0)
-						.attr("x2", position)
-						.attr("y2", chartContainer.offsetHeight);
-				}
-			};
 		}
 	}, [isMounted])
+
+	const lineAndDotUpdate = (position) => {
+		cursorLineMover(position);
+		dotUpdator(position)
+	}
+
+	const dotUpdator = (position) => {
+		let nodes = document.getElementsByClassName('fm-horizon');
+		let firstHorizon = nodes[0];
+		//@ts-ignore
+
+		let zedIndex = Math.floor(position / (firstHorizon.offsetWidth / times.length));
+		//@ts-ignore
+		[...nodes].map((node, i) => {
+			//@ts-ignore
+			let dot = document.getElementById(`${node.id.split("_")[0]}_circle`)
+			if (dot) {
+				//@ts-ignore
+				if ((node.__data__[zedIndex]).toString() != "NaN") {
+					//@ts-ignore
+					dot.setAttribute('r', (Math.abs(node.__data__[zedIndex]) * 5 + 2).toString())
+					//@ts-ignore
+					dot.setAttribute('fill', dotColorScale(node.__data__[zedIndex]))
+				}
+			}
+		})
+	}
+
+	const cursorLineMover = position => {
+		if (!locked) {
+			select(".cursorLine")
+				.attr("x1", position)
+				.attr("y1", 0)
+				.attr("x2", position)
+				.attr("y2", chartContainer.offsetHeight);
+		}
+	};
+
+
 	return (
 		<div id="fm">
 			<svg className="fm-cursor-svg"
@@ -143,7 +179,7 @@ export default function HighGamma(props) {
 					<div className="fm-horizon"
 						key={`${channel}_horizon`}
 						id={`${channel}_horizon`}
-						style={{ "outline": "thin solid black", "height": "20px" }}>
+						style={{ "outline": "thin solid black", "height": `${height / Object.keys(displayData).length}px` }}>
 					</div>
 				)
 			})}

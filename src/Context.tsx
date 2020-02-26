@@ -25,9 +25,9 @@ export const MyProvider = (props: any) => {
 	const [brain, setNewBrain] = useState("")
 	const [brainCoord, setNewBrainCoord] = useState("")
 	const [task, setTask] = useState("");
-	const [brainType, setBrainType] = useState("2D")
 	const [EPData, setEPData] = useState();
 	const [mapData, setMapData] = useState('');
+	const [zScores, setZScores] = useState('');
 	return (
 		<Context.Provider value={{
 			subjects,
@@ -50,13 +50,11 @@ export const MyProvider = (props: any) => {
 			setNewBrain,
 			task,
 			setTask,
-			brainType,
-			setBrainType,
 			brainCoord,
 			setNewBrainCoord,
 			EPData, setEPData,
-			mapData, setMapData
-
+			mapData, setMapData,
+			zScores, setZScores
 		}}>
 			{props.children}
 		</Context.Provider >
