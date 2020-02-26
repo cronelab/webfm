@@ -1,74 +1,79 @@
-import React, { useContext, useEffect, useRef } from "react";
-import { Card, InputGroup, Button, FormControl, ListGroup, ListGroupItem } from '../../node_modules/react-bootstrap'
+import React, { useContext, useEffect, useState } from "react";
+import {
+  Card,
+  InputGroup,
+  Button,
+  FormControl
+} from "../../node_modules/react-bootstrap";
 import { Context } from "../Context";
-
 import BCI2K from "bci2k";
-let bciOperator = new BCI2K.bciOperator();
-let bciSourceConnection = new BCI2K.bciData();
-
 
 const Online = () => {
-	let { bciState } = useContext(Context);
+  let { bciState, setBciState, setNewRecord, setNewSubject } = useContext(Context);
+  const [showOnline, setShowOnline] = useState(false);
+  const [bciAddress, setBciAddress] = useState("wss://127.0.0.1");
+  let bciOperator = new BCI2K.bciOperator();
+  let bciSourceConnection = new BCI2K.bciData();
 
-	// useEffect(() => {
-	// 	bciOperator.connect("ws://127.0.0.1").then(() => {
-	// 		bciOperator.onStateChange = e => {
-	// 			context.setBciState(e);
-	// 		};
-	// 		(async () => {
-	// 			let subject = await bciOperator.execute(`Get Parameter SubjectName`);
-	// 			let dataFile = await bciOperator.execute(`Get Parameter DataFile`);
-	// 			context.setTask(dataFile.split("/")[1]);
+  useEffect(() => {
+	  (async () => {
+		await bciOperator.connect(bciAddress)
+		setBciState("Connected");
+		bciOperator.stateListen();
+		bciOperator.onStateChange = e => setBciState(e);
+		let subject = await bciOperator.execute(`Get Parameter SubjectName`);
+		let dataFile = await bciOperator.execute(`Get Parameter DataFile`);
+		setNewRecord({name:dataFile.split("/")[1]});
+		setNewSubject({ name: subject });
+		bciSourceConnection.connect("ws://127.0.0.1:20100").then(() => { });
+		bciSourceConnection.onReceiveBlock = () => {
+      };
+	})()
+  }, [bciAddress]);
 
-	// 			context.setNewSubject({ name: subject });
-	// 		})();
-	// 		bciSourceConnection.connect("127.0.0.1:20100").then(() => { });
-	// 		bciSourceConnection.onReceiveBlock = () => {
-	// 			context.setSourceData(bciSourceConnection.signal);
-	// 		};
-	// 	});
-	// }, []);
+  return (
+    <Card className="text-center">
+      <Card.Header>
+        <Card.Title as="h3"
+			onClick={() => setShowOnline(!showOnline)}
+		>
+          Online
+        </Card.Title>
+      </Card.Header>
+      <Card.Body className={showOnline ? "" : 'd-none'} id="online-options">
+        <InputGroup>
+          <InputGroup.Prepend>
+            <InputGroup.Text id="basic-addon1">Source</InputGroup.Text>
+          </InputGroup.Prepend>
+          <FormControl
+            id="source-address"
+            type="text"
+            defaultValue={bciAddress}
+          />
+          <InputGroup.Append>
+            <Button
+              id="source-address-ok"
+              variant="outline-secondary"
+              onClick={() =>
+              //@ts-ignore
+			  setBciAddress(document.getElementById("source-address").value)
+              }
+            >
+              Set address
+            </Button>
+          </InputGroup.Append>
+        </InputGroup>
+      </Card.Body>
 
-
-	return (
-		<Card>
-			<Card.Header>
-				<Card.Title as="h3">
-					Online <span className="pull-right"><a className="toggle-online-options"></a></span>
-				</Card.Title>
-			</Card.Header>
-			<Card.Header className="" id="online-options">
-				{/* <Card.Header className="d-none" id="online-options"> */}
-				<InputGroup>
-					<InputGroup.Prepend>
-						<InputGroup.Text id="basic-addon1">Source</InputGroup.Text>
-					</InputGroup.Prepend>
-					<FormControl
-						id="source-address"
-						type="text"
-						placeholder="Address"
-					/>
-					<InputGroup.Append>
-						<Button id="source-address-ok" variant="outline-secondary">Button</Button>
-					</InputGroup.Append>
-				</InputGroup>
-			</Card.Header>
-			<ListGroup>
-				<ListGroupItem id="state-label" className="text-center">
-					{bciState}
-				</ListGroupItem>
-				<ListGroupItem id="subject-label" className="text-center d-none">
-				</ListGroupItem>
-				<ListGroupItem id="task-label" className="text-center d-none">
-				</ListGroupItem>
-				<Button id="map-button" className="text-center"
-					// <Button id="map-button" className="disabled text-center"
-					href={`/map?subject=${'PY20N001'}&type=HG&record=${'AF_SentenceCompletion'}`}
-				>
-					Map
-</Button>
-			</ListGroup>
-		</Card>
-	)
-}
+        <Button
+          id="map-button"
+          className="text-center"
+          // <Button id="map-button" className="disabled text-center"
+          href={`/map`}
+        >
+          Map
+        </Button>
+    </Card>
+  );
+};
 export default Online;
