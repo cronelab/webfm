@@ -80,25 +80,25 @@ const Brain_3 = (props) => {
 				await dataset.get(data)
 				let dataTime = data.contents.times
 				setTimes(dataTime)
-				let cortstimReq = await fetch(`/api/data/${subjectName}/cortstim`)
-				let cortStimRes = await cortstimReq.json()
-				let actualData = Object.keys(cortStimRes).map(entry => {
-					if (cortStimRes[entry].Result != null) {
-						return {
-							channel: entry,
-							color: cortStimRes[entry].Color,
-							result: [...cortStimRes[entry].Result, "All"]
-						}
-					}
-					else {
-						return {
-							channel: entry,
-							color: cortStimRes[entry].Color,
-							result: ["All"]
-						}
-					}
-				})
-				setTaskData(actualData)
+			// 	let cortstimReq = await fetch(`/api/data/${subjectName}/cortstim`)
+			// 	let cortStimRes = await cortstimReq.json()
+			// 	let actualData = Object.keys(cortStimRes).map(entry => {
+			// 		if (cortStimRes[entry].Result != null) {
+			// 			return {
+			// 				channel: entry,
+			// 				color: cortStimRes[entry].Color,
+			// 				result: [...cortStimRes[entry].Result, "All"]
+			// 			}
+			// 		}
+			// 		else {
+			// 			return {
+			// 				channel: entry,
+			// 				color: cortStimRes[entry].Color,
+			// 				result: ["All"]
+			// 			}
+			// 		}
+			// 	})
+			// 	setTaskData(actualData)
 			}
 			let brainContainer = document.getElementById('brain3D');
 
@@ -115,7 +115,7 @@ const Brain_3 = (props) => {
 			renderer.setSize(960, 720);
 			light.position.set(0, 0, 10)
 			controls.target.set(10, 20, 0);
-			controls.autoRotate = true;
+			controls.autoRotate = false;
 			scene.add(light);
 			let loader = new GLTFLoader();
 			//@ts-ignore
@@ -124,7 +124,6 @@ const Brain_3 = (props) => {
 				scene.add(object3d.scene);
 				object3d.scene.rotation.set(-Math.PI / 2, 0, 0);
 				object3d.scene.position.set(0, 10, 0);
-
 				object3d.scene.scale.set(.5, .5, .5)
 				let elecs = scene.getObjectByName("Electrodes");
 				let gyri = scene.getObjectByName("Brain")
@@ -134,7 +133,7 @@ const Brain_3 = (props) => {
 				setThreeDCoords(elecs.children);
 
 				//@ts-ignore
-				let gyriMaterial = gyri.children[0].material
+				let gyriMaterial = scene.getObjectByName("Left-Amygdala").material
 				elecs.traverse(child => {
 					if (child.type == "Mesh") {
 						//@ts-ignore

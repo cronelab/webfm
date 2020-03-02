@@ -21,10 +21,7 @@ export default function Cortstim() {
 
 	useEffect(() => {
 		var urlParams = new URLSearchParams(window.location.search);
-
-		let recordType = urlParams.get('type');
 		let subjectName = urlParams.get('subject');
-
 		(async () => {
 			let cortstimReq = await fetch(`/api/data/${subjectName}/cortstim`)
 			let cortStimRes = await cortstimReq.json()
@@ -48,7 +45,7 @@ export default function Cortstim() {
 			let brainContainer = document.getElementById('brain3D');
 			let scene = new THREE.Scene();
 			scene.background = new THREE.Color(0xffffff);
-			let camera = new THREE.PerspectiveCamera(45, brainContainer.offsetWidth / 600, .1, 5000);
+			let camera = new THREE.PerspectiveCamera(45, brainContainer.offsetWidth / 600, 1, 1000);
 			camera.lookAt(scene.position)
 			let renderer = new THREE.WebGLRenderer({
 				antialias: true
@@ -56,7 +53,7 @@ export default function Cortstim() {
 
 			let controls = new OrbitControls(camera, renderer.domElement);
 			let light = new THREE.HemisphereLight(0xffffff, 0x444444);
-			camera.position.set(-100, 0, -100);
+			camera.position.set(-100, 0, -500);
 			renderer.setSize(brainContainer.offsetWidth, 600);
 			light.position.set(0, 0, 10)
 			controls.target.set(10, 20, 0);

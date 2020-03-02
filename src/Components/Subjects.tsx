@@ -5,7 +5,6 @@ import {
 	Tab, Nav, Button, Modal, ListGroup, ListGroupItem
 } from '../../node_modules/react-bootstrap'
 import { Context } from '../Context'
-import './Subjects.scss'
 
 export default function Subjects() {
 	let { records, subjects, subject, setNewSubject, setNewBrain, setAllSubjects, setAllRecords, setNewRecord }: any = useContext(Context);
@@ -166,7 +165,7 @@ export default function Subjects() {
 		)
 	}
 	return (
-		<React.Fragment>
+		<>
 			<Card>
 				<Card.Header>
 					<Card.Title as="h3">
@@ -198,6 +197,6 @@ export default function Subjects() {
 				</Button>
 			</Card>
 			<SubjectModal />
-		</React.Fragment >
+		</ >
 	)
 }
