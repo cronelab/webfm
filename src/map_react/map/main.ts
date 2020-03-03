@@ -1,8 +1,8 @@
 import "./index.scss";
 import "bootstrap";
 import "@fortawesome/fontawesome-free/js/all";
-import fmui from '../shared/fmui'
-import fmdata from '../shared/fmdata';
+import fmui from '../../shared/fmui'
+import fmdata from '../../shared/fmdata';
 import OnlineDataSource from './fmonline'
 
 // import Worker from '../shared/source.worker.js';
@@ -12,7 +12,7 @@ let uiManager: any;
 let subject: any;
 let task: any;
 // import Worker from '../shared/dataIndex.worker';
-import Worker from "../shared/dataIndex.worker";
+import Worker from "../../shared/dataIndex.worker";
 
 const dataIndexer = new Worker();
 

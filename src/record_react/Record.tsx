@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useContext, useMemo } from "react";
 import {
-	Container, Row, Col, Button
-} from '../../node_modules/react-bootstrap'
+	Container, Row, Col
+} from 'react-bootstrap'
 import Brain from '../Components/Brain'
 import { Context } from '../Context'
 import { Brain_3D } from "../Components/Brain_3D";
 import DataHeader from '../Components/DataHeader'
 import HighGamma from '../Components/HighGamma'
-import EvokedPotentials from "../Components/EvokedPotentials";
-import { HeatMap } from "../Components/HeatMap";
+// import EvokedPotentials from "../Components/EvokedPotentials";
+// import { HeatMap } from "../Components/HeatMap";
 
 export default React.memo(function Record() {
 	const { setNewSubject, setNewRecord, brainCoord } = useContext(Context)
@@ -47,10 +47,10 @@ export default React.memo(function Record() {
 			return <HighGamma ></HighGamma>
 		}
 		else if (urlParams.get('type') == 'EP') {
-			return <EvokedPotentials ></EvokedPotentials>
+			// return <EvokedPotentials ></EvokedPotentials>
 		}
 		else if (urlParams.get('type') == 'CCSR') {
-			return <HeatMap></HeatMap>
+			// return <HeatMap></HeatMap>
 		}
 	}
 

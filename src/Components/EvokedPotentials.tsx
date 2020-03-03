@@ -1,16 +1,16 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { scaleLinear } from 'd3-scale'
 import {
-	select, selectAll, mouse
+	select
 } from "d3-selection";
-import { extent, max, min } from 'd3-array'
+import { extent } from 'd3-array'
 import { line } from 'd3-shape'
 import {
 	OverlayTrigger, Tooltip
 } from '../../node_modules/react-bootstrap'
 import '../record_react/Record.scss'
 import { Context } from '../Context'
-import { interpolateRdBu, interpolatePuOr, interpolateRdYlBu, interpolateSpectral } from 'd3-scale-chromatic'
+import { interpolateSpectral } from 'd3-scale-chromatic'
 
 
 
@@ -18,7 +18,7 @@ export default function EvokedPotentials(props) {
 	const [data, setData] = useState();
 	const [width, setWidth] = useState(0);
 	const [height, setHeight] = useState(0);
-	const [stimulatingElectrodes, setStimulatingElectrodes] = useState()
+	const [stimulatingElectrodes, setStimulatingElectrodes] = useState<string[]>()
 	const [zeroMark, setZeroMark] = useState(0);
 	const [zScores, setZScores] = useState([])
 	const [zTimePoint, setZTimePoint] = useState([])

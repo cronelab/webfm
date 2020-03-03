@@ -1,6 +1,8 @@
+/* tslint:disable */
 
 import React, { useContext } from "react";
-import { Navbar, Button} from '../../node_modules/react-bootstrap'
+import  {Navbar, Button} from 'react-bootstrap'
+
 import { Context } from '../Context'
 
 

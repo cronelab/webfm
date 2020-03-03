@@ -41,6 +41,7 @@ let load3DBrain_gltf = (subject: any, brainContainer: any) => {
 			// loader.load(`/api/${subject}/brain3D_g`, object3d => {
 			scene.add(object3d.scene)
 			let mainScene = scene.getObjectByName("Scene");
+			//@ts-ignore
 			mainScene.rotation.set(-Math.PI / 2, 0, 0)
 			resolve(scene)
 		});
@@ -49,6 +50,8 @@ let load3DBrain_gltf = (subject: any, brainContainer: any) => {
 			renderer.render(scene, camera);
 		};
 		animate();
+			//@ts-ignore
+
 		brainContainer.appendChild(renderer.domElement);
 	})
 

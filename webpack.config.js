@@ -16,32 +16,20 @@ const module = {
 		reconstruction3D: "./src/reconstruction3D/main.js"
 	},
 
-	// {
-	// index: "./src/index/main.ts",
-	// record: "./src/record/main.ts",
-	// map: "./src/map/main.ts",
-	// index_r: "./src/index.tsx",
-	// record_r: "./src/record_react/Record.tsx"
-	// streamSaver: "./streamSaver/index.js",
-	// cceps: "./src/CCEPS/index.js",
-	// threeD: "./src/3DViewer/main.js",
-	// devServer: {
-	// 	historyApiFallback: true,
-	// },
-	// },
 	node: {
 		fs: 'empty'
 	},
 	resolve: {
-		// Add `.ts` and `.tsx` as a resolvable extension.
 		extensions: [".ts", ".tsx", ".js", ".jsx"]
 	},
 	module: {
 		rules: [
 			{
 				test: /\.tsx?$/,
-				use: 'ts-loader',
-				exclude: /node_modules/,
+				loader: 'ts-loader',
+				options: {
+					configFile: 'tsconfig.json'
+				}
 			},
 			{
 				test: /\.js|jsx$/,
@@ -125,55 +113,6 @@ const module = {
 			chunks: ["reconstruction3D"],
 			title: "WebFM"
 		}),
-		// 	new HtmlWebpackPlugin({
-		// 		hash: true,
-		// 		template: "./src/index/index.html",
-		// 		filename: "index.html",
-		// 		chunks: ["index_original"],
-		// 		title: "WebFM"
-		// 	}),
-		// 	new HtmlWebpackPlugin({
-		// 		hash: true,
-		// 		template: "./src/record/index.html",
-		// 		filename: "record.html",
-		// 		chunks: ["record"],
-		// 		title: "WebFM"
-		// 	}),
-		// 	new HtmlWebpackPlugin({
-		// 		hash: true,
-		// 		template: "./src/map/index.html",
-		// 		filename: "map.html",
-		// 		chunks: ["map"],
-		// 		title: "WebFM"
-		// 	}),
-		// 	new HtmlWebpackPlugin({
-		// 		hash: true,
-		// 		template: "./src/CCEPS/index.html",
-		// 		filename: "cceps.html",
-		// 		chunks: ["cceps"],
-		// 		title: "WebFM"
-		// 	}),
-		// 	new HtmlWebpackPlugin({
-		// 		hash: true,
-		// 		template: "./src/3DViewer/index.html",
-		// 		filename: "threeD.html",
-		// 		chunks: ["threeD"],
-		// 		title: "WebFM"
-		// 	}),
-
-		// 	new HtmlWebpackPlugin({
-		// 		hash: true,
-		// 		template: "./src/index.html",
-		// 		filename: "index.html",
-		// 		chunks: ["index_r"],
-		// 		title: "WebFM"
-		// 	}),
-		// 	new HtmlWebpackPlugin({
-		// 		hash: true,
-		// 		filename: "record_r.html",
-		// 		chunks: ["record_r"],
-		// 		title: "WebFM"
-		// 	})
 	],
 	output: {
 		path: path.resolve(__dirname, "dist"),

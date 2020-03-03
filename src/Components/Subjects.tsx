@@ -14,7 +14,7 @@ export default function Subjects() {
 	let tempArray = {}
 
 	//Request all EP and HG records from server
-	const getRecords = async (subj) => {
+	const getRecords = async (subj: string) => {
 		let epPath = `/api/${subj}/records/EP`;
 		let hgPath = `/api/${subj}/records/HG`;
 		let epReq = await fetch(epPath);
@@ -33,6 +33,7 @@ export default function Subjects() {
 		else {
 			epResp = [];
 		}
+		//@ts-ignore
 		tempArray[subj] = { EP: epResp, HG: hgResp };
 		setAllRecords(tempArray)
 	};
@@ -44,7 +45,7 @@ export default function Subjects() {
 			let foundSubjects = await listPathRes.json();
 			if (foundSubjects.length > 0) {
 				foundSubjects.sort();
-				foundSubjects.forEach(subject => getRecords(subject))
+				foundSubjects.forEach((subject: string) => getRecords(subject))
 				setAllSubjects(foundSubjects);
 			}
 			else {
@@ -58,11 +59,11 @@ export default function Subjects() {
 		setNewBrain("");
 	}
 
-	const handleChange = (e) => {
-		console.log(e.target.value)
-		setNewSubject(e.target.value)
+	const handleChange = (e: Event) => {
+					//@ts-ignore
+					setNewSubject(e.target.value)
 	}
-	const createNewSubject = (e) => {
+	const createNewSubject = (e: Event) => {
 		setNewSubject({ name: subject, geometry: null });
 		setAllSubjects([...subjects, subject])
 	}
@@ -98,6 +99,8 @@ export default function Subjects() {
 							variant="pills"
 							className="flex-column"
 						>
+					{/* //@ts-ignore */}
+
 							{subjects.map((subject, index) => {
 								return (
 									<Nav.Item key={`${subject}_${index}`}>
@@ -111,6 +114,8 @@ export default function Subjects() {
 					</Col>
 					<Col sm={9}>
 						<Tab.Content>
+					{/* //@ts-ignore */}
+
 							{subjects.map((subject, index) => {
 								return (
 									<Tab.Pane
@@ -125,6 +130,8 @@ export default function Subjects() {
 														<ListGroupItem key="EP_Records" style={{ backgroundColor: "#00f" }}>
 															Evoked Potentials
 														</ListGroupItem>
+					{/* //@ts-ignore */}
+
 														{records[subject].EP.map(ep => {
 															return (
 																<ListGroupItem key={`${subject}_${ep}`}
@@ -141,6 +148,8 @@ export default function Subjects() {
 														<ListGroupItem key="HG_Records" style={{ backgroundColor: "#00f" }}>
 															High Gamma
 														</ListGroupItem>
+					{/* //@ts-ignore */}
+
 														{records[subject].HG.map(hg => {
 
 															return (
@@ -180,8 +189,11 @@ export default function Subjects() {
 						id="new-subject-id"
 						type="text"
 						placeholder="PYXXN000"
-						onChange={handleChange}
+					//@ts-ignore
+					onChange={handleChange}
 					/>
+					//@ts-ignore
+
 					<Button onClick={createNewSubject} type="submit" id="new-subject-ok" variant="outline-secondary">Button</Button>
 				</InputGroup>
 				<Button onClick={uploadBrain}>Upload brain</Button>
@@ -191,6 +203,7 @@ export default function Subjects() {
 					title="Subjects"
 					id="subject-list"
 					style={{ width: "100%" }}
+					//@ts-ignore
 					onClick={handleShow.bind(this)}
 				>
 					Subjects

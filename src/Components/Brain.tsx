@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Image } from '../../node_modules/react-bootstrap'
+import { Image } from 'react-bootstrap'
 import { Context } from "../Context";
 import { fetchAndStoreBrain, fetchAndStoreGeometry } from '../shared/loaders'
 
@@ -7,7 +7,7 @@ const Brain = (props) => {
 	let { subject, setNewBrainCoord, setNewBrain, brain, brainCoord }: any = useContext(Context);
 	if (subject.name == "") subject.name = "PY17N005"
 	const [brainCoords, setBrainCoords] = useState({})
-	const [dots, setDots] = useState()
+	const [dots, setDots] = useState<Element>()
 	let actualCoords = {}
 
 	//Initial render once all the subjects are queried
@@ -27,6 +27,7 @@ const Brain = (props) => {
 					location: vals.location
 				}
 			})
+		//@ts-ignore
 			setDots(<svg style={{ "height": "100%", "width": "100%" }}>
 
 				{Object.keys(actualCoords).map((key, index) => {

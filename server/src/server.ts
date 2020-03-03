@@ -26,6 +26,8 @@ const compiler = webpack(newConfig);
 app.use(
 	webpackDevMiddleware(compiler)
 );
+app.use(webpackHotMiddleware(compiler));
+
 app.use("/", routes(express));
 
 app.get('*', function (req, res) {
@@ -35,7 +37,6 @@ app.get('*', function (req, res) {
 		}
 	})
 })
-// app.use(webpackHotMiddleware(compiler));
 
 app.listen(8090, () => console.log("Serving"));
 app.listen(8091, () => console.log("Serving"));

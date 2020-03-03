@@ -10,16 +10,13 @@ import Online from "./Components/Online";
 import Subjects from "./Components/Subjects";
 import Brain from "./Components/Brain";
 import Cortstim from "./Components/Cortstim";
-import { Row, Col, Container } from "../node_modules/react-bootstrap";
+import { Row, Col, Container } from "react-bootstrap";
 import Reconstruction from "./3Drecon_react/Reconstruction";
 ReactDOM.render(
   <MyProvider>
     <Router>
       <Header></Header>
       <Switch>
-        <Route exact path="/blank">
-          <Record />
-        </Route>
         <Route exact path="/records">
           <Record />
         </Route>

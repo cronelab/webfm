@@ -1,3 +1,4 @@
+//@ts-nocheck
 import React, { useEffect, useState } from 'react'
 import * as horizon from "d3-horizon-chart";
 import {

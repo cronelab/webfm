@@ -1,3 +1,4 @@
+//@ts-nocheck
 import React, { useEffect, useState } from 'react'
 import {
 	Group, Scene, Color, PerspectiveCamera, WebGLRenderer, HemisphereLight, Vector3,
@@ -17,9 +18,7 @@ import fmdata from '../shared/fmdata'
 import { extent } from 'd3-array'
 
 const Brain_3 = (props) => {
-
 	const [isPaused, setIsPaused] = useState(false)
-
 	const [brainScene, setBrainScene] = useState();
 	const [threeDCoords, setThreeDCoords] = useState();
 	const [stimulatingElectrodes, setStimulatingElectrodes] = useState()
@@ -393,13 +392,15 @@ const Brain_3 = (props) => {
 		}
 		if (threeDCoords) {
 			let object = brainScene.getObjectByName("Electrodes");
-			object.traverse((child) => {
+					//@ts-ignore
+					object.traverse((child) => {
 				if (child.type == "Mesh") {
 					child.geometry = new SphereGeometry(1, 32, 32, 0, Math.PI * 2, 0, Math.PI)
 				}
 			})
-			let object2 = brainScene.getObjectByName("Gyri");
-			object2.traverse(child => {
+			let object2 = brainScene.getObjectByName("Gyri") || null;
+					//@ts-ignore
+					object2.traverse(child => {
 				if (child.type == "Mesh") {
 					var color = new Color(0xdcdcdc);
 					child.material.color = color
@@ -411,10 +412,12 @@ const Brain_3 = (props) => {
 		}
 
 	}, [threeDCoords])
+					//@ts-ignore
 
 	document.getElementById('dataTimer').onclick = () => {
 		selectTask("All")
 	}
+					//@ts-ignore
 
 	const dotUpdator = (position) => {
 		let nodes = document.getElementsByClassName('fm-horizon');
