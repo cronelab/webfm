@@ -15,6 +15,7 @@ import Reconstruction from "./3Drecon_react/Reconstruction";
 ReactDOM.render(
   <MyProvider>
     <Router>
+		<>
       <Header></Header>
       <Switch>
         <Route exact path="/records">
@@ -46,6 +47,7 @@ ReactDOM.render(
         </Route>
       </Switch>
       <Footer></Footer>
+	  </>
     </Router>
   </MyProvider>,
   document.getElementById("root")

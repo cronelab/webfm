@@ -1,58 +1,5 @@
 <body>
 
-	<nav class="navbar navbar-expand-lg navbar-light bg-light" id="optionsNav">
-
-		<ul class=" navbar-nav">
-			<li class="nav-item">
-				<p class="nav-link fm-time-label"><span class="fm-time-selected">0.000 s</span></p>
-			</li>
-			<li class="nav-item" id="play-button">
-				<a class="nav-link" href="#"><span class="fas fa-play" id="play-button-icon"></span></a>
-			</li>
-			<li class="nav-item fm-zoom-in">
-				<a class="nav-link" href="#"><span class="fas fa-search-plus"></span></a>
-			</li>
-			<li class="nav-item fm-zoom-out">
-				<a class="nav-link" href="#"><span class="fas fa-search-minus"></span></a>
-			</li>
-
-			<a class="nav-link" href="#" id="gainUp">
-				<i class="nav-item fas fa-volume-up"></i>
-			</a>
-			<a class="nav-link" href="#" id="gainDown">
-				<i class="nav-item fas fa-volume-down"></i>
-			</a>
-
-			<a class="nav-link fm-show-options" href="#">
-				<i class="nav-item fas fa-cog"></i>
-			</a>
-		</ul>
-
-	</nav>
-
-
-
-	<div class="container-fluid">
-
-		<div class="row">
-
-			<div class="col-md-5 col-sm-5">
-
-				<div id="fm"></div>
-
-			</div>
-
-			<div class="col-md-7 col-sm-7 hidden-xs" style="position:fixed; right:0px;">
-				<!-- TODO Add aspect ratio button -->
-
-				<div id="fm-brain"></div>
-
-			</div>
-
-		</div>
-
-	</div>
-
 
 
 	<div id="fm-options-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="fmOptionsModal">
@@ -466,19 +413,6 @@
 				}
 			</script>
 		</div>
-
-
-		<!-- Footer -->
-
-		<footer class="footer navbar-fixed-bottom">
-			<div class="container-fluid">
-				<p class="text-muted text-right">
-					<span class="fm-trial-label">[n]</span>
-					&emsp;&middot;&emsp;
-					BCI2K: <span class="text-success fm-bci-status-label">Connected</span>
-				</p>
-			</div>
-		</footer>
 
 </body>
 

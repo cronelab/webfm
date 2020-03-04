@@ -1,60 +1,48 @@
 import React, { useEffect, useContext, useRef, useState } from "react";
-import {
-  Container,
-  Row,
-  Col,
-  Button
-} from "react-bootstrap";
+import { Container, Row, Col, Button } from "react-bootstrap";
 import Brain from "../Components/Brain";
-import { Context } from "../Context";
 import "../Record/Record.scss";
 import fmdata from "../shared/fmdata";
 import fmui from "../shared/fmui";
-import { select, selectAll, mouse } from "d3-selection";
-import { scaleLinear } from "d3-scale";
-import { extent } from "d3-array";
-import * as horizon from "d3-horizon-chart";
+// import OnlineDataSource from '../shared/fmonline'
 import BCI2K from "bci2k";
-import {DataHeader} from "../Components/DataHeader";
+import { DataHeader } from "../Components/DataHeader";
 import MapModals from "./MapModals";
 
+// import { Context } from "../Context";
+// import { select, selectAll, mouse } from "d3-selection";
+// import { scaleLinear } from "d3-scale";
+// import { extent } from "d3-array";
+// import * as horizon from "d3-horizon-chart";
+
 export const Map = () => {
-  const { subject, setNewSubject, setNewRecord, bci, setBCI } = useContext(
-    Context
-  );
+  //   const { subject, setNewSubject, setNewRecord, bci, setBCI } = useContext(
+  //     Context
+  //   );
   const [clicked, click] = useState(false);
 
-  const [bciAddress, setBciAddress] = useState("wss://127.0.0.1");
-  let bciOperator = new BCI2K.bciOperator();
   let bciSourceConnection = new BCI2K.bciData();
   const inputEl = useRef(null);
 
   useEffect(() => {
     (async () => {
-      await bciOperator.connect(bciAddress);
-      let subject = await bciOperator.execute(`Get Parameter SubjectName`);
-      let dataFile = await bciOperator.execute(`Get Parameter DataFile`);
-      setNewRecord({ name: dataFile.split("/")[1] });
-      setNewSubject({ name: subject });
-      bciSourceConnection.connect("ws://127.0.0.1:20100").then(() => {});
-      bciSourceConnection.onReceiveBlock = () => {};
-      setBCI(bciOperator);
-
       let request = await fetch(`/config`);
       let data = await request.json();
       let dataset = new fmdata();
       let uiManager = new fmui();
-
+      // let dataSource = new OnlineDataSource();
       uiManager.config.ui = data;
       uiManager.setup();
-      // let fetchRoute = `/api/data/${urlParams.get('subject')}/${urlParams.get('record')}/${urlParams.get('type')}`
-      // fetch(fetchRoute).then(response => response.json()).then(data => {
-      // 	dataset.get(data).then(() => {
-      // 		let locked = false;
-      // 		console.log(data)
-      // 		let times = data.contents.times
-
-      // 		const chartContainer = document.getElementById("fm");
+      bciSourceConnection.connect("ws://127.0.0.1:20100").then(() => {
+        bciSourceConnection.onSignalProperties = data => {
+          console.log(data);
+          dataset.setupChannels(data.channels);
+          uiManager.updateChannelNames(data.channels);
+        };
+        bciSourceConnection.onReceiveBlock = (data) => {
+          console.log(data);
+        };
+      });
       // 		let step = chartContainer.offsetWidth / dataset.displayData.LA1.length;
       // 		console.log(Object.keys(dataset.displayData))
       // 		let horizonChart = horizon

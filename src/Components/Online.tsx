@@ -5,6 +5,7 @@ import {
   Button,
   FormControl
 } from "../../node_modules/react-bootstrap";
+import {Link} from 'react-router-dom'
 import { Context } from "../Context";
 import BCI2K from "bci2k";
 
@@ -66,15 +67,13 @@ const Online = () => {
 
 		<Card.Text>{bciState}</Card.Text>
       </Card.Body>
-
+	  <Link to="/map">
         <Button
           id="map-button"
-          className={bciState=="Not Connected" ? "text-center disabled" : "text-center"}
-          // <Button id="map-button" className="disabled text-center"
-          href={`/map`}
-        >
+          className={bciState=="Not Connected" ? "text-center disabled" : "text-center"}>
           Map
         </Button>
+		</Link>
     </Card>
   );
 };
