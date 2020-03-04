@@ -293,7 +293,7 @@ const Brain_3 = (props) => {
 				dotUpdator(position)
 
 			}
-			document.getElementById('sweepButton').onclick = async () => {
+			document.getElementById('dataTimer').onclick = async () => {
 				let nodes = document.getElementsByClassName('fm-horizon');
 				let firstHorizon = nodes[0]
 				//@ts-ignore

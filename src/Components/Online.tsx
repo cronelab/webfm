@@ -40,8 +40,8 @@ const Online = () => {
           Online
         </Card.Title>
       </Card.Header>
-      <Card.Body className={showOnline ? "" : 'd-none'} id="online-options">
-        <InputGroup>
+      <Card.Body>
+        <InputGroup  className={showOnline ? "" : 'd-none'} id="online-options">
           <InputGroup.Prepend>
             <InputGroup.Text id="basic-addon1">Source</InputGroup.Text>
           </InputGroup.Prepend>
@@ -63,11 +63,13 @@ const Online = () => {
             </Button>
           </InputGroup.Append>
         </InputGroup>
+
+		<Card.Text>{bciState}</Card.Text>
       </Card.Body>
 
         <Button
           id="map-button"
-          className="text-center"
+          className={bciState=="Not Connected" ? "text-center disabled" : "text-center"}
           // <Button id="map-button" className="disabled text-center"
           href={`/map`}
         >

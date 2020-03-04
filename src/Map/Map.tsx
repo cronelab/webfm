@@ -1,8 +1,13 @@
 import React, { useEffect, useContext, useRef, useState } from "react";
-import { Container, Row, Col, Button } from "../../node_modules/react-bootstrap";
+import {
+  Container,
+  Row,
+  Col,
+  Button
+} from "react-bootstrap";
 import Brain from "../Components/Brain";
 import { Context } from "../Context";
-import "../record_react/Record.scss";
+import "../Record/Record.scss";
 import fmdata from "../shared/fmdata";
 import fmui from "../shared/fmui";
 import { select, selectAll, mouse } from "d3-selection";
@@ -10,14 +15,14 @@ import { scaleLinear } from "d3-scale";
 import { extent } from "d3-array";
 import * as horizon from "d3-horizon-chart";
 import BCI2K from "bci2k";
-import MapHeader from "./MapHeader";
-import MapModals from './MapModals';
+import {DataHeader} from "../Components/DataHeader";
+import MapModals from "./MapModals";
 
 export const Map = () => {
   const { subject, setNewSubject, setNewRecord, bci, setBCI } = useContext(
     Context
   );
-	const [clicked, click] = useState(false)
+  const [clicked, click] = useState(false);
 
   const [bciAddress, setBciAddress] = useState("wss://127.0.0.1");
   let bciOperator = new BCI2K.bciOperator();
@@ -149,13 +154,11 @@ export const Map = () => {
 
   return (
     <div className="Record">
-      <MapHeader></MapHeader>
-	  <Button
-									className="fm-show-options"
-									onClick={() => click(true)}
-								>Button
-								</Button>
-	  <MapModals clicked={clicked} />
+      <DataHeader></DataHeader>
+      <Button className="fm-show-options" onClick={() => click(true)}>
+        Button
+      </Button>
+      <MapModals clicked={clicked} />
 
       <Container fluid={true}>
         <Row>

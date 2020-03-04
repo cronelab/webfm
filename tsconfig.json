@@ -4,13 +4,10 @@
     "./server",
     "node_modules",
     "dist",
-    "src/Components/*",
     "src/shared/",
   ],
   "compilerOptions": {
 	"noImplicitAny": false,
-
-	"outDir": "./dist2/",
     "sourceMap": true,
     "jsx": "react",
     "esModuleInterop": true,
@@ -19,7 +16,7 @@
     "module": "es6",
     "allowSyntheticDefaultImports": true,
 	"moduleResolution": "node",
-	"strictNullChecks": false,
+	// "strictNullChecks": false,
     "typeRoots": ["node_modules/@types"]
   },
 }

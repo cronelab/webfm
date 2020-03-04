@@ -103,15 +103,13 @@ const module = {
 			template: './src/index.html',
 			filename: "index.html",
 			hash: true,
-			chunks: ["main"]
-
+			chunks: ["main"],
 		}),
 		new HtmlWebpackPlugin({
 			hash: true,
 			template: "./src/reconstruction3D/index.html",
 			filename: "reconstruction3D.html",
 			chunks: ["reconstruction3D"],
-			title: "WebFM"
 		}),
 	],
 	output: {

@@ -1,19 +1,19 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { interpolateRdBu, interpolatePuOr, interpolateRdYlBu, interpolateSpectral, interpolatePlasma } from 'd3-scale-chromatic'
 import {
-	select, selectAll, mouse
+	select
 } from "d3-selection";
 import {
 	OverlayTrigger, Tooltip
-} from '../../node_modules/react-bootstrap'
+} from 'react-bootstrap'
 import { Context } from '../Context'
 
 export function HeatMap() {
 
-	const [data, setData] = useState();
-	const [electrodeNames, setElectrodeNames] = useState()
+	const [data, setData] = useState(0);
+	const [electrodeNames, setElectrodeNames] = useState([])
 	const [minVal, setMinVal] = useState()
-	const [maxVal, setMaxVal] = useState()
+	const [maxVal, setMaxVal] = useState(0)
 	const [responses, setResponses] = useState({ timePoint: 0, value: 0 })
 
 	const { brainCoord, mapData, setMapData } = useContext(Context)
@@ -46,8 +46,10 @@ export function HeatMap() {
 				maxVals.push(Math.max(...respData[`${dataset}`].times[`${channel}`]))
 				return channel
 			})
+			//@ts-ignore
 
 			setMinVal(Math.min(...minVals))
+			//@ts-ignore
 			setMaxVal(Math.max(...maxVals))
 			setElectrodeNames(names)
 
@@ -109,6 +111,7 @@ export function HeatMap() {
 					onMouseEnter={() => mouseEntered(props.elec)}
 					onMouseLeave={() => mouseLeft(props.elec)}
 				>
+					{/* //@ts-ignore */}
 					{data[props.elec].map((timePoint, i) => {
 						// let color = interpolateRdBu((timePoint + minVal) / maxVal);
 						// let color = interpolateSpectral((timePoint + minVal) / maxVal);

@@ -1,10 +1,6 @@
-/* tslint:disable */
-
 import React, { useContext } from "react";
 import  {Navbar, Button} from 'react-bootstrap'
-
 import { Context } from '../Context'
-
 
 const bciStatusStyle = {
 	"position": "absolute",
@@ -42,7 +38,7 @@ export default function Header() {
 					WebFM
 				</Navbar.Brand>
 			</Button>
-			<Navbar.Text style={header["subject"]} id="navbar_subject">{subject.name || ''} : {record.name || ''}</Navbar.Text>
+			<Navbar.Text style={header["subject"]} id="navbar_subject">{subject.name ? subject.name : ''} {record.name ? `: ${record.name}` : ''}</Navbar.Text>
 		</Navbar>
 
 	)

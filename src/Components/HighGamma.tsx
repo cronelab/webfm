@@ -8,7 +8,7 @@ import { scaleLinear } from "d3-scale"
 import fmdata from '../shared/fmdata'
 import fmui from '../shared/fmui'
 import { extent, max, min } from 'd3-array'
-import '../record_react/Record.scss'
+import '../Record/Record.scss'
 
 export default function HighGamma(props) {
 
@@ -68,7 +68,7 @@ export default function HighGamma(props) {
 	useEffect(() => {
 		chartContainer = document.getElementById("fm");
 
-		// document.getElementById('sweepButton').onclick = async () => {
+		// document.getElementById('dataTimer').onclick = async () => {
 		// 	for (let i = 250; i < 900; i++) {
 		// 		await sleep(10)
 		// 		lineAndDotUpdate(i);

@@ -11,7 +11,7 @@ import {
   Nav,
   Popover,
   Tooltip
-} from "../../node_modules/react-bootstrap";
+} from "react-bootstrap";
 import React, { useState } from "react";
 
 const MapModals = props => {

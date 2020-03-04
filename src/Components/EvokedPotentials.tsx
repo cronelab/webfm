@@ -7,15 +7,13 @@ import { extent } from 'd3-array'
 import { line } from 'd3-shape'
 import {
 	OverlayTrigger, Tooltip
-} from '../../node_modules/react-bootstrap'
-import '../record_react/Record.scss'
+} from 'react-bootstrap'
+import '../Record/Record.scss'
 import { Context } from '../Context'
 import { interpolateSpectral } from 'd3-scale-chromatic'
 
-
-
-export default function EvokedPotentials(props) {
-	const [data, setData] = useState();
+export default function EvokedPotentials() {
+	const [data, setData] = useState(0);
 	const [width, setWidth] = useState(0);
 	const [height, setHeight] = useState(0);
 	const [stimulatingElectrodes, setStimulatingElectrodes] = useState<string[]>()
@@ -25,7 +23,7 @@ export default function EvokedPotentials(props) {
 	const [anatomicalLocation, setAnatomicalLocation] = useState([])
 
 
-	const { brainCoord, brain } = useContext(Context);
+	const { brainCoord } = useContext(Context);
 
 	useEffect(() => {
 		var urlParams = new URLSearchParams(window.location.search);
@@ -48,7 +46,7 @@ export default function EvokedPotentials(props) {
 			setWidth(chartContainer.offsetWidth)
 			setHeight(chartContainer.offsetHeight)
 			await sleep(1000)
-
+			console.log(respData)
 			setData(respData)
 		})()
 	}, [])
@@ -69,13 +67,16 @@ export default function EvokedPotentials(props) {
 
 			let circle1 = document.getElementById(`${stimulatingElectrodes[0]}_circle`)
 			let circle2 = document.getElementById(`${stimulatingElectrodes[1]}_circle`)
+			let xPos;
+			let yPos;
 			if (circle1) {
-				let xPos = (parseFloat(circle1.getAttribute('cx')) + parseFloat(circle2.getAttribute('cx'))) / 2
-				let yPos = (parseFloat(circle1.getAttribute('cy')) + parseFloat(circle2.getAttribute('cy'))) / 2
+				xPos = (parseFloat(circle1.getAttribute('cx')) + parseFloat(circle2.getAttribute('cx'))) / 2
+				yPos = (parseFloat(circle1.getAttribute('cy')) + parseFloat(circle2.getAttribute('cy'))) / 2
 				select('#imgContainer').select('svg').append('circle').attr('cx', xPos).attr('cy', yPos).attr('r', 10).attr('fill', 'blue')
 			}
 			let responseGeometry = Object.keys(data).map(electrode => {
 				let y = scaleLinear()
+					//@ts-ignore
 					.domain(extent(data[electrode].times))
 					.range([0, 40]);
 
@@ -87,7 +88,6 @@ export default function EvokedPotentials(props) {
 					.datum(data[electrode].times)
 					.attr("d", line()
 						.x((d, i) => x(i))
-						//@ts-ignore
 						.y((d, i) => y(d))
 					)
 
@@ -118,7 +118,6 @@ export default function EvokedPotentials(props) {
 				// let color = interpolateRdYlBu(zscores[i] / Math.max(...zscores));
 				let color = interpolateSpectral(zscores[i] / Math.max(...zscores));
 				if (elec[0] != 0 && circle1 != null) {
-					//@ts-ignore
 					select('#imgContainer').select('svg').append('line').attr('x1', xPos).attr('y1', yPos).attr('x2', elec[0]).attr('y2', elec[1]).attr('stroke', color).attr('stroke-width', '3')
 				}
 			})

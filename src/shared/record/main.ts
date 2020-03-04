@@ -1,8 +1,8 @@
 import "./index.scss";
 import "bootstrap";
 import "@fortawesome/fontawesome-free/js/all";
-import fmui from '../../shared/fmui'
-import fmdata from '../../shared/fmdata';
+import fmui from '../fmui'
+import fmdata from '../fmdata';
 
 let uiManager: any;
 let dataset: any;
