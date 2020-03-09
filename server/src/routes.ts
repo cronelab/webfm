@@ -174,10 +174,6 @@ const routes = express => {
 		}
 	})
 
-
-
-
-
 	router.get("/api/:subject/nifti", (req, res) => {
 		let subject = req.params.subject;
 		if (fs.existsSync(`./data/${subject}/info/reconstruction.nii`)) {
@@ -209,8 +205,6 @@ const routes = express => {
 	});
 
 	//Cortstim
-
-
 	router.get("/api/data/:subject/cortstim", (req, res) => {
 		let subject = req.params.subject;
 		let resFile = `./data/${subject}/data/cortstim/cortstim.json`;
@@ -224,6 +218,19 @@ const routes = express => {
 		else {
 			res.status(204).end()
 		}
+	})
+
+
+	router.put('/api/data/cortstim/:subject', async (req, res) => {
+		let subject = req.params.subject;
+		let receivedData = req.body;
+		console.log(receivedData)
+		let {patientID, electrodes} = receivedData;
+		if(!fs.existsSync(`./data/${subject}/data/cortstim/${electrodes.elec1}_${electrodes.elec2}`)){
+			fs.appendFileSync(`./data/${subject}/data/cortstim/${electrodes.elec1}_${electrodes.elec2}.json`, JSON.stringify(receivedData))
+		}
+		// console.log(electrodes)
+		res.send('test')
 	})
 
 	//* PUT routes

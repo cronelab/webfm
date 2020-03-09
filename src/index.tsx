@@ -12,6 +12,7 @@ import Brain from "./Components/Brain";
 import Cortstim from "./Components/Cortstim";
 import { Row, Col, Container } from "react-bootstrap";
 import Reconstruction from "./3Drecon_react/Reconstruction";
+import CortstimMenu from "./Components/CortstimMenu";
 ReactDOM.render(
   <MyProvider>
     <Router>
@@ -28,7 +29,7 @@ ReactDOM.render(
           <Reconstruction />
         </Route>
         <Route exact path="/cortstim">
-          <Cortstim />
+          <CortstimMenu />
         </Route>
         <Route path="/">
           <Container style={{ marginTop: 5 }} fluid={true}>
