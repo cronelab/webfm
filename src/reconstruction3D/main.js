@@ -924,8 +924,8 @@ window.onload = async () => {
             gyri = brainScene.children[2];
             substructures = brainScene.children[1];
             elecs = object3d.scene.children[0];
-            elecs.rotation.set(0, 0, Math.PI);
-            elecs.position.set(128, 128, 128);
+            // elecs.rotation.set(0, 0, Math.PI);
+            // elecs.position.set(128, 128, 128);
             resolve(brainScene);
             console.log(object3d);
           });
