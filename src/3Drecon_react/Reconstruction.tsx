@@ -30,7 +30,7 @@ const Reconstruction = () => {
 
 	useEffect(() => {
 		(async () => {
-			let res = await fetch(`/api/PY20N002/nifti`)
+			let res = await fetch(`/api/PY20N006/nifti`)
 			let brain = await res.blob()
 			setNifti(URL.createObjectURL(brain))
 		})()
@@ -354,7 +354,7 @@ const Reconstruction = () => {
 				</Col>
 			</Row>
 		</Container>
-	)
+	) 
 }
 
 export default Reconstruction;

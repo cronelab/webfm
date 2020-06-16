@@ -1,4 +1,4 @@
-import React, { useState, useContext, useRef, useEffect} from "react";
+import React, { useState, useContext, useRef, useEffect } from "react";
 import {
   Container,
   Row,
@@ -10,10 +10,16 @@ import {
   Table,
   Button,
   Tabs,
-  Tab
+  Tab,
+  DropdownButton,
+  Dropdown,
+  ButtonGroup,
+  ToggleButton,
+  ToggleButtonGroup
 } from "react-bootstrap";
 import { Context } from "../Context";
 import Brain from "./Brain";
+import { Brain_3D } from "./Brain_3D";
 import CortstimCards from "./CortstimCards";
 import { select } from "d3-selection";
 
@@ -31,29 +37,60 @@ const CortstimMenu = () => {
 
   const [taskButton, setTaskButton] = useState(false);
 
+  const [brainType, setBrainType] = useState("2D");
+  const [scene, setScene] = useState();
+
   const [current, setCurrent] = useState(5);
   const [duration, setDuration] = useState(5);
   const [freq, setFreq] = useState(50);
 
   let events = ["Pain", "Motor", "Sensory", "Seizure", "After Discharge"];
+  let languageTasks=[
+	"Spontaneous Speech",
+	"Reading",
+	"Naming",
+	"Auditory Naming",
+	"Comprehension"
+  ]
   const eventRef = useRef([]);
   events.forEach((event, i) => {
     eventRef.current[i] = React.createRef();
   });
 
 
+  const taskRef = useRef([]);
+  events.forEach((event, i) => {
+    taskRef.current[i] = React.createRef();
+  });
+
   useEffect(() => {
     (async () => {
       let listPathRes = await fetch(`/api/list`);
       let foundSubjects = await listPathRes.json();
       if (foundSubjects.length > 0) {
-		foundSubjects.sort();
-		setNewSubject({name: foundSubjects[foundSubjects.length-1]})
+        foundSubjects.sort();
+        setNewSubject({ name: foundSubjects[foundSubjects.length - 1] });
       } else {
         console.log("Nobody can be found");
-	  }
+      }
     })();
   }, []);
+
+  useEffect(() => {
+    console.log(subject);
+  }, [subject]);
+
+  const BrainChoice = () => {
+    if (brainType == "2D") {
+      return <Brain brainType={brainType}></Brain>;
+    } else if (brainType == "3D") {
+      let props = {
+        subject: subject.name,
+        setScene
+      };
+      return <Brain_3D {...props}></Brain_3D>;
+    }
+  };
 
   return (
     <Container
@@ -67,7 +104,7 @@ const CortstimMenu = () => {
               <Form>
                 <Form.Group>
                   <Form.Control
-					// onBlur={e => setNewSubject({ name: e.target.value })}
+                    onBlur={e => setNewSubject({ name: e.target.value })}
                     placeholder={`${subject.name}`}
                     className="text-center"
                   />
@@ -92,12 +129,14 @@ const CortstimMenu = () => {
                       //   setTaskButtons.forEach(taskButton => {
                       //     taskButton(true);
                       //   });
+
                     }}
                     className="text-center"
                   />
                   <Form.Text className="text-muted">Electrode 1</Form.Text>
                 </Form.Group>
               </Form>
+
             </Col>
             <Col sm={2}>
               <Form>
@@ -125,6 +164,14 @@ const CortstimMenu = () => {
                 </Form.Group>
               </Form>
             </Col>
+			<Col sm={1}>
+			<DropdownButton as={ButtonGroup} title="Results" id="bg-nested-dropdown_Results">
+				<Dropdown.Item eventKey="1">3/23/2020</Dropdown.Item>
+				<Dropdown.Item eventKey="2">3/24/2020</Dropdown.Item>
+			</DropdownButton>
+
+			</Col>
+
           </Row>
           <Row style={{ paddingTop: "5px" }}>
             <Col sm={2}>
@@ -179,14 +226,9 @@ const CortstimMenu = () => {
                       title="Language"
                     >
                       <CortstimCards
-                        tasks={[
-                          "Spontaneous Speech",
-                          "Reading",
-                          "Naming",
-                          "Auditory Naming",
-                          "Comprehension"
-						]}
+                        tasks={languageTasks}
 						electrodes={electrodes}
+						refs={taskRef}
                       ></CortstimCards>
                     </Tab>
                     <Tab
@@ -195,8 +237,9 @@ const CortstimMenu = () => {
                       title="Motor"
                     >
                       <CortstimCards
-						tasks={["Face", "Upper (hand)", "Lower (feet)"]}
-						electrodes={electrodes}
+                        tasks={["Face", "Upper (hand)", "Lower (feet)"]}
+                        electrodes={electrodes}
+						refs={taskRef}
                       ></CortstimCards>
                     </Tab>
                     <Tab
@@ -204,9 +247,11 @@ const CortstimMenu = () => {
                       eventKey="Custom"
                       title="Custom"
                     >
-                      <CortstimCards tasks={["Custom"]}
-						electrodes={electrodes}
-						></CortstimCards>
+                      <CortstimCards
+                        tasks={["Custom"]}
+                        electrodes={electrodes}
+						refs={taskRef}
+                      ></CortstimCards>
                     </Tab>
                   </Tabs>
                 </Card.Body>
@@ -253,15 +298,15 @@ const CortstimMenu = () => {
                                   key={type}
                                   style={{
                                     width: "100%",
-									background: "gray",
-									color:"white"
+                                    background: "gray",
+                                    color: "white"
                                   }}
                                   ref={eventRef.current[index]}
                                   onClick={async () => {
                                     let hour = date.getHours();
                                     let minutes = date.getMinutes();
                                     let seconds = date.getSeconds();
-
+                                    console.log(eventRef.current[index]);
                                     let curColor =
                                       eventRef.current[index].current.style
                                         .background;
@@ -271,52 +316,55 @@ const CortstimMenu = () => {
                                       index
                                     ].current.style.background =
                                       curColor == "gray" ? color : "gray";
-                                    eventRef.current[index].current.style.color =
-                                      curColor == "gray" ? "black"  : "white";
-                                    await sleep(500);
-
-									let circle1 = document.getElementById(
-										`${electrodes.elec1}_circle`
-									  );
-									  let circle2 = document.getElementById(
-										`${electrodes.elec2}_circle`
-									  );
-			
-									  let xPos1 = parseFloat(
-										circle1.getAttribute("cx")
-									  );
-									  let xPos2 = parseFloat(
-										circle2.getAttribute("cx")
-									  );
-									  let yPos1 = parseFloat(
-										circle1.getAttribute("cy")
-									  );
-									  let yPos2 = parseFloat(
-										circle2.getAttribute("cy")
-									  );
-									  select("#imgContainer")
-										.select("svg")
-										.append("line")
-										.attr("x1", xPos1)
-										.attr("y1", yPos1)
-										.attr("x2", xPos2)
-										.attr("y2", yPos2)
-										.attr("stroke-width", "5")
-										.attr("stroke", color);
-			
-								alert(
-                                      `${type} @ ${hour}:${minutes}:${seconds}`
-									);
-                                    await sleep(500);
-
-									//@ts-ignore
                                     eventRef.current[
-										index
-									  ].current.style.background =
-										curColor == "gray" ? "gray" : color;
-									  eventRef.current[index].current.style.color =
-										curColor == "gray" ? "white" : "black";
-									  
+                                      index
+                                    ].current.style.color =
+                                      curColor == "gray" ? "black" : "white";
+                                    await sleep(500);
+
+                                    let circle1 = document.getElementById(
+                                      `${electrodes.elec1}_circle`
+                                    );
+                                    let circle2 = document.getElementById(
+                                      `${electrodes.elec2}_circle`
+                                    );
+
+                                    let xPos1 = parseFloat(
+                                      circle1.getAttribute("cx")
+                                    );
+                                    let xPos2 = parseFloat(
+                                      circle2.getAttribute("cx")
+                                    );
+                                    let yPos1 = parseFloat(
+                                      circle1.getAttribute("cy")
+                                    );
+                                    let yPos2 = parseFloat(
+                                      circle2.getAttribute("cy")
+                                    );
+                                    select("#imgContainer")
+                                      .select("svg")
+                                      .append("line")
+                                      .attr("x1", xPos1)
+                                      .attr("y1", yPos1)
+                                      .attr("x2", xPos2)
+                                      .attr("y2", yPos2)
+                                      .attr("stroke-width", "5")
+                                      .attr("stroke", color);
+
+                                    alert(
+                                      `${type} @ ${hour}:${minutes}:${seconds}`
+                                    );
+                                    await sleep(500);
+
+                                    //@ts-ignore
+                                    eventRef.current[
+                                      index
+                                    ].current.style.background =
+                                      curColor == "gray" ? "gray" : color;
+                                    eventRef.current[
+                                      index
+                                    ].current.style.color =
+                                      curColor == "gray" ? "white" : "black";
                                   }}
                                 >
                                   {type}
@@ -348,18 +396,18 @@ const CortstimMenu = () => {
                 frequency: freq,
                 map: "future brain image",
                 taskData: {
-                //   SpontaneousSpeech: SpontaneousSpeech_Button,
-                //   Reading: Reading_Button,
-                //   Naming: Naming_Button,
-                //   AuditoryNaming: AuditoryNaming_Button,
-                //   Comprehension: Comprehension_Button
+                  //   SpontaneousSpeech: SpontaneousSpeech_Button,
+                  //   Reading: Reading_Button,
+                  //   Naming: Naming_Button,
+                  //   AuditoryNaming: AuditoryNaming_Button,
+                  //   Comprehension: Comprehension_Button
                 },
                 eventData: {
-                //   Pain: Pain_Button,
-                //   Motor: Motor_Button,
-                //   Sensory: Sensory_Button,
-                //   Seizure: Sensory_Button,
-                //   AfterDischarge: AfterDischarge_Button
+                  //   Pain: Pain_Button,
+                  //   Motor: Motor_Button,
+                  //   Sensory: Sensory_Button,
+                  //   Seizure: Sensory_Button,
+                  //   AfterDischarge: AfterDischarge_Button
                 }
               };
               fetch(`/api/data/cortstim/${subject.name}`, {
@@ -383,7 +431,34 @@ const CortstimMenu = () => {
         </Col>
 
         <Col sm={5}>
+	<ButtonGroup>
+	<DropdownButton as={ButtonGroup} title="Languge" id="bg-nested-dropdown_Langauge">
+    <Dropdown.Item eventKey="1">SS</Dropdown.Item>
+    <Dropdown.Item eventKey="2">R</Dropdown.Item>
+    <Dropdown.Item eventKey="3">N</Dropdown.Item>
+    <Dropdown.Item eventKey="4">AN</Dropdown.Item>
+    <Dropdown.Item eventKey="5">C</Dropdown.Item>
+  </DropdownButton>
+
+  <DropdownButton as={ButtonGroup} title="Motor" id="bg-nested-dropdown_Motor">
+    <Dropdown.Item eventKey="1">Face</Dropdown.Item>
+    <Dropdown.Item eventKey="2">Hand</Dropdown.Item>
+    <Dropdown.Item eventKey="3">Feet</Dropdown.Item>
+  </DropdownButton>
+
+  <DropdownButton as={ButtonGroup} title="Custom" id="bg-nested-dropdown_Custom">
+    <Dropdown.Item eventKey="1">Task1</Dropdown.Item>
+  </DropdownButton>
+
+
+</ButtonGroup>
+<ToggleButtonGroup type="checkbox" value={[1]} onChange={()=> console.log('click')}>
+      <ToggleButton value={1}>2D</ToggleButton>
+      <ToggleButton value={2}>3D</ToggleButton>
+    </ToggleButtonGroup>
           <Brain></Brain>
+          {/* <Button onClick={()=> setBrainType("3D")}>3D Brain</Button>
+          <BrainChoice></BrainChoice> */}
         </Col>
       </Row>
     </Container>

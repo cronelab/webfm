@@ -1,12 +1,20 @@
-import React, {useRef} from "react";
+import React, {useRef, useEffect} from "react";
 import { Table, Tab, InputGroup, FormControl, Button } from "react-bootstrap";
 import { select } from "d3-selection";
-const CortstimCards = ({tasks, electrodes}) => {
+const CortstimCards = ({tasks, electrodes, refs}) => {
 	let buttonClicked = false
 	let buttonRefs = useRef([])
 	tasks.forEach((task, i) => {
 		buttonRefs.current[i] = React.createRef();
 	})
+
+	useEffect(() => {
+		tasks.forEach((event, i) => {
+			buttonRefs.current[i].current.style.background =  'gray'
+		});
+
+	},[electrodes])
+
 	return (
     <>
       <Table striped bordered hover>

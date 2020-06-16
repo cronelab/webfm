@@ -414,9 +414,9 @@ const Brain_3 = (props) => {
 	}, [threeDCoords])
 					//@ts-ignore
 
-	document.getElementById('dataTimer').onclick = () => {
-		selectTask("All")
-	}
+	// document.getElementById('dataTimer').onclick = () => {
+	// 	selectTask("All")
+	// }
 					//@ts-ignore
 
 	const dotUpdator = (position) => {

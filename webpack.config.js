@@ -25,6 +25,12 @@ const module = {
 	module: {
 		rules: [
 			{
+				test: /\.(woff(2)?|ttf|eot|svg)(\?v=\d+\.\d+\.\d+)?$/,
+				loader: 'file-loader',
+				
+
+			},
+			{
 				test: /\.tsx?$/,
 				loader: 'ts-loader',
 				options: {

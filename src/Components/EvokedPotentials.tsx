@@ -88,7 +88,7 @@ export default function EvokedPotentials() {
 					.datum(data[electrode].times)
 					.attr("d", line()
 						.x((d, i) => x(i))
-						.y((d, i) => y(d))
+						// .y((d, i) => y(d))
 					)
 
 				//Get's the x & y coordinates of the stimulation electrodes on the 2D plot
