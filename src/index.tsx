@@ -11,7 +11,6 @@ import Subjects from "./Components/Subjects";
 import Brain from "./Components/Brain";
 import Cortstim from "./Components/Cortstim";
 import { Row, Col, Container } from "react-bootstrap";
-import Reconstruction from "./3Drecon_react/Reconstruction";
 import CortstimMenu from "./Components/CortstimMenu";
 // import Steve from './Components/Steve'
 ReactDOM.render(
@@ -29,9 +28,6 @@ ReactDOM.render(
         {/* <Route exact path="/Steve">
           <Steve />
         </Route> */}
-        <Route exact path="/reconstruction">
-          <Reconstruction />
-        </Route>
         <Route exact path="/cortstim">
           <CortstimMenu />
         </Route>

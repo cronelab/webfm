@@ -13,7 +13,6 @@ const module = {
 	devtool: devMode ? "inline-source-map" : "source-map",
 	entry: {
 		main: './src/index.tsx',
-		reconstruction3D: "./src/reconstruction3D/main.js"
 	},
 
 	node: {
@@ -110,12 +109,6 @@ const module = {
 			filename: "index.html",
 			hash: true,
 			chunks: ["main"],
-		}),
-		new HtmlWebpackPlugin({
-			hash: true,
-			template: "./src/reconstruction3D/index.html",
-			filename: "reconstruction3D.html",
-			chunks: ["reconstruction3D"],
 		}),
 	],
 	output: {

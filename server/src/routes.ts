@@ -20,8 +20,6 @@ const routes = express => {
 	//Sends configurations
 	router.get("/config", (req, res) => res.sendFile(`${__dirname}/server/config.json`));
 
-	//Sends 3D recon route
-	router.get("/reconstruction3D", (req, res) => res.sendFile(path.join(__dirname, "/dist", "/reconstruction3D.html")));
 
 	//Sends list of subjects
 	router.get("/api/list", (req, res) => {
