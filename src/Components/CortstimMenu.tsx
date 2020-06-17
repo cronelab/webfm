@@ -45,12 +45,12 @@ const CortstimMenu = () => {
   const [freq, setFreq] = useState(50);
 
   let events = ["Pain", "Motor", "Sensory", "Seizure", "After Discharge"];
-  let languageTasks=[
-	"Spontaneous Speech",
-	"Reading",
-	"Naming",
-	"Auditory Naming",
-	"Comprehension"
+  let languageTasks = [
+    "Spontaneous Speech",
+    "Reading",
+    "Naming",
+    "Auditory Naming",
+    "Comprehension"
   ]
   const eventRef = useRef([]);
   events.forEach((event, i) => {
@@ -164,13 +164,13 @@ const CortstimMenu = () => {
                 </Form.Group>
               </Form>
             </Col>
-			<Col sm={1}>
-			<DropdownButton as={ButtonGroup} title="Results" id="bg-nested-dropdown_Results">
-				<Dropdown.Item eventKey="1">3/23/2020</Dropdown.Item>
-				<Dropdown.Item eventKey="2">3/24/2020</Dropdown.Item>
-			</DropdownButton>
+            <Col sm={1}>
+              <DropdownButton as={ButtonGroup} title="Results" id="bg-nested-dropdown_Results">
+                <Dropdown.Item eventKey="1">3/23/2020</Dropdown.Item>
+                <Dropdown.Item eventKey="2">3/24/2020</Dropdown.Item>
+              </DropdownButton>
 
-			</Col>
+            </Col>
 
           </Row>
           <Row style={{ paddingTop: "5px" }}>
@@ -227,8 +227,8 @@ const CortstimMenu = () => {
                     >
                       <CortstimCards
                         tasks={languageTasks}
-						electrodes={electrodes}
-						refs={taskRef}
+                        electrodes={electrodes}
+                        refs={taskRef}
                       ></CortstimCards>
                     </Tab>
                     <Tab
@@ -239,7 +239,7 @@ const CortstimMenu = () => {
                       <CortstimCards
                         tasks={["Face", "Upper (hand)", "Lower (feet)"]}
                         electrodes={electrodes}
-						refs={taskRef}
+                        refs={taskRef}
                       ></CortstimCards>
                     </Tab>
                     <Tab
@@ -250,7 +250,7 @@ const CortstimMenu = () => {
                       <CortstimCards
                         tasks={["Custom"]}
                         electrodes={electrodes}
-						refs={taskRef}
+                        refs={taskRef}
                       ></CortstimCards>
                     </Tab>
                   </Tabs>
@@ -431,31 +431,31 @@ const CortstimMenu = () => {
         </Col>
 
         <Col sm={5}>
-	<ButtonGroup>
-	<DropdownButton as={ButtonGroup} title="Languge" id="bg-nested-dropdown_Langauge">
-    <Dropdown.Item eventKey="1">SS</Dropdown.Item>
-    <Dropdown.Item eventKey="2">R</Dropdown.Item>
-    <Dropdown.Item eventKey="3">N</Dropdown.Item>
-    <Dropdown.Item eventKey="4">AN</Dropdown.Item>
-    <Dropdown.Item eventKey="5">C</Dropdown.Item>
-  </DropdownButton>
+          <ButtonGroup>
+            <DropdownButton as={ButtonGroup} title="Languge" id="bg-nested-dropdown_Langauge">
+              <Dropdown.Item eventKey="1">SS</Dropdown.Item>
+              <Dropdown.Item eventKey="2">R</Dropdown.Item>
+              <Dropdown.Item eventKey="3">N</Dropdown.Item>
+              <Dropdown.Item eventKey="4">AN</Dropdown.Item>
+              <Dropdown.Item eventKey="5">C</Dropdown.Item>
+            </DropdownButton>
 
-  <DropdownButton as={ButtonGroup} title="Motor" id="bg-nested-dropdown_Motor">
-    <Dropdown.Item eventKey="1">Face</Dropdown.Item>
-    <Dropdown.Item eventKey="2">Hand</Dropdown.Item>
-    <Dropdown.Item eventKey="3">Feet</Dropdown.Item>
-  </DropdownButton>
+            <DropdownButton as={ButtonGroup} title="Motor" id="bg-nested-dropdown_Motor">
+              <Dropdown.Item eventKey="1">Face</Dropdown.Item>
+              <Dropdown.Item eventKey="2">Hand</Dropdown.Item>
+              <Dropdown.Item eventKey="3">Feet</Dropdown.Item>
+            </DropdownButton>
 
-  <DropdownButton as={ButtonGroup} title="Custom" id="bg-nested-dropdown_Custom">
-    <Dropdown.Item eventKey="1">Task1</Dropdown.Item>
-  </DropdownButton>
+            <DropdownButton as={ButtonGroup} title="Custom" id="bg-nested-dropdown_Custom">
+              <Dropdown.Item eventKey="1">Task1</Dropdown.Item>
+            </DropdownButton>
 
 
-</ButtonGroup>
-<ToggleButtonGroup type="checkbox" value={[1]} onChange={()=> console.log('click')}>
-      <ToggleButton value={1}>2D</ToggleButton>
-      <ToggleButton value={2}>3D</ToggleButton>
-    </ToggleButtonGroup>
+          </ButtonGroup>
+          <ToggleButtonGroup type="checkbox" value={[1]} onChange={() => console.log('click')}>
+            <ToggleButton value={1}>2D</ToggleButton>
+            <ToggleButton value={2}>3D</ToggleButton>
+          </ToggleButtonGroup>
           <Brain></Brain>
           {/* <Button onClick={()=> setBrainType("3D")}>3D Brain</Button>
           <BrainChoice></BrainChoice> */}

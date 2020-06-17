@@ -18,8 +18,8 @@ In order to run WebFM, you'll need:
 Installing WebFM requires three steps:
 
 1. Cloning the WebFM git repository
-2. Installing the Node dependencies *via* `npm` for the *server* and for the
-   *client*
+2. Installing the Node dependencies _via_ `npm` for the _server_ and for the
+   _client_
 3. Building the client application scripts
 
 ## Git
@@ -82,7 +82,7 @@ node webfm -p 8080
 
 WebFM has two distinct ways of packaging data: **datasets**, which encapsulate
 one viewable record—one spatial map, one event-related activity/connectivity
-map, *etc.*—and **bundles**, which wrap together multiple related datasets
+map, _etc._—and **bundles**, which wrap together multiple related datasets
 into a unified unit.
 
 ## Dataset
@@ -102,12 +102,12 @@ it so that WebFM does not have sufficient information to render the data
 properly.
 
 Metadata may also exist in standalone files (usually named `.metadata`) for
-use, *e.g.*, with the `_import` field described below. For example, bundles
+use, _e.g._, with the `_import` field described below. For example, bundles
 have a unified `.metadata` file `_import`ed by all of the bundle members, to
 prevent duplication of large chunks of common metadata. As another example,
 WebFM stores a `.metadata` file for each subject, which contains the
 subject-specific metadata necessary to do online mapping (`brainImage`,
-`sensorGeometry`, *etc.*).
+`sensorGeometry`, _etc._).
 
 The following are the (presently) meaningful metadata fields, as well as
 example values:
@@ -128,14 +128,14 @@ Example:
 
 ```json
 {
-    "brainImage": "./PYXXNXXX-Brain.png",
-    "sensorGeometry": "./PYXXNXXX-Sensors.csv"
+  "brainImage": "./PYXXNXXX-Brain.png",
+  "sensorGeometry": "./PYXXNXXX-Sensors.csv"
 }
 ```
 
 The `_export` field is used to denote operations that should be performed by
 the export utility to produce a final dataset—for example, base64-encoding an
-image, or converting a spreadsheet to a *u*-*v* map. This field should not be
+image, or converting a spreadsheet to a _u_-_v_ map. This field should not be
 present in a fully formed dataset.
 
 ####`subject`
@@ -164,15 +164,16 @@ Example:
     ...
 }
 ```
-A mapping from channel names to *u*-*v* coordinates (ranging from 0 to 1 on
+
+A mapping from channel names to _u_-_v_ coordinates (ranging from 0 to 1 on
 each axis) for placing electrodes on the `brainImage`
 
 ####`montage`
 
 Example: `["CH01", "CH02", "CH03", ... ]`
 
-A list of channel names, specifying both *which* channels should be displayed
-and, when relevant, *in what order*. The WebFM frontend automatically
+A list of channel names, specifying both _which_ channels should be displayed
+and, when relevant, _in what order_. The WebFM frontend automatically
 populates this from whatever other details are available if it is not
 specified.
 
@@ -182,8 +183,8 @@ Example:
 
 ```json
 {
-    "task": "PictureNaming",
-    "stimulusType": "animals"
+  "task": "PictureNaming",
+  "stimulusType": "animals"
 }
 ```
 
@@ -208,8 +209,8 @@ Example:
 
 ```json
 {
-    "start": -0.8,
-    "end": -0.2
+  "start": -0.8,
+  "end": -0.2
 }
 ```
 
@@ -245,7 +246,7 @@ to each sample in the arrays of `values` or `stats.estimators.{estimator}`.
 ####`stats`
 
 An object describing the statistical properties of the data, allowing the
-WebFM frontend to perform its own statistical work (*e.g.*, multiple
+WebFM frontend to perform its own statistical work (_e.g._, multiple
 comparison correction). The structure of this object is described in more
 detail [below](#stats).
 
@@ -288,10 +289,10 @@ Example:
 
 Each `distribution` implies its own set of fields that should be present in `estimators`. The following distributions are supported:
 
-| `distribution` value | Meaning | `estimators` fields |
-| --- | --- | --- |
-| `"gaussian"` | Normal distributions | `"mean"`, `"variance"`, `"count"` |
-| `"p-value"` | Raw *p*-values from some unspecified hypothesis test | `"value"` (to be displayed), `"p"` |
+| `distribution` value | Meaning                                              | `estimators` fields                |
+| -------------------- | ---------------------------------------------------- | ---------------------------------- |
+| `"gaussian"`         | Normal distributions                                 | `"mean"`, `"variance"`, `"count"`  |
+| `"p-value"`          | Raw _p_-values from some unspecified hypothesis test | `"value"` (to be displayed), `"p"` |
 
 ####`baseline`
 
@@ -325,7 +326,7 @@ Example:
 
 ```json
 {
-    "stimulusCode": 0
+  "stimulusCode": 0
 }
 ```
 
@@ -343,7 +344,6 @@ Example:
 ```
 
 ...
-
 
 ## Bundle
 
@@ -373,10 +373,8 @@ release.
 
 ...
 
-
 # License
 
 ...
-
 
 [node]: https://nodejs.org/

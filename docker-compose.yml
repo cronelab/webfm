@@ -1,8 +1,8 @@
-version: '3'
+version: "3"
 services:
   webfm:
     container_name: web_fm
-    build: 
+    build:
       context: .
       dockerfile: ./Dockerfile
     ports:
@@ -10,9 +10,7 @@ services:
     tty: true
     volumes:
       - ./data:/webfm/data
-    # environment: 
+    # environment:
     #   - SUBJECTS_DIR=/data/derivatives/freesurfer
     #   - SUBJECT=PY20N007
     #   - PORT=5000
-
-

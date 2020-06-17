@@ -8,21 +8,21 @@ window.onload = () => {
   // }
 };
 // document.getElementById('saveData').onclick = () => writeData;
-const writeData = dat => {
+const writeData = (dat) => {
   let dataToSend = {};
   dataToSend[`trialCount_${trialCount}`] = {
     inv1: dat[0],
-    inv2: dat[1]
+    inv2: dat[1],
   };
 
   fetch(`/api/PY19N006/data/save`, {
     method: "POST",
     body: JSON.stringify(dataToSend),
     headers: {
-      "Content-Type": "application/json"
-    }
+      "Content-Type": "application/json",
+    },
   })
-    .then(res => res.json())
-    .then(response => console.log("Success:", JSON.stringify(response)))
-    .catch(error => console.error("Error:", error));
+    .then((res) => res.json())
+    .then((response) => console.log("Success:", JSON.stringify(response)))
+    .catch((error) => console.error("Error:", error));
 };

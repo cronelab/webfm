@@ -167,23 +167,23 @@ document
 // }
 
 export class Helpers {
-    constructor(){
-        let gauss = new gaussian(1,1);
+    constructor() {
+        let gauss = new gaussian(1, 1);
         console.log(gauss.ppf(Math.random()));
 
     }
-//     ierfc(x) {
-//         if (x >= 2) return -100;
-//         if (x <= 0) return 100;
-//         let xx = (x < 1) ? x : 2 - x
-//         let t = Math.sqrt(-2 * Math.log(xx / 2))
-//         let r = -0.70711 * ((2.30753 + t * 0.27061) / (1 + t * (0.99229 + t * 0.04481)) - t);
+    //     ierfc(x) {
+    //         if (x >= 2) return -100;
+    //         if (x <= 0) return 100;
+    //         let xx = (x < 1) ? x : 2 - x
+    //         let t = Math.sqrt(-2 * Math.log(xx / 2))
+    //         let r = -0.70711 * ((2.30753 + t * 0.27061) / (1 + t * (0.99229 + t * 0.04481)) - t);
 
-//         for (let j = 0; j < 2; j++) {
-//             let err = fmstat.erfc(r) - xx;
-//             r += err / (1.12837916709551257 * Math.exp(-(r * r)) - r * err);
-//         }
-        
-//         return (x < 1) ? r : -r;
-//     }
+    //         for (let j = 0; j < 2; j++) {
+    //             let err = fmstat.erfc(r) - xx;
+    //             r += err / (1.12837916709551257 * Math.exp(-(r * r)) - r * err);
+    //         }
+
+    //         return (x < 1) ? r : -r;
+    //     }
 }

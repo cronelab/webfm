@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import  {Navbar, Button} from 'react-bootstrap'
+import { Navbar, Button } from 'react-bootstrap'
 import { Context } from '../Context'
 
 const bciStatusStyle = {
@@ -11,19 +11,19 @@ const bciStatusStyle = {
 const footerStyle = {
 	"backgroundColor": "#397ad0",
 	"borderColor": "#316198",
-	"position":"absolute",
-	"left":"0",
-	"bottom":"0",
-	"right":"0"
+	"position": "absolute",
+	"left": "0",
+	"bottom": "0",
+	"right": "0"
 } as React.CSSProperties
 
 
 const header = {
-	main:{
+	main: {
 		"backgroundColor": "#397ad0",
-		"borderColor": "#316198"	
+		"borderColor": "#316198"
 	},
-	subject:{
+	subject: {
 		"margin": "0 auto",
 		"color": "#fffff6"
 	}
@@ -34,7 +34,7 @@ export default function Header() {
 	return (
 		<Navbar id="header" sticky="top" style={header["main"]}>
 			<Button href="/">
-				<Navbar.Brand style={{"color": "#fffff6"}}>
+				<Navbar.Brand style={{ "color": "#fffff6" }}>
 					WebFM
 				</Navbar.Brand>
 			</Button>

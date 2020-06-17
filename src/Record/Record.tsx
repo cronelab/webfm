@@ -5,7 +5,7 @@ import {
 import Brain from '../Components/Brain'
 import { Context } from '../Context'
 import { Brain_3D } from "../Components/Brain_3D";
-import {DataHeader} from '../Components/DataHeader'
+import { DataHeader } from '../Components/DataHeader'
 import HighGamma from '../Components/HighGamma'
 import EvokedPotentials from "../Components/EvokedPotentials";
 import { HeatMap } from "../Components/HeatMap";

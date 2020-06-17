@@ -1,21 +1,21 @@
-import React, {useRef, useEffect} from "react";
+import React, { useRef, useEffect } from "react";
 import { Table, Tab, InputGroup, FormControl, Button } from "react-bootstrap";
 import { select } from "d3-selection";
-const CortstimCards = ({tasks, electrodes, refs}) => {
-	let buttonClicked = false
-	let buttonRefs = useRef([])
-	tasks.forEach((task, i) => {
-		buttonRefs.current[i] = React.createRef();
-	})
+const CortstimCards = ({ tasks, electrodes, refs }) => {
+  let buttonClicked = false
+  let buttonRefs = useRef([])
+  tasks.forEach((task, i) => {
+    buttonRefs.current[i] = React.createRef();
+  })
 
-	useEffect(() => {
-		tasks.forEach((event, i) => {
-			buttonRefs.current[i].current.style.background =  'gray'
-		});
+  useEffect(() => {
+    tasks.forEach((event, i) => {
+      buttonRefs.current[i].current.style.background = 'gray'
+    });
 
-	},[electrodes])
+  }, [electrodes])
 
-	return (
+  return (
     <>
       <Table striped bordered hover>
         <thead>
@@ -41,42 +41,42 @@ const CortstimCards = ({tasks, electrodes, refs}) => {
                       style={{
                         width: "100%",
                         background: buttonColor
-					  }}
-					  ref={buttonRefs.current[index]}
+                      }}
+                      ref={buttonRefs.current[index]}
 
                       onClick={() => {
-						  let curColor = buttonRefs.current[index].current.style.background
-						  //@ts-ignore
-						  buttonRefs.current[index].current.style.background = curColor=='gray' ? 'green' : 'gray'
+                        let curColor = buttonRefs.current[index].current.style.background
+                        //@ts-ignore
+                        buttonRefs.current[index].current.style.background = curColor == 'gray' ? 'green' : 'gray'
 
-						  let circle1 = document.getElementById(
-							`${electrodes.elec1}_circle`
-						  );
-						  let circle2 = document.getElementById(
-							`${electrodes.elec2}_circle`
-						  );
+                        let circle1 = document.getElementById(
+                          `${electrodes.elec1}_circle`
+                        );
+                        let circle2 = document.getElementById(
+                          `${electrodes.elec2}_circle`
+                        );
 
-						  let xPos1 = parseFloat(
-							circle1.getAttribute("cx")
-						  );
-						  let xPos2 = parseFloat(
-							circle2.getAttribute("cx")
-						  );
-						  let yPos1 = parseFloat(
-							circle1.getAttribute("cy")
-						  );
-						  let yPos2 = parseFloat(
-							circle2.getAttribute("cy")
-						  );
-						  select("#imgContainer")
-							.select("svg")
-							.append("line")
-							.attr("x1", xPos1)
-							.attr("y1", yPos1)
-							.attr("x2", xPos2)
-							.attr("y2", yPos2)
-							.attr("stroke-width", "5")
-							.attr("stroke", "green");
+                        let xPos1 = parseFloat(
+                          circle1.getAttribute("cx")
+                        );
+                        let xPos2 = parseFloat(
+                          circle2.getAttribute("cx")
+                        );
+                        let yPos1 = parseFloat(
+                          circle1.getAttribute("cy")
+                        );
+                        let yPos2 = parseFloat(
+                          circle2.getAttribute("cy")
+                        );
+                        select("#imgContainer")
+                          .select("svg")
+                          .append("line")
+                          .attr("x1", xPos1)
+                          .attr("y1", yPos1)
+                          .attr("x2", xPos2)
+                          .attr("y2", yPos2)
+                          .attr("stroke-width", "5")
+                          .attr("stroke", "green");
 
 
                       }}

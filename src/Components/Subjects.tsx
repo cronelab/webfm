@@ -65,7 +65,7 @@ export default function Subjects() {
     })();
   }, []);
 
-  const uploadGeometry = () => {};
+  const uploadGeometry = () => { };
   const uploadBrain = () => {
     setNewBrain("");
   };

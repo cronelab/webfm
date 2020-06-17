@@ -635,7 +635,7 @@ const MapModals = props => {
                       </ul>
                     </p>
                   </Tab.Pane>*/}
-                </Tab.Content> 
+                </Tab.Content>
               </Col>
             </Row>
           </Tab.Container>

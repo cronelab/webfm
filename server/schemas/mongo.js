@@ -5,11 +5,11 @@ let recordSchema = mongoose.Schema({
     geometry: Object,
     brainImage: Buffer,
     notes: String,
-    date_created:{
+    date_created: {
         type: Date,
         default: Date.now
     },
-    task:{
+    task: {
         // taskType: {
         //     stats:{
         //         baseline:{
@@ -53,11 +53,11 @@ module.exports = mongoose.model("records", recordSchema);
   // newRecord.save(err => {
   //   if (err) console.log('Could not create entry');
   // });
-  
+
   // })
 
 
-  
+
 
   //   app.get('/api/mongoTest/', (req,res) =>{
   //     Record.find({ identifier: "PY18N004" }, (a,b)=>{
@@ -80,7 +80,7 @@ module.exports = mongoose.model("records", recordSchema);
 
 
 
-  
+
 
   // let newRecord= new Record({ 
   //   identifier: 'PY17N009',

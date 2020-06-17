@@ -15,27 +15,25 @@ import path from "path";
 let __dirname = path.resolve(path.dirname(""));
 
 let newConfig = merge(config, {
-	plugins: [
-		new webpack.optimize.OccurrenceOrderPlugin(true),
-		new webpack.HotModuleReplacementPlugin(),
-		new webpack.NoEmitOnErrorsPlugin()
-	]
+  plugins: [
+    new webpack.optimize.OccurrenceOrderPlugin(true),
+    new webpack.HotModuleReplacementPlugin(),
+    new webpack.NoEmitOnErrorsPlugin(),
+  ],
 });
 
 const compiler = webpack(newConfig);
-app.use(
-	webpackDevMiddleware(compiler)
-);
+app.use(webpackDevMiddleware(compiler));
 // app.use(webpackHotMiddleware(compiler));
 
 app.use("/", routes(express));
 
-app.get('*', function (req, res) {
-	res.sendFile(path.resolve(__dirname, "dist/index.html"), function (err) {
-		if (err) {
-			res.status(500).send(err)
-		}
-	})
-})
+app.get("*", function (req, res) {
+  res.sendFile(path.resolve(__dirname, "dist/index.html"), function (err) {
+    if (err) {
+      res.status(500).send(err);
+    }
+  });
+});
 
 app.listen(8090, () => console.log("Serving"));

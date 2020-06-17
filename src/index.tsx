@@ -16,39 +16,39 @@ import CortstimMenu from "./Components/CortstimMenu";
 ReactDOM.render(
   <MyProvider>
     <Router>
-		<>
-      <Header></Header>
-      <Switch>
-        <Route exact path="/records">
-          <Record />
-        </Route>
-        <Route exact path="/map">
-          <Map />
-        </Route>
-        {/* <Route exact path="/Steve">
+      <>
+        <Header></Header>
+        <Switch>
+          <Route exact path="/records">
+            <Record />
+          </Route>
+          <Route exact path="/map">
+            <Map />
+          </Route>
+          {/* <Route exact path="/Steve">
           <Steve />
         </Route> */}
-        <Route exact path="/cortstim">
-          <CortstimMenu />
-        </Route>
-        <Route path="/">
-          <Container style={{ marginTop: 5 }} fluid={true}>
-            <Row>
-              <Col>
-                <Online />
-              </Col>
-              <Col xs="6">
-                <Brain />
-              </Col>
-              <Col>
-                <Subjects />
-              </Col>
-            </Row>
-          </Container>
-        </Route>
-      </Switch>
-      <Footer></Footer>
-	  </>
+          <Route exact path="/cortstim">
+            <CortstimMenu />
+          </Route>
+          <Route path="/">
+            <Container style={{ marginTop: 5 }} fluid={true}>
+              <Row>
+                <Col>
+                  <Online />
+                </Col>
+                <Col xs="6">
+                  <Brain />
+                </Col>
+                <Col>
+                  <Subjects />
+                </Col>
+              </Row>
+            </Container>
+          </Route>
+        </Switch>
+        <Footer></Footer>
+      </>
     </Router>
   </MyProvider>,
   document.getElementById("root")
