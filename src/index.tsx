@@ -28,9 +28,9 @@ ReactDOM.render(
           {/* <Route exact path="/Steve">
           <Steve />
         </Route> */}
-          <Route exact path="/cortstim">
+          {/* <Route exact path="/cortstim">
             <CortstimMenu />
-          </Route>
+          </Route> */}
           <Route path="/">
             <Container style={{ marginTop: 5 }} fluid={true}>
               <Row>
