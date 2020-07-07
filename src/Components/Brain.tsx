@@ -12,7 +12,7 @@ const Brain = (props) => {
     brain,
     brainCoord,
   }: any = useContext(Context);
-  if (subject.name == "") subject.name = "PY17N005";
+  if (subject.name == "") subject.name = "";
   const [brainCoords, setBrainCoords] = useState({});
   const [dots, setDots] = useState<Element>();
   let actualCoords = {};

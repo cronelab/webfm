@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import {
   Card,
   InputGroup,
@@ -11,6 +11,7 @@ import {
   Button,
   Modal,
   ListGroup,
+  Form,
   ListGroupItem
 } from "react-bootstrap";
 import { Context } from "../Context";
@@ -27,6 +28,8 @@ export default function Subjects() {
   }: any = useContext(Context);
   const [show, setShow] = useState(false);
   let tempArray = {};
+  const fileUpload = useRef();
+  const [fileName, setFileName] = useState("");
 
   //Request all EP and HG records from server
   const getRecords = async (subj: string) => {
@@ -69,12 +72,39 @@ export default function Subjects() {
   const uploadBrain = () => {
     setNewBrain("");
   };
-
-  const createNewSubject = () => {
-    setNewSubject({ name: subject, geometry: null });
-    setAllSubjects([...subjects, subject]);
+  const openUploadDialog = () => {
+    //@ts-ignore
+    fileUpload.current.click();
   };
 
+  const createNewSubject = () => {
+    setAllSubjects([...subjects, subject]);
+  };
+  const setFile = e => {
+    console.log(e.target.files[0])
+    console.log(e.target.files)
+    
+	let file = e.target.files[0];
+	let subject = "ew"//localStorage.getItem("subject");
+	let formData = new FormData();
+	formData.append("brainImage", file, file.name);
+	var reader = new FileReader();
+	// reader.addEventListener(
+	// 	"load",
+	// 	() => {
+	// 		(<HTMLImageElement>document.getElementsByClassName("main-brain")[0]).src = (<string>reader.result);
+	// 		(<HTMLImageElement>document.getElementsByClassName("main-brain")[1]).src = (<string>reader.result);
+	// 	},
+	// 	false
+	// );
+	reader.readAsDataURL(file);
+
+	fetch(`/api/brain/${subject}`, {
+		method: "PUT",
+		body: formData
+	});
+  };
+  
   const SubjectModal = () => {
     return (
       <Modal
@@ -192,17 +222,34 @@ export default function Subjects() {
             id="new-subject-id"
             type="text"
             placeholder="PYXXN000"
-            onChange={e => setNewSubject(e.target.value)}
+            onChange={e => setNewSubject({ name: e.target.value, geometry: null })}
           />
-          <Button
+          {/* <Button
             onClick={createNewSubject}
             type="submit"
             id="new-subject-ok"
             variant="outline-secondary"
           >
             Button
-          </Button>
+          </Button> */}
         </InputGroup>
+        <Form.Group>
+          <input
+            type="file"
+            ref={fileUpload}
+            name="photo"
+            style={{ display: "none" }}
+          onChange={setFile}
+          />
+          <div className="file-box">
+            <Button type="button"
+              onClick={openUploadDialog}>
+              Upload Photo
+                  </Button>
+            {/* <span style={{ paddingLeft: "10px", marginTop: "5px" }}>
+              {fileName}
+            </span> */}
+          </div>        </Form.Group>
         <Button onClick={uploadBrain}>Upload brain</Button>
         <Button onClick={uploadGeometry}>Upload geometry</Button>
 
