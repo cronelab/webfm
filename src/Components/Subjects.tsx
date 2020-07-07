@@ -14,6 +14,7 @@ import {
   Form,
   ListGroupItem
 } from "react-bootstrap";
+import {fetchAndStoreBrain} from '../shared/loaders'
 import { Context } from "../Context";
 
 export default function Subjects() {
@@ -77,32 +78,24 @@ export default function Subjects() {
     fileUpload.current.click();
   };
 
-  const createNewSubject = () => {
-    setAllSubjects([...subjects, subject]);
-  };
+  // const createNewSubject = () => {
+  //   setAllSubjects([...subjects, subject]);
+  // };
   const setFile = e => {
-    console.log(e.target.files[0])
-    console.log(e.target.files)
     
 	let file = e.target.files[0];
-	let subject = "ew"//localStorage.getItem("subject");
 	let formData = new FormData();
 	formData.append("brainImage", file, file.name);
 	var reader = new FileReader();
-	// reader.addEventListener(
-	// 	"load",
-	// 	() => {
-	// 		(<HTMLImageElement>document.getElementsByClassName("main-brain")[0]).src = (<string>reader.result);
-	// 		(<HTMLImageElement>document.getElementsByClassName("main-brain")[1]).src = (<string>reader.result);
-	// 	},
-	// 	false
-	// );
 	reader.readAsDataURL(file);
-
-	fetch(`/api/brain/${subject}`, {
+	fetch(`/api/brain/${subject.name}`, {
 		method: "PUT",
 		body: formData
-	});
+	}).then(() => {
+    fetchAndStoreBrain(subject.name).then(x => {
+      setNewBrain(x)
+    })
+  });
   };
   
   const SubjectModal = () => {
@@ -151,6 +144,11 @@ export default function Subjects() {
                     id={subject}
                     eventKey={`${subject}`}
                     key={`${subject}_${index}_pane`}
+                    onEntered={() => {
+                      fetchAndStoreBrain(subject).then(x => {
+                        setNewBrain(x)
+                      })
+                    }}
                   >
                     <h1>{subject}</h1>
                     <Container>

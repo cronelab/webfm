@@ -12,7 +12,7 @@ import BCI2K from "bci2k";
 const Online = () => {
   let { bciState, setBciState, setNewRecord, setNewSubject } = useContext(Context);
   const [showOnline, setShowOnline] = useState(false);
-  const [bciAddress, setBciAddress] = useState("wss://127.0.0.1");
+  const [bciAddress, setBciAddress] = useState("ws://127.0.0.1");
   let bciOperator = new BCI2K.bciOperator();
   let bciSourceConnection = new BCI2K.bciData();
 
@@ -26,9 +26,10 @@ const Online = () => {
       let dataFile = await bciOperator.execute(`Get Parameter DataFile`);
       setNewRecord({ name: dataFile.split("/")[1] });
       setNewSubject({ name: subject });
-      bciSourceConnection.connect("ws://127.0.0.1:20100").then(() => { });
-      bciSourceConnection.onReceiveBlock = () => {
-      };
+      // bciSourceConnection.connect("ws://127.0.0.1:20100").then(() => { });
+      // bciSourceConnection.onReceiveBlock = (data) => {
+      //   console.log(data)
+      // };
     })()
   }, [bciAddress]);
 

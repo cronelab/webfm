@@ -4,11 +4,14 @@ import Brain from "../Components/Brain";
 import "../Record/Record.scss";
 import fmdata from "../shared/fmdata";
 import fmui from "../shared/fmui";
-// import OnlineDataSource from '../shared/fmonline'
+import OnlineDataSource from '../shared/map/fmonline'
 import BCI2K from "bci2k";
 import { DataHeader } from "../Components/DataHeader";
 import MapModals from "./MapModals";
+import HighGamma from "../Components/HighGamma";
+import Worker from "../shared/dataIndex.worker";
 
+const dataIndexer = new Worker();
 // import { Context } from "../Context";
 // import { select, selectAll, mouse } from "d3-selection";
 // import { scaleLinear } from "d3-scale";
@@ -21,7 +24,7 @@ export const Map = () => {
   //   );
   const [clicked, click] = useState(false);
 
-  let bciSourceConnection = new BCI2K.bciData();
+  // let bciSourceConnection = new BCI2K.bciData();
   const inputEl = useRef(null);
 
   useEffect(() => {
@@ -30,20 +33,110 @@ export const Map = () => {
       let data = await request.json();
       let dataset = new fmdata();
       let uiManager = new fmui();
-      // let dataSource = new OnlineDataSource();
       uiManager.config.ui = data;
       uiManager.setup();
-      bciSourceConnection.connect("ws://127.0.0.1:20100").then(() => {
-        bciSourceConnection.onSignalProperties = data => {
-          console.log(data);
-          dataset.setupChannels(data.channels);
-          uiManager.updateChannelNames(data.channels);
+      localStorage.setItem("source-address", "127.0.0.1");
+      let localOptions = {
+        stimulus: {
+          state: {
+            onValue: 0,
+            exclude: 99
+          }
+        }
+      };
+      let localOptions_ = JSON.stringify(localOptions);
+      localStorage.setItem("options", localOptions_);
+      let dataSource = new OnlineDataSource();
+      dataSource.connect("ws://127.0.0.1");
+      dataSource.onproperties = (properties: any) => {
+        dataset.setupChannels(properties.channels);
+        uiManager.updateChannelNames(properties.channels);
+      };
+      dataSource.onBufferCreated = () =>{
+        dataset.updateTimesFromWindow(
+          dataSource.trialWindow,
+          dataSource._trialBlocks
+        );      
+      }
+
+      dataSource.onStartTrial = () => {
+        //@ts-ignore
+        document.getElementsByClassName("fm-transfer-icon")[0].style.display = "";
+        document.getElementsByClassName("fm-trial-label")[0].classList.add("fm-trial-label-active");
+        console.log(dataset)
+
+      };
+      dataSource.ontrial = (trialData: any) => {
+        setTimeout(
+          () =>
+            document
+              .getElementsByClassName(`fm-transfer-icon`)[0]
+              .classList.add("d-none"),
+          500
+        );
+        //@ts-ignore
+        document.getElementsByClassName(`fm-working-icon`)[0].style.display = "";
+        console.log(dataset)
+        console.log(trialData)
+
+        dataset.ingest(trialData).then(() => {
+          console.log(trialData)
+
+          updateDataDisplay();
+          setTimeout(
+            () =>
+              document
+                .getElementsByClassName(`fm-working-icon`)[0]
+                .classList.add("d-none"),
+            500
+          );
+          uiManager.updateTrialCount(dataset.getTrialCount());
+          document
+            .getElementsByClassName("fm-trial-label")[0]
+            .classList.remove("fm-trial-label-active");
+        });
+      };
+
+      var updateDataDisplay = function () {
+        uiManager.raster.update(dataset.displayData);
+
+        var dataWindow = {
+          start: dataset.contents.times[0],
+          end: dataset.contents.times[dataset.contents.times.length - 1],
         };
-        bciSourceConnection.onReceiveBlock = (data) => {
-          console.log(data);
+
+        dataIndexer.postMessage({
+          displayData: dataset.displayData,
+          newTime: uiManager.raster.cursorTime,
+          dataWindow: dataWindow,
+        });
+        dataIndexer.onmessage = (e: any) => {
+          uiManager.brain.update(e.data);
+          // uiManager.brain.update(dataset.dataForTime(uiManager.raster.cursorTime));
         };
-      });
-      // 		let step = chartContainer.offsetWidth / dataset.displayData.LA1.length;
+        var timeBounds = dataset.getTimeBounds();
+        console.log(timeBounds)
+        if (!uiManager.raster.timeScale) {
+          return;
+        }
+        uiManager.raster.timeScale.range([timeBounds.start, timeBounds.end]);
+      };
+
+
+      dataSource.onRawSignal = (rawSignal: any) => uiManager.scope.update(rawSignal);
+     
+
+      // bciSourceConnection.connect("ws://127.0.0.1:20203").then(() => {
+      //   bciSourceConnection.onSignalProperties = data => {
+      //     console.log(data);
+      //     dataset.setupChannels(data.channels);
+      //     uiManager.updateChannelNames(data.channels);
+      //   };
+      //   bciSourceConnection.onGenericSignal = (data) => {
+      //     console.log(data);
+      //   };
+      // });
+      // 		let step = chartContainer.offsetWidth / dataset.displayData.Ch1.length;
       // 		console.log(Object.keys(dataset.displayData))
       // 		let horizonChart = horizon
       // 			.horizonChart()
@@ -140,18 +233,32 @@ export const Map = () => {
     })();
   }, []);
 
+
+
+
+
+
+
+
+
+
+
+
+
+
   return (
     <div className="Record">
-      <DataHeader></DataHeader>
-      <Button className="fm-show-options" onClick={() => click(true)}>
+      {/* <DataHeader></DataHeader> */}
+      {/* <Button className="fm-show-options" onClick={() => click(true)}>
         Button
-      </Button>
-      <MapModals clicked={clicked} />
+      </Button> */}
+      {/* <MapModals clicked={clicked} /> */}
 
-      <Container fluid={true}>
-        <Row>
-          <Col xs={6}>
+      <Container fluid={true} style={{ "height": "100%" }}>
+        <Row style={{ "height": "100%", "paddingBottom": 50 }}>
+          <Col xs={6} style={{ "paddingBottom": "50px", "paddingLeft": "0px" }}>
             <div id="fm" ref={inputEl} />
+            {/* <HighGamma></HighGamma> */}
           </Col>
           <Col xs={6}>
             <Brain />

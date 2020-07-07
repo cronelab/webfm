@@ -22,7 +22,7 @@ export function HeatMap() {
 	useEffect(() => {
 		var urlParams = new URLSearchParams(window.location.search);
 
-		let recordType = urlParams.get('type');
+		let recordType = urlParams.get('type') || 'HG';
 		let recordName = urlParams.get('record');
 		let subjectName = urlParams.get('subject');
 		(async () => {

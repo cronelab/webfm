@@ -24,10 +24,17 @@ const module = {
 	module: {
 		rules: [
 			{
-				test: /\.(woff(2)?|ttf|eot|svg)(\?v=\d+\.\d+\.\d+)?$/,
+				test: /\.(png|jpe?g|gif|fbx|glb|gltf|nii|mgz)$/i,
 				loader: 'file-loader',
-
-
+				options: {
+					name: '[path][name].[ext]',
+				},
+			},
+			{
+				test: /\.worker\.ts$/,
+				use: {
+					loader: "worker-loader"
+				}
 			},
 			{
 				test: /\.tsx?$/,
@@ -52,13 +59,7 @@ const module = {
 					cacheDirectory: true
 				}
 			},
-			{
-				test: /\.(png|jpe?g|gif|fbx|glb|gltf|nii|mgz)$/i,
-				loader: 'file-loader',
-				options: {
-					name: '[path][name].[ext]',
-				},
-			},
+
 			{
 				test: /\.(sa|sc|c)ss$/,
 				use: [{
@@ -74,12 +75,6 @@ const module = {
 					loader: "sass-loader"
 				}
 				]
-			},
-			{
-				test: /\.worker\.js$/,
-				use: {
-					loader: "worker-loader"
-				}
 			}
 		]
 	},
