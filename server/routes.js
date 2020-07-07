@@ -19,6 +19,7 @@ const routes = (express) => {
   router.get("/config", (req, res) =>
     res.sendFile(`${__dirname}/server/config.json`)
   );
+  router.use("/docs", express.static(path.join(__dirname, "/docs", "/_build/html")));
 
   //Sends list of subjects
   router.get("/api/list", (req, res) => {
