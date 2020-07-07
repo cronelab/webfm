@@ -98,6 +98,7 @@ const DataHeader = props => {
           >
             <ToggleButton value={"2D"}>2D</ToggleButton>
             <ToggleButton value={"3D"}>3D</ToggleButton>
+            <ToggleButton value={"3Dcs"}>3D_cs</ToggleButton>
           </ToggleButtonGroup>
         </ButtonToolbar>
       </Navbar>

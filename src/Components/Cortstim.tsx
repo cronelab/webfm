@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import * as THREE from "../../node_modules/three/src/Three";
 import { OrbitControls } from "../../node_modules/three/examples/jsm/controls/OrbitControls";
+import { TrackballControls } from "../../node_modules/three/examples/jsm/controls/TrackballControls.js";
 import { GLTFLoader } from '../../node_modules/three/examples/jsm/loaders/GLTFLoader';
 import { LineGeometry } from '../../node_modules/three/examples/jsm/lines/LineGeometry.js';
 import { LineMaterial } from '../../node_modules/three/examples/jsm/lines/LineMaterial';
@@ -19,6 +20,7 @@ export default function Cortstim() {
 
 	let lineGroup = new THREE.Group()
 	lineGroup.name = "cortstimLine"
+	let clock = new THREE.Clock();
 
 	useEffect(() => {
 		var urlParams = new URLSearchParams(window.location.search);
@@ -47,64 +49,82 @@ export default function Cortstim() {
 			let scene = new THREE.Scene();
 			scene.background = new THREE.Color(0xffffff);
 			let camera = new THREE.PerspectiveCamera(45, brainContainer.offsetWidth / 600, 1, 1000);
-			camera.lookAt(scene.position)
+			camera.position.z = 500;
+
 			let renderer = new THREE.WebGLRenderer({
 				antialias: true
 			})
+			renderer.setPixelRatio(window.devicePixelRatio);
 
-			let controls = new OrbitControls(camera, renderer.domElement);
-			let light = new THREE.HemisphereLight(0xffffff, 0x444444);
-			camera.position.set(-100, 0, -500);
 			renderer.setSize(brainContainer.offsetWidth, 600);
-			light.position.set(0, 0, 10)
-			controls.target.set(10, 20, 0);
-			controls.autoRotate = true;
-			scene.add(light);
-			let loader = new GLTFLoader();
-			//@ts-ignore
-			loader.load(`/api/${subjectName}/brain3D_g`, (object3d: any) => {
-				scene.add(object3d.scene);
-				object3d.scene.rotation.set(-Math.PI / 2, 0, 0);
-				let elecs = scene.getObjectByName("Electrodes");
-				elecs.rotation.set(0, 0, Math.PI)
-				elecs.position.set(128, 128, 128)
+			document.body.appendChild(renderer.domElement);
 
-				setBrainScene(scene);
-				setThreeDCoords(elecs.children);
+			let light = new THREE.HemisphereLight(0xffffff, 0x444444);
+			light.position.set(0, 0, 10)
+			scene.add(light);
+
+
+
+			let loader = new GLTFLoader();
+
+			let elecs;
+			loader.load('/api/electrodes/PY20N009', object3d => {
+				elecs = object3d.scene;
+				scene.add(object3d.scene);
+
 			})
+			loader.load(`/api/brain2/PY20N009`, (object3d) => {
+				scene.add(object3d.scene);
+				// scene.rotateY(90)
+				// scene.rotateX(45)
+				setBrainScene(scene);
+				console.log(scene)
+				setThreeDCoords(elecs.children);
+
+			});
+			console.log(renderer.domElement)
+			let controls = new TrackballControls(camera, renderer.domElement);
+			controls.target.set(10, 20, 0);
+
 
 			const animate = () => {
 				requestAnimationFrame(animate);
+
+				var delta = clock.getDelta();
+				controls.update(delta);
 				renderer.render(scene, camera);
-				// controls.update()
+
+
 
 			};
+
 			animate();
 			brainContainer.appendChild(renderer.domElement);
-			// controls.update()
+			controls.update()
 
 		})()
 
 	}, [])
 
-	useEffect(() => {
-		if (threeDCoords) {
-			let object = brainScene.getObjectByName("Electrodes");
-			object.traverse((child) => {
-				if (child.type == "Mesh") {
-					child.geometry = new THREE.SphereGeometry(1, 32, 32, 0, Math.PI * 2, 0, Math.PI)
-				}
-			})
-			let object2 = brainScene.getObjectByName("Gyri");
-			object2.traverse(child => {
-				if (child.type == "Mesh") {
-					var color = new THREE.Color(0xdcdcdc);
-					child.material.color = color
-				}
-			})
-			// selectTask("All")
-		}
-	}, [threeDCoords])
+	// useEffect(() => {
+	// 	if (threeDCoords) {
+	// 		let object = brainScene.getObjectByName("Electrodes");
+	// 		console.log(object)
+
+	// 		object.traverse((child) => {
+	// 			if (child.type == "Mesh") {
+	// 				child.geometry = new THREE.SphereGeometry(1, 32, 32, 0, Math.PI * 2, 0, Math.PI)
+	// 			}
+	// 		})
+	// 		let object2 = brainScene.getObjectByName("Gyri");
+	// 		object2.traverse(child => {
+	// 			if (child.type == "Mesh") {
+	// 				var color = new THREE.Color(0xdcdcdc);
+	// 				child.material.color = color
+	// 			}
+	// 		})
+	// 	}
+	// }, [threeDCoords])
 
 
 	useEffect(() => {
@@ -172,6 +192,8 @@ export default function Cortstim() {
 				}
 			})
 		}
+		// selectTask("All")
+
 	}, [subStructState])
 
 
@@ -210,6 +232,27 @@ export default function Cortstim() {
 		})
 		brainScene.add(lineGroup)
 	}
+
+	const disableHemisphere = (hem) => {
+		let gyri = brainScene.getObjectByName("Gyri")
+		let wm = brainScene.getObjectByName("WhiteMatter")
+
+		gyri.traverse((child) => {
+			if (child.type == "Mesh") {
+				if (child.name.startsWith(hem)) {
+					child.visible = false
+				}
+			}
+		})
+		wm.traverse((child) => {
+			if (child.type == "Mesh") {
+				if (child.name.startsWith(hem) || child.name.startsWith(hem.toUpperCase())) {
+					child.visible = false
+				}
+			}
+		})
+	}
+
 
 	return (
 		<div>
@@ -263,6 +306,16 @@ export default function Cortstim() {
 						<Button block={true}
 							onClick={() => selectTask("SZ")}
 						>SZ</Button>
+						<Button block={true}
+							onClick={() => disableHemisphere("l")}
+						>
+							Disable Left Hemisphere
+						</Button>
+						<Button block={true}
+							onClick={() => disableHemisphere("r")}
+						>
+							Disable Right Hemisphere
+						</Button>
 					</Col>
 				</Row>
 			</Container>

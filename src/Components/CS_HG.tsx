@@ -14,12 +14,12 @@ import {
   MeshBasicMaterial,
   Geometry,
 } from "../../node_modules/three/src/Three";
-import { OrbitControls } from "../../node_modules/three/examples/jsm/controls/OrbitControls";
 import { GLTFLoader } from "../../node_modules/three/examples/jsm/loaders/GLTFLoader";
 import { LineGeometry } from "../../node_modules/three/examples/jsm/lines/LineGeometry.js";
 import { LineMaterial } from "../../node_modules/three/examples/jsm/lines/LineMaterial";
 import { Line2 } from "../../node_modules/three/examples/jsm/lines/Line2";
 import { TrackballControls } from "../../node_modules/three/examples/jsm/controls/TrackballControls.js";
+import * as THREE from "../../node_modules/three/src/Three";
 
 import { selectAll, mouse, select } from "d3-selection";
 import { scaleLinear } from "d3-scale";
@@ -28,7 +28,7 @@ import { Container, Row, Col } from "../../node_modules/react-bootstrap";
 import fmdata from "../shared/fmdata";
 import { extent } from "d3-array";
 
-const Brain_3 = (props) => {
+const CS_HG = (props) => {
   const [isPaused, setIsPaused] = useState(false);
   const [brainScene, setBrainScene] = useState();
   const [threeDCoords, setThreeDCoords] = useState();
@@ -53,8 +53,11 @@ const Brain_3 = (props) => {
     "#f46d43",
     "#d73027",
   ]);
-  let lineGroup = new Group();
+  let lineGroup = new THREE.Group();
   lineGroup.name = "cortstimLine";
+	let clock = new THREE.Clock();
+
+
   let dotColorScale = scaleLinear()
     //@ts-ignore
     .domain([-9, -5, -2, -0.01, 0.0, 0.01, 2, 5, 9])
@@ -69,18 +72,7 @@ const Brain_3 = (props) => {
     let recordName = urlParams.get("record");
     let subjectName = urlParams.get("subject");
     (async () => {
-      if (recordType == "EP") {
-        let fetchRoute = `/api/data/${subjectName}/${recordName}/${recordType}`;
-        let response = await fetch(fetchRoute);
-        let respData = await response.json();
-        let zs = Object.keys(respData).map((chan) => {
-          return {
-            name: chan,
-            zScore: respData[chan].zscores[1],
-          };
-        });
-        setZScores(zs);
-      }
+
       if (recordType == "HG") {
         let fetchRoute = `/api/data/${subjectName}/${recordName}/${recordType}`;
         let dataset = new fmdata();
@@ -89,38 +81,38 @@ const Brain_3 = (props) => {
         await dataset.get(data);
         let dataTime = data.contents.times;
         setTimes(dataTime);
-        // 	let cortstimReq = await fetch(`/api/data/${subjectName}/cortstim`)
-        // 	let cortStimRes = await cortstimReq.json()
-        // 	let actualData = Object.keys(cortStimRes).map(entry => {
-        // 		if (cortStimRes[entry].Result != null) {
-        // 			return {
-        // 				channel: entry,
-        // 				color: cortStimRes[entry].Color,
-        // 				result: [...cortStimRes[entry].Result, "All"]
-        // 			}
-        // 		}
-        // 		else {
-        // 			return {
-        // 				channel: entry,
-        // 				color: cortStimRes[entry].Color,
-        // 				result: ["All"]
-        // 			}
-        // 		}
-        // 	})
-        // 	setTaskData(actualData)
+        let cortstimReq = await fetch(`/api/data/${subjectName}/cortstim`)
+        let cortStimRes = await cortstimReq.json()
+        let actualData = Object.keys(cortStimRes).map(entry => {
+          if (cortStimRes[entry].Result != null) {
+            return {
+              channel: entry,
+              color: cortStimRes[entry].Color,
+              result: [...cortStimRes[entry].Result, "All"]
+            }
+          }
+          else {
+            return {
+              channel: entry,
+              color: cortStimRes[entry].Color,
+              result: ["All"]
+            }
+          }
+        })
+        setTaskData(actualData)
       }
       let brainContainer = document.getElementById("brain3D");
 
       let scene = new Scene();
       scene.background = new Color(0xffffff);
       let camera = new PerspectiveCamera(30, 960 / 720, 0.1, 5000);
-			camera.position.z = 500;
+      camera.position.z = 500;
       let renderer = new WebGLRenderer({
         antialias: true,
       });
-			renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setPixelRatio(window.devicePixelRatio);
       renderer.setSize(960, 720);
-			document.body.appendChild(renderer.domElement);
+      document.body.appendChild(renderer.domElement);
 
       let controls = new TrackballControls(camera, renderer.domElement);
       let light = new HemisphereLight(0xffffff, 0x444444);
@@ -128,7 +120,7 @@ const Brain_3 = (props) => {
       light.position.set(0, 0, 10);
       // controls.target.set(10, 20, 0);
       // controls.autoRotate = false;
-			controls.target.set(10, 20, 0);
+      controls.target.set(10, 20, 0);
 
       scene.add(light);
       let loader = new GLTFLoader();
@@ -136,51 +128,31 @@ const Brain_3 = (props) => {
       await sleep(1000);
       let elecs;
       loader.load('/api/electrodes/PY20N009', object3d => {
-				elecs = object3d.scene;
-				scene.add(object3d.scene);
+        elecs = object3d.scene;
+        scene.add(object3d.scene);
 
-			})
-			loader.load(`/api/brain2/PY20N009`, (object3d) => {
-				scene.add(object3d.scene);
-				// scene.rotateY(90)
-				// scene.rotateX(45)
-				setBrainScene(scene);
-				console.log(scene)
-				setThreeDCoords(elecs.children);
+      })
+      loader.load(`/api/brain2/PY20N009`, (object3d) => {
+        scene.add(object3d.scene);
+        // scene.rotateY(90)
+        // scene.rotateX(45)
+        setBrainScene(scene);
+        console.log(scene)
+        setThreeDCoords(elecs.children);
+      });
 
-			});
-      // loader.load(`/api/${props.subject}/brain3D_g`, (object3d: any) => {
-      //   scene.add(object3d.scene);
-      //   object3d.scene.rotation.set(-Math.PI / 2, 0, 0);
-      //   object3d.scene.position.set(0, 10, 0);
-      //   object3d.scene.scale.set(0.5, 0.5, 0.5);
-      //   let elecs = scene.getObjectByName("Electrodes");
-      //   let gyri = scene.getObjectByName("Brain");
-      //   elecs.rotation.set(0, 0, Math.PI);
-      //   elecs.position.set(128, 128, 128);
-      //   setBrainScene(scene);
-      //   setThreeDCoords(elecs.children);
-
-      //   //@ts-ignore
-      //   let gyriMaterial = scene.getObjectByName("Left-Amygdala").material;
-      //   elecs.traverse((child) => {
-      //     if (child.type == "Mesh") {
-      //       //@ts-ignore
-      //       child.material = gyriMaterial;
-      //       //@ts-ignore
-      //       child.material.color = new Color("rgb(192,192,192)");
-      //     }
-      //   });
-      // });
 
       const animate = () => {
-        renderer.render(scene, camera);
-        controls.update();
-
         requestAnimationFrame(animate);
+        var delta = clock.getDelta();
+				controls.update(delta);
+				renderer.render(scene, camera);
+
       };
       animate();
       brainContainer.appendChild(renderer.domElement);
+			controls.update()
+
     })();
   }, []);
 
@@ -200,6 +172,7 @@ const Brain_3 = (props) => {
         }
       });
     }
+
   }, [gyriState]);
 
   const selectTask = (task) => {
@@ -212,6 +185,7 @@ const Brain_3 = (props) => {
     }
     taskData.forEach((entry) => {
       let result = entry.result.filter((t) => t == task);
+
       if (result.length > 0) {
         let lineGeom = new LineGeometry();
         let chan1 = entry.channel.split("_")[0];
@@ -237,10 +211,10 @@ const Brain_3 = (props) => {
         });
 
         let line = new Line2(lineGeom, material);
-        // line.computeLineDistances();
+        line.computeLineDistances();
         line.scale.set(1, 1, 1);
         lineGroup.add(line);
-        // console.log(lineGroup)
+        console.log(lineGroup)
       }
     });
     brainScene.add(lineGroup);
@@ -315,19 +289,19 @@ const Brain_3 = (props) => {
         cursorLineMover(position);
         dotUpdator(position);
       };
-      document.getElementById("dataTimer").onclick = async () => {
-        let nodes = document.getElementsByClassName("fm-horizon");
-        let firstHorizon = nodes[0];
-        //@ts-ignore
-        for (let i = 350; i < firstHorizon.offsetWidth; i++) {
-          await sleep(1);
-          lineAndDotUpdate(i);
-          //@ts-ignore
-          document.getElementById("dataTimer").innerHTML = `${times[
-            Math.floor((i / firstHorizon.offsetWidth) * times.length)
-          ].toFixed(3)}s`;
-        }
-      };
+      // document.getElementById("dataTimer").onclick = async () => {
+      //   let nodes = document.getElementsByClassName("fm-horizon");
+      //   let firstHorizon = nodes[0];
+      //   //@ts-ignore
+      //   for (let i = 350; i < firstHorizon.offsetWidth; i++) {
+      //     await sleep(1);
+      //     lineAndDotUpdate(i);
+      //     //@ts-ignore
+      //     document.getElementById("dataTimer").innerHTML = `${times[
+      //       Math.floor((i / firstHorizon.offsetWidth) * times.length)
+      //     ].toFixed(3)}s`;
+      //   }
+      // };
 
       selectAll(".fm-horizon").on("mousemove", (d, i, nodes) => {
         if (!locked) {
@@ -337,93 +311,9 @@ const Brain_3 = (props) => {
           lineAndDotUpdate(position);
         }
       });
-    }
-    if (recordType == "EP" && threeDCoords) {
-      let recordName = document
-        .getElementById("navbar_subject")
-        .innerText.split(":")[1]
-        .split("_");
-      setStimulatingElectrodes([recordName[0], recordName[1]]);
+      selectTask("All")
+      selectTask("All")
 
-      let stimElec1 = brainScene.getObjectByName(recordName[0].trim());
-      let stimElec2 = brainScene.getObjectByName(recordName[1].trim());
-      let material = new MeshBasicMaterial({ color: 0xff0000 });
-      stimElec1.scale.set(2, 2, 2);
-      stimElec2.scale.set(2, 2, 2);
-      stimElec1.material = material;
-      stimElec2.material = material;
-
-      let zScoreVals = zScores.map((zS) => {
-        return zS.zScore;
-      });
-      zScores.forEach((elec, i) => {
-        let electrodes = brainScene.getObjectByName("Electrodes");
-        electrodes.traverse((electrode) => {
-          if (electrode.name == elec.name) {
-            electrode.material = new MeshBasicMaterial({ color: 0x00ff00 });
-            electrode.material.color.setHSL(
-              zScoreVals[i] / Math.max(...zScoreVals),
-              1,
-              0.5
-            );
-
-            let geometry = new Geometry();
-            geometry.vertices.push(new Vector3(0, 0, 0));
-
-            let x =
-              electrode.getWorldPosition().x - stimElec1.getWorldPosition().x;
-            let y =
-              electrode.getWorldPosition().y - stimElec1.getWorldPosition().y;
-            let z =
-              electrode.getWorldPosition().z - stimElec1.getWorldPosition().z;
-            geometry.vertices.push(new Vector3(x, y, z));
-            let material = new LineBasicMaterial({ color: 0x0000ff });
-            // material.color.setHSL(1, 1, .5)
-            material.color.setHSL(
-              zScoreVals[i] / Math.max(...zScoreVals),
-              1,
-              0.5
-            );
-            let line = new Line(geometry, material);
-            brainScene.add(line);
-            stimElec1.getWorldPosition(line.position);
-          }
-        });
-      });
-
-      let fm = document.getElementById("fm");
-
-      fmChildren = fm.children;
-      if (fmChildren.length > 0) {
-        Array.from(fmChildren).forEach((svg) => {
-          //@ts-ignore
-          svg.addEventListener("mouseenter", (ev) => {
-            let electrodeHoveredOver = ev.target["id"].split("_")[0];
-            threeDCoords.forEach((elec) => {
-              if (elec.name == electrodeHoveredOver) {
-                elec.scale.x = 5;
-                elec.scale.y = 5;
-                elec.scale.z = 5;
-                var color = new Color(0x0000ff);
-                elec.material.color = color;
-              }
-            });
-          });
-          //@ts-ignore
-          svg.addEventListener("mouseout", (ev) => {
-            let electrodeHoveredOver = ev.target["id"].split("_")[0];
-            threeDCoords.forEach((elec) => {
-              if (elec.name == electrodeHoveredOver) {
-                elec.scale.x = 1;
-                elec.scale.y = 1;
-                elec.scale.z = 1;
-                var color = new Color(0x00ff00);
-                elec.material.color = color;
-              }
-            });
-          });
-        });
-      }
     }
     if (threeDCoords) {
       let object = brainScene.getObjectByName("Electrodes");
@@ -456,9 +346,12 @@ const Brain_3 = (props) => {
   //@ts-ignore
 
   // document.getElementById('dataTimer').onclick = () => {
-  // 	selectTask("All")
+  //   selectTask("All")
   // }
   //@ts-ignore
+
+
+
 
   const dotUpdator = (position) => {
     let nodes = document.getElementsByClassName("fm-horizon");
@@ -540,4 +433,4 @@ const Brain_3 = (props) => {
     </div>
   );
 };
-export const Brain_3D = React.memo(Brain_3);
+export const CS_HG = React.memo(CS_HG);

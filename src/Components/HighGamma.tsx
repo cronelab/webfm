@@ -180,7 +180,8 @@ export default function HighGamma(props) {
 					<div className="fm-horizon"
 						key={`${channel}_horizon`}
 						id={`${channel}_horizon`}
-						style={{ "outline": "thin solid black", "height": `${height / Object.keys(displayData).length}px` }}>
+						style={{ "outline": "thin solid black", "height": `${(height / Object.keys(displayData).length)+8}px` }}>
+						{/* style={{ "outline": "thin solid black", "height": `${height / Object.keys(displayData).length}px` }}> */}
 					</div>
 				)
 			})}

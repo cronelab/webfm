@@ -42,6 +42,37 @@ const routes = (express) => {
       }
     });
   });
+
+
+
+let dataDir = './data/'
+  //3D brain
+  router.get("/api/brain2/:subject", (req, res) => {
+    let subject = req.params.subject;
+console.log(subject)
+    if (fs.existsSync(`${dataDir}/${subject}/info/brain.glb`)) {
+      console.log("Sending glb...");
+      res.sendFile(`brain.glb`, {
+        root: `${dataDir}/${subject}/info`,
+      });
+    }
+  });
+
+    //3D brain
+    router.get("/api/electrodes/:subject", (req, res) => {
+    let subject = req.params.subject;
+console.log(subject)
+      if (fs.existsSync(`${dataDir}/${subject}/info/electrodes.glb`)) {
+        console.log("Sending glb...");
+        res.sendFile(`electrodes.glb`, {
+          root: `${dataDir}/${subject}/info`,
+        });
+      }
+    });
+
+
+
+
   //Sends 2D geometry
   router.get("/api/geometry/:subject", (req, res) => {
     let subject = req.params.subject;

@@ -31,6 +31,9 @@ ReactDOM.render(
           <Route exact path="/cortstim">
             <CortstimMenu />
           </Route>
+          <Route exact path="/cortstimresults">
+            <Cortstim />
+          </Route>
           <Route path="/">
             <Container style={{ marginTop: 5 }} fluid={true}>
               <Row>

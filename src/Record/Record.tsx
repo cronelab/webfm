@@ -9,6 +9,8 @@ import { DataHeader } from '../Components/DataHeader'
 import HighGamma from '../Components/HighGamma'
 import EvokedPotentials from "../Components/EvokedPotentials";
 import { HeatMap } from "../Components/HeatMap";
+import {CS_HG} from "../Components/CS_HG";
+
 export default React.memo(function Record() {
 	const { setNewSubject, setNewRecord } = useContext(Context)
 	var urlParams = new URLSearchParams(window.location.search);
@@ -35,12 +37,20 @@ export default React.memo(function Record() {
 			}
 			return <Brain_3D {...props} ></Brain_3D>
 		}
+		else if (brainType == "3Dcs") {
+			let props = {
+				subject: urlParams.get('subject'),
+				setScene
+			}
+			return <CS_HG {...props} ></CS_HG>
+		}
 	}
 
 	const SetRecordType = () => {
 		if (urlParams.get('type') == 'HG') {
 			return <HighGamma ></HighGamma>
 		}
+
 		else if (urlParams.get('type') == 'EP') {
 			return <EvokedPotentials ></EvokedPotentials>
 		}
