@@ -11,7 +11,7 @@ import MapModals from "./MapModals";
 import HighGamma from "../Components/HighGamma";
 import Worker from "../shared/dataIndex.worker";
 
-const dataIndexer = new Worker();
+// const dataIndexer = new Worker();
 // import { Context } from "../Context";
 // import { select, selectAll, mouse } from "d3-selection";
 // import { scaleLinear } from "d3-scale";
@@ -105,15 +105,15 @@ export const Map = () => {
           end: dataset.contents.times[dataset.contents.times.length - 1],
         };
 
-        dataIndexer.postMessage({
-          displayData: dataset.displayData,
-          newTime: uiManager.raster.cursorTime,
-          dataWindow: dataWindow,
-        });
-        dataIndexer.onmessage = (e: any) => {
-          uiManager.brain.update(e.data);
-          // uiManager.brain.update(dataset.dataForTime(uiManager.raster.cursorTime));
-        };
+        // dataIndexer.postMessage({
+        //   displayData: dataset.displayData,
+        //   newTime: uiManager.raster.cursorTime,
+        //   dataWindow: dataWindow,
+        // });
+        // dataIndexer.onmessage = (e: any) => {
+        //   uiManager.brain.update(e.data);
+        //   // uiManager.brain.update(dataset.dataForTime(uiManager.raster.cursorTime));
+        // };
         var timeBounds = dataset.getTimeBounds();
         console.log(timeBounds)
         if (!uiManager.raster.timeScale) {

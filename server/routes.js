@@ -2,7 +2,7 @@ import path from "path";
 import fs from "fs";
 import { promises as fsp } from "fs";
 import formidable from "formidable";
-// import multer from 'multer'
+import multer from 'multer'
 let __dirname = path.resolve(path.dirname(""));
 
 function rawBody(req, res, next) {
@@ -45,11 +45,11 @@ const routes = (express) => {
 
 
 
-let dataDir = './data/'
+  let dataDir = './data/'
   //3D brain
   router.get("/api/brain2/:subject", (req, res) => {
     let subject = req.params.subject;
-console.log(subject)
+    console.log(subject)
     if (fs.existsSync(`${dataDir}/${subject}/info/brain.glb`)) {
       console.log("Sending glb...");
       res.sendFile(`brain.glb`, {
@@ -58,17 +58,17 @@ console.log(subject)
     }
   });
 
-    //3D brain
-    router.get("/api/electrodes/:subject", (req, res) => {
+  //3D brain
+  router.get("/api/electrodes/:subject", (req, res) => {
     let subject = req.params.subject;
-console.log(subject)
-      if (fs.existsSync(`${dataDir}/${subject}/info/electrodes.glb`)) {
-        console.log("Sending glb...");
-        res.sendFile(`electrodes.glb`, {
-          root: `${dataDir}/${subject}/info`,
-        });
-      }
-    });
+    console.log(subject)
+    if (fs.existsSync(`${dataDir}/${subject}/info/electrodes.glb`)) {
+      console.log("Sending glb...");
+      res.sendFile(`electrodes.glb`, {
+        root: `${dataDir}/${subject}/info`,
+      });
+    }
+  });
 
 
 
@@ -268,36 +268,34 @@ console.log(subject)
   // Put new brain image data into .metadata
   router.put("/api/brain/:subject", async (req, res) => {
     let subject = req.params.subject;
-    if (fs.existsSync(`./data/${subject}`)) {
-      let fileContent = await fsp.readFile(
-        `./data/${subject}/.metadata`,
-        "utf8"
-      );
-      let metadata = JSON.parse(fileContent);
-      let oldMetadata = metadata;
-      let newMetadata = Object.assign({}, oldMetadata);
-      let form = new formidable.IncomingForm();
-      form.uploadDir = "./uploads";
-      form.on("file", async function (field, file) {
-        let fileContent = await fsp.readFile(file.path);
-        let imageData2 = new Buffer(fileContent);
-        let imageData = imageData2.toString("base64");
-        let imageExtension = path.extname(file.name);
-        newMetadata.brainImage =
-          "data:image/" + imageExtension + ";base64," + imageData;
-        fs.writeFile(
-          `./data/${subject}/.metadata`,
-          JSON.stringify(newMetadata),
-          (err) => {
-            if (err) console.log(err);
-          }
-        );
-      });
-      form.on("end", () => {
-        res.sendStatus(201);
-      });
-      form.parse(req);
+    if (!fs.existsSync(`./data/${subject}`)) {
+      fs.mkdirSync(`./data/${subject}`)
+      fs.mkdirSync(`./data/${subject}/info`)
+      fs.mkdirSync(`./data/${subject}/data`)
+      fs.mkdirSync(`./data/${subject}/data/HG`)
+      fs.mkdirSync(`./data/${subject}/data/EP`)
+      fs.mkdirSync(`./data/${subject}/data/Cortstim`)
     }
+    var upload = multer({
+      storage: multer.diskStorage({
+        destination: (req, file, cb) => {
+          cb(null, `./data/${req.params.subject}/info`)
+        },
+        filename: (req, file, cb) => {
+          cb(null, `reconstruction${path.extname(file.originalname)}`);
+        }
+      }),
+      limits: {
+        fileSize: 100000000
+      }
+    }).single('brainImage');
+    upload(req, res, (err) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send()
+      }
+    })
   });
 
   //Add a new geometry file
@@ -383,32 +381,3 @@ console.log(subject)
   return router;
 };
 export default routes;
-
-//TODO Multer uploads
-
-//   router.post("/api/:subject/brain", (req, res) => {
-//     if (!fs.existsSync(`./data/${req.params.subject}/info`)) {
-//       fs.mkdirSync(`./data/${req.params.subject}`)
-//       fs.mkdirSync(`./data/${req.params.subject}/info`);
-//     }
-//     var upload = multer({
-//       storage: multer.diskStorage({
-//         destination: (req, file, cb) => {
-//           cb(null, `./data/${req.params.subject}/info`)
-//         },
-//         filename: (req, file, cb) => {
-//           cb(null, `reconstruction${path.extname(file.originalname)}`);
-//         }
-//       }),
-//       limits: {
-//         fileSize: 100000000
-//       }
-//     }).single('myImage');
-//     upload(req, res, (err) => {
-//       if (err) {
-//         console.log(err);
-//       } else {
-//         res.send()
-//       }
-//     })
-//   })

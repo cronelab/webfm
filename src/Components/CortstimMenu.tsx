@@ -1,3 +1,4 @@
+//@ts-nocheck
 import React, { useState, useContext, useRef, useEffect } from "react";
 import {
   Container,

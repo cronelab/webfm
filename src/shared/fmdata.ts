@@ -258,9 +258,9 @@ class fmdata {
   }
 
   isTimeseries() {
-    // if (this.metadata.labels.indexOf("timeseries") >= 0) {
-    //   return true;
-    // }
+    if (this.metadata.labels.indexOf("timeseries") >= 0) {
+      return true;
+    }
 
     var someMember = (obj: any): any => {
       var ret = null;
