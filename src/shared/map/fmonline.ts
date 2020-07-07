@@ -49,23 +49,27 @@ export default class OnlineDataSource {
     this._bciFilterConnection = new BCI2K.bciData();
     this._stateTiming = true;
     this._timingChannel =
-      JSON.parse(localStorage.getItem("options")).stimulus.signal.channel ||
+      // JSON.parse(localStorage.getItem("options")).stimulus.signal.channel ||
       "ainp1";
     this._timingState =
-      JSON.parse(localStorage.getItem("options")).stimulus.state.name ||
+      // JSON.parse(localStorage.getItem("options")).stimulus.state.name ||
       "StimulusCode";
     this.threshold = {
       offValue: 0.0,
       onValue: 1.0,
     };
-    this.trialWindow = JSON.parse(localStorage.getItem("options")).stimulus
-      .state.window || {
+    this.trialWindow = 
+    // JSON.parse(localStorage.getItem("options")).stimulus
+    //   .state.window || 
+      {
       start: -1.0,
       end: 2.0,
     };
     this._bufferPadding = 0.5;
-    this._bufferWindow = JSON.parse(localStorage.getItem("options")).stimulus
-      .state.baselineWindow || {
+    this._bufferWindow = 
+    // JSON.parse(localStorage.getItem("options")).stimulus
+    //   .state.baselineWindow || 
+      {
       start: this.trialWindow.start - this._bufferPadding,
       end: this.trialWindow.end + this._bufferPadding,
     };
@@ -292,9 +296,11 @@ export default class OnlineDataSource {
         };
         manager._bciFilterConnection.onGenericSignal = (genericSignal: any) => {
           manager._processFeatureSignal(genericSignal);
+          console.log(genericSignal)
         };
         manager._bciFilterConnection.onStateVector = (stateVector: any) => {
           manager._processStateVector(stateVector);
+          console.log(stateVector)
         };
       });
   }

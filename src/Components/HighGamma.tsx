@@ -55,12 +55,12 @@ export default function HighGamma(props) {
 			let subjectName = urlParams.get('subject');
 			let fetchRoute = `/api/data/${subjectName}/${recordName}/${recordType}`
 
-			let response = await fetch(fetchRoute);
-			let data = await response.json();
-			await dataset.get(data)
-			let dataTime = data.contents.times
-			setTimes(dataTime)
-			setDisplayData(dataset.displayData)
+			// let response = await fetch(fetchRoute);
+			// let data = await response.json();
+			// await dataset.get(data)
+			// let dataTime = data.contents.times
+			// setTimes(dataTime)
+			// setDisplayData(dataset.displayData)
 			setMounted(true)
 		})()
 	}, [])

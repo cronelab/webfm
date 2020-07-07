@@ -2,6 +2,7 @@ const ctx: Worker = self as any;
 
 ctx.onmessage = (e) => {
   dataForTime(e.data.displayData, e.data.time, e.data.dataWindow);
+  console.log(e.data)
 };
 
 const dataForTime = (displayData: any, time: any, dataWindow: any) => {

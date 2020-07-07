@@ -10,7 +10,5 @@ services:
     tty: true
     volumes:
       - ./data:/webfm/data
-    # environment:
-    #   - SUBJECTS_DIR=/data/derivatives/freesurfer
-    #   - SUBJECT=PY20N007
-    #   - PORT=5000
+      - ./src:/webfm/src
+      - ./server:/webfm/server
