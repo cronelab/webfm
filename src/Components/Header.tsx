@@ -18,18 +18,22 @@ const footerStyle = {
 } as React.CSSProperties
 
 
-const header = {
-	main: {
-		"backgroundColor": "#397ad0",
-		"borderColor": "#316198"
-	},
-	subject: {
-		"margin": "0 auto",
-		"color": "#fffff6"
-	}
-} as React.CSSProperties
 
-export default function Header() {
+/**
+ * @returns      Returns Header displaying "WebFM" and the subject/record name
+ * @category Components
+ */
+export const Header = () => {
+	const header = {
+		main: {
+			"backgroundColor": "#397ad0",
+			"borderColor": "#316198"
+		},
+		subject: {
+			"margin": "0 auto",
+			"color": "#fffff6"
+		}
+	} as React.CSSProperties
 	const { subject, record }: any = useContext(Context)
 	return (
 		<Navbar id="header" sticky="top" style={header["main"]}>
@@ -44,6 +48,10 @@ export default function Header() {
 	)
 }
 
+/**
+ * @returns      Returns Footer displaying the current state of BCI2000
+ * @category Components
+ */
 export const Footer = () => {
 	const { bciState } = useContext(Context);
 

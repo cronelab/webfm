@@ -22,7 +22,7 @@ export default function EvokedPotentials() {
 	const [zTimePoint, setZTimePoint] = useState([])
 	const [anatomicalLocation, setAnatomicalLocation] = useState([])
 
-
+	
 	const { brainCoord } = useContext(Context);
 
 	useEffect(() => {
@@ -88,7 +88,7 @@ export default function EvokedPotentials() {
 					.datum(data[electrode].times)
 					.attr("d", line()
 						.x((d, i) => x(i))
-						// .y((d, i) => y(d))
+						.y((d, i) => y(d))
 					)
 
 				//Get's the x & y coordinates of the stimulation electrodes on the 2D plot
@@ -122,7 +122,6 @@ export default function EvokedPotentials() {
 				}
 			})
 		}
-		console.log("C")
 	}, [data])
 
 

@@ -5,14 +5,14 @@ import "./index.scss";
 import Record from "./Record/Record";
 import Map from "./Map/Map";
 import { MyProvider } from "./Context";
-import Header, { Footer } from "./Components/Header";
+import { Header, Footer } from "./Components/Header";
 import Online from "./Components/Online";
 import Subjects from "./Components/Subjects";
 import Brain from "./Components/Brain";
 import Cortstim from "./Components/Cortstim";
 import { Row, Col, Container } from "react-bootstrap";
 import CortstimMenu from "./Components/CortstimMenu";
-// import Steve from './Components/Steve'
+import CortstimV2 from "./Components/CortstimV2";
 ReactDOM.render(
   <MyProvider>
     <Router>
@@ -25,11 +25,11 @@ ReactDOM.render(
           <Route exact path="/map">
             <Map />
           </Route>
-          {/* <Route exact path="/Steve">
-          <Steve />
-        </Route> */}
           <Route exact path="/cortstim">
             <CortstimMenu />
+          </Route>
+          <Route exact path="/cortstimV2">
+            <CortstimV2 />
           </Route>
           <Route exact path="/cortstimresults">
             <Cortstim />

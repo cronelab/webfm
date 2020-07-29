@@ -68,12 +68,12 @@ export default function Cortstim() {
 			let loader = new GLTFLoader();
 
 			let elecs;
-			loader.load('/api/electrodes/PY20N009', object3d => {
+			loader.load(`/api/electrodes/${subjectName}`, object3d => {
 				elecs = object3d.scene;
 				scene.add(object3d.scene);
 
 			})
-			loader.load(`/api/brain2/PY20N009`, (object3d) => {
+			loader.load(`/api/brain2/${subjectName}`, (object3d) => {
 				scene.add(object3d.scene);
 				// scene.rotateY(90)
 				// scene.rotateX(45)

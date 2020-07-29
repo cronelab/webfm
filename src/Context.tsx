@@ -29,6 +29,8 @@ export const MyProvider = (props: any) => {
 	const [mapData, setMapData] = useState('');
 	const [zScores, setZScores] = useState('');
 	const [bci, setBCI] = useState();
+	const [cortstimNotes, setCortstimNotes] = useState({})
+	const [taskTimes, setTaskTimes] = useState({})
 
 	return (
 		<Context.Provider value={{
@@ -57,7 +59,9 @@ export const MyProvider = (props: any) => {
 			EPData, setEPData,
 			mapData, setMapData,
 			zScores, setZScores,
-			bci, setBCI
+			bci, setBCI,
+			cortstimNotes, setCortstimNotes,
+			taskTimes, setTaskTimes,
 		}}>
 			{props.children}
 		</Context.Provider >

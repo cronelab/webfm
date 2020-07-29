@@ -3,6 +3,9 @@ import fs from "fs";
 import { promises as fsp } from "fs";
 import formidable from "formidable";
 import multer from 'multer'
+import pkg from 'swagger-ui-express'
+import swaggerDocument from './swagger.json'
+const swaggerUi = pkg
 let __dirname = path.resolve(path.dirname(""));
 
 function rawBody(req, res, next) {
@@ -12,22 +15,30 @@ function rawBody(req, res, next) {
   req.on("end", () => next());
 }
 
+
 const routes = (express) => {
+
   const router = express.Router();
 
   //Sends configurations
   router.get("/config", (req, res) =>
     res.sendFile(`${__dirname}/server/config.json`)
   );
-  router.use("/docs", express.static(path.join(__dirname, "/docs", "/_build/html")));
+  router.use("/docs_server", express.static(path.join(__dirname, "/docs", "/_build/html")));
+  router.use("/docs_src", express.static(path.join(__dirname, "/docs", "/srcdoc")));
 
-  //Sends list of subjects
+
+  router.use('/api-docs', swaggerUi.serve);
+  router.get('/api-docs', swaggerUi.setup(swaggerDocument));
+  
   router.get("/api/list", (req, res) => {
     fs.readdir("./data", (err, subjects) => {
       let _subjects = subjects.filter((f) => f != ".gitignore");
       res.status(200).json(_subjects);
     });
   });
+
+
   //Sends 2D brain
   router.get("/api/brain/:subject", (req, res) => {
     let subject = req.params.subject;
@@ -106,6 +117,9 @@ const routes = (express) => {
       res.status(204).end();
     }
   });
+
+
+
   //Send the actual HG record
   router.get("/api/data/:subject/:record/HG", (req, res) => {
     var subject = req.params.subject;
@@ -252,11 +266,11 @@ const routes = (express) => {
     let { patientID, electrodes } = receivedData;
     if (
       !fs.existsSync(
-        `./data/${subject}/data/cortstim/${electrodes.elec1}_${electrodes.elec2}`
+        `./data/${subject}/data/cortstim/${electrodes}`
       )
     ) {
       fs.appendFileSync(
-        `./data/${subject}/data/cortstim/${electrodes.elec1}_${electrodes.elec2}.json`,
+        `./data/${subject}/data/cortstim/${electrodes}.json`,
         JSON.stringify(receivedData)
       );
     }

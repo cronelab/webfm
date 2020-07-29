@@ -5,7 +5,9 @@
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",
-    "dev": "nodemon server/server.js"
+    "dev": "nodemon --experimental-json-modules server/server.js",
+    "docs:src": "typedoc --out docs/srcdoc src --mode file --theme ./node_modules/typedoc-neo-theme/bin/default --name WebFM Documentation",
+    "docs:server": "cd docs && make html"
   },
   "nodemonConfig": {
     "ignore": [
@@ -44,6 +46,10 @@
     "@babel/plugin-transform-runtime": "^7.10.4",
     "@babel/preset-env": "^7.10.4",
     "@babel/preset-react": "^7.10.4",
+    "@babel/preset-typescript": "^7.10.4",
+    "@types/jquery": "^3.5.1",
+    "@types/node": "^14.0.27",
+    "@types/react-bootstrap": "^1.0.1",
     "babel-loader": "^8.1.0",
     "bci2k": "^2.2.4",
     "bootstrap": "^4.5.0",
@@ -72,12 +78,18 @@
     "sass": "^1.26.10",
     "sass-loader": "^9.0.2",
     "style-loader": "^1.2.1",
+    "swagger-ui-express": "^4.1.4",
     "three": "^0.118.3",
     "ts-loader": "^7.0.5",
+    "typedoc-neo-theme": "^1.0.9",
     "typescript": "^3.9.6",
     "webpack": "^4.43.0",
     "webpack-dev-middleware": "^3.7.2",
     "webpack-merge": "^5.0.8",
     "write-file-webpack-plugin": "^4.5.1"
+  },
+  "devDependencies": {
+    "jsdoc-babel": "^0.5.0",
+    "typedoc-webpack-plugin": "^1.1.4"
   }
 }

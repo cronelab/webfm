@@ -1,8 +1,14 @@
 import { scaleLinear, scaleSqrt } from "d3-scale";
 import { select } from "d3-selection";
 import { load3DBrain_gltf } from "./loaders";
-// import PY19N024 from '../../data/PY19N024/info/reconstruction.glb'
 
+/**
+ * Code blocks are great for examples
+ * ```typescript
+ * // Or you can specify the language explicitly
+ * const instance = new fmbrain();
+ * ```
+ */
 class fmbrain {
   sensorGeometry: any;
   selectedChannel: any;

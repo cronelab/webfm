@@ -14,7 +14,7 @@ import {
   Form,
   ListGroupItem
 } from "react-bootstrap";
-import {fetchAndStoreBrain} from '../shared/loaders'
+import { fetchAndStoreBrain } from '../shared/loaders'
 import { Context } from "../Context";
 
 export default function Subjects() {
@@ -82,22 +82,22 @@ export default function Subjects() {
   //   setAllSubjects([...subjects, subject]);
   // };
   const setFile = e => {
-    
-	let file = e.target.files[0];
-	let formData = new FormData();
-	formData.append("brainImage", file, file.name);
-	var reader = new FileReader();
-	reader.readAsDataURL(file);
-	fetch(`/api/brain/${subject.name}`, {
-		method: "PUT",
-		body: formData
-	}).then(() => {
-    fetchAndStoreBrain(subject.name).then(x => {
-      setNewBrain(x)
-    })
-  });
+
+    let file = e.target.files[0];
+    let formData = new FormData();
+    formData.append("brainImage", file, file.name);
+    var reader = new FileReader();
+    reader.readAsDataURL(file);
+    fetch(`/api/brain/${subject.name}`, {
+      method: "PUT",
+      body: formData
+    }).then(() => {
+      fetchAndStoreBrain(subject.name).then(x => {
+        setNewBrain(x)
+      })
+    });
   };
-  
+
   const SubjectModal = () => {
     return (
       <Modal
@@ -144,11 +144,11 @@ export default function Subjects() {
                     id={subject}
                     eventKey={`${subject}`}
                     key={`${subject}_${index}_pane`}
-                    onEntered={() => {
-                      fetchAndStoreBrain(subject).then(x => {
-                        setNewBrain(x)
-                      })
-                    }}
+                    // onEntered={() => {
+                    //   fetchAndStoreBrain(subject).then(x => {
+                    //     setNewBrain(x)
+                    //   })
+                    // }}
                   >
                     <h1>{subject}</h1>
                     <Container>
@@ -237,16 +237,16 @@ export default function Subjects() {
             ref={fileUpload}
             name="photo"
             style={{ display: "none" }}
-          onChange={setFile}
+            onChange={setFile}
           />
           <div className="file-box">
             <Button type="button"
               onClick={openUploadDialog}>
               Upload Photo
                   </Button>
-            {/* <span style={{ paddingLeft: "10px", marginTop: "5px" }}>
+            <span style={{ paddingLeft: "10px", marginTop: "5px" }}>
               {fileName}
-            </span> */}
+            </span>
           </div>        </Form.Group>
         <Button onClick={uploadBrain}>Upload brain</Button>
         <Button onClick={uploadGeometry}>Upload geometry</Button>

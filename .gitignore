@@ -7,7 +7,4 @@ src/cortstim/parser2.js
 src/cortstim/cortstiminfo.jpg
 server/build/*
 .vscode
-src/webRtcog-master/*
-src/Components/bin/*
-src/Components/img/*
-src/Components/Steve/*
+docs/srcdoc/*

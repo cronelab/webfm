@@ -12,19 +12,21 @@ import {
   Button,
   Tabs,
   Tab,
-  DropdownButton,
-  Dropdown,
-  ButtonGroup,
-  ToggleButton,
-  ToggleButtonGroup
 } from "react-bootstrap";
 import { Context } from "../Context";
 import Brain from "./Brain";
-import { Brain_3D } from "./Brain_3D";
 import CortstimCards from "./CortstimCards";
 import { select } from "d3-selection";
 
-const CortstimMenu = () => {
+
+/**
+ * Return the ratio of the inline text length of the links in an element to
+ * the inline text length of the entire element.
+ *
+ * @name CortstimV2
+ * @returns {Element} Types and descriptions are both supported.
+ */
+const CortstimV2 = () => {
   const sleep = m => new Promise(r => setTimeout(r, m));
   let date = new Date();
   let month = date.getMonth() + 1;
@@ -65,40 +67,6 @@ const CortstimMenu = () => {
     taskRef.current[i] = React.createRef();
   });
 
-  useEffect(() => {
-    (async () => {
-      let listPathRes = await fetch(`/api/list`);
-      let foundSubjects = await listPathRes.json();
-      if (foundSubjects.length > 0) {
-        foundSubjects.sort();
-        setNewSubject({ name: foundSubjects[foundSubjects.length - 1] });
-      } else {
-        console.log("Nobody can be found");
-      }
-
-
-    })();
-  }, []);
-
-/**
- * Return the ratio of the inline text length of the links in an element to
- * the inline text length of the entire element.
- *
- * @name BrainChoice
- * @throws {PartyError|Hearty} Multiple types work fine.
- * @returns {Element} Types and descriptions are both supported.
- */
-  const BrainChoice = () => {
-    if (brainType == "2D") {
-      return <Brain brainType={brainType}></Brain>;
-    } else if (brainType == "3D") {
-      let props = {
-        subject: subject.name,
-        setScene
-      };
-      return <Brain_3D {...props}></Brain_3D>;
-    }
-  };
 
   return (
     <Container
@@ -521,4 +489,4 @@ const CortstimMenu = () => {
   );
 };
 
-export default CortstimMenu;
+export default CortstimV2;

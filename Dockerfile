@@ -8,5 +8,4 @@ RUN npm ci
 COPY ./webpack* ./
 COPY ./.babelrc ./
 COPY ./tsconfig.json ./tsconfig.json
-# RUN npm run build
-# CMD [ "npm", "run","dev" ]
+CMD [ "npm", "run","dev" ]

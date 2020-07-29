@@ -4,6 +4,17 @@ import { Image } from "react-bootstrap";
 import { Context } from "../Context";
 import { fetchAndStoreBrain, fetchAndStoreGeometry } from "../shared/loaders";
 
+
+/**
+ * ```
+ * // Or you can specify the language explicitly
+ * const instance = new Brain();
+ * ```
+ * @param props  Comment for parameter ´text´.
+ * @returns      Comment for special return value.
+ */
+
+
 const Brain = (props) => {
   let {
     subject,
@@ -12,7 +23,7 @@ const Brain = (props) => {
     brain,
     brainCoord,
   }: any = useContext(Context);
-  if (subject.name == "") subject.name = "";
+  if (subject.name == "") subject.name = "PY17N005";
   const [brainCoords, setBrainCoords] = useState({});
   const [dots, setDots] = useState<Element>();
   let actualCoords = {};

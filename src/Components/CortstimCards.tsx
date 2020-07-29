@@ -1,7 +1,14 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useContext } from "react";
 import { Table, Tab, InputGroup, FormControl, Button } from "react-bootstrap";
 import { select } from "d3-selection";
+import {Context} from '../Context'
 const CortstimCards = ({ tasks, electrodes, refs }) => {
+  let date = new Date();
+
+  let {
+    setCortstimNotes, cortstimNotes, taskTimes, setTaskTimes
+  }: any = useContext(Context);
+  
   let buttonClicked = false
   let buttonRefs = useRef([])
   tasks.forEach((task, i) => {
@@ -45,6 +52,12 @@ const CortstimCards = ({ tasks, electrodes, refs }) => {
                       ref={buttonRefs.current[index]}
 
                       onClick={() => {
+                        let hour = date.getHours();
+                        let minutes = date.getMinutes();
+                        let seconds = date.getSeconds();
+                        let times = {...taskTimes}
+                        times[type] = `${hour}:${minutes}:${seconds}`
+                        setTaskTimes(times)
                         let curColor = buttonRefs.current[index].current.style.background
                         //@ts-ignore
                         buttonRefs.current[index].current.style.background = curColor == 'gray' ? 'green' : 'gray'
@@ -135,7 +148,17 @@ const CortstimCards = ({ tasks, electrodes, refs }) => {
                   </td>
                   <td>
                     <InputGroup key={`${type}_inputGroup2`}>
-                      <FormControl placeholder="Notes" />
+                      <FormControl
+                        placeholder="Notes"
+                        onBlur={() => {
+                          let note = {...cortstimNotes};
+                          //@ts-ignore
+                          note[type] = event.target.value;
+                          //@ts-ignore
+                          setCortstimNotes(note)
+                        }}
+
+                        />
                     </InputGroup>
                   </td>
                 </tr>
