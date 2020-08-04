@@ -8,3 +8,5 @@ src/cortstim/cortstiminfo.jpg
 server/build/*
 .vscode
 docs/srcdoc/*
+src_v1
+src_deletedZappa/*

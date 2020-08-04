@@ -1,324 +1,559 @@
-//@ts-nocheck
-import React, { useEffect, useState } from 'react'
-import * as THREE from "../../node_modules/three/src/Three";
-import { OrbitControls } from "../../node_modules/three/examples/jsm/controls/OrbitControls";
-import { TrackballControls } from "../../node_modules/three/examples/jsm/controls/TrackballControls.js";
-import { GLTFLoader } from '../../node_modules/three/examples/jsm/loaders/GLTFLoader';
-import { LineGeometry } from '../../node_modules/three/examples/jsm/lines/LineGeometry.js';
-import { LineMaterial } from '../../node_modules/three/examples/jsm/lines/LineMaterial';
-import { Line2 } from '../../node_modules/three/examples/jsm/lines/Line2';
-import { Container, Row, Col, Button } from '../../node_modules/react-bootstrap'
-import Slider from 'react-input-slider';
+import React, { useState, useContext, useRef, useEffect } from "react";
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  InputGroup,
+  Form,
+  FormControl,
+  Table,
+  Button,
+  ToggleButton,
+  Tabs,
+  Tab,
+  Dropdown,
+  ButtonGroup,
+  Modal
+} from "react-bootstrap";
+import { Context } from "../Context";
+import Brain from "./Brain";
+import CortstimCards from "./CortstimCards";
+import { select } from "d3-selection";
 
-export default function Cortstim() {
-	const [brainScene, setBrainScene] = useState();
-	const [taskData, setTaskData] = useState()
-	const [threeDCoords, setThreeDCoords] = useState();
-	const [gyriState, setGyriState] = useState(100);
-	const [wmState, setWmState] = useState(100);
-	const [subStructState, setSubStructState] = useState(100);
+const CortstimMenu = () => {
+  const sleep = m => new Promise(r => setTimeout(r, m));
+  let date = new Date();
+  let month = date.getMonth() + 1;
+  let day = date.getDate();
+  let year = date.getFullYear();
+  const [electrodes, setElectrodes] = useState({
+    elec1: "",
+    elec2: ""
+  });
+  const { setNewRecord, setNewSubject, subject, cortstimNotes, taskTimes, setTaskTimes,
+    subjects, setAllSubjects } = useContext(Context);
 
-	let lineGroup = new THREE.Group()
-	lineGroup.name = "cortstimLine"
-	let clock = new THREE.Clock();
+  const [show, setShow] = useState(false);
+  const [modalOpts, setModalOpts] = useState({
+    title: ''
+  })
+  const [radioValue, setRadioValue] = useState('1');
 
-	useEffect(() => {
-		var urlParams = new URLSearchParams(window.location.search);
-		let subjectName = urlParams.get('subject');
-		(async () => {
-			let cortstimReq = await fetch(`/api/data/${subjectName}/cortstim`)
-			let cortStimRes = await cortstimReq.json()
-			let actualData = Object.keys(cortStimRes).map(entry => {
-				if (cortStimRes[entry].Result != null) {
-					return {
-						channel: entry,
-						color: cortStimRes[entry].Color,
-						result: [...cortStimRes[entry].Result, "All"]
-					}
-				}
-				else {
-					return {
-						channel: entry,
-						color: cortStimRes[entry].Color,
-						result: ["All"]
-					}
-				}
-			})
-			setTaskData(actualData)
-			let brainContainer = document.getElementById('brain3D');
-			let scene = new THREE.Scene();
-			scene.background = new THREE.Color(0xffffff);
-			let camera = new THREE.PerspectiveCamera(45, brainContainer.offsetWidth / 600, 1, 1000);
-			camera.position.z = 500;
-
-			let renderer = new THREE.WebGLRenderer({
-				antialias: true
-			})
-			renderer.setPixelRatio(window.devicePixelRatio);
-
-			renderer.setSize(brainContainer.offsetWidth, 600);
-			document.body.appendChild(renderer.domElement);
-
-			let light = new THREE.HemisphereLight(0xffffff, 0x444444);
-			light.position.set(0, 0, 10)
-			scene.add(light);
+  const [current, setCurrent] = useState(5);
+  const [duration, setDuration] = useState(5);
+  const [freq, setFreq] = useState(50);
 
 
-
-			let loader = new GLTFLoader();
-
-			let elecs;
-			loader.load(`/api/electrodes/${subjectName}`, object3d => {
-				elecs = object3d.scene;
-				scene.add(object3d.scene);
-
-			})
-			loader.load(`/api/brain2/${subjectName}`, (object3d) => {
-				scene.add(object3d.scene);
-				// scene.rotateY(90)
-				// scene.rotateX(45)
-				setBrainScene(scene);
-				console.log(scene)
-				setThreeDCoords(elecs.children);
-
-			});
-			console.log(renderer.domElement)
-			let controls = new TrackballControls(camera, renderer.domElement);
-			controls.target.set(10, 20, 0);
-
-
-			const animate = () => {
-				requestAnimationFrame(animate);
-
-				var delta = clock.getDelta();
-				controls.update(delta);
-				renderer.render(scene, camera);
-
-
-
-			};
-
-			animate();
-			brainContainer.appendChild(renderer.domElement);
-			controls.update()
-
-		})()
-
-	}, [])
-
-	// useEffect(() => {
-	// 	if (threeDCoords) {
-	// 		let object = brainScene.getObjectByName("Electrodes");
-	// 		console.log(object)
-
-	// 		object.traverse((child) => {
-	// 			if (child.type == "Mesh") {
-	// 				child.geometry = new THREE.SphereGeometry(1, 32, 32, 0, Math.PI * 2, 0, Math.PI)
-	// 			}
-	// 		})
-	// 		let object2 = brainScene.getObjectByName("Gyri");
-	// 		object2.traverse(child => {
-	// 			if (child.type == "Mesh") {
-	// 				var color = new THREE.Color(0xdcdcdc);
-	// 				child.material.color = color
-	// 			}
-	// 		})
-	// 	}
-	// }, [threeDCoords])
+  const [events, setEvents] = useState([
+    {
+      name: "Spontaneous_Speech",
+      performed: false,
+      result: ''
+    }, {
+      name: "Reading",
+      performed: false,
+      result: ''
+    }, {
+      name: "Naming",
+      performed: false,
+      result: ''
+    }, {
+      name: "Auditory_Naming",
+      performed: false,
+      result: ''
+    }, {
+      name: "Comprehension",
+      performed: false,
+      result: ''
+    }, {
+      name: "Face",
+      performed: false,
+      result: ''
+    }, {
+      name: "Upper (hand)",
+      performed: false,
+      result: ''
+    }, {
+      name: "Lower (feet)",
+      performed: false,
+      result: ''
+    }, {
+      name: "Pain",
+      performed: false,
+      result: ''
+    }, {
+      name: "Motor",
+      performed: false,
+      result: ''
+    }, {
+      name: "Sensory",
+      performed: false,
+      result: ''
+    },{
+      name: "Seizure",
+      performed: false,
+      result: ''
+    },{
+      name: "After_Discharge",
+      performed: false,
+      result: ''
+    },
+  ])
 
 
-	useEffect(() => {
-		if (brainScene) {
-			let object = brainScene.getObjectByName("Gyri");
-			object.visible = true
-			if (gyriState == 0) {
-				object.visible = false;
-			}
-			else {
-				object.visible = true
-			}
-			object.traverse(child => {
-				if (child.type == "Mesh") {
-					child.material.opacity = gyriState / 100
-					child.material.transparent = true
 
-				}
-			})
-		}
-	}, [gyriState])
+  useEffect(() => {
+    (async () => {
+      let listPathRes = await fetch(`/api/list`);
+      let foundSubjects = await listPathRes.json();
+      if (foundSubjects.length > 0) {
+        setAllSubjects(foundSubjects)
+      } else {
+        console.log("Nobody can be found");
+      }
+    })();
+  }, []);
+
+  return (
+
+    <Container
+      fluid
+      style={{ paddingTop: "10px", height: "100%", overflow: "auto" }}
+    >
+      <Row>
+        <Col sm={7} style={{ borderRight: "1rem solid" }}>
+          <Row>
+            <Col sm={3}>
+              <Dropdown>
+                <Dropdown.Toggle variant="primary" id="patient-dropdown">{subject.name ? subject.name : 'Patient ID'}</Dropdown.Toggle>
+                <Dropdown.Menu>
+                  {subjects ? subjects.map(subj => {
+                    return (
+                      <Dropdown.Item onClick={() => {
+                        setNewSubject({ name: subj })
+                        console.log(subject)
+                      }
+
+                      }>{subj}</Dropdown.Item>
+                    )
+                  }) : null}
+                </Dropdown.Menu>
+              </Dropdown>
+            </Col>
+            <Col sm={2}>
+              <Dropdown>
+                <Dropdown.Toggle variant="secondary" id="dropdown-basic">
+                  {electrodes.elec1 ? electrodes.elec1 : 'Electrode 1'}
+                </Dropdown.Toggle>
+
+                <Dropdown.Menu>
+                  {subject.geometry ? Object.keys(subject.geometry).map(channel => {
+                    return (
+                      <Dropdown.Item
+                        onClick={() => {
+                          setElectrodes({ ...electrodes, elec1: channel })
+                          let elec1Circle = document.getElementById(
+                            `${channel}_circle`
+                          );
+                          elec1Circle.setAttribute("fill", "red");
+                          elec1Circle.setAttribute("r", "3");
+
+                        }}
+                      >{channel}</Dropdown.Item>
+                    )
+                  }) : null}
+                </Dropdown.Menu>
+              </Dropdown>
+            </Col>
+            <Col sm={2}>
+              <Dropdown>
+                <Dropdown.Toggle variant="secondary" id="dropdown-basic">
+                  {electrodes.elec2 ? electrodes.elec2 : 'Electrode 2'}
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  {subject.geometry ? Object.keys(subject.geometry).map(channel => {
+                    return (
+                      <Dropdown.Item
+                        onClick={() => {
+                          setElectrodes({ ...electrodes, elec2: channel })
+                          let elec2Circle = document.getElementById(
+                            `${channel}_circle`
+                          );
+                          elec2Circle.setAttribute("fill", "red");
+                          elec2Circle.setAttribute("r", "3");
+                          // setNewRecord()
+                        }}
+                      >{channel}</Dropdown.Item>
+                    )
+                  }) : null}
+                </Dropdown.Menu>
+              </Dropdown>
+            </Col>
+          </Row>
+          <Row style={{ paddingTop: "5px" }}>
+            <Col sm={2}>
+              <Form>
+                <Form.Group>
+                  <Form.Control
+                    onBlur={e => setCurrent(e.target.value)}
+                    defaultValue={current}
+                    className="text-center"
+                  />
+                  <Form.Text className="text-muted"> Current (mA)</Form.Text>
+                </Form.Group>
+              </Form>
+            </Col>
+            <Col sm={2}>
+              <Form>
+                <Form.Group>
+                  <Form.Control
+                    onBlur={e => setDuration(e.target.value)}
+                    defaultValue={duration}
+                    className="text-center"
+                  />
+                  <Form.Text className="text-muted">Duration (s) </Form.Text>
+                </Form.Group>
+              </Form>
+            </Col>
+            <Col sm={2}>
+              <Form>
+                <Form.Group>
+                  <Form.Control
+                    onBlur={e => setFreq(e.target.value)}
+                    defaultValue={freq}
+                    className="text-center"
+                  />
+                  <Form.Text className="text-muted"> Frequency (Hz) </Form.Text>
+                </Form.Group>
+              </Form>
+            </Col>
+          </Row>
+          {/* <ButtonGroup vertical>
+            {events.map((opts, index) => <Button
+              variant={opts.performed ? "secondary" : "primary"}
+              onClick={() => {
+                setEvents((eventss => {'name': eventss[1].name, 'performed': eventss[1].performed, 'result': eventss[1].result})
+                // setEvents([...events, {name:opts.name, performed:true, result:opts.result}])
+                setModalOpts({ title: opts.name })
+                setShow(true)
+              }}
+            >{opts.name}</Button>)}
+          </ButtonGroup> */}
+
+          <Modal show={show} onHide={() => setShow(false)}>
+            <Modal.Header closeButton>
+              <Modal.Title>{modalOpts.title}</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <Row>
+                <Col>
+                  <ButtonGroup toggle>
+                    {[{ name: "Positive", value: '1' }, { name: "Negative", value: '2' }].map((radio, index) => (
+                      <ToggleButton
+                        key={index}
+                        type="radio"
+                        variant="secondary"
+                        name="radio"
+                        value={radio.value}
+                        checked={radioValue === radio.value}
+                        onChange={(e) => setRadioValue(e.currentTarget.value)}
+                      >
+                        {radio.name}
+                      </ToggleButton>
+                    ))}
+                  </ButtonGroup>
 
 
-	useEffect(() => {
-		if (brainScene) {
-			let object = brainScene.getObjectByName("WhiteMatter");
-			let gyri = brainScene.getObjectByName("Gyri");
-			gyri.visible = false
-			if (wmState == 0) {
-				object.visible = false;
-			}
-			else {
-				object.visible = true
-			}
-			object.traverse(child => {
-				if (child.type == "Mesh") {
-					child.material.opacity = wmState / 100
-					child.material.transparent = true
+                </Col>
+                <Col>
+                  <InputGroup key={`${modalOpts.title}_inputGroup2a`}>
+                    <FormControl
+                      placeholder="Notes"
+                      aria-label="Notes"
+                      aria-describedby="basic-addon1" />
+                  </InputGroup>
+                </Col>
+              </Row>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onClick={() => setShow(false)}>
+                Close
+            </Button>
+              <Button variant="primary" onClick={() => setShow(false)}>
+                Save Changes
+            </Button>
+            </Modal.Footer>
+          </Modal>
 
-				}
-			})
-		}
-	}, [wmState])
+          {/* <Row className="text-center">
+            <Col>
+              <Card style={{ marginTop: "10px" }}>
+                <Card.Body>
+                  <Tabs
+                    style={{ marginTop: "10px" }}
+                    defaultActiveKey="Language"
+                    id="uncontrolled-tab-example"
+                  >
+                    <Tab
+                      style={{ marginTop: "10px" }}
+                      eventKey="Language"
+                      title="Language"
+                    >
+                      <CortstimCards
+                        tasks={languageTasks}
+                        electrodes={electrodes}
+                        refs={taskRef}
+                      ></CortstimCards>
+                    </Tab>
+                    <Tab
+                      style={{ marginTop: "10px" }}
+                      eventKey="Motor"
+                      title="Motor"
+                    >
+                      <CortstimCards
+                        tasks={["Face", "Upper (hand)", "Lower (feet)"]}
+                        electrodes={electrodes}
+                        refs={taskRef}
+                      ></CortstimCards>
+                    </Tab>
+                    <Tab
+                      style={{ marginTop: "10px" }}
+                      eventKey="Custom"
+                      title="Custom"
+                    >
+                      <CortstimCards
+                        tasks={["Custom"]}
+                        electrodes={electrodes}
+                        refs={taskRef}
+                      ></CortstimCards>
+                    </Tab>
+                  </Tabs>
+                </Card.Body>
+              </Card>
+            </Col>
+            <Col>
+              <Card style={{ marginTop: "10px" }}>
+                <Card.Body>
+                  <Table striped bordered hover>
+                    <thead>
+                      <tr>
+                        <th>Event</th>
+                        <th>Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <>
+                        {events.map((type, index) => {
+                          let color = "gray";
+                          switch (type) {
+                            case "Pain":
+                              color = "yellow";
+                              break;
+                            case "Motor":
+                              color = "red";
+                              break;
+                            case "Sensory":
+                              color = "blue";
+                              break;
+                            case "Seizure":
+                              color = "aqua";
+                              break;
+                            case "After_Discharge":
+                              color = "aqua";
+                              break;
+                            default:
+                              color = "gray";
+                          }
+                          return (
+                            <tr>
+                              <td
+                                key="eventButton"
+                              >
+                                <Button
+                                  id={`${type}_eventButton`}
+                                  key={type}
+                                  style={{
+                                    width: "100%",
+                                    background: "gray",
+                                    color: "white"
+                                  }}
+                                  ref={eventRef.current[index]}
+                                  onClick={async () => {
+                                    let hour = date.getHours();
+                                    let minutes = date.getMinutes();
+                                    let seconds = date.getSeconds();
+                                    console.log(eventRef.current[index]);
+                                    let curColor =
+                                      eventRef.current[index].current.style
+                                        .background;
 
-	useEffect(() => {
-		if (brainScene) {
-			let object = brainScene.getObjectByName("Brain");
-			if (subStructState == 0) {
-				object.visible = false;
-			}
-			else {
-				object.visible = true
-			}
-			object.traverse(child => {
-				if (child.type == "Mesh") {
-					child.material.opacity = subStructState / 100
-					child.material.transparent = true
+                                    //@ts-ignore
+                                    eventRef.current[
+                                      index
+                                    ].current.style.background =
+                                      curColor == "gray" ? color : "gray";
+                                    eventRef.current[
+                                      index
+                                    ].current.style.color =
+                                      curColor == "gray" ? "black" : "white";
+                                    await sleep(500);
 
-				}
-			})
-			let electrodes = brainScene.getObjectByName("Electrodes");
-			electrodes.traverse(child => {
-				if (child.type == "Mesh") {
-					child.material.opacity = 100;
-				}
-			})
-		}
-		// selectTask("All")
+                                    let circle1 = document.getElementById(
+                                      `${electrodes.elec1}_circle`
+                                    );
+                                    let circle2 = document.getElementById(
+                                      `${electrodes.elec2}_circle`
+                                    );
 
-	}, [subStructState])
-
-
-	const selectTask = (task) => {
-		let oldLines = brainScene.getObjectByName("cortstimLine")
-		if (oldLines != undefined) {
-			let childrenNum = oldLines.children.length;
-			for (let i = 0; i < childrenNum; i++) {
-				oldLines.remove(oldLines.children[0])
-			}
-		}
-		taskData.forEach(entry => {
-			let result = entry.result.filter(t => t == task)
-			if (result.length > 0) {
-				let lineGeom = new LineGeometry
-				let chan1 = entry.channel.split("_")[0]
-				let chan2 = entry.channel.split("_")[1]
-				let stimElec1 = brainScene.getObjectByName(chan1)
-				let stimElec2 = brainScene.getObjectByName(chan2)
-				brainScene.updateMatrixWorld();
-				var vector1 = new THREE.Vector3();
-				var vector2 = new THREE.Vector3();
-				let elec1Pos = vector1.setFromMatrixPosition(stimElec1.matrixWorld);
-				let elec2Pos = vector2.setFromMatrixPosition(stimElec2.matrixWorld);
-				lineGeom.setPositions([elec1Pos.x, elec1Pos.y, elec1Pos.z, elec2Pos.x, elec2Pos.y, elec2Pos.z])
-				let material = new LineMaterial({
-					color: entry.color,
-					linewidth: .01
-				});
-
-				let line = new Line2(lineGeom, material);
-				line.computeLineDistances();
-				line.scale.set(1, 1, 1);
-				lineGroup.add(line);
-			}
-		})
-		brainScene.add(lineGroup)
-	}
-
-	const disableHemisphere = (hem) => {
-		let gyri = brainScene.getObjectByName("Gyri")
-		let wm = brainScene.getObjectByName("WhiteMatter")
-
-		gyri.traverse((child) => {
-			if (child.type == "Mesh") {
-				if (child.name.startsWith(hem)) {
-					child.visible = false
-				}
-			}
-		})
-		wm.traverse((child) => {
-			if (child.type == "Mesh") {
-				if (child.name.startsWith(hem) || child.name.startsWith(hem.toUpperCase())) {
-					child.visible = false
-				}
-			}
-		})
-	}
+                                    let xPos1 = parseFloat(
+                                      circle1.getAttribute("cx")
+                                    );
+                                    let xPos2 = parseFloat(
+                                      circle2.getAttribute("cx")
+                                    );
+                                    let yPos1 = parseFloat(
+                                      circle1.getAttribute("cy")
+                                    );
+                                    let yPos2 = parseFloat(
+                                      circle2.getAttribute("cy")
+                                    );
+                                    select("#imgContainer")
+                                      .select("svg")
+                                      .append("line")
+                                      .attr("x1", xPos1)
+                                      .attr("y1", yPos1)
+                                      .attr("x2", xPos2)
+                                      .attr("y2", yPos2)
+                                      .attr("stroke-width", "5")
+                                      .attr("stroke", color);
+                                    let times = { ...taskTimes }
+                                    times[type] = `${hour}:${minutes}:${seconds}`
 
 
-	return (
-		<div>
-			<Container fluid>
-				<Row>
-					<Col sm={10}>
-						<div id="brain3D" />
-						<Row>
-							<Col>
-								<Slider axis="x" x={gyriState} onChange={({ x }) => setGyriState(state => (x))} />
-								<text>          Gyri</text>
-							</Col>
-						</Row>
-						<Row>
-							<Col>
-								<Slider axis="x" x={wmState} onChange={({ x }) => setWmState(state => (x))} />
-								<text>          White Matter</text>
+                                    setTaskTimes(times)
+                                    alert(
+                                      `${type} @ ${hour}:${minutes}:${seconds}`
+                                    );
+                                    await sleep(500);
 
-							</Col>
-						</Row>
-						<Row>
-							<Col>
-								<Slider axis="x" x={subStructState} onChange={({ x }) => setSubStructState(state => (x))} />
-								<text>          Subcortical structures</text>
+                                    //@ts-ignore
+                                    eventRef.current[
+                                      index
+                                    ].current.style.background =
+                                      curColor == "gray" ? "gray" : color;
+                                    eventRef.current[
+                                      index
+                                    ].current.style.color =
+                                      curColor == "gray" ? "white" : "black";
+                                  }}
+                                >
+                                  {type}
+                                </Button>
+                              </td>
+                              <td>
 
-							</Col>
-						</Row>
-					</Col>
-					<Col sm={2}>
-						<Button block={true}
-							onClick={() => selectTask("SS")}
-						>SS</Button>
-						<Button block={true}
-							onClick={() => selectTask("C")}
-						>C</Button>
-						<Button block={true}
-							onClick={() => selectTask("N")}
-						>N</Button>
-						<Button block={true}
-							onClick={() => selectTask("R")}
-						>R</Button>
-						<Button block={true}
-							onClick={() => selectTask("AN")}
-						>AN</Button>
-						<br></br>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </>
+                    </tbody>
+                  </Table>
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row> */}
+          <Button
+            onClick={() => {
+              let dataToSend = {
+                patientID: subject.name,
+                date: `${month}/${day}/${year}`,
+                electrodes: `${electrodes.elec1}_${electrodes.elec2}`,
+                current,
+                duration,
+                frequency: freq,
+                taskData: {
+                  Spontaneous_Speech: {
+                    Notes: cortstimNotes.Spontaneous_Speech,
+                    color: document.getElementById("Spontaneous_Speech_button").style.background,
+                    time: taskTimes.Spontaneous_Speech
+                  },
+                  Reading: {
+                    Notes: cortstimNotes.Reading,
+                    color: document.getElementById("Reading_button").style.background,
+                    time: taskTimes.Reading
 
-						<Button block={true}
-							onClick={() => selectTask("All")}
-						>All</Button>
-						<br></br>
-						<Button block={true}
-							onClick={() => selectTask("SZ")}
-						>SZ</Button>
-						<Button block={true}
-							onClick={() => disableHemisphere("l")}
-						>
-							Disable Left Hemisphere
-						</Button>
-						<Button block={true}
-							onClick={() => disableHemisphere("r")}
-						>
-							Disable Right Hemisphere
-						</Button>
-					</Col>
-				</Row>
-			</Container>
-		</div>
-	)
-}
+                  },
+                  Naming: {
+                    Notes: cortstimNotes.Naming || "",
+                    color: document.getElementById("Naming_button").style.background,
+                    time: taskTimes.Naming
+
+                  },
+                  Auditory_Naming: {
+                    Notes: cortstimNotes.Auditory_Naming || "",
+                    color: document.getElementById("Auditory_Naming_button").style.background,
+                    time: taskTimes.Auditory_Naming
+
+                  },
+                  Comprehension: {
+                    Notes: cortstimNotes.Comprehension,
+                    color: document.getElementById("Comprehension_button").style.background,
+                    time: taskTimes.Comprehension
+                  }
+                },
+                eventData: {
+                  Pain: {
+                    Notes: cortstimNotes.Pain,
+                    time: taskTimes.Pain
+                  },
+                  Motor: {
+                    Notes: cortstimNotes.Motor,
+                    time: taskTimes.Motor
+                  },
+                  Sensory: {
+                    Notes: cortstimNotes.Sensory,
+                    time: taskTimes.Sensory
+                  },
+                  Seizure: {
+                    Notes: cortstimNotes.Seizure,
+                    time: taskTimes.Seizure
+                  },
+                  After_Discharge: {
+                    Notes: cortstimNotes.After_Discharge,
+                    time: taskTimes.After_Discharge
+                  }
+                }
+              };
+              fetch(`/api/data/cortstim/${subject.name}`, {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json"
+                },
+                body: JSON.stringify(dataToSend)
+              })
+              // .then(response => response.json())
+              // .then(() => {
+              //   console.log("Success");
+              // })
+              // .catch(error => {
+              //   console.error("Error:", error);
+              // });
+            }}
+          >
+            Save
+          </Button>
+        </Col>
+
+        <Col sm={5}
+          style={{ "padding": "0" }}
+        >
+          {subject.name ? <Brain></Brain> : <div></div>}
+        </Col>
+      </Row>
+    </Container >
+  );
+};
+
+export default CortstimMenu;
