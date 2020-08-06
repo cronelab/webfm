@@ -14,7 +14,7 @@ import {
   Form,
   ListGroupItem
 } from "react-bootstrap";
-import { fetchAndStoreBrain } from '../shared/loaders'
+// import { fetchAndStoreBrain } from '../shared/loaders'
 import { Context } from "../Context";
 
 export default function Subjects() {
@@ -92,9 +92,9 @@ export default function Subjects() {
       method: "PUT",
       body: formData
     }).then(() => {
-      fetchAndStoreBrain(subject.name).then(x => {
-        setNewBrain(x)
-      })
+      // fetchAndStoreBrain(subject.name).then(x => {
+      //   setNewBrain(x)
+      // })
     });
   };
 

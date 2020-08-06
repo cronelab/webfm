@@ -549,7 +549,7 @@ const CortstimMenu = () => {
         <Col sm={5}
           style={{ "padding": "0" }}
         >
-          {subject.name ? <Brain></Brain> : <div></div>}
+          {subject.name ? <Brain containerID="container"></Brain> : <div></div>}
         </Col>
       </Row>
     </Container >

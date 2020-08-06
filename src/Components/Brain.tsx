@@ -5,15 +5,13 @@
  */
 import React, { useContext, useEffect, useState, ReactSVGElement, useLayoutEffect } from "react";
 import { Context } from "../Context";
-import { Image } from 'react-bootstrap'
+import { Image, Modal, Table, Button } from 'react-bootstrap'
 
 const Brain = (props) => {
   let { subject, setNewSubject }: any = useContext(Context);
-  let [electrodes, setElectrodes] = useState()
   let [img, setImg] = useState<string>()
   const [size, setSize] = useState([]);
-
-
+  const [modify, setModify] = useState(false);
 
   useLayoutEffect(() => {
     function updateSize() {
@@ -25,7 +23,7 @@ const Brain = (props) => {
   }, []);
   useEffect(() => {
     (async () => {
-      console.log(subject)
+      subject.name = subject.name || "Template"
       let response11 = await fetch(`/api/geometry/${subject.name}`);
       let geometry = await response11.json();
       let response = await fetch(`/api/brain/${subject.name}`);
@@ -38,64 +36,160 @@ const Brain = (props) => {
       let bytes = [].slice.call(new Uint8Array(brainRes));
       bytes.forEach((b: any) => (binary += String.fromCharCode(b)));
       setImg(binary)
-      let actualCoords = {};
-
-
-      Object.keys(geometry).forEach(electrodes => {
-        actualCoords[electrodes] = {
-          u: geometry[electrodes].u,
-          v: (1 - geometry[electrodes].v),
-          location: geometry[electrodes].location,
-        };
-      });
-
-      //@ts-ignore
-      setElectrodes(actualCoords)
     })()
   }, []);
 
+  const [showModal, setShowModal] = useState(false);
+  const ElecModal = () => {
+    return (
+      <Modal
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        size="lg"
+      >
 
+        <Modal.Dialog>
+          <Modal.Header closeButton>
+            <Modal.Title>Hi</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            {/* @ts-ignore */}
+            {subject.geometry ? (
+              <Table>
+                <thead>
+                  <tr>
+                    <th>Electode</th>
+                    <th>x</th>
+                    <th>y</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.keys(subject.geometry).map(elec => {
+                    return (
+                      <tr
+                        id={`${elec}_table`}
+                        key={`${elec}_table`}
+                        onClick={() => {
+                          let table = document.getElementById(`${elec}_table`)
+                          let circle = document.getElementById(`${elec}_circle`);
+                          table.className = "table-primary"
+                          circle.setAttribute('fill', 'red')
+                          moveElectrode(elec, circle)
+                        }}
+                      >
+                        <td>{elec}</td>
+                        <td>{(subject.geometry[elec].u).toFixed(2)}</td>
+                        <td>{(subject.geometry[elec].v).toFixed(2)}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </Table>
+            ) : <></>}
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              onClick={() => {
+                fetch(`/api/geometry/${subject.name}`, {
+                  method: "PUT",
+                  body: JSON.stringify(subject.geometry),
+                  headers: {
+                    "Content-Type": "application/json"
+                  }
+                });
+              }}
+            >Save</Button>
+          </Modal.Footer>
+        </Modal.Dialog>
+      </Modal>
+    )
+  }
+
+
+  const timeout = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+
+  const moveElectrode = async (electrode, circle) => {
+    await timeout(500);
+    document.getElementById('container').addEventListener("click", e => {
+      let newX = e.offsetX
+      let newY = 1 + e.offsetY
+      let containerH = document.getElementById("container").offsetHeight
+      let containerW = document.getElementById("container").offsetWidth
+      subject.geometry[electrode].u = newX / containerW
+      subject.geometry[electrode].v = 1 - (newY / containerH)
+      circle.setAttribute('cx', newX)
+      circle.setAttribute('cy', newY)
+      circle.setAttribute('fill', 'green')
+    }, { once: true });
+  }
+
+  useEffect(() => {
+    if (modify) {
+      setShowModal(true)
+      Object.keys(subject.geometry).forEach(electrode => {
+        let circle = document.getElementById(`${electrode}_circle`);
+        circle.setAttribute('fill', 'green')
+        circle.onclick = e => {
+          // if (selectedElectrode == electrode) {
+          //   circle.setAttribute('fill', 'blue')
+          // }
+          // else {
+          circle.setAttribute('fill', 'red')
+          moveElectrode(electrode, circle)
+          // }
+        }
+      })
+      setModify(false)
+
+    }
+  }, [modify])
 
   return (
-    <div
-      style={{ "position": "relative", "display": "inline-block" }}
-      id="container"
-    >
-      <Image
-        src={img ? `data:image/jpeg;base64,${window.btoa(img)}` : ''}
-        style={{ "display": "block", "maxWidth": "100%", "height": "auto" }}
-      ></Image>
-      <svg
-        style={
-          {
-            position: "absolute",
-            top: "0",
-            left: "0",
-            width: "100%",
-            height: "100%"
-          }
-        }
+    <>
+      <div
+        style={{ "position": "relative", "display": "inline-block" }}
+        id="container"
+        onDoubleClick={(e) => {
+          e.preventDefault()
+          setModify(true)
+        }}
       >
-        {electrodes ?
-          //@ts-ignore
-          Object.keys(electrodes).map(x => {
-            return (<circle
-              //@ts-ignore
-              id={`${x}_circle`}
-              //@ts-ignore
-              cx={electrodes[x].u * (size[0] ? size[0] : document.getElementById('container').offsetWidth)}
-              //@ts-ignore
-              cy={electrodes[x].v * (size[1] ? size[1] : document.getElementById('container').offsetHeight)}
-              fill='green'
-              r='3'
-            ></circle>)
-          })
+        <Image
+          src={img ? `data:image/jpeg;base64,${window.btoa(img)}` : ''}
+          style={{ "display": "block", "maxWidth": "100%", "height": "auto", "userSelect": "none" }}
+        ></Image>
+        <svg
+          style={
+            {
+              position: "absolute",
+              top: "0",
+              left: "0",
+              width: "100%",
+              height: "100%"
+            }
+          }
+        >
+          {subject.geometry ?
+            //@ts-ignore
+            Object.keys(subject.geometry).map(x => {
+              return (<circle
+                //@ts-ignore
+                id={`${x}_circle`}
+                //@ts-ignore
+                cx={subject.geometry[x].u * (size[0] ? size[0] : document.getElementById('container').offsetWidth)}
+                //@ts-ignore
+                cy={(1 - subject.geometry[x].v) * (size[1] ? size[1] : document.getElementById('container').offsetHeight)}
+                fill='white'
+                r='3'
+              ></circle>)
+            })
 
-          : <circle></circle>}
+            : <circle></circle>}
 
-      </svg>
-
-    </div >
+        </svg>
+      </div >
+      <ElecModal></ElecModal>
+    </>
   );
 };
 

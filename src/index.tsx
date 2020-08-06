@@ -8,6 +8,7 @@ import Brain from "./Components/Brain";
 import Cortstim from "./Components/Cortstim";
 import { Row, Col, Container } from "react-bootstrap";
 import CortstimResults from "./Components/CortstimResults";
+import Subjects from './Components/Subjects'
 ReactDOM.render(
   <MyProvider
     style={{overflow:"hidden"}}
@@ -23,7 +24,21 @@ ReactDOM.render(
           <Route exact path="/cortstimresults">
             <CortstimResults />
           </Route>
-         
+          <Route path="/">
+            <Container style={{ marginTop: 5 }} fluid={true}>
+              <Row>
+                {/* <Col>
+                  <Online />
+                </Col> */}
+                <Col xs="6" style={{"padding":"0"}}>
+                  <Brain containerID={"container"}/>
+                </Col>
+                <Col>
+                  <Subjects />
+                 </Col>
+              </Row>
+            </Container>
+          </Route>
         </Switch>
         <Footer></Footer>
       </>

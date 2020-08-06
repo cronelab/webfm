@@ -317,37 +317,19 @@ const routes = (express) => {
   router.put("/api/geometry/:subject", async (req, res) => {
     let subject = req.params.subject;
     if (fs.existsSync(`./data/${subject}`)) {
-      let fileContent = await fsp.readFile(
-        `./data/${subject}/.metadata`,
-        "utf8"
-      );
-
-      let returnObject = {};
-      req.body.electrodeName.forEach((name, i) => {
-        returnObject[name] = req.body.electrodePosition[i];
-        return returnObject;
-      });
+      console.log(Object.keys(req.body))
+      // req.body.forEach(x => console.log(x));
+      // let returnObject = {};
+      // req.body.electrodeName.forEach((name, i) => {
+      //   returnObject[name] = req.body.electrodePosition[i];
+      //   return returnObject;
+      // });
       fs.writeFile(
-        `./data/${req.params.subject}/info/channels.json`,
-        JSON.stringify(returnObject),
+        `./data/${req.params.subject}/info/channels2.json`,
+        JSON.stringify(req.body),
         (err) => console.log(err)
       );
-
-      let metadata = JSON.parse(fileContent);
-      let oldMetadata = metadata;
-      let newMetadata = Object.assign({}, oldMetadata);
-      let reqContentType = req.headers["content-type"].split(";")[0];
-      if (reqContentType == "application/json") {
-        newMetadata.sensorGeometry = JSON.stringify(req.body);
-        fs.writeFile(
-          `./data/${subject}/.metadata`,
-          JSON.stringify(newMetadata),
-          (err) => {
-            if (err) console.log(err);
-          }
-        );
-      }
-      return;
+      res.sendStatus(200);
     }
   });
 
