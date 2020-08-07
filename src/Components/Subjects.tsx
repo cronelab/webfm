@@ -69,7 +69,16 @@ export default function Subjects() {
     })();
   }, []);
 
-  const uploadGeometry = () => { };
+  const uploadGeometry = async () => {
+    let req = await fetch(`/api/geometry/${subject.name}`)
+    let res = await req.json()
+    setNewSubject({
+      name: subject.name,
+      geometry: res
+    })
+      console.log(res)
+
+   };
   const uploadBrain = () => {
     setNewBrain("");
   };
@@ -144,11 +153,11 @@ export default function Subjects() {
                     id={subject}
                     eventKey={`${subject}`}
                     key={`${subject}_${index}_pane`}
-                    // onEntered={() => {
-                    //   fetchAndStoreBrain(subject).then(x => {
-                    //     setNewBrain(x)
-                    //   })
-                    // }}
+                  // onEntered={() => {
+                  //   fetchAndStoreBrain(subject).then(x => {
+                  //     setNewBrain(x)
+                  //   })
+                  // }}
                   >
                     <h1>{subject}</h1>
                     <Container>
@@ -265,127 +274,6 @@ export default function Subjects() {
   );
 }
 
-{
-  /* <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-			aria-hidden="true">
-			<div class="modal-dialog modal-lg" role="document">
-				<div class="modal-content">
-					<div class="modal-header">
-						<h6 class="modal-title" id="exampleModalLabel">Menu</h6>
-						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-							<span aria-hidden="true">&times;</span>
-						</button>
-					</div>
-					<div class="modal-body">
-						<div class="row">
-							<div class="col-3">
-
-
-								<div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist"
-									aria-orientation="vertical">
-									<a class="nav-link active" id="v-pills-profile-tab" data-toggle="pill"
-										href="#v-pills-profile" role="tab" aria-controls="v-pills-profile"
-										aria-selected="true">
-										Create new
-									</a>
-
-									<a class="nav-link" id="modal-geometry-generator-tab" data-toggle="pill"
-										href="#modal-geometry-generator" role="tab"
-										aria-controls="modal-geometry-generator" aria-selected="false">
-										Geometry
-									</a>
-
-									<a class="nav-link" id="modal-note-tab" data-toggle="pill" href="#note-tab"
-										role="tab" aria-controls="note-tab" aria-selected="false">
-										Notes
-									</a>
-
-									<a class="nav-link" id="modal-future-tab" data-toggle="pill" href="#future-tab"
-										role="tab" aria-controls="future-tab" aria-selected="false">
-										Future
-									</a>
-
-								</div>
-							</div>
-							<div class="col-9">
-								<div class="tab-content" id="v-pills-tabContent">
-
-									<div class="tab-pane fade show active" id="v-pills-profile" role="tabpanel"
-										aria-labelledby="v-pills-profile-tab">
-										<form id="subjectBrainUpload">
-											<div class="form-group row">
-												<label for="subjectEntry" class="col-form-label col-3">Subject
-													name</label>
-												<div class="col-4">
-													<input id="subjectEntry" class="form-control" type="text"
-														placeholder="PYaaNbbb">
-
-												</div>
-												<div class="custom-file col-5">
-													<input type="file" class="custom-file-input" id="brainFile"
-														name="myImage">
-													<label class="custom-file-label" for="brainFile">Upload yo
-														brain</label>
-												</div>
-											</div>
-											<button id="createSubject" type="button"
-												class="btn btn-primary">Upload</button>
-										</form>
-
-									</div>
-
-									<div class="tab-pane fade" id="modal-geometry-generator" role="tabpanel"
-										aria-labelledby="modal-geometry-generator">
-										<form class="form-inline" onsubmit="return false">
-											<input id="geometryCreator" class="form-control" type="text"
-												placeholder="Electrode group">
-											<button id="geometryButton" type="submit"
-												class="btn btn-primary">Select</button>
-										</form>
-										<div class="row">
-											<div class="col-9">
-												<button id="saveGeometry" type="button"
-													class="btn btn-primary">Save</button>
-												<div id='geometryContainer'>
-													<div id="fm-brain" class="zoom">
-														<img src="" class="main-brain img-fluid" alt="No image found">
-													</div>
-												</div>
-											</div>
-											<div class="col-3" id="electrodeHolder">
-												<div id="electrodeList">Electrodes
-
-												</div>
-											</div>
-										</div>
-									</div>
-
-									<div class="tab-pane fade" id="note-tab" role="tabpanel" aria-labelledby="note-tab">
-										<form>
-											<div class="form-group">
-												<label for="webfmNotes">Please take some notes!</label>
-												<textarea class="form-control" id="webfmNotes" rows="3"></textarea>
-												<button id="saveNotes" type="button"
-													class="btn btn-primary">Save</button>
-											</div>
-										</form>
-									</div>
-									<div class="tab-pane fade" id="future-tab" role="tabpanel"
-										aria-labelledby="future-tab">
-										<form>
-											<div>
-												<p>future</p>
-											</div>
-										</form>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div> */
-}
 
 // document.getElementById("new-subject-ok").onclick = () => {
 // 	let newSubjectId = (<HTMLInputElement>document.getElementById("new-subject-id")).value;
@@ -605,68 +493,4 @@ export default function Subjects() {
 // 	}
 // }
 
-// document.getElementById("saveGeometry").onclick = () => {
-// 	let newSensorGeometry: any = {}
-// 	Array.from(document.getElementById('electrodeTable').children).forEach(elec => {
-// 		newSensorGeometry[(<HTMLInputElement>elec.childNodes[0]).innerText] = {
-// 			u: parseFloat((<HTMLInputElement>document.getElementById(`table_${(<HTMLInputElement>elec.childNodes[0]).innerText}`).childNodes[1]).innerText) / positionInfoelement.width,
-// 			v: (1 - parseFloat((<HTMLInputElement>document.getElementById(`table_${(<HTMLInputElement>elec.childNodes[0]).innerText}`).childNodes[2]).innerText) / positionInfoelement.height)
-// 		}
-// 	})
-// 	localStorage.setItem(`geometry`, JSON.stringify({
-// 		subject: JSON.parse(localStorage.getItem('geometry')).subject,
-// 		data: newSensorGeometry
-// 	}));
-// 	fetch(`/api/geometry/${JSON.parse(localStorage.getItem('geometry')).subject}`, {
-// 		method: "PUT",
-// 		body: JSON.stringify(newSensorGeometry),
-// 		headers: {
-// 			"Content-Type": "application/json"
-// 		}
-// 	});
-// 	//   fetch(`/api/${document.getElementById('subjectEntry').value}/geometry`, {
-// 	//       method: 'PUT',
-// 	//       body: JSON.stringify(geometryStore),
-// 	//       headers: {
-// 	//         'Content-Type': 'application/json'
-// 	//       }
-// 	//     }).then(res => res.json())
-// 	//     .then(response => console.log('Success:', JSON.stringify(response)))
-// 	//     .catch(error => console.error('Error:', error));
-// }
 
-// document.getElementById("createSubject").onclick = () => {
-// 	let subjFile: HTMLFormElement = (<HTMLFormElement>document.getElementById('subjectBrainUpload'));
-// 	const data = new URLSearchParams();
-// 	for (const pair in new FormData(subjFile)) {
-// 		data.append(pair[0], pair[1]);
-// 	}
-// 	let formData = new FormData(subjFile)
-// 	fetch(`/api/${(<HTMLInputElement>document.getElementById('subjectEntry')).value}/brain`, {
-// 		method: 'post',
-// 		body: formData,
-// 	}).then(res => res.text())
-// 		.then(response => {
-// 			// loadBrain(`${document.getElementById('subjectEntry').value}`)
-// 		})
-// 		.catch(error => console.error('Error:', error));
-// }
-
-// // document.getElementById('saveNotes').onclick = () => {
-// // 	fetch(`/api/${document.getElementById('subjectEntry').value}/notes`, {
-// // 		method: 'PUT',
-// // 		body: JSON.stringify({
-// // 			note: document.getElementById('webfmNotes').value
-// // 		}),
-// // 		headers: {
-// // 			'Content-Type': 'application/json'
-// // 		}
-// // 	})
-// // }
-// (<HTMLButtonElement>document.getElementsByClassName("main-brain")[0]).ondblclick = e => $('#exampleModal').modal("show")
-// $('#exampleModal').on('hidden.bs.modal', function () {
-// 	console.log("closed modal")
-// 	$(".table_striped").remove();
-// 	select(".fm-brain-svg").remove();
-
-// })

@@ -317,19 +317,12 @@ const routes = (express) => {
   router.put("/api/geometry/:subject", async (req, res) => {
     let subject = req.params.subject;
     if (fs.existsSync(`./data/${subject}`)) {
-      console.log(Object.keys(req.body))
-      // req.body.forEach(x => console.log(x));
-      // let returnObject = {};
-      // req.body.electrodeName.forEach((name, i) => {
-      //   returnObject[name] = req.body.electrodePosition[i];
-      //   return returnObject;
-      // });
       fs.writeFile(
-        `./data/${req.params.subject}/info/channels2.json`,
+        `./data/${req.params.subject}/info/channels.json`,
         JSON.stringify(req.body),
-        (err) => console.log(err)
+        (err) => {if(err) console.log(err)}
       );
-      res.sendStatus(200);
+      res.send("Geometry updated!");
     }
   });
 

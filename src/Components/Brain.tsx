@@ -14,7 +14,7 @@ const Brain = (props) => {
   const [modify, setModify] = useState(false);
 
   useLayoutEffect(() => {
-    function updateSize() {
+    const updateSize = () => {
       setSize([document.getElementById('container').offsetWidth, document.getElementById('container').offsetHeight]);
     }
     window.addEventListener('resize', updateSize);
@@ -89,14 +89,16 @@ const Brain = (props) => {
           </Modal.Body>
           <Modal.Footer>
             <Button
-              onClick={() => {
-                fetch(`/api/geometry/${subject.name}`, {
+              onClick={async () => {
+                let post = await fetch(`/api/geometry/${subject.name}`, {
                   method: "PUT",
                   body: JSON.stringify(subject.geometry),
                   headers: {
                     "Content-Type": "application/json"
                   }
                 });
+                let text = await post.text()
+                alert(text);
               }}
             >Save</Button>
           </Modal.Footer>

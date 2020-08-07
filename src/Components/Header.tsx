@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Navbar, Button } from 'react-bootstrap'
+import { Navbar, ButtonGroup, ToggleButton, ToggleButtonGroup } from 'react-bootstrap'
 import { Context } from '../Context'
 
 /**
@@ -7,7 +7,11 @@ import { Context } from '../Context'
  * @category Components
  */
 export const Header = () => {
-	const { subject, record }: any = useContext(Context)
+	const { subject, record, modality, setModality }: any = useContext(Context)
+
+	const handleChange = (val) => setModality(val);
+
+
 	return (
 		<Navbar
 			id="header"
@@ -16,16 +20,21 @@ export const Header = () => {
 				"backgroundColor": "#397ad0",
 				"borderColor": "#316198"
 			}}>
-				<Navbar.Brand style={{ "color": "#fffff6" }}>
-					WebFM
+			<Navbar.Brand style={{ "color": "#fffff6" }}>
+				WebFM
 				</Navbar.Brand>
-			{/* <Navbar.Text
+			<Navbar.Text
 				style={{
 					"margin": "0 auto",
 					"color": "#fffff6"
 				}}
 				id="navbar_subject">{subject.name ? subject.name : ''} {record.name ? `: ${record.name}` : ''}
-			</Navbar.Text> */}
+			</Navbar.Text>
+
+			<ToggleButtonGroup type="radio" name="modality" defaultValue={"Review"} onChange={handleChange}>
+				<ToggleButton value={"Online"}>Online</ToggleButton>
+				<ToggleButton value={"Review"}>Review</ToggleButton>
+			</ToggleButtonGroup>
 		</Navbar>
 
 	)

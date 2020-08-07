@@ -31,6 +31,7 @@ export const MyProvider = (props: any) => {
 	const [bci, setBCI] = useState();
 	const [cortstimNotes, setCortstimNotes] = useState({})
 	const [taskTimes, setTaskTimes] = useState({})
+	const [modality, setModality] = useState('Review')
 
 	return (
 		<Context.Provider value={{
@@ -62,6 +63,7 @@ export const MyProvider = (props: any) => {
 			bci, setBCI,
 			cortstimNotes, setCortstimNotes,
 			taskTimes, setTaskTimes,
+			modality, setModality
 		}}>
 			{props.children}
 		</Context.Provider >
