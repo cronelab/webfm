@@ -12,11 +12,13 @@ import {
   WebGLRenderer,
   HemisphereLight,
   Clock,
+  Raycaster,
+  Vector2,
+Font, TextGeometry
 } from "three";
 import { GLTFLoader } from "../../node_modules/three/examples/jsm/loaders/GLTFLoader";
 import { TrackballControls } from "../../node_modules/three/examples/jsm/controls/TrackballControls.js";
-import * as d3 from "d3";
-import React from "react";
+
 /**
  * @param subject  Subject ID.
  * @returns      A promise that resolves to a base64 string representing a 2D reconstruction
@@ -33,6 +35,17 @@ let fetch3DBrain = async (
   subject: string,
   brainContainer: HTMLElement
 ): Promise<Scene> => {
+  let mouse = new Vector2(),
+    INTERSECTED;
+  let raycaster = new Raycaster();
+
+  let textOver = document.createElement('div')
+  textOver.style.position = 'absolute'
+  textOver.innerHTML = ''
+  brainContainer.appendChild(textOver);
+  
+
+
   let clock = new Clock();
   let scene = new Scene();
   scene.background = new Color(0xffffff);
@@ -43,6 +56,7 @@ let fetch3DBrain = async (
     1000
   );
   camera.position.z = 500;
+
   let renderer = new WebGLRenderer({
     antialias: true,
   });
@@ -72,13 +86,52 @@ let fetch3DBrain = async (
 
   controls.target.set(10, 20, 0);
 
-  const animate = () => {
-    requestAnimationFrame(animate);
+
+  const render = () => {
+    raycaster.setFromCamera(mouse, camera);
+
+    var intersects = raycaster.intersectObjects(sceneObjects[0].scene.children,true);
+
+    if (intersects.length > 0) {
+      if (INTERSECTED != intersects[0].object) {
+        if (INTERSECTED)
+          INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+
+        INTERSECTED = intersects[0].object;
+        INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+        INTERSECTED.material.emissive.setHex(0xff0000);
+        textOver.innerHTML = intersects[0].object.name
+      }
+    } else {
+      textOver.innerHTML = ''
+
+      if (INTERSECTED)
+        INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+
+      INTERSECTED = null;
+    }
 
     let delta = clock.getDelta();
     //@ts-ignore
     controls.update(delta);
     renderer.render(scene, camera);
+  };
+
+  window.requestAnimationFrame(render);
+  brainContainer.addEventListener(
+    "mousemove",
+    (event) => {
+      textOver.style.left = event.pageX+"px"
+      textOver.style.top = event.pageY+"px"
+      mouse.x = (event.offsetX / brainContainer.offsetWidth) * 2 - 1;
+      mouse.y = -(event.offsetY / brainContainer.offsetHeight) * 2 + 1;
+    },
+    false
+  );
+
+  const animate = () => {
+    requestAnimationFrame(animate);
+    render();
   };
   animate();
   // controls.update();

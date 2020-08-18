@@ -2,6 +2,8 @@ import path from "path";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import CleanWebpackPlugin from "clean-webpack-plugin";
 
+import TerserPlugin from 'terser-webpack-plugin'
+
 import WriteFilePlugin from "write-file-webpack-plugin";
 let __dirname = path.resolve(path.dirname(""));
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
@@ -78,17 +80,18 @@ const module = {
 		]
 	},
 	optimization: {
-		splitChunks: {
-			cacheGroups: {
-				styles: {
-					name: "styles",
-					test: /\.css$/,
-					chunks: "all",
-					enforce: true
-				}
-			}
-		},
-		usedExports: true
+		// splitChunks: {
+		// 	cacheGroups: {
+		// 		styles: {
+		// 			name: "styles",
+		// 			test: /\.css$/,
+		// 			chunks: "all",
+		// 			enforce: true
+		// 		}
+		// 	}
+		// },
+		minimizer: [new TerserPlugin({})],
+		// usedExports: true
 	},
 
 	plugins: [

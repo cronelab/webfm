@@ -30,7 +30,7 @@ const routes = (express) => {
 
   router.use('/api-docs', swaggerUi.serve);
   router.get('/api-docs', swaggerUi.setup(swaggerDocument));
-  
+
   router.get("/api/list", (req, res) => {
     fs.readdir("./data", (err, subjects) => {
       let _subjects = subjects.filter((f) => f != ".gitignore");
@@ -320,7 +320,7 @@ const routes = (express) => {
       fs.writeFile(
         `./data/${req.params.subject}/info/channels.json`,
         JSON.stringify(req.body),
-        (err) => {if(err) console.log(err)}
+        (err) => { if (err) console.log(err) }
       );
       res.send("Geometry updated!");
     }
