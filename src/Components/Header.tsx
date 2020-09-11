@@ -1,69 +1,80 @@
 import React, { useContext } from "react";
-import { Navbar, ButtonGroup, ToggleButton, ToggleButtonGroup } from 'react-bootstrap'
-import { Context } from '../Context'
+import {
+  Navbar,
+  ButtonGroup,
+  ToggleButton,
+  ToggleButtonGroup,
+} from "react-bootstrap";
+import { Context } from "../Context";
 
 /**
  * @returns      Returns Header displaying "WebFM" and the subject/record name
  * @category Components
  */
 export const Header = () => {
-	const { subject, record, modality, setModality }: any = useContext(Context)
+  const { subject, record, modality, setModality }: any = useContext(Context);
 
-	const handleChange = (val) => setModality(val);
+  const handleChange = (val) => setModality(val);
 
+  return (
+    <Navbar
+      id="header"
+      // sticky="top"
+      style={{
+        backgroundColor: "#397ad0",
+        borderColor: "#316198",
+      }}
+    >
+      <Navbar.Brand style={{ color: "#fffff6" }}>WebFM</Navbar.Brand>
+      <Navbar.Text
+        style={{
+          margin: "0 auto",
+          color: "#fffff6",
+        }}
+        id="navbar_subject"
+      >
+        {subject.name ? subject.name : ""}{" "}
+        {record.name ? `: ${record.name}` : ""}
+      </Navbar.Text>
 
-	return (
-		<Navbar
-			id="header"
-			// sticky="top"
-			style={{
-				"backgroundColor": "#397ad0",
-				"borderColor": "#316198"
-			}}>
-			<Navbar.Brand style={{ "color": "#fffff6" }}>
-				WebFM
-				</Navbar.Brand>
-			<Navbar.Text
-				style={{
-					"margin": "0 auto",
-					"color": "#fffff6"
-				}}
-				id="navbar_subject">{subject.name ? subject.name : ''} {record.name ? `: ${record.name}` : ''}
-			</Navbar.Text>
-
-			<ToggleButtonGroup type="radio" name="modality" defaultValue={"Review"} onChange={handleChange}>
+      {/* <ToggleButtonGroup type="radio" name="modality" defaultValue={"Review"} onChange={handleChange}>
 				<ToggleButton value={"Online"}>Online</ToggleButton>
 				<ToggleButton value={"Review"}>Review</ToggleButton>
-			</ToggleButtonGroup>
-		</Navbar>
-
-	)
-}
+			</ToggleButtonGroup> */}
+    </Navbar>
+  );
+};
 
 /**
  * @returns      Returns Footer displaying the current state of BCI2000
  * @category Components
  */
 export const Footer = () => {
-	const { bciState } = useContext(Context);
-	return (
-		<Navbar id="footer" sticky="bottom" style={{
-			"backgroundColor": "#397ad0",
-			"borderColor": "#316198",
-			"position": "absolute",
-			"left": "0",
-			"bottom": "0",
-			"right": "0"
-		}}>
-			<Navbar.Collapse id="bciStatus"
-				style={{
-					"position": "absolute",
-					"right": "0%",
-					"paddingRight": "1%"
-				}}>
-				{/* <Navbar.Text>BCI2000: </Navbar.Text> */}
-				{/* <Navbar.Text>{bciState}</Navbar.Text> */}
-			</Navbar.Collapse>
-		</Navbar>
-	);
+  const { bciState } = useContext(Context);
+  return (
+    <Navbar
+      id="footer"
+      sticky="bottom"
+      style={{
+        backgroundColor: "#397ad0",
+        borderColor: "#316198",
+        position: "absolute",
+        left: "0",
+        bottom: "0",
+        right: "0",
+      }}
+    >
+      {/* <Navbar.Collapse
+        id="bciStatus"
+        style={{
+          position: "absolute",
+          right: "0%",
+          paddingRight: "1%",
+        }}
+      >
+        <Navbar.Text>BCI2000: </Navbar.Text>
+        <Navbar.Text>{bciState}</Navbar.Text>
+      </Navbar.Collapse> */}
+    </Navbar>
+  );
 };

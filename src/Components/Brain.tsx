@@ -21,12 +21,13 @@ import {
 } from "react-bootstrap";
 
 const Brain = (props) => {
-  let { subject, setNewSubject }: any = useContext(Context);
+  let { subject, setNewSubject, imgLoaded, setImgLoaded }: any = useContext(
+    Context
+  );
   let [img, setImg] = useState<string>();
   const [size, setSize] = useState([]);
   const [modify, setModify] = useState(false);
   const [showModal, setShowModal] = useState(false);
-
   useLayoutEffect(() => {
     const updateSize = () => {
       setSize([
@@ -40,7 +41,10 @@ const Brain = (props) => {
   }, []);
   useEffect(() => {
     (async () => {
-      subject.name = subject.name || "Template";
+      var urlParams = new URLSearchParams(window.location.search);
+      let subjectName = urlParams.get("subject");
+
+      subject.name = subject.name || subjectName || "Template";
       let response11 = await fetch(`/api/geometry/${subject.name}`);
       let geometry = await response11.json();
       let response = await fetch(`/api/brain/${subject.name}`);
@@ -54,7 +58,13 @@ const Brain = (props) => {
       bytes.forEach((b: any) => (binary += String.fromCharCode(b)));
       setImg(binary);
     })();
-  }, []);
+  }, [subject.name]);
+
+  useEffect(() => {
+    if (img != undefined) {
+      setImgLoaded(true);
+    }
+  }, [img]);
 
   const ElecModal = () => {
     return (
@@ -168,7 +178,11 @@ const Brain = (props) => {
   return (
     <>
       <div
-        style={{ position: "relative", display: "inline-block" }}
+        style={{
+          height: "100%",
+          position: "relative",
+          display: "inline-block",
+        }}
         id="container"
         onDoubleClick={(e) => {
           e.preventDefault();
@@ -180,7 +194,7 @@ const Brain = (props) => {
           style={{
             display: "block",
             maxWidth: "100%",
-            height: "auto",
+            height: "100%",
             userSelect: "none",
           }}
         ></Image>
@@ -193,15 +207,16 @@ const Brain = (props) => {
             height: "100%",
           }}
         >
-          {subject.geometry ? (
+          {(imgLoaded && subject.geometry) ? (
             //@ts-ignore
             Object.keys(subject.geometry).map((x) => {
               return (
                 <OverlayTrigger
+                  key={`${x}_trigger`}
                   placement="right"
                   delay={{ show: 100, hide: 300 }}
                   overlay={
-                    <Tooltip id="button-tooltip" {...props}>
+                    <Tooltip key={`${x}tooltip`} id="button-tooltip" {...props}>
                       {x}
                     </Tooltip>
                   }
@@ -213,19 +228,15 @@ const Brain = (props) => {
                     //@ts-ignore
                     cx={
                       subject.geometry[x].u *
-                      (size[0]
-                        ? size[0]
-                        : document.getElementById("container").offsetWidth)
+                      document.getElementById("container").offsetWidth
                     }
                     //@ts-ignore
                     cy={
                       (1 - subject.geometry[x].v) *
-                      (size[1]
-                        ? size[1]
-                        : document.getElementById("container").offsetHeight)
+                      document.getElementById("container").offsetHeight
                     }
                     fill="white"
-                    r="3"
+                    r="2.5"
                   ></circle>
                 </OverlayTrigger>
               );

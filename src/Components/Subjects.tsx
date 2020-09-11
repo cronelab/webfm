@@ -12,25 +12,19 @@ import {
   Modal,
   ListGroup,
   Form,
-  ListGroupItem
+  ListGroupItem,
 } from "react-bootstrap";
 // import { fetchAndStoreBrain } from '../shared/loaders'
 import { Context } from "../Context";
 
 export default function Subjects() {
-  let {
-    records,
-    subjects,
-    subject,
-    setNewSubject,
-    setNewBrain,
-    setAllSubjects,
-    setAllRecords
-  }: any = useContext(Context);
+  let { subject, setNewSubject, setNewBrain }: any = useContext(Context);
   const [show, setShow] = useState(false);
   let tempArray = {};
   const fileUpload = useRef();
   const [fileName, setFileName] = useState("");
+  const [subjects, setAllSubjects] = useState([]);
+  const [records, setAllRecords] = useState({});
 
   //Request all EP and HG records from server
   const getRecords = async (subj: string) => {
@@ -38,6 +32,7 @@ export default function Subjects() {
     let hgPath = `/api/${subj}/records/HG`;
     let epReq = await fetch(epPath);
     let hgReq = await fetch(hgPath);
+
     let epResp = null;
     let hgResp = null;
     if (hgReq.status != 204) {
@@ -54,7 +49,7 @@ export default function Subjects() {
     setAllRecords(tempArray);
   };
 
-  //Request all subjects from server
+  // Request all subjects from server
   useEffect(() => {
     (async () => {
       let listPathRes = await fetch(`/api/list`);
@@ -70,15 +65,14 @@ export default function Subjects() {
   }, []);
 
   const uploadGeometry = async () => {
-    let req = await fetch(`/api/geometry/${subject.name}`)
-    let res = await req.json()
+    let req = await fetch(`/api/geometry/${subject.name}`);
+    let res = await req.json();
     setNewSubject({
       name: subject.name,
-      geometry: res
-    })
-      console.log(res)
-
-   };
+      geometry: res,
+    });
+    console.log(res);
+  };
   const uploadBrain = () => {
     setNewBrain("");
   };
@@ -90,8 +84,7 @@ export default function Subjects() {
   // const createNewSubject = () => {
   //   setAllSubjects([...subjects, subject]);
   // };
-  const setFile = e => {
-
+  const setFile = (e) => {
     let file = e.target.files[0];
     let formData = new FormData();
     formData.append("brainImage", file, file.name);
@@ -99,7 +92,7 @@ export default function Subjects() {
     reader.readAsDataURL(file);
     fetch(`/api/brain/${subject.name}`, {
       method: "PUT",
-      body: formData
+      body: formData,
     }).then(() => {
       // fetchAndStoreBrain(subject.name).then(x => {
       //   setNewBrain(x)
@@ -153,11 +146,11 @@ export default function Subjects() {
                     id={subject}
                     eventKey={`${subject}`}
                     key={`${subject}_${index}_pane`}
-                  // onEntered={() => {
-                  //   fetchAndStoreBrain(subject).then(x => {
-                  //     setNewBrain(x)
-                  //   })
-                  // }}
+                    // onEntered={() => {
+                    //   fetchAndStoreBrain(subject).then(x => {
+                    //     setNewBrain(x)
+                    //   })
+                    // }}
                   >
                     <h1>{subject}</h1>
                     <Container>
@@ -175,7 +168,7 @@ export default function Subjects() {
                                 <ListGroupItem
                                   key={`${subject}_${ep}`}
                                   action
-                                  href={`/records?subject=${subject}&type=EP&record=${ep}`}
+                                  href={`/ep?subject=${subject}&type=EP&record=${ep}`}
                                 >
                                   {ep}
                                 </ListGroupItem>
@@ -196,7 +189,7 @@ export default function Subjects() {
                                 <ListGroupItem
                                   key={`${subject}_${hg}`}
                                   action
-                                  href={`/records?subject=${subject}&type=HG&record=${hg}`}
+                                  href={`/hg?subject=${subject}&type=HG&record=${hg}`}
                                 >
                                   {hg}
                                 </ListGroupItem>
@@ -229,7 +222,9 @@ export default function Subjects() {
             id="new-subject-id"
             type="text"
             placeholder="PYXXN000"
-            onChange={e => setNewSubject({ name: e.target.value, geometry: null })}
+            onBlur={(e) =>
+              setNewSubject({ name: e.target.value, geometry: null })
+            }
           />
           {/* <Button
             onClick={createNewSubject}
@@ -249,14 +244,14 @@ export default function Subjects() {
             onChange={setFile}
           />
           <div className="file-box">
-            <Button type="button"
-              onClick={openUploadDialog}>
+            <Button type="button" onClick={openUploadDialog}>
               Upload Photo
-                  </Button>
+            </Button>
             <span style={{ paddingLeft: "10px", marginTop: "5px" }}>
               {fileName}
             </span>
-          </div>        </Form.Group>
+          </div>{" "}
+        </Form.Group>
         <Button onClick={uploadBrain}>Upload brain</Button>
         <Button onClick={uploadGeometry}>Upload geometry</Button>
 
@@ -273,7 +268,6 @@ export default function Subjects() {
     </>
   );
 }
-
 
 // document.getElementById("new-subject-ok").onclick = () => {
 // 	let newSubjectId = (<HTMLInputElement>document.getElementById("new-subject-id")).value;
@@ -492,5 +486,3 @@ export default function Subjects() {
 // 		document.getElementById('fm-brain').removeEventListener('click', logger)
 // 	}
 // }
-
-

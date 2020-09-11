@@ -1,5 +1,5 @@
 //@ts-nocheck
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   Group,
   Scene,
@@ -23,7 +23,8 @@ import { scaleLinear } from "d3-scale";
 import Slider from "react-input-slider";
 import { Container, Row, Col } from "../../node_modules/react-bootstrap";
 import { extent } from "d3-array";
-
+import { Context } from "../Context";
+import { fetch3DBrain } from "../shared/anatomy";
 const Brain_3D = (props) => {
   const [isPaused, setIsPaused] = useState(false);
   const [brainScene, setBrainScene] = useState();
@@ -36,6 +37,8 @@ const Brain_3D = (props) => {
   const [times, setTimes] = useState();
   const [taskData, setTaskData] = useState();
   let fmChildren;
+
+  const { subject } = useContext(Context);
 
   const sleep = (m) => new Promise((r) => setTimeout(r, m));
   // const [colors, setColors] = useState([
@@ -63,58 +66,57 @@ const Brain_3D = (props) => {
 
     // let recordType = urlParams.get("type");
     // let recordName = urlParams.get("record");
-    let subjectName = urlParams.get("subject");
+    let subjectName = subject.name || urlParams.get("subject");
     (async () => {
-      fetch3DBrain(`${subjectName}`)
+      fetch3DBrain(`${subjectName}`, document.getElementById('brain3D'));
       // await sleep(1000);
 
+      let elecs;
+      loader.load(`/api/electrodes/${subjectName}`, object3d => {
+        elecs = object3d.scene;
+        scene.add(object3d.scene);
+      })
+      loader.load(`/api/brain2/${subjectName}`, (object3d) => {
+        scene.add(object3d.scene);
+        // scene.rotateY(90)
+        // scene.rotateX(45)
+        setBrainScene(scene);
+        console.log(scene)
+        setThreeDCoords(elecs.children);
 
-      // let elecs;
-      // loader.load(`/api/electrodes/${subjectName}`, object3d => {
-      //   elecs = object3d.scene;
-      //   scene.add(object3d.scene);
-      // })
-      // loader.load(`/api/brain2/${subjectName}`, (object3d) => {
-      //   scene.add(object3d.scene);
-      //   // scene.rotateY(90)
-      //   // scene.rotateX(45)
-      //   setBrainScene(scene);
-      //   console.log(scene)
-      //   setThreeDCoords(elecs.children);
+      });
+      loader.load(`/api/${props.subject}/brain3D_g`, (object3d: any) => {
+        scene.add(object3d.scene);
+        object3d.scene.rotation.set(-Math.PI / 2, 0, 0);
+        object3d.scene.position.set(0, 10, 0);
+        object3d.scene.scale.set(0.5, 0.5, 0.5);
+        let elecs = scene.getObjectByName("Electrodes");
+        let gyri = scene.getObjectByName("Brain");
+        elecs.rotation.set(0, 0, Math.PI);
+        elecs.position.set(128, 128, 128);
+        setBrainScene(scene);
+        setThreeDCoords(elecs.children);
 
-      // });
-      // loader.load(`/api/${props.subject}/brain3D_g`, (object3d: any) => {
-      //   scene.add(object3d.scene);
-      //   object3d.scene.rotation.set(-Math.PI / 2, 0, 0);
-      //   object3d.scene.position.set(0, 10, 0);
-      //   object3d.scene.scale.set(0.5, 0.5, 0.5);
-      //   let elecs = scene.getObjectByName("Electrodes");
-      //   let gyri = scene.getObjectByName("Brain");
-      //   elecs.rotation.set(0, 0, Math.PI);
-      //   elecs.position.set(128, 128, 128);
-      //   setBrainScene(scene);
-      //   setThreeDCoords(elecs.children);
+        //@ts-ignore
+        let gyriMaterial = scene.getObjectByName("Left-Amygdala").material;
+        elecs.traverse((child) => {
+          if (child.type == "Mesh") {
+            //@ts-ignore
+            child.material = gyriMaterial;
+            //@ts-ignore
+            child.material.color = new Color("rgb(192,192,192)");
+          }
+        });
+      });
 
-      //   //@ts-ignore
-      //   let gyriMaterial = scene.getObjectByName("Left-Amygdala").material;
-      //   elecs.traverse((child) => {
-      //     if (child.type == "Mesh") {
-      //       //@ts-ignore
-      //       child.material = gyriMaterial;
-      //       //@ts-ignore
-      //       child.material.color = new Color("rgb(192,192,192)");
-      //     }
-      //   });
-      // });
+      const animate = () => {
+        renderer.render(scene, camera);
+        controls.update();
 
-      // const animate = () => {
-      //   renderer.render(scene, camera);
-      //   controls.update();
-
-      //   requestAnimationFrame(animate);
-      // };
-      // animate();
-      // brainContainer.appendChild(renderer.domElement);
+        requestAnimationFrame(animate);
+      };
+      animate();
+      brainContainer.appendChild(renderer.domElement);
     })();
   }, []);
 
@@ -429,8 +431,8 @@ const Brain_3D = (props) => {
   //       }
   //       electrode.material = newMaterial;
   //     }
-    // });
-  };
+  // });
+  // };
 
   return (
     <div>
@@ -473,5 +475,5 @@ const Brain_3D = (props) => {
       </Container>
     </div>
   );
-// };
+};
 export default Brain_3D;
