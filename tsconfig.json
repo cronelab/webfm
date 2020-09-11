@@ -1,5 +1,5 @@
 {
-  "exclude": ["./migration", "./server", "./node_modules", "dist", "src/shared/", "src_deletedZappa"],
+  "exclude": ["./migration", "./server", "./node_modules", "dist", "src/shared/", "src/Components/Map", "src/Components/Record"],
   "compilerOptions": {
     "skipLibCheck": true,
     "noImplicitAny": false,

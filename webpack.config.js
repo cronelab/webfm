@@ -27,9 +27,9 @@ const module = {
 			{
 				test: /\.(png|jpe?g|gif|fbx|glb|gltf|nii|mgz)$/i,
 				loader: 'file-loader',
-				options: {
-					name: '[path][name].[ext]',
-				},
+				// options: {
+				// 	name: '[path][name].[ext]',
+				// },
 			},
 			{
 				test: /\.worker\.ts$/,
@@ -70,7 +70,13 @@ const module = {
 					loader: "css-loader"
 				},
 				{
-					loader: "postcss-loader"
+					loader: "postcss-loader",
+					options: {
+						options: {},
+						plugins: () => {
+						//   autoprefixer({ browsers: [ 'last 2 versions' ] });
+						}
+					  }
 				},
 				{
 					loader: "sass-loader"
