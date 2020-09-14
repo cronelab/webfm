@@ -1,7 +1,10 @@
 #fm {
   height: 80vh;
   overflow: auto;
-  margin-top: 50px;
+}
+
+#fm::-webkit-scrollbar {
+  display: none;
 }
 
 .fm-horizon {

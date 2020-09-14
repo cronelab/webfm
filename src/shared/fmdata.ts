@@ -1,4 +1,4 @@
-import { Gaussian, ChannelStat } from "./map/fmstat";
+import { Gaussian, ChannelStat } from "./fmstat";
 
 class fmdata {
   metadata: any;
@@ -13,7 +13,8 @@ class fmdata {
     this._channelStats = {};
     this._clean = true;
   }
-  _setupChannelStats() {
+
+  private _setupChannelStats() {
     var dataset = this;
     if (this.contents.values !== undefined) {
       this._channelStats = undefined;
@@ -70,8 +71,8 @@ class fmdata {
     this._channelStats = undefined;
   }
 
-  _windowInSamples(windowInSeconds: any) {
-    if (!this.isTimeseries()) return undefined;
+  private _windowInSamples(windowInSeconds: any) {
+    // if (!this.isTimeseries()) return undefined;
     if (this.contents === undefined) return undefined;
     if (!Array.isArray(this.contents.times)) return undefined;
     let dataStart = this.contents.times[0];
@@ -88,7 +89,7 @@ class fmdata {
     };
   }
 
-  _updateDisplayData() {
+  private _updateDisplayData() {
     var dataset = this;
     if (this.contents.values !== undefined) {
       this.displayData = this.contents.values;
@@ -102,9 +103,10 @@ class fmdata {
         );
       });
     }
+    console.log(this.displayData)
   }
 
-  ingest(trialData: any) {
+  public ingest(trialData: any) {
     return new Promise((resolve, reject) => {
       var dataset = this;
 
@@ -121,7 +123,7 @@ class fmdata {
     });
   }
 
-  _updateContentsStats() {
+  private _updateContentsStats() {
     var dataset = this;
     dataset.contents.stats = dataset.contents.stats || {};
     dataset.contents.stats.distribution = "gaussian";
@@ -243,7 +245,7 @@ class fmdata {
     });
   }
 
-  setupChannels(channels: any) {
+  public setupChannels(channels: any) {
     var dataset = this;
     this.metadata.montage = channels;
     if (this._channelStats === undefined) this._channelStats = {};
@@ -257,7 +259,7 @@ class fmdata {
     this._clean = false;
   }
 
-  isTimeseries() {
+  private isTimeseries() {
     if (this.metadata.labels.indexOf("timeseries") >= 0) {
       return true;
     }
