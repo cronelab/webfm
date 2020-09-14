@@ -18,6 +18,7 @@ export const MyProvider = (props: any) => {
 		name: "",
 		type: ""
 	})
+	const [imgLoaded, setImgLoaded] = useState(false)
 	const [sourceData, setSourceData] = useState([])
 	const [filterData, setFilterData] = useState([])
 	const [online, setOnline] = useState(false)
@@ -31,6 +32,8 @@ export const MyProvider = (props: any) => {
 	const [bci, setBCI] = useState();
 	const [cortstimNotes, setCortstimNotes] = useState({})
 	const [taskTimes, setTaskTimes] = useState({})
+	const [modality, setModality] = useState('Review')
+	const [whichBrain, setWhichBrain] = useState('2D')
 
 	return (
 		<Context.Provider value={{
@@ -62,6 +65,8 @@ export const MyProvider = (props: any) => {
 			bci, setBCI,
 			cortstimNotes, setCortstimNotes,
 			taskTimes, setTaskTimes,
+			modality, setModality,imgLoaded, setImgLoaded,
+			whichBrain, setWhichBrain
 		}}>
 			{props.children}
 		</Context.Provider >

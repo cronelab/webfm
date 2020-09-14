@@ -2,10 +2,10 @@ import path from "path";
 import fs from "fs";
 import { promises as fsp } from "fs";
 import formidable from "formidable";
-import multer from 'multer'
-import pkg from 'swagger-ui-express'
-import swaggerDocument from './swagger.json'
-const swaggerUi = pkg
+import multer from "multer";
+import pkg from "swagger-ui-express";
+import swaggerDocument from "./swagger.json";
+const swaggerUi = pkg;
 let __dirname = path.resolve(path.dirname(""));
 
 function rawBody(req, res, next) {
@@ -15,29 +15,31 @@ function rawBody(req, res, next) {
   req.on("end", () => next());
 }
 
-
 const routes = (express) => {
-
   const router = express.Router();
 
   //Sends configurations
   router.get("/config", (req, res) =>
     res.sendFile(`${__dirname}/server/config.json`)
   );
-  router.use("/docs_server", express.static(path.join(__dirname, "/docs", "/_build/html")));
-  router.use("/docs_src", express.static(path.join(__dirname, "/docs", "/srcdoc")));
+  router.use(
+    "/docs_server",
+    express.static(path.join(__dirname, "/docs", "/_build/html"))
+  );
+  router.use(
+    "/docs_src",
+    express.static(path.join(__dirname, "/docs", "/srcdoc"))
+  );
 
+  router.use("/api-docs", swaggerUi.serve);
+  router.get("/api-docs", swaggerUi.setup(swaggerDocument));
 
-  router.use('/api-docs', swaggerUi.serve);
-  router.get('/api-docs', swaggerUi.setup(swaggerDocument));
-  
   router.get("/api/list", (req, res) => {
     fs.readdir("./data", (err, subjects) => {
       let _subjects = subjects.filter((f) => f != ".gitignore");
       res.status(200).json(_subjects);
     });
   });
-
 
   //Sends 2D brain
   router.get("/api/brain/:subject", (req, res) => {
@@ -55,15 +57,12 @@ const routes = (express) => {
     });
   });
 
-
-
-  let dataDir = './data/'
+  let dataDir = "./data/";
   //3D brain
   router.get("/api/brain2/:subject", (req, res) => {
     let subject = req.params.subject;
-    console.log(subject)
     if (fs.existsSync(`${dataDir}/${subject}/info/brain.glb`)) {
-      console.log("Sending glb...");
+      console.log(`Sending ${subject}'s brain...`);
       res.sendFile(`brain.glb`, {
         root: `${dataDir}/${subject}/info`,
       });
@@ -73,17 +72,13 @@ const routes = (express) => {
   //3D brain
   router.get("/api/electrodes/:subject", (req, res) => {
     let subject = req.params.subject;
-    console.log(subject)
     if (fs.existsSync(`${dataDir}/${subject}/info/electrodes.glb`)) {
-      console.log("Sending glb...");
+      console.log(`Sending ${subject}'s electrodes...`);
       res.sendFile(`electrodes.glb`, {
         root: `${dataDir}/${subject}/info`,
       });
     }
   });
-
-
-
 
   //Sends 2D geometry
   router.get("/api/geometry/:subject", (req, res) => {
@@ -117,8 +112,6 @@ const routes = (express) => {
       res.status(204).end();
     }
   });
-
-
 
   //Send the actual HG record
   router.get("/api/data/:subject/:record/HG", (req, res) => {
@@ -262,20 +255,49 @@ const routes = (express) => {
   router.put("/api/data/cortstim/:subject", async (req, res) => {
     let subject = req.params.subject;
     let receivedData = req.body;
-    console.log(receivedData);
-    let { patientID, electrodes } = receivedData;
-    if (
-      !fs.existsSync(
-        `./data/${subject}/data/cortstim/${electrodes}`
-      )
-    ) {
+    let { patientID, date, results } = receivedData;
+    if (!fs.existsSync(`./data/${patientID}/data/cortstim/cortstim.json`)) {
+      let fileResults = [];
+      fileResults.push(results);
       fs.appendFileSync(
-        `./data/${subject}/data/cortstim/${electrodes}.json`,
-        JSON.stringify(receivedData)
+        `./data/${patientID}/data/cortstim/cortstim.json`,
+        JSON.stringify({
+          patientID,
+          date,
+          results: fileResults,
+        })
+      );
+      res.send(
+        JSON.stringify({
+          patientID,
+          date,
+          results: fileResults,
+        })
+      );
+    } else {
+      let fileData = fs.readFileSync(
+        `./data/${patientID}/data/cortstim/cortstim.json`
+      );
+      let fileResults = JSON.parse(fileData).results;
+      console.log(results);
+      fileResults.push(results);
+      fs.writeFileSync(
+        `./data/${patientID}/data/cortstim/cortstim.json`,
+        JSON.stringify({
+          patientID,
+          date,
+          results: fileResults,
+        }),
+        { flag: "w" }
+      );
+      res.send(
+        JSON.stringify({
+          patientID,
+          date,
+          results: fileResults,
+        })
       );
     }
-    // console.log(electrodes)
-    res.send("test");
   });
 
   //* PUT routes
@@ -284,70 +306,47 @@ const routes = (express) => {
   router.put("/api/brain/:subject", async (req, res) => {
     let subject = req.params.subject;
     if (!fs.existsSync(`./data/${subject}`)) {
-      fs.mkdirSync(`./data/${subject}`)
-      fs.mkdirSync(`./data/${subject}/info`)
-      fs.mkdirSync(`./data/${subject}/data`)
-      fs.mkdirSync(`./data/${subject}/data/HG`)
-      fs.mkdirSync(`./data/${subject}/data/EP`)
-      fs.mkdirSync(`./data/${subject}/data/Cortstim`)
+      fs.mkdirSync(`./data/${subject}`);
+      fs.mkdirSync(`./data/${subject}/info`);
+      fs.mkdirSync(`./data/${subject}/data`);
+      fs.mkdirSync(`./data/${subject}/data/HG`);
+      fs.mkdirSync(`./data/${subject}/data/EP`);
+      fs.mkdirSync(`./data/${subject}/data/Cortstim`);
     }
     var upload = multer({
       storage: multer.diskStorage({
         destination: (req, file, cb) => {
-          cb(null, `./data/${req.params.subject}/info`)
+          cb(null, `./data/${req.params.subject}/info`);
         },
         filename: (req, file, cb) => {
           cb(null, `reconstruction${path.extname(file.originalname)}`);
-        }
+        },
       }),
       limits: {
-        fileSize: 100000000
-      }
-    }).single('brainImage');
+        fileSize: 100000000,
+      },
+    }).single("brainImage");
     upload(req, res, (err) => {
       if (err) {
         console.log(err);
       } else {
-        res.send()
+        res.send();
       }
-    })
+    });
   });
 
   //Add a new geometry file
   router.put("/api/geometry/:subject", async (req, res) => {
     let subject = req.params.subject;
     if (fs.existsSync(`./data/${subject}`)) {
-      let fileContent = await fsp.readFile(
-        `./data/${subject}/.metadata`,
-        "utf8"
-      );
-
-      let returnObject = {};
-      req.body.electrodeName.forEach((name, i) => {
-        returnObject[name] = req.body.electrodePosition[i];
-        return returnObject;
-      });
       fs.writeFile(
         `./data/${req.params.subject}/info/channels.json`,
-        JSON.stringify(returnObject),
-        (err) => console.log(err)
+        JSON.stringify(req.body),
+        (err) => {
+          if (err) console.log(err);
+        }
       );
-
-      let metadata = JSON.parse(fileContent);
-      let oldMetadata = metadata;
-      let newMetadata = Object.assign({}, oldMetadata);
-      let reqContentType = req.headers["content-type"].split(";")[0];
-      if (reqContentType == "application/json") {
-        newMetadata.sensorGeometry = JSON.stringify(req.body);
-        fs.writeFile(
-          `./data/${subject}/.metadata`,
-          JSON.stringify(newMetadata),
-          (err) => {
-            if (err) console.log(err);
-          }
-        );
-      }
-      return;
+      res.send("Geometry updated!");
     }
   });
 

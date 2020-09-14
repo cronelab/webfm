@@ -1,57 +1,49 @@
-import * as React from "react";
+import React, {Suspense} from "react";
 import * as ReactDOM from "react-dom";
 import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
-import "./index.scss";
-import Record from "./Record/Record";
-import Map from "./Map/Map";
-import { MyProvider } from "./Context";
+import "../node_modules/bootstrap/dist/css/bootstrap.css";
+
+import { MyProvider} from "./Context";
 import { Header, Footer } from "./Components/Header";
-import Online from "./Components/Online";
-import Subjects from "./Components/Subjects";
-import Brain from "./Components/Brain";
-import Cortstim from "./Components/Cortstim";
+import Cortstim_V3 from "./Components/Cortstim_V3";
 import { Row, Col, Container } from "react-bootstrap";
-import CortstimMenu from "./Components/CortstimMenu";
-import CortstimV2 from "./Components/CortstimV2";
+import Online from "./Components/Online";
+import EvokedPotentials from "./Components/EvokedPotentials";
+import HighGamma from "./Components/HighGamma";
+import BrainSelector from './Components/BrainSelector'
+import ReactFiber from './Components/ReactFiber'
 ReactDOM.render(
-  <MyProvider>
+  <MyProvider style={{ height: "100%" }}>
     <Router>
-      <>
-        <Header></Header>
-        <Switch>
-          <Route exact path="/records">
-            <Record />
-          </Route>
-          <Route exact path="/map">
-            <Map />
-          </Route>
-          <Route exact path="/cortstim">
-            <CortstimMenu />
-          </Route>
-          <Route exact path="/cortstimV2">
-            <CortstimV2 />
-          </Route>
-          <Route exact path="/cortstimresults">
-            <Cortstim />
-          </Route>
-          <Route path="/">
-            <Container style={{ marginTop: 5 }} fluid={true}>
-              <Row>
-                <Col>
-                  <Online />
-                </Col>
-                <Col xs="6">
-                  <Brain />
-                </Col>
-                <Col>
-                  <Subjects />
-                </Col>
-              </Row>
-            </Container>
-          </Route>
-        </Switch>
-        <Footer></Footer>
-      </>
+      <Header></Header>
+      <Container fluid >
+        <Row>
+          <Col>
+            <Switch>
+              <Route exact path="/cortstim">
+                <Cortstim_V3 />
+              </Route>
+              <Route exact path="/hg">
+                <HighGamma />
+              </Route>
+              <Route exact path="/ep">
+                <EvokedPotentials />
+              </Route>
+              <Route exact path="/">
+                <Online />
+              </Route>
+            </Switch>
+          </Col>
+          <Col>
+            {/* <BrainSelector></BrainSelector> */}
+            <Suspense fallback={null}>
+            <ReactFiber></ReactFiber>
+            </Suspense>
+          </Col>
+        </Row>
+      </Container>
+
+      <Footer></Footer>
     </Router>
   </MyProvider>,
   document.getElementById("root")

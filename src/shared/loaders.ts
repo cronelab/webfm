@@ -1,59 +1,10 @@
-import * as THREE from "../../node_modules/three/src/Three";
-import { GLTFLoader } from "../../node_modules/three/examples/jsm/loaders/GLTFLoader";
-import { OrbitControls } from "../../node_modules/three/examples/jsm/controls/OrbitControls";
+// loaders.ts
+/**
+ * This is the doc comment for shared/loaders
+ * 
+ * @packageDocumentation
+ */
 
-const fetchAndStoreBrain = async (subject: any) => {
-  let response = await fetch(`/api/brain/${subject}`);
-  let brainRes = await response.arrayBuffer();
-  let base64Flag = "data:image/jpeg;base64,";
-  let binary = "";
-  let bytes = [].slice.call(new Uint8Array(brainRes));
-  bytes.forEach((b: any) => (binary += String.fromCharCode(b)));
-  return base64Flag + window.btoa(binary);
-};
-
-const fetchAndStoreGeometry = async (subject: any) => {
-  let response = await fetch(`/api/geometry/${subject}`);
-  let geometry = await response.json();
-  return geometry;
-};
-
-let load3DBrain_gltf = (subject: any, brainContainer: any) => {
-  return new Promise((resolve, reject) => {
-    let brainContainer = document.getElementById("fm-brain-3D");
-    let scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xffffff);
-    let camera = new THREE.PerspectiveCamera(45, 640 / 480, 0.1, 5000);
-    let renderer = new THREE.WebGLRenderer({
-      antialias: true,
-    });
-    let controls = new OrbitControls(camera, renderer.domElement);
-    let light = new THREE.HemisphereLight(0xffffff, 0x444444);
-    camera.position.set(-100, 0, -100);
-    renderer.setSize(640, 480);
-    light.position.set(0, 0, 10);
-    controls.target.set(10, 20, 0);
-    controls.update();
-    scene.add(light);
-    let loader = new GLTFLoader();
-    loader.load(subject, (object3d: any) => {
-      // loader.load(`/api/${subject}/brain3D_g`, object3d => {
-      scene.add(object3d.scene);
-      let mainScene = scene.getObjectByName("Scene");
-      //@ts-ignore
-      mainScene.rotation.set(-Math.PI / 2, 0, 0);
-      resolve(scene);
-    });
-    const animate = () => {
-      requestAnimationFrame(animate);
-      renderer.render(scene, camera);
-    };
-    animate();
-    //@ts-ignore
-
-    brainContainer.appendChild(renderer.domElement);
-  });
-};
 
 let loadValues = async (subject: any, record: any) => {
   let valuePath = `api/${subject}/${record}/values`;
@@ -125,9 +76,6 @@ let loadStats = async (subject: any, record: any) => {
 };
 
 export {
-  fetchAndStoreBrain,
-  fetchAndStoreGeometry,
   loadValues,
   loadStats,
-  load3DBrain_gltf,
 };

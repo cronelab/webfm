@@ -2,6 +2,8 @@ import path from "path";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import CleanWebpackPlugin from "clean-webpack-plugin";
 
+import TerserPlugin from 'terser-webpack-plugin'
+
 import WriteFilePlugin from "write-file-webpack-plugin";
 let __dirname = path.resolve(path.dirname(""));
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
@@ -25,9 +27,9 @@ const module = {
 			{
 				test: /\.(png|jpe?g|gif|fbx|glb|gltf|nii|mgz)$/i,
 				loader: 'file-loader',
-				options: {
-					name: '[path][name].[ext]',
-				},
+				// options: {
+				// 	name: '[path][name].[ext]',
+				// },
 			},
 			{
 				test: /\.worker\.ts$/,
@@ -68,7 +70,13 @@ const module = {
 					loader: "css-loader"
 				},
 				{
-					loader: "postcss-loader"
+					loader: "postcss-loader",
+					options: {
+						options: {},
+						plugins: () => {
+						//   autoprefixer({ browsers: [ 'last 2 versions' ] });
+						}
+					  }
 				},
 				{
 					loader: "sass-loader"
@@ -78,17 +86,18 @@ const module = {
 		]
 	},
 	optimization: {
-		splitChunks: {
-			cacheGroups: {
-				styles: {
-					name: "styles",
-					test: /\.css$/,
-					chunks: "all",
-					enforce: true
-				}
-			}
-		},
-		usedExports: true
+		// splitChunks: {
+		// 	cacheGroups: {
+		// 		styles: {
+		// 			name: "styles",
+		// 			test: /\.css$/,
+		// 			chunks: "all",
+		// 			enforce: true
+		// 		}
+		// 	}
+		// },
+		minimizer: [new TerserPlugin({})],
+		// usedExports: true
 	},
 
 	plugins: [

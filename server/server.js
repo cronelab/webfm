@@ -4,7 +4,7 @@ import routes from "./routes.js";
 import config from "../webpack.config.js";
 import webpackDevMiddleware from "webpack-dev-middleware";
 import pkg from "webpack-merge";
-const {merge} = pkg;
+const { merge } = pkg;
 import webpack from "webpack";
 const app = express();
 app.use(compression());
@@ -12,7 +12,7 @@ app.use(express.json());
 import path from "path";
 let __dirname = path.resolve(path.dirname(""));
 
-const PORT = 8090
+const PORT = 8090;
 
 let newConfig = merge(config, {
   plugins: [
@@ -25,10 +25,9 @@ let newConfig = merge(config, {
 const compiler = webpack(newConfig);
 app.use(webpackDevMiddleware(compiler));
 
-
 app.use("/", routes(express));
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
 
 app.listen(PORT, () => console.log(`Serving on port ${PORT}`));
