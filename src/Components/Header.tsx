@@ -12,9 +12,9 @@ import { Context } from "../Context";
  * @category Components
  */
 export const Header = () => {
-  const { subject, record, modality, setModality }: any = useContext(Context);
+  const { subject, record, modality, setModality, setWhichBrain }: any = useContext(Context);
 
-  const handleChange = (val) => setModality(val);
+  const handleChange = (val) => setWhichBrain(val);
 
   return (
     <Navbar
@@ -37,10 +37,10 @@ export const Header = () => {
         {record.name ? `: ${record.name}` : ""}
       </Navbar.Text>
 
-      {/* <ToggleButtonGroup type="radio" name="modality" defaultValue={"Review"} onChange={handleChange}>
-				<ToggleButton value={"Online"}>Online</ToggleButton>
-				<ToggleButton value={"Review"}>Review</ToggleButton>
-			</ToggleButtonGroup> */}
+      <ToggleButtonGroup type="radio" name="modality" defaultValue={"Review"} onChange={handleChange}>
+				<ToggleButton value={"2D"}>2D</ToggleButton>
+				<ToggleButton value={"3D"}>3D</ToggleButton>
+			</ToggleButtonGroup>
     </Navbar>
   );
 };

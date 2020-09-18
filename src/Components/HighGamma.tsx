@@ -6,7 +6,7 @@ import fmdata from "../shared/fmdata";
 import fmui from "../shared/fmui";
 import { extent, max, min } from "d3-array";
 import { Context } from "../Context";
-import "./Record/Record.scss";
+// import "./Record/Record.scss";
 import { highlightElectrodes } from "./Cortstim/ElectrodeAttributes";
 export default function HighGamma(props) {
   const [height, setHeight] = useState(0);
@@ -16,7 +16,7 @@ export default function HighGamma(props) {
   const [isMounted, setMounted] = useState(false);
   const [times, setTimes] = useState();
   let locked = false;
-  const { subject, setNewSubject } = useContext(Context);
+  const { subject, setNewSubject, setWhichBrain } = useContext(Context);
   const [colors, setColors] = useState([
     "#313695",
     "#4575b4",
@@ -64,6 +64,7 @@ export default function HighGamma(props) {
       setTimes(dataTime);
       setDisplayData(dataset.displayData);
       setMounted(true);
+
     })();
   }, []);
 
@@ -98,7 +99,8 @@ export default function HighGamma(props) {
         .data(Object.values(displayData))
         .each(horizonChart)
         .select(".title")
-        .text((d, i) => Object.keys(displayData)[i]);
+        .text((d, i) => Object.keys(displayData)[i])
+        .style("font", "8px times");
 
       setHeight(chartContainer.offsetHeight);
       setWidth(chartContainer.offsetWidth);
@@ -115,6 +117,8 @@ export default function HighGamma(props) {
           lineAndDotUpdate(position);
         }
       });
+    setWhichBrain('3D')
+
     }
   }, [isMounted]);
 
@@ -138,7 +142,7 @@ export default function HighGamma(props) {
         highlightElectrodes(
           node.id.split("_")[0],
           dotColorScale(node.__data__[zedIndex]),
-          Math.abs(node.__data__[zedIndex]) * 5 + 2
+          Math.abs(node.__data__[zedIndex]) * 5 + 5
         );
       }
     });
@@ -155,7 +159,7 @@ export default function HighGamma(props) {
   };
 
   return (
-    <div id="fm">
+    <div id="fm" style={{height:"100%"}}>
       <svg className="fm-cursor-svg" width={width} height={height}>
         <line
           className="zeroLine"
@@ -183,7 +187,7 @@ export default function HighGamma(props) {
               id={`${channel}_horizon`}
               style={{
                 outline: "thin solid black",
-                height: `${height / Object.keys(displayData).length + 8}px`,
+                height: `${height / Object.keys(displayData).length}px`,
               }}
             ></div>
           );

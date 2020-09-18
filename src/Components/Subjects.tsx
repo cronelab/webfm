@@ -55,7 +55,7 @@ export default function Subjects() {
       let listPathRes = await fetch(`/api/list`);
       let foundSubjects = await listPathRes.json();
       if (foundSubjects.length > 0) {
-        foundSubjects.sort();
+        foundSubjects.reverse();
         foundSubjects.forEach((subject: string) => getRecords(subject));
         setAllSubjects(foundSubjects);
       } else {

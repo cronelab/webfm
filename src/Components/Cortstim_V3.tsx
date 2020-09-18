@@ -1,25 +1,28 @@
-import React, { useState, useContext, useRef, useEffect } from "react";
+import React, {
+  useState,
+  useContext,
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useCallback,
+} from "react";
 import {
   Container,
   Row,
   Col,
-  InputGroup,
   Form,
-  FormControl,
   Button,
   ToggleButton,
   Dropdown,
   ButtonGroup,
   Modal,
-  Card,
   Image,
-  ListGroup,
-  ListGroupItem,
 } from "react-bootstrap";
 import { Context } from "../Context";
 import Brain from "./Brain";
 import { select, mouse } from "d3-selection";
-import homonculus from '../assets/homunculus.jpg';
+import motor_homonculus from "../assets/motor_homunculus.jpg";
+import sensory_homonculus from "../assets/sensory_homunculus.jpg";
 import {
   highlightElectrodes,
   createLine,
@@ -43,6 +46,42 @@ const CortstimMenu = () => {
     setAllSubjects,
     imgLoaded,
   } = useContext(Context);
+
+  const [height, setHeight] = useState(0);
+  const [width, setWidth] = useState(0);
+  const [LR, setLR] = useState("Select left/right");
+  const [homunLoaded, setHomunLoaded] = useState(false);
+
+  const motorHomRef = useRef();
+  // useCallback((node) => {
+  //   if (node !== null) {
+  //     setWidth(node.width);
+  //     setHeight(node.height);
+  //     console.log(node.width);
+  //     console.log(node.height);
+  //     console.log(node);
+  //   }
+  // }, []);
+
+  useEffect(() => {
+    function handleResize() {
+      if (typeOfEffect == "Sensory") {
+        //@ts-ignore
+        setHeight(sensoryHomRef.current.clientHeight);
+        //@ts-ignore
+        setWidth(sensoryHomRef.current.clientWidth);
+      } else if (typeOfEffect == "Motor") {
+        //@ts-ignore
+        setHeight(motorHomRef.current.clientHeight);
+        //@ts-ignore
+        setWidth(motorHomRef.current.clientWidth);
+      }
+    }
+
+    window.addEventListener("resize", handleResize);
+  });
+
+  let sensoryHomRef = useRef();
 
   const [dataPulled, setDataPulled] = useState(false);
   const [show, setShow] = useState(false);
@@ -432,6 +471,171 @@ const CortstimMenu = () => {
       return <div></div>;
     }
   };
+
+  const HomunculusSquare = (props) => {
+    let { xPos, yPos, description, rotation } = props;
+    return (
+      <circle
+        onClick={() => console.log(description)}
+        transform={`translate(${xPos} ${yPos})`}
+        // width="20"
+        // height="20"
+        r="18"
+        fill="green"
+        fillOpacity=".2"
+        stroke="green"
+      />
+    );
+  };
+
+  const HomunculusImage = () => {
+    return (
+      <>
+        <Image
+          ref={motorHomRef}
+          style={{ width: "100%", height: "100%" }}
+          src={motor_homonculus}
+          // onClick={(e) => {
+          //   //@ts-ignore
+          //   let yPos = (e.pageY - 543) / motorHomRef.current.height;
+          //   //@ts-ignore
+          //   let xPos = (e.pageX - 30) / motorHomRef.current.width;
+          //   console.log(xPos);
+          //   console.log();
+          // }}
+        ></Image>
+        <svg
+          style={{
+            zIndex: 1,
+            position: "absolute",
+            top: "0",
+            left: "0",
+            width: "100%",
+            height: "100%",
+          }}
+          onClick={(e) => {
+            //@ts-ignore
+            let xPos = (e.pageX - 30) / width;
+            console.log(xPos);
+            //@ts-ignore
+            let yPos = (e.pageY - 543) / height;
+            console.log(yPos);
+          }}
+        >
+          {homunLoaded == true ? (
+            <>
+              <HomunculusSquare
+                xPos={(0.137 * width).toString()}
+                yPos={(0.474 * height).toString()}
+                description="Toes"
+                rotation="0"
+              ></HomunculusSquare>
+              <HomunculusSquare
+                //@ts-ignore
+                xPos={(0.06 * width).toString()}
+                yPos={(0.17 * height).toString()}
+                description="Knee"
+                rotation="55"
+              ></HomunculusSquare>
+              <HomunculusSquare
+                xPos={(0.15 * width).toString()}
+                yPos={(0.15 * height).toString()}
+                description="Trunk"
+                rotation="75"
+              ></HomunculusSquare>
+              <HomunculusSquare
+                xPos={(0.28 * width).toString()}
+                yPos={(0.12 * height).toString()}
+                description="Shoulder"
+                rotation="90"
+              ></HomunculusSquare>
+              <HomunculusSquare
+                xPos={(0.353 * width).toString()}
+                yPos={(0.11 * height).toString()}
+                description="Arm"
+                rotation="105"
+              ></HomunculusSquare>
+              <HomunculusSquare
+                xPos={(0.438 * width).toString()}
+                yPos={(0.125 * height).toString()}
+                description="Elbow"
+                rotation="105"
+              ></HomunculusSquare>
+              <HomunculusSquare
+                xPos={(0.506 * width).toString()}
+                yPos={(0.125 * height).toString()}
+                description="Wrist"
+                rotation="105"
+              ></HomunculusSquare>
+              <HomunculusSquare
+                xPos={(0.6 * width).toString()}
+                yPos={(0.18 * height).toString()}
+                description="Fingers"
+                rotation="105"
+              ></HomunculusSquare>
+              <HomunculusSquare
+                xPos={(0.67 * width).toString()}
+                yPos={(0.19 * height).toString()}
+                description="Thumb"
+                rotation="105"
+              ></HomunculusSquare>
+              <HomunculusSquare
+                xPos={(0.75 * width).toString()}
+                yPos={(0.29 * height).toString()}
+                description="Neck"
+                rotation="105"
+              ></HomunculusSquare>
+              <HomunculusSquare
+                xPos={(0.8 * width).toString()}
+                yPos={(0.37 * height).toString()}
+                description="Brow"
+                rotation="110"
+              ></HomunculusSquare>
+              <HomunculusSquare
+                xPos={(0.84 * width).toString()}
+                yPos={(0.41 * height).toString()}
+                description="Eye"
+                rotation="115"
+              ></HomunculusSquare>
+              <HomunculusSquare
+                xPos={(0.87 * width).toString()}
+                yPos={(0.5 * height).toString()}
+                description="Face"
+                rotation="125"
+              ></HomunculusSquare>
+              <HomunculusSquare
+                xPos={(0.875 * width).toString()}
+                yPos={(0.58 * height).toString()}
+                description="Lips"
+                rotation="145"
+              ></HomunculusSquare>
+              <HomunculusSquare
+                xPos={(0.91 * width).toString()}
+                yPos={(0.66 * height).toString()}
+                description="Jaw"
+                rotation="165"
+              ></HomunculusSquare>
+              <HomunculusSquare
+                xPos={(0.91 * width).toString()}
+                yPos={(0.74 * height).toString()}
+                description="Tongue"
+                rotation="180"
+              ></HomunculusSquare>
+              <HomunculusSquare
+                xPos={(0.92 * width).toString()}
+                yPos={(0.81 * height).toString()}
+                description="Pharynx"
+                rotation="190"
+              ></HomunculusSquare>
+            </>
+          ) : (
+            <></>
+          )}
+        </svg>
+      </>
+    );
+  };
+
   return (
     <>
       <Container
@@ -512,12 +716,11 @@ const CortstimMenu = () => {
                               _color = "blue";
                             } else if (entry == "Language") {
                               _color = "purple";
-                            } else if( entry == "Seizure"){
-                              _color = "#F57F17"
-                            } else if( entry == "After Discharge"){
-                              _color = "#F9A825"
-                            } 
-                            else {
+                            } else if (entry == "Seizure") {
+                              _color = "#F57F17";
+                            } else if (entry == "After Discharge") {
+                              _color = "#F9A825";
+                            } else {
                               _color = "gray";
                             }
                             createLine(
@@ -534,6 +737,55 @@ const CortstimMenu = () => {
                     })}
                   </Dropdown.Menu>
                 </Dropdown>
+                {typeOfEffect == "Sensory" || typeOfEffect == "Motor" ? (
+                  <Dropdown style={{ marginTop: "5px" }}>
+                    <Dropdown.Toggle variant="secondary" id="dropdown-basic">
+                      {LR}
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu>
+                      <Dropdown.Item
+                        onClick={() => {
+                          setLR("Left");
+                          if (typeOfEffect == "Sensory") {
+                            //@ts-ignore
+                            setHeight(sensoryHomRef.current.clientHeight);
+                            //@ts-ignore
+                            setWidth(sensoryHomRef.current.clientWidth);
+                          } else if (typeOfEffect == "Motor") {
+                            //@ts-ignore
+                            setHeight(motorHomRef.current.clientHeight);
+                            //@ts-ignore
+                            setWidth(motorHomRef.current.clientWidth);
+                          }
+                                              setHomunLoaded(true);
+                        }}
+                      >
+                        Left
+                      </Dropdown.Item>
+                      <Dropdown.Item
+                        onClick={() => {
+                          setLR("Right");
+                          if (typeOfEffect == "Sensory") {
+                            //@ts-ignore
+                            setHeight(sensoryHomRef.current.clientHeight);
+                            //@ts-ignore
+                            setWidth(sensoryHomRef.current.clientWidth);
+                          } else if (typeOfEffect == "Motor") {
+                            //@ts-ignore
+                            setHeight(motorHomRef.current.clientHeight);
+                            //@ts-ignore
+                            setWidth(motorHomRef.current.clientWidth);
+                          }
+                                              setHomunLoaded(true);
+                        }}
+                      >
+                        Right
+                      </Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown>
+                ) : (
+                  <div></div>
+                )}
               </Col>
               <Col sm={3}>
                 <TaskDropdown></TaskDropdown>
@@ -584,10 +836,138 @@ const CortstimMenu = () => {
               Save
             </Button>
             <Row className="text-center" style={{ marginTop: "20px" }}>
-              <Col md={6}>
-                {typeOfEffect=="Motor" ? <Image src={homonculus}></Image> : <div></div>}
+              <Col md={6} style={{ padding: 0 }}>
+                {typeOfEffect == "Motor" ? (
+                  <HomunculusImage></HomunculusImage>
+                ) : (
+                  <div></div>
+                )}
+                {typeOfEffect == "Sensory" ? (
+                  <>
+                    <Image
+                      src={sensory_homonculus}
+                      ref={sensoryHomRef}
+                      style={{ width: "100%" }}
+                    ></Image>
+                    <svg
+                      style={{
+                        zIndex: 1,
+                        position: "absolute",
+                        top: "0",
+                        left: "0",
+                        width: "100%",
+                        height: "100%",
+                      }}
+                    >
+                      <HomunculusSquare
+                        xPos={(0.11 * width).toString()}
+                        yPos={(0.55 * height).toString()}
+                        description="Lips"
+                        rotation="10"
+                      ></HomunculusSquare>
+                      <HomunculusSquare
+                        xPos={(0.22 * width).toString()}
+                        yPos={(0.31 * height).toString()}
+                        description="Eye"
+                        rotation="65"
+                      ></HomunculusSquare>
+                      <HomunculusSquare
+                        xPos={(0.27 * width).toString()}
+                        yPos={(0.25 * height).toString()}
+                        description="Thumb"
+                        rotation="45"
+                      ></HomunculusSquare>
+                      <HomunculusSquare
+                        xPos={(0.35 * width).toString()}
+                        yPos={(0.2 * height).toString()}
+                        description="Fingers"
+                        rotation="45"
+                      ></HomunculusSquare>
+                      <HomunculusSquare
+                        xPos={(0.42 * width).toString()}
+                        yPos={(0.17 * height).toString()}
+                        description="Hand"
+                        rotation="45"
+                      ></HomunculusSquare>
+                      <HomunculusSquare
+                        xPos={(0.47 * width).toString()}
+                        yPos={(0.12 * height).toString()}
+                        description="Forearm"
+                        rotation="75"
+                      ></HomunculusSquare>
+                      <HomunculusSquare
+                        xPos={(0.6 * width).toString()}
+                        yPos={(0.10 * height).toString()}
+                        description="Arm"
+                        rotation="85"
+                      ></HomunculusSquare>
+                      <HomunculusSquare
+                        xPos={(0.55 * width).toString()}
+                        yPos={(0.11 * height).toString()}
+                        description="Elbow"
+                        rotation="85"
+                      ></HomunculusSquare>
+                      <HomunculusSquare
+                        xPos={(0.7 * width).toString()}
+                        yPos={(0.09 * height).toString()}
+                        description="Head"
+                        rotation="90"
+                      ></HomunculusSquare>
+                      <HomunculusSquare
+                        xPos={(0.77 * width).toString()}
+                        yPos={(0.1 * height).toString()}
+                        description="Neck"
+                        rotation="105"
+                      ></HomunculusSquare>
+                      <HomunculusSquare
+                        xPos={(0.85 * width).toString()}
+                        yPos={(0.115 * height).toString()}
+                        description="Hip"
+                        rotation="105"
+                      ></HomunculusSquare>
+                      <HomunculusSquare
+                        xPos={(0.95 * width).toString()}
+                        yPos={(0.12 * height).toString()}
+                        description="Knee"
+                        rotation="105"
+                      ></HomunculusSquare>
+                      <HomunculusSquare
+                        xPos={(0.155 * width).toString()}
+                        yPos={(0.37 * height).toString()}
+                        description="Nose"
+                        rotation="200"
+                      ></HomunculusSquare>
+                      <HomunculusSquare
+                        xPos={(0.14 * width).toString()}
+                        yPos={(0.45 * height).toString()}
+                        description="Face"
+                        rotation="190"
+                      ></HomunculusSquare>
+                      <HomunculusSquare
+                        xPos={(0.08 * width).toString()}
+                        yPos={(0.62 * height).toString()}
+                        description="Teeth"
+                        rotation="195"
+                      ></HomunculusSquare>
+                      <HomunculusSquare
+                        xPos={(0.075 * width).toString()}
+                        yPos={(0.75 * height).toString()}
+                        description="Gums"
+                        rotation="185"
+                      ></HomunculusSquare>
+                      <HomunculusSquare
+                        xPos={(0.09 * width).toString()}
+                        yPos={(0.81 * height).toString()}
+                        description="Tongue"
+                        rotation="170"
+                      ></HomunculusSquare>
+                    </svg>
+                  </>
+                ) : (
+                  <div></div>
+                )}
               </Col>
-              <Col md={6}>
+              {/* <Col md={6}>
                 <ListGroup>
                   Legend
                   <ListGroupItem style={{ backgroundColor: "purple" }}>
@@ -612,7 +992,7 @@ const CortstimMenu = () => {
                     Other
                   </ListGroupItem>
                 </ListGroup>
-              </Col>
+              </Col> */}
             </Row>
           </Col>
         </Row>

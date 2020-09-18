@@ -79,7 +79,7 @@ const Brain = (props) => {
               <Table>
                 <thead>
                   <tr>
-                    <th>Electode</th>
+                    <th>Electrode</th>
                     <th>x</th>
                     <th>y</th>
                   </tr>
@@ -179,7 +179,7 @@ const Brain = (props) => {
     <>
       <div
         style={{
-          height: "100%",
+          height: window.innerHeight - 60,
           position: "relative",
           display: "inline-block",
         }}
@@ -207,7 +207,7 @@ const Brain = (props) => {
             height: "100%",
           }}
         >
-          {(imgLoaded && subject.geometry) ? (
+          {imgLoaded && subject.geometry ? (
             //@ts-ignore
             Object.keys(subject.geometry).map((x) => {
               return (
