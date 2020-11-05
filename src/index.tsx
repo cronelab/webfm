@@ -1,49 +1,61 @@
-import React, {Suspense} from "react";
+import React from "react";
 import * as ReactDOM from "react-dom";
-import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
 import "../node_modules/bootstrap/dist/css/bootstrap.css";
-
-import { MyProvider} from "./Context";
-import { Header, Footer } from "./Components/Header";
-import Cortstim_V3 from "./Components/Cortstim_V3";
-import { Row, Col, Container } from "react-bootstrap";
-import Online from "./Components/Online";
-import EvokedPotentials from "./Components/EvokedPotentials";
-import HighGamma from "./Components/HighGamma";
-import BrainSelector from './Components/BrainSelector'
-import ReactFiber from './Components/ReactFiber'
+import Welcome from "./Components/Welcome";
+import Dashboard from "./Components/Dashboard";
+import { Container } from "react-bootstrap";
+import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
+import Header from "./Components/Headers/Header";
+import CortstimHeader from "./Components/Headers/CortstimHeader";
+import FunctionalMapping from "./Components/Modules/FunctionalMapping";
+import { MyProvider } from "./Context";
+import EvokedPotentials from "./Components/Modules/EvokedPotentials";
+import Cortstim from "./Components/Modules/Cortstim";
+import HeatMap from "./Components/Modules/HeatMap";
+import ClinicalAnnotation from "./Components/Modules/ClinicalAnnotation";
 ReactDOM.render(
-  <MyProvider style={{ height: "100%" }}>
+  <MyProvider>
     <Router>
-      <Header></Header>
-      <Container fluid >
-        <Row>
-          <Col>
-            <Switch>
-              <Route exact path="/cortstim">
-                <Cortstim_V3 />
-              </Route>
-              <Route exact path="/hg">
-                <HighGamma />
-              </Route>
-              <Route exact path="/ep">
-                <EvokedPotentials />
-              </Route>
-              <Route exact path="/">
-                <Online />
-              </Route>
-            </Switch>
-          </Col>
-          <Col>
-            {/* <BrainSelector></BrainSelector> */}
-            <Suspense fallback={null}>
-            <ReactFiber></ReactFiber>
-            </Suspense>
-          </Col>
-        </Row>
-      </Container>
+      <Switch>
+        <Route exact path="/">
+          <Container fluid>
+            <div
+              style={{
+                position: "absolute",
+                left: "50%",
+                top: "50%",
+                transform: "translate(-50%, -50%)",
+              }}
+            >
+              <Welcome></Welcome>
+            </div>
+          </Container>
+        </Route>
+        <Route exact path="/dashboard">
+          <Header></Header>
 
-      <Footer></Footer>
+          <Dashboard></Dashboard>
+        </Route>
+        <Route exact path="/hg">
+          <Header></Header>
+          <FunctionalMapping></FunctionalMapping>
+        </Route>
+        <Route exact path="/hm">
+          <Header></Header>
+          <HeatMap></HeatMap>
+        </Route>
+        <Route exact path="/ep">
+          <Header></Header>
+          <EvokedPotentials></EvokedPotentials>
+        </Route>
+        <Route exact path="/cortstim">
+          <CortstimHeader></CortstimHeader>
+          <Cortstim></Cortstim>
+        </Route>
+        <Route exact path="/annotation">
+          <ClinicalAnnotation></ClinicalAnnotation>
+        </Route>
+      </Switch>
     </Router>
   </MyProvider>,
   document.getElementById("root")
