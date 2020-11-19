@@ -8,9 +8,11 @@ import Form from "react-bootstrap/Form";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 import { Context } from "../Context";
 import { useHistory } from "react-router-dom";
-
+import Tab from "react-bootstrap/Tab";
+import Tabs from "react-bootstrap/Tabs";
 import Brain_2D from "./BrainContainers/Brain_2D";
 import { Model } from "./BrainContainers/Brain_3D";
+
 export default function Dashboard() {
   const {
     activeSubject,
@@ -48,148 +50,163 @@ export default function Dashboard() {
   return (
     <>
       <Container fluid>
-        <Row>
-          <Col sm={7}>
-            <Row>
-              <Col>
-                <Card className="text-center">
-                  <Card.Body>
-                    <Card.Title>Functional Mapping</Card.Title>
-                    <Card.Text> Traditional WebFM</Card.Text>
-                    {records["hg"].map((hg) => {
-                      return (
-                        <Button
-                          onClick={() => {
-                            setActiveRecord(hg);
-                            history.push("/hg");
-                          }}
-                          size="sm"
-                        >
-                          {hg}
-                        </Button>
-                      );
-                    })}
-                    {/* <Button onClick={() => setRecordingType("webfm")}></Button> */}
-                  </Card.Body>
-                </Card>
-                <Card className="text-center">
-                  <Card.Body>
-                    <Card.Title>CCEPS</Card.Title>
-                    <Card.Text> Cortico-Cortico Evoked Potentials</Card.Text>
-                    {records["ep"].map((ep) => {
-                      return (
-                        <Button
-                          onClick={() => {
-                            setActiveRecord(ep);
-                            history.push("/ep");
-                          }}
-                          size="sm"
-                        >
-                          {ep}
-                        </Button>
-                      );
-                    })}
-                  </Card.Body>
-                </Card>
-                <Card className="text-center">
-                  <Card.Body>
-                    <Card.Title>Cortical Stimulation</Card.Title>
-                    <Card.Text> Cortstim</Card.Text>
-                    <Button
-                      onClick={() => {
-                        history.push("/cortstim");
-                      }}
-                    >
-                      View Data
-                    </Button>
-                  </Card.Body>
-                </Card>
-                <Card className="text-center">
-                  <Card.Body>
-                    <Card.Title>Clinical Reconstruction</Card.Title>
-                    <Button
-                      onClick={() =>
-                        window.open(
-                          "http://zappa.neuro.jhu.edu:5000?subject=PY20N012"
-                        )
-                      }
-                      // onClick={() => setRecordingType("cortstim")}
-                    >
-                      {" "}
-                      View T1 and 3D Mesh
-                    </Button>
-                  </Card.Body>
-                </Card>
-                <Card className="text-center">
-                  <Card.Body>
-                    <Card.Title>Attention Clinicians</Card.Title>
+        {activeSubject == null ? (
+          <div
+            style={{
+              textAlign: "center",
+              fontSize: "20px",
+              marginTop: "100px",
+            }}
+          >
+            Select a Patient
+          </div>
+        ) : (
+          <Row>
+            <Col sm={7}>
+              <Tabs defaultActiveKey="fm" id="uncontrolled-tab-example">
+                <Tab eventKey="fm" title="Functional Mapping">
+                  <Card className="text-center">
                     <Card.Body>
-                      Use the following to draw annotations on the
-                      reconstruction
-                    </Card.Body>
-                    {/* <Card.Body>
-                      {" "}
-                      Please select the SOZ to the best of your ability Feel
-                      free to annote the brain with any important areas or notes
-                    </Card.Body> */}
-                    <Form>
-                      <Form.Row>
-                        <Form.Group as={Col} controlId="formGridEmail">
-                          <Form.Label>Name</Form.Label>
-                          <Form.Control type="email" placeholder="Enter name" 
-                          //@ts-ignore
-                            onChange={(e)=>setAnnotator(e.target.value)}
-                          />
-                        </Form.Group>
-
-                        <Form.Group as={Col} controlId="formGridPassword">
-                          <Form.Label>Date</Form.Label>
-                          <Form.Control type="date" placeholder="Date" 
-                            onChange={(e)=>setAnnotationDate(e.target.value)}
-                            />
-                        </Form.Group>
-                      </Form.Row>
+                      <Card.Title>Functional Mapping</Card.Title>
+                      <Card.Text> Traditional WebFM</Card.Text>
                       <ButtonGroup vertical>
-                        <Button
-                          onClick={() => {
-                            if (activeSubject) {
-                              history.push("/annotation");
-                            }
-                            else{
-                              alert("Select a patient first")
-                            }
-                          }}
-                        >
-                          Annotate
-                        </Button>
-                        {/* <Button>Select SOZ electrodes</Button>
-                        <Button>Select Irritative zone electrodes</Button>
-                        <Button>
-                          Select Early propagation zone electrodes
-                        </Button> */}
+                        {records["hg"].map((hg) => {
+                          return (
+                            <Button
+                              onClick={() => {
+                                setActiveRecord(hg);
+                                history.push("/hg");
+                              }}
+                              size="sm"
+                            >
+                              {hg}
+                            </Button>
+                          );
+                        })}
                       </ButtonGroup>
-                    </Form>
-                  </Card.Body>
-                </Card>
-              </Col>
-            </Row>
-          </Col>
-          <Col sm={5}>
-            {activeSubject == null ? (
-              <div
-                style={{
-                  textAlign: "center",
-                  fontSize: "20px",
-                  marginTop: "100px",
-                }}
-              >
-                Select a Patient
-              </div>
-            ) : (
+                    </Card.Body>
+                  </Card>
+                </Tab>
+                <Tab eventKey="spes" title="SPES">
+                  <Card className="text-center">
+                    <Card.Body>
+                      <Card.Title>SPES</Card.Title>
+                      <Tabs
+                        style={{ margin: "auto" }}
+                        defaultActiveKey="trials"
+                      >
+                        <Tab eventKey="cceps" title="CCEPS">
+                          <h1>1</h1>
+                        </Tab>
+                        <Tab eventKey="ccsrs" title="CCSR">
+                          <h2>2</h2>
+                        </Tab>
+                        <Tab eventKey="matrices" title="Adjaceny Matrix">
+                          <h2>3</h2>
+                        </Tab>
+                      </Tabs>
+                      {records["ep"].map((ep) => {
+                        return (
+                          <Button
+                            onClick={() => {
+                              setActiveRecord(ep);
+                              history.push("/ep");
+                            }}
+                            size="sm"
+                          >
+                            {ep}
+                          </Button>
+                        );
+                      })}
+                    </Card.Body>
+                  </Card>
+                </Tab>
+                <Tab eventKey="cs" title="Cortical Stimulation">
+                  <Card className="text-center">
+                    <Card.Body>
+                      <Card.Title>Cortical Stimulation</Card.Title>
+                      <Card.Text> Cortstim</Card.Text>
+                      <Button
+                        onClick={() => {
+                          history.push("/cortstim");
+                        }}
+                      >
+                        View Data
+                      </Button>
+                    </Card.Body>
+                  </Card>
+                </Tab>
+                <Tab eventKey="reconstruction" title="Reconstruction">
+                  <Card className="text-center">
+                    <Card.Body>
+                      <Card.Title>Clinical Reconstruction</Card.Title>
+                      <Button
+                        onClick={() =>
+                          window.open(
+                            `http://zappa.neuro.jhu.edu:5000?subject=${activeSubject}`
+                          )
+                        }
+                      >
+                        View T1 and 3D Mesh
+                      </Button>
+                    </Card.Body>
+                  </Card>
+                </Tab>
+                <Tab eventKey="annotate" title="Clinical Annotation">
+                  <Card className="text-center">
+                    <Card.Body>
+                      <Card.Title>Attention Clinicians</Card.Title>
+                      <Card.Body>
+                        Use the following to draw annotations on the
+                        reconstruction
+                      </Card.Body>
+                      <Form>
+                        <Form.Row>
+                          <Form.Group as={Col} controlId="formGridEmail">
+                            <Form.Label>Name</Form.Label>
+                            <Form.Control
+                              type="email"
+                              placeholder="Enter name"
+                              //@ts-ignore
+                              onChange={(e) => setAnnotator(e.target.value)}
+                            />
+                          </Form.Group>
+
+                          <Form.Group as={Col} controlId="formGridPassword">
+                            <Form.Label>Date</Form.Label>
+                            <Form.Control
+                              type="date"
+                              placeholder="Date"
+                              onChange={(e) =>
+                                setAnnotationDate(e.target.value)
+                              }
+                            />
+                          </Form.Group>
+                        </Form.Row>
+                        <ButtonGroup vertical>
+                          <Button
+                            onClick={() => {
+                              if (activeSubject) {
+                                history.push("/annotation");
+                              } else {
+                                alert("Select a patient first");
+                              }
+                            }}
+                          >
+                            Annotate
+                          </Button>
+                        </ButtonGroup>
+                      </Form>
+                    </Card.Body>
+                  </Card>
+                </Tab>
+              </Tabs>
+            </Col>
+            <Col sm={5}>
               <>{brainType == "2D" ? <Brain_2D></Brain_2D> : <Model></Model>}</>
-            )}
-          </Col>
-        </Row>
+            </Col>
+          </Row>
+        )}
       </Container>
     </>
   );

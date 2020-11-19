@@ -1,4 +1,3 @@
-
 const fetchSubjects = async () => {
   let listPathRes = await fetch(`/api/list`);
   let foundSubjects = await listPathRes.json();
@@ -24,22 +23,29 @@ const fetch2DGeometry = async (subject) => {
 
 const fetchAnnotations = async (subject) => {
   let response = await fetch(`/api/annotations/${subject}`);
-  let {images} = await response.json()
-  let imageArray = await Promise.all(images.map(async(image) => {
-    let imageReq = await fetch(`/api/annotation/${subject}/${image.split('.').slice(0, -1).join('.')}`)
-    let imageRes = await imageReq.arrayBuffer();
-    let binary = "";
-    let bytes = [].slice.call(new Uint8Array(imageRes));
-    bytes.forEach((b: any) => (binary += String.fromCharCode(b)));
-    return `data:image/jpeg;base64,${window.btoa(binary)}`;
-    }))
-    return imageArray
+  let { images } = await response.json();
+  let imageArray = await Promise.all(
+    images.map(async (image) => {
+      let imageReq = await fetch(
+        `/api/annotation/${subject}/${image.split(".").slice(0, -1).join(".")}`
+      );
+      let imageRes = await imageReq.arrayBuffer();
+      let binary = "";
+      let bytes = [].slice.call(new Uint8Array(imageRes));
+      bytes.forEach((b: any) => (binary += String.fromCharCode(b)));
+      return `data:image/jpeg;base64,${window.btoa(binary)}`;
+    })
+  );
+  return imageArray;
 };
-
 
 const fetchAnatomicalLocations = async (subject) => {
   let response = await fetch(`/api/anatomy/${subject}`);
-  let _response = await response.json();
+  let _response =null;
+  if (response.status != 204) {
+    _response = await response.json();
+  }
+  console.log(_response)
   return _response;
 };
 
@@ -48,5 +54,5 @@ export {
   fetch2DBrain,
   fetch2DGeometry,
   fetchAnatomicalLocations,
-  fetchAnnotations
+  fetchAnnotations,
 };

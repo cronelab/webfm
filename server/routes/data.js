@@ -1,12 +1,8 @@
-import path from "path";
 import fs from "fs";
-let __dirname = path.resolve(path.dirname(""));
 let dataDir = "../WebFM_Dev/data/";
 
 const dataRoutes = (express) => {
   const router = express.Router();
-
-
 
   //Send a list of high gamma records
   router.get("/api/records/HG/:subject", (req, res) => {
@@ -134,8 +130,8 @@ const dataRoutes = (express) => {
   router.get("/api/annotations/:subject", (req, res) => {
     let subject = req.params.subject;
     fs.readdir(`${dataDir}/${subject}/data/annotations`, (err, images) => {
-      if(images.length > 0){
-        res.send(JSON.stringify({images:images}))
+      if (images != undefined && images.length > 0) {
+        res.send(JSON.stringify({ images: images }))
       } else {
         res.status(204).end();
       }
@@ -145,14 +141,17 @@ const dataRoutes = (express) => {
   router.get("/api/annotation/:subject/:annotation", (req, res) => {
     let subject = req.params.subject;
     let annotation = req.params.annotation;
-    res.sendFile(`${annotation}.jpg`,{
+    res.sendFile(`${annotation}.jpg`, {
       root: `${dataDir}/${subject}/data/annotations/`
     })
   });
 
   //Saves an annotation
   router.post("/api/annotation/:subject/", (req, res) => {
-    fs.writeFileSync(`${dataDir}/${req.params.subject}/data/annotations/${req.files[0].originalname}`, req.files[0].buffer,{
+    if (!fs.existsSync(`${dataDir}/${req.params.subject}/data/annotations/`)) {
+      fs.mkdirSync(`${dataDir}/${req.params.subject}/data/annotations/`)
+    }
+    fs.writeFileSync(`${dataDir}/${req.params.subject}/data/annotations/${req.files[0].originalname}`, req.files[0].buffer, {
       encoding: 'binary'
     })
     res.send(req.files[0].buffer)

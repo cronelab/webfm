@@ -8,11 +8,20 @@ let dataDir = "../WebFM_Dev/data/";
 const infoRoutes = (express) => {
   const router = express.Router();
 
-  router.get("/api/list", (req, res) => {
-    fs.readdir(dataDir, (err, subjects) =>
-      res.status(200).json(subjects.filter((f) => f != ".gitignore"))
-    );
-  });
+  /**
+ * Return the ratio of the inline text length of the links in an element to
+ * the inline text length of the entire element.
+ *
+ * @param {Node} node - Types or not: either works.
+ * @throws {PartyError|Hearty} Multiple types work fine.
+ * @returns {Number} Types and descriptions are both supported.
+ */
+const list = (req, res) => {
+  fs.readdir(dataDir, (err, subjects) =>
+    res.status(200).json(subjects.filter((f) => f != ".gitignore"))
+  );
+}
+  router.get("/api/list", list);
 
   //Sends 2D brain
   router.get("/api/brain/2D/:subject", (req, res) => {
@@ -49,6 +58,10 @@ const infoRoutes = (express) => {
           });
           anatomy.shift();
           res.send(JSON.stringify(anatomy))
+        }
+        else{
+      res.status(204).end();
+
         }
       }
     });

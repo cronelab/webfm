@@ -3,9 +3,9 @@ import fs from "fs";
 // import { promises as fsp } from "fs";
 // import formidable from "formidable";
 // import multer from "multer";
-// import pkg from "swagger-ui-express";
-// import swaggerDocument from "./swagger.json";
-// const swaggerUi = pkg;
+import pkg from "swagger-ui-express";
+import swaggerDocument from "../docs/swagger.json";
+const swaggerUi = pkg;
 let __dirname = path.resolve(path.dirname(""));
 let dataDir = "../WebFM_Dev/data/";
 
@@ -23,17 +23,17 @@ const routes = (express) => {
   // router.get("/config", (req, res) =>
   //   res.sendFile(`${__dirname}/server/config.json`)
   // );
-  // router.use(
-  //   "/docs_server",
-  //   express.static(path.join(__dirname, "/docs", "/_build/html"))
-  // );
+  router.use(
+    "/docs_server",
+    express.static(path.join(__dirname, "/docs", "/build/html"))
+  );
   // router.use(
   //   "/docs_src",
   //   express.static(path.join(__dirname, "/docs", "/srcdoc"))
   // );
 
-  // router.use("/api-docs", swaggerUi.serve);
-  // router.get("/api-docs", swaggerUi.setup(swaggerDocument));
+  router.use("/api-docs", swaggerUi.serve);
+  router.get("/api-docs", swaggerUi.setup(swaggerDocument));
 
 
 

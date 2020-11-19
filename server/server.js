@@ -3,6 +3,7 @@ import bodyParser from "body-parser"
 import compression from "compression";
 import infoRoutes from "./routes/info.js";
 import dataRoutes from "./routes/data.js";
+import routes from "./routes.js";
 import config from "../webpack.config.js";
 import webpackDevMiddleware from "webpack-dev-middleware";
 import webpack from "webpack";
@@ -32,6 +33,7 @@ let newConfig = merge(config, {
 
 const compiler = webpack(newConfig);
 app.use(webpackDevMiddleware(compiler));
+app.use("/", routes(express));
 app.use("/", infoRoutes(express));
 app.use("/", dataRoutes(express));
 app.get("*", (req, res) => {

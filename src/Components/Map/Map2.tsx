@@ -1,4 +1,4 @@
-//@ts-ignore
+//@ts-nocheck
 import React, { useEffect, useContext, useRef, useState } from "react";
 import { Container, Row, Col, Button } from "react-bootstrap";
 // import Brain from "../../src_v1/Components/Brain";

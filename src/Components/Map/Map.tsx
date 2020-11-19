@@ -7,7 +7,7 @@ import fmdata from "../../shared/fmdata";
 import fmui from "../../shared/fmui";
 import OnlineDataSource from '../../shared/fmonline'
 import BCI2K from "bci2k";
-import { DataHeader } from "../DataHeader";
+// import { DataHeader } from "../DataHeader";
 // import MapModals from "./MapModals";
 // import HighGamma from "../HighGamma";
 import Worker from "../../shared/dataIndex.worker";
@@ -235,7 +235,7 @@ export const Map = () => {
 
     return (
         <div className="Record">
-            <DataHeader></DataHeader>
+            {/* <DataHeader></DataHeader> */}
             <Button className="fm-show-options" onClick={() => click(true)}>
                 Button
       </Button>

@@ -18,6 +18,18 @@ export default function Brain_2D() {
   const [anatomicalLocations, setAnatomicalLocations] = useState(null);
   const containerRef = useRef(null);
 
+  const TooltipInfo = (elecs, index) => {
+    if (anatomicalLocations != null) {
+      return (
+        <Tooltip key={`${elecs}tooltip`} id="button-tooltip">
+          {`${elecs} : ${anatomicalLocations[index][4]}`}
+        </Tooltip>
+      );
+    } else {
+      return <></>;
+    }
+  };
+
   useEffect(() => {
     if (img) {
       let circles = Object.keys(geometry).map((elecs, index) => {
@@ -26,11 +38,7 @@ export default function Brain_2D() {
             key={`${elecs}_trigger`}
             placement="right"
             delay={{ show: 100, hide: 300 }}
-            overlay={
-              <Tooltip key={`${elecs}tooltip`} id="button-tooltip">
-                {`${elecs} : ${anatomicalLocations[index][4]}`}
-              </Tooltip>
-            }
+            overlay={TooltipInfo(elecs, index)}
           >
             <circle
               ref={(el) => (circleRef.current[index] = el)}
@@ -55,7 +63,7 @@ export default function Brain_2D() {
         let brainImage = await fetch2DBrain(activeSubject);
         let geometry = await fetch2DGeometry(activeSubject);
         let anatomy = await fetchAnatomicalLocations(activeSubject);
-        setAnatomicalLocations(anatomy);
+        if (anatomy != null) setAnatomicalLocations(anatomy);
         setGeometry(geometry);
         setImg(brainImage);
       }

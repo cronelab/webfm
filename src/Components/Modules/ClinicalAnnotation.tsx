@@ -4,6 +4,9 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Image from "react-bootstrap/Image";
 import Navbar from "react-bootstrap/Navbar";
+import Button from "react-bootstrap/Button";
+import { useHistory } from "react-router-dom";
+
 // import Container from 'react-bootstrap/Container'
 import {
   fetch2DBrain,
@@ -13,6 +16,8 @@ import Painterro from "painterro";
 import { Context } from "../../Context";
 
 export default function ClinicalAnnotation() {
+  const history = useHistory();
+
   const { activeSubject, annotator, annotateDate } = useContext(Context);
   const paintRef = useRef();
   const imageRef = useRef();
@@ -31,11 +36,17 @@ export default function ClinicalAnnotation() {
         },
         saveHandler: async (image) => {
           let formData = new FormData();
-          formData.append("image", image.asBlob(),`${annotator}_${annotateDate}.jpg`);
+          formData.append(
+            "image",
+            image.asBlob(),
+            `${annotator}_${annotateDate}.jpg`
+          );
           fetch(`/api/annotation/${activeSubject}`, {
             method: "POST",
             body: formData,
-          }).then( recImgReq => recImgReq.blob()).then(x => console.log(x))
+          })
+            .then((recImgReq) => recImgReq.blob())
+            .then((x) => console.log(x));
         },
       });
       paint.show(brainImage);
@@ -66,6 +77,9 @@ export default function ClinicalAnnotation() {
         <Navbar.Brand className="ml-auto">
           {activeSubject} by {annotator} on {annotateDate}
         </Navbar.Brand>
+        <Button variant="secondary" onClick={() => history.push("/dashboard")}>
+          X
+        </Button>
       </Navbar>
       <div ref={paintRef} style={{ position: "relative" }}>
         <div id="paint" style={{ height: "700px" }}></div>
