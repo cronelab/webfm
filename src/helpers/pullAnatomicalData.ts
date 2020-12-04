@@ -45,7 +45,6 @@ const fetchAnatomicalLocations = async (subject) => {
   if (response.status != 204) {
     _response = await response.json();
   }
-  console.log(_response)
   return _response;
 };
 

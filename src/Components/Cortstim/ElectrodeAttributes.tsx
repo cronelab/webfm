@@ -16,6 +16,25 @@ const highlightElectrodes = (electrode, color, size?) => {
     circle.setAttribute("fill", color);
   }
 };
+const highlightBipolarElectrodes = (electrode, color, size?) => {
+  let circle = document.getElementById(`${electrode.split("_")[0]}_circle`);
+
+  let elec1 = electrode.split("_")[0]
+  let elec2 = electrode.split("_")[1]
+  let cx1 = parseInt(document.getElementById(`${elec1}_circle`).getAttribute("cx"))
+  let cy1 = parseInt(document.getElementById(`${elec1}_circle`).getAttribute("cy"))
+  let cx2 = parseInt(document.getElementById(`${elec2}_circle`).getAttribute("cx"))
+  let cy2 = parseInt(document.getElementById(`${elec2}_circle`).getAttribute("cy"))
+  let cx = ((cx1+cx2)/2).toString()
+  let cy = ((cy1+cy2)/2).toString()
+  let newElectrode = document.createElement("circle")
+  circle.setAttribute('cx',cx)
+  circle.setAttribute('cy',cy)
+  circle.id = `${electrode}_circle`
+  circle.setAttribute('fill',color)
+  circle.setAttribute('stroke',"black")
+  circle.setAttribute('r',size)
+};
 
 const removeAllAttributes = (electrodes) => {
   electrodes.forEach((electrode) =>
@@ -99,7 +118,7 @@ const createShape = (electrode1, electrode2) => {
     .style({ "stroke-width": borderWidth, fill: "none", stroke: borderColor });
 };
 
-const createLine = (electrode1, electrode2, color) => {
+const createLine = (electrode1, electrode2, color, container: string) => {
   if (color == "") color = "pink";
   var pathData = symbol().type(symbolStar).size(80);
 
@@ -109,8 +128,11 @@ const createLine = (electrode1, electrode2, color) => {
     let xPos2 = parseFloat(circle2.getAttribute("cx"));
     let yPos1 = parseFloat(circle1.getAttribute("cy"));
     let yPos2 = parseFloat(circle2.getAttribute("cy"));
-    let line = select("#container")
-      .select("svg")
+    //@ts-ignore
+    let _container = `#${container}` | "#container"
+    console.log(container)
+    let line = select("#" + container)
+      // .select("svg")
       .append("line")
       .attr("x1", xPos1)
       .attr("y1", yPos1)
@@ -119,4 +141,4 @@ const createLine = (electrode1, electrode2, color) => {
       .attr("stroke-width", "5")
       .attr("stroke", color);
 };
-export { highlightElectrodes, createLine, removeAllAttributes, createShape };
+export { highlightElectrodes, createLine, removeAllAttributes, createShape , highlightBipolarElectrodes};

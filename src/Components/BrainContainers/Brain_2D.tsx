@@ -87,6 +87,7 @@ export default function Brain_2D() {
         style={{ display: "block", width: "100%", height: "100%" }}
       ></Image>
       <svg
+        id="brainContainer2D"
         style={{
           position: "absolute",
           top: "0",

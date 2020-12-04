@@ -96,16 +96,7 @@ export default function Dashboard() {
                         defaultActiveKey="trials"
                       >
                         <Tab eventKey="cceps" title="CCEPS">
-                          <h1>1</h1>
-                        </Tab>
-                        <Tab eventKey="ccsrs" title="CCSR">
-                          <h2>2</h2>
-                        </Tab>
-                        <Tab eventKey="matrices" title="Adjaceny Matrix">
-                          <h2>3</h2>
-                        </Tab>
-                      </Tabs>
-                      {records["ep"].map((ep) => {
+                        {records["ep"].map((ep) => {
                         return (
                           <Button
                             onClick={() => {
@@ -118,6 +109,15 @@ export default function Dashboard() {
                           </Button>
                         );
                       })}
+                        </Tab>
+                        <Tab eventKey="ccsrs" title="CCSR">
+                          <h2>2</h2>
+                        </Tab>
+                        <Tab eventKey="matrices" title="Adjaceny Matrix">
+                          <h2>3</h2>
+                        </Tab>
+                      </Tabs>
+                     
                     </Card.Body>
                   </Card>
                 </Tab>

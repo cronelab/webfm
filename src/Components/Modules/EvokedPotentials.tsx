@@ -8,6 +8,7 @@ import { selectAll, select } from "d3-selection";
 import { scaleLinear, scaleTime } from "d3-scale";
 import { extent } from "d3-array";
 import { line } from "d3-shape";
+import {highlightBipolarElectrodes,createLine} from '../Cortstim/ElectrodeAttributes'
 
 export default function EvokedPotentials() {
   const { brainType, activeRecord, activeSubject } = useContext(Context);
@@ -22,6 +23,7 @@ export default function EvokedPotentials() {
     elec2: "",
   });
   const [data, setData] = useState();
+
   useEffect(() => {
     (async () => {
       let record = await pullRecordEP(activeSubject, activeRecord);
@@ -31,11 +33,11 @@ export default function EvokedPotentials() {
         end: record.window[1],
       });
       delete record.window;
+      setData(record);
       setStimulatingElectrodes({
         elec1: `${activeRecord.split("_")[0]}`,
         elec2: `${activeRecord.split("_")[1]}`,
       });
-      setData(record);
     })();
   }, []);
 
@@ -63,24 +65,26 @@ export default function EvokedPotentials() {
   useEffect(() => {
     const sleep = (m) => new Promise((r) => setTimeout(r, m));
 
-    if (data) {
+    if (data != undefined) {
       (async () => {
         let chartContainer = document.getElementById("container");
         setWidth(chartContainer.offsetWidth);
-        await sleep(5000);
 
         var x = scaleLinear()
           //@ts-ignore
           .domain([0, data[Object.keys(data)[0]].times.length])
-          .range([0, width]);
+          .range([0, chartContainer.offsetWidth]);
 
         Object.keys(data).map((electrode) => {
+          highlightBipolarElectrodes(electrode,'green',5);
+          console.log(`${activeRecord.split("_")[0]}`)
+          createLine(`${activeRecord.split("_")[0]}`,electrode,'blue',"brainContainer2D")
           let y = scaleLinear()
             //@ts-ignore
             .domain(extent(data[electrode].times))
             .range([0, 40]);
 
-          //Sets stimulation onset marker
+          // Sets stimulation onset marker
           select(`#${electrode}_container`)
             .append("line")
             .attr("x1", x(500))
@@ -153,7 +157,8 @@ export default function EvokedPotentials() {
                       </text>
                       <path
                         id={`${electrode}_path`}
-                        width={"100%"}
+                        width={width}
+                        // height={"40px"}
                         fill={"none"}
                         stroke={"steelblue"}
                         strokeWidth={1.5}
