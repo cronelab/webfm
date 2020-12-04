@@ -7,7 +7,7 @@ import pkg from "swagger-ui-express";
 import swaggerDocument from "../docs/swagger.json";
 const swaggerUi = pkg;
 let __dirname = path.resolve(path.dirname(""));
-let dataDir = "../WebFM_Dev/data/";
+let dataDir = process.env.dataDir || "../../data/";
 
 // function rawBody(req, res, next) {
 //   req.setEncoding("utf8");

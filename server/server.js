@@ -22,7 +22,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(upload.any());
 
-const PORT = 8091;
+const PORT = process.env.PORT || 8091;
 
 let newConfig = merge(config, {
   plugins: [

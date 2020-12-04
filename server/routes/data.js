@@ -1,5 +1,5 @@
 import fs from "fs";
-let dataDir = "../WebFM_Dev/data/";
+let dataDir = process.env.dataDir || "../../data/";
 
 const dataRoutes = (express) => {
   const router = express.Router();

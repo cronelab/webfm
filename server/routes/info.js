@@ -3,7 +3,7 @@ import fs from "fs";
 import parse from "csv-parse/lib/sync.js";
 
 let __dirname = path.resolve(path.dirname(""));
-let dataDir = "../WebFM_Dev/data/";
+let dataDir = process.env.dataDir || "../../data/";
 
 const infoRoutes = (express) => {
   const router = express.Router();
@@ -16,11 +16,16 @@ const infoRoutes = (express) => {
  * @throws {PartyError|Hearty} Multiple types work fine.
  * @returns {Number} Types and descriptions are both supported.
  */
-const list = (req, res) => {
-  fs.readdir(dataDir, (err, subjects) =>
-    res.status(200).json(subjects.filter((f) => f != ".gitignore"))
-  );
-}
+  const list = (req, res) => {
+    fs.readdir(dataDir, (err, subjects) => {
+      if (subjects != undefined) {
+        res.status(200).json(subjects.filter((f) => f != ".gitignore"))
+      }
+      else {
+        res.status(200).json(["No subjects in database"]);
+      }
+    });
+  }
   router.get("/api/list", list);
 
   //Sends 2D brain
@@ -33,7 +38,7 @@ const list = (req, res) => {
             root: `${dataDir}/${subject}/info/`,
           });
         }
-        else{
+        else {
           res.sendFile(`nullrecon.jpg`, {
             root: `${dataDir}/`,
           });
@@ -59,8 +64,8 @@ const list = (req, res) => {
           anatomy.shift();
           res.send(JSON.stringify(anatomy))
         }
-        else{
-      res.status(204).end();
+        else {
+          res.status(204).end();
 
         }
       }

@@ -6,9 +6,13 @@ services:
       context: .
       dockerfile: ./Dockerfile
     ports:
-      - "8090:8090" 
-    tty: true
+      - "8090:8090"
+    environment: 
+    - dataDir=/webfm/data
+    - PORT=8090
     volumes:
       - ./data:/webfm/data
       - ./src:/webfm/src
+      - ./docs:/webfm/docs
       - ./server:/webfm/server
+    tty: true
