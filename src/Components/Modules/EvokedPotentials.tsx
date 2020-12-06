@@ -8,7 +8,10 @@ import { selectAll, select } from "d3-selection";
 import { scaleLinear, scaleTime } from "d3-scale";
 import { extent } from "d3-array";
 import { line } from "d3-shape";
-import {highlightBipolarElectrodes,createLine} from '../Cortstim/ElectrodeAttributes'
+import {
+  highlightBipolarElectrodes,
+  createLine,
+} from "../Cortstim/ElectrodeAttributes";
 
 export default function EvokedPotentials() {
   const { brainType, activeRecord, activeSubject } = useContext(Context);
@@ -26,7 +29,7 @@ export default function EvokedPotentials() {
 
   useEffect(() => {
     (async () => {
-      let record = await pullRecordEP(activeSubject, activeRecord);
+      let record = await pullRecordEP(activeSubject, activeRecord, "EP");
 
       setTimeWindow({
         start: record.window[0],
@@ -76,9 +79,14 @@ export default function EvokedPotentials() {
           .range([0, chartContainer.offsetWidth]);
 
         Object.keys(data).map((electrode) => {
-          highlightBipolarElectrodes(electrode,'green',5);
-          console.log(`${activeRecord.split("_")[0]}`)
-          createLine(`${activeRecord.split("_")[0]}`,electrode,'blue',"brainContainer2D")
+          highlightBipolarElectrodes(electrode, "green", 5);
+          console.log(`${activeRecord.split("_")[0]}`);
+          createLine(
+            `${activeRecord.split("_")[0]}`,
+            electrode,
+            "blue",
+            "brainContainer2D"
+          );
           let y = scaleLinear()
             //@ts-ignore
             .domain(extent(data[electrode].times))

@@ -30,8 +30,9 @@ export default function Dashboard() {
       if (activeSubject) {
         let _hgRecords = await fetch(`/api/records/HG/${activeSubject}`);
         let _epRecords = await fetch(`/api/records/EP/${activeSubject}`);
+        let _ccsrRecords = await fetch(`/api/records/CCSR/${activeSubject}`);
 
-        let hgRecords, epRecords;
+        let hgRecords, epRecords, ccsrRecords;
         if (_hgRecords.status == 200) {
           hgRecords = await _hgRecords.json();
         } else {
@@ -42,7 +43,13 @@ export default function Dashboard() {
         } else {
           epRecords = [];
         }
-        setRecords({ hg: hgRecords, ep: epRecords });
+
+        if (_ccsrRecords.status == 200) {
+          ccsrRecords = await _ccsrRecords.json();
+        } else {
+          ccsrRecords = [];
+        }
+        setRecords({ hg: hgRecords, ep: epRecords, ccsr: ccsrRecords });
       }
     })();
   }, [activeSubject]);
@@ -110,8 +117,20 @@ export default function Dashboard() {
                         );
                       })}
                         </Tab>
-                        <Tab eventKey="ccsrs" title="CCSR">
-                          <h2>2</h2>
+                        <Tab eventKey="ccsr" title="CCSRs">
+                        {records["ccsr"].map((ccsr) => {
+                        return (
+                          <Button
+                            onClick={() => {
+                              setActiveRecord(ccsr);
+                              history.push("/ccsr");
+                            }}
+                            size="sm"
+                          >
+                            {ccsr}
+                          </Button>
+                        );
+                      })}
                         </Tab>
                         <Tab eventKey="matrices" title="Adjaceny Matrix">
                           <h2>3</h2>

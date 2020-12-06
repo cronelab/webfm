@@ -28,7 +28,7 @@ const dataRoutes = (express) => {
     res.status(200).send(JSON.stringify(recordData));
   });
 
-  //Send a list of evoked potential records
+  //Send a list of evoked potential records : EPs
   router.get("/api/records/EP/:subject/", (req, res) => {
     let subject = req.params.subject;
     let _records = fs.readdirSync(`${dataDir}/${subject}/data/EP`)
@@ -43,6 +43,21 @@ const dataRoutes = (express) => {
     }
   });
 
+    //Send a list of evoked potential records: CCSRs
+    router.get("/api/records/CCSR/:subject/", (req, res) => {
+      let subject = req.params.subject;
+      let _records = fs.readdirSync(`${dataDir}/${subject}/data/CCSR`)
+      let records = _records.map(file => {
+        let splitFile = file.split("_ResponseInfo.json")[0]
+        return `${splitFile.split("_")[1]}_${splitFile.split("_")[2]}_${splitFile.split("_")[3]}`
+      })
+      if (records.length > 0) {
+        res.status(200).json(records);
+      } else {
+        res.status(204).end();
+      }
+    });
+  
   //Send the actual EP record
   router.get("/api/data/EP/:subject/:record/", (req, res) => {
     let subject = req.params.subject;
@@ -67,6 +82,31 @@ const dataRoutes = (express) => {
     }
   });
 
+    //Send the actual CCSR record
+    router.get("/api/data/CCSR/:subject/:record/", (req, res) => {
+      let subject = req.params.subject;
+      let task = req.params.record;
+      let resInfoFile = `${dataDir}/${subject}/data/CCSR/${subject}_${task}_ResponseInfo.json`;
+      if (fs.existsSync(resInfoFile)) {
+        let _result = JSON.parse(fs.readFileSync(resInfoFile, "utf8"));
+        let significantChannels = {};
+        Object.keys(_result.highGamma.sscores).forEach((x) => {
+          // if (_result.significant[x] == 1) {
+            return (significantChannels[x] = {
+              times: _result.highGamma.time[x],
+              sscores: _result.highGamma.sscores[x],
+              window: _result.highGamma.window
+            });
+            // sigResponses[val] = { timeToPeak: _result.zscores[val].overall[0], peak: _result.zscores[val].overall[1] }
+          // }
+        });
+        res.send(significantChannels);
+      }
+      else{
+console.log("File doesn't exist")
+      }
+    });
+  
 
 
   router.put("/api/data/cortstim/:subject", async (req, res) => {

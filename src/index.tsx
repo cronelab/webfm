@@ -13,6 +13,7 @@ import EvokedPotentials from "./Components/Modules/EvokedPotentials";
 import Cortstim from "./Components/Modules/Cortstim";
 import HeatMap from "./Components/Modules/HeatMap";
 import ClinicalAnnotation from "./Components/Modules/ClinicalAnnotation";
+import CCSR from './Components/Modules/CCSR'
 ReactDOM.render(
   <MyProvider>
     <Router>
@@ -48,6 +49,12 @@ ReactDOM.render(
           <Header></Header>
           <EvokedPotentials></EvokedPotentials>
         </Route>
+
+        <Route exact path="/ccsr">
+          <Header></Header>
+          <CCSR/>
+        </Route>
+
         <Route exact path="/cortstim">
           <CortstimHeader></CortstimHeader>
           <Cortstim></Cortstim>

@@ -10,6 +10,7 @@ export const MyProvider = (props: any) => {
   const [records, setRecords] = useState({
     hg: [],
     ep: [],
+    ccsr: []
   });
   const [rasterSize, setRasterSize] = useState(1);
   const [rasterGain, setRasterGain] = useState(3);

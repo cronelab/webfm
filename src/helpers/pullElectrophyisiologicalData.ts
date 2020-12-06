@@ -157,14 +157,11 @@ const pullRecordHG = async (subject, recordName) => {
   return data;
 };
 
-const pullRecordEP = async (subject, recordName) => {
-  const recReq = await fetch(`/api/data/EP/${subject}/${recordName}`);
+const pullRecordEP = async (subject, recordName, type) => {
+  const recReq = await fetch(`/api/data/${type}/${subject}/${recordName}`);
   const data = await recReq.json();
   return data
 }
 
-// const pullImagesEP = async () =>{
-  
-// }
 
 export { pullRecordHG, pullRecordEP };
