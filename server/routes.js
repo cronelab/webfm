@@ -25,7 +25,7 @@ const routes = (express) => {
   // );
   router.use(
     "/docs_server",
-    express.static(path.join(__dirname, "/docs", "/build/html"))
+    express.static(path.join(__dirname, "/docs", "/build"))
   );
   // router.use(
   //   "/docs_src",
