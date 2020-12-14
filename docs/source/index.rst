@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Welcome to `WebFM <https://github.com/cronelab/webfm>`_'s documentation!
-=================================
+===================================================================================
 
 .. toctree::
    :maxdepth: 2
