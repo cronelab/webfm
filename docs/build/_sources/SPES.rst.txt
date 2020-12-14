@@ -50,5 +50,67 @@ Single Pulse Electrical Stimulation
 
 (Sub)Cortico-(Sub)Cortico Spectral Responses
 ---------------------------------------------------
-.. image:: ./images/EvokedPotentials.png
+.. image:: ./images/SpectralResponses.png
 
+.. code-block:: json
+
+    {
+        "highGamma": {
+            "frequencyBand": [
+                70,
+                110
+            ],
+            "samplingRate": 1000,
+            "significant": [],
+            "time": {
+                "LAM1_LAM2": [
+                    -1.9207325728872038
+                ]
+            },
+            "window": [
+                -450,
+                1000
+            ],
+            "sscores": {
+                "LAM1_LAM2": {
+                    "ER": [
+                        461,
+                        108.36628284815538
+                    ],
+                    "DR": [
+                        1245,
+                        2.5120641548211311
+                    ]
+                }
+            }
+        },
+        "lowGamma": {
+            "frequencyBand": [
+                20,
+                55
+            ],
+            "samplingRate": 1000,
+            "significant": [],
+            "time": {
+                "LAM1_LAM2": [
+                    -1.9207325728872038
+                ]
+            },
+            "window": [
+                -450,
+                1000
+            ],
+            "sscores": {
+                "LAM1_LAM2": {
+                    "ER": [
+                        461,
+                        108.36628284815538
+                    ],
+                    "DR": [
+                        1245,
+                        2.5120641548211311
+                    ]
+                }
+            }
+        }
+    }

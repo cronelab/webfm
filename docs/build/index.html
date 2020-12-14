@@ -36,7 +36,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Cortical Stimulation" href="ESM.html" /> 
+    <link rel="next" title="General" href="General.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -83,6 +83,7 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="General.html">General</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ESM.html">Cortical Stimulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="SPES.html">Single Pulse Electrical Stimulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FM.html">Functional Mapping</a></li>
@@ -157,7 +158,19 @@
 <div class="toctree-wrapper compound">
 <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="ESM.html">Cortical Stimulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="General.html">General</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="General.html#data-folder-structure">Data folder structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="General.html#info">Info</a></li>
+<li class="toctree-l2"><a class="reference internal" href="General.html#reconstruction-pipeline">Reconstruction pipeline</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ESM.html">Cortical Stimulation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ESM.html#getting-started">Getting started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ESM.html#breakdown">Breakdown</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ESM.html#data-structure">Data Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ESM.html#example">Example</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="SPES.html">Single Pulse Electrical Stimulation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="SPES.html#sub-cortico-sub-cortico-evoked-potentials">(Sub)Cortico-(Sub)Cortico Evoked Potentials</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SPES.html#sub-cortico-sub-cortico-spectral-responses">(Sub)Cortico-(Sub)Cortico Spectral Responses</a></li>
@@ -166,6 +179,13 @@
 <li class="toctree-l1"><a class="reference internal" href="FM.html">Functional Mapping</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Reconstruction.html">Reconstruction</a></li>
 </ul>
+</div>
+<p>To get started:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/cronelab/webfm
+<span class="nb">cd</span> webfm
+docker-compose up --build
+<span class="c1"># visit localhost:8090</span>
+</pre></div>
 </div>
 </div>
 
@@ -177,7 +197,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="ESM.html" class="btn btn-neutral float-right" title="Cortical Stimulation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="General.html" class="btn btn-neutral float-right" title="General" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
     </div>

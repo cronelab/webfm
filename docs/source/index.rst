@@ -10,6 +10,7 @@ Welcome to WebFM's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   General
    ESM
    SPES
    FM
@@ -17,5 +18,11 @@ Welcome to WebFM's documentation!
 
 
 
+To get started:
 
+.. code-block:: bash
 
+   git clone https://github.com/cronelab/webfm
+   cd webfm
+   docker-compose up --build
+   # visit localhost:8090
