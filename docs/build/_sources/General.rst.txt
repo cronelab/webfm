@@ -11,16 +11,16 @@ Data folder structure
 
         - data
 
-            - cortstim
+            - :doc:`cortstim </ESM>`
 
                 - cortstim.json
 
-            - FM
+            - :doc:`FM </FM>`
                 
                 - task_A.json
                 - task_B.json
             
-            - SPES
+            - :doc:`SPES </SPES>`
 
                 - PY#_elec1_elec2_amplitude_ResponseInfo.json
                 - PY#_elec1_elec2_amplitude_ResponseInfo_CCSR.json
