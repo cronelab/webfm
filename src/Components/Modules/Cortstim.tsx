@@ -87,15 +87,19 @@ export default function Cortstim() {
     let res = await req.json();
     //@ts-ignore
     let results = res.results;
+    console.log(results)
     results.forEach((record) => {
-      const { electrodes, color } = record;
-      let elec1 = electrodes.split("_")[0];
-      let elec2 = electrodes.split("_")[1];
-      if (brainType == "2D") {
-        createLine(elec1, elec2, color);
-      }
-      if (brainType == "3D") {
-        create3DLine(elec1, elec2, color);
+      if(record.electrodes != "Electrode 1_Electrode 2"){
+        const { electrodes, color } = record;
+        let elec1 = electrodes.split("_")[0];
+        let elec2 = electrodes.split("_")[1];
+        if (brainType == "2D") {
+          createLine(elec1, elec2, color);
+        }
+        if (brainType == "3D") {
+          create3DLine(elec1, elec2, color);
+        }
+  
       }
     });
   };
@@ -149,6 +153,7 @@ export default function Cortstim() {
   
   useEffect(()=>{
     (async () => {
+      await new Promise((resolve) => setTimeout(resolve, 500));
       fetchDataFromDB();
 
     })()
