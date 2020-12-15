@@ -6,22 +6,16 @@ import React, {
   Suspense,
   useEffect,
 } from "react";
-import {
-  OrthographicCamera,
-  OrbitControls,
-} from "drei";
+import { OrthographicCamera, OrbitControls } from "drei";
 
 import { Context } from "../../Context";
 
-import * as Parser from "csv-parse/lib/sync";
 import { useLoader, Canvas, useFrame } from "react-three-fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { Mesh, Color } from "three";
 import { ControlsProvider, Controls, useControl } from "react-three-gui";
 
 function Brain_3D(props) {
-
-
   let first = true;
   let initialGyriColorsDeclared = false;
   let initialSubcortColorsDeclared = false;
@@ -45,20 +39,20 @@ function Brain_3D(props) {
   );
 
   const [labels, setLabels] = useState([]);
-  // fetch(`/api/anatomy/${props.activeSubject}`)
-  //   .then((response) => response.text())
-  //   .then((text) => {
-  //     let data = Parser(text, { delimiter: "\t" }).map((element) => {
-  //       return {
-  //         name: element[0],
-  //         location: element[4],
-  //       };
-  //     });
-  //     setLabels(data);
-  //   });
+  fetch(`/api/anatomy/${props.activeSubject}`)
+    .then((response) => response.json())
+    .then((text) => {
+      let data = text.map(element => {
+        return {
+          name: element[0],
+          location: element[4]
+        }
+      })
+      setLabels(data)
+    });
 
   const { Electrodes } = electrodes.nodes;
-  props.setThreeDElectrodes(Electrodes)
+  props.setThreeDElectrodes(Electrodes);
   const { Gyri, SubcorticalStructs, WhiteMatter } = brain.nodes;
 
   const [allowHover, setAllowHover] = useState(false);
@@ -301,7 +295,7 @@ export function Model(props) {
           ></Brain_3D>
         </Suspense>
       </Canvas>
-      <Controls title="Patient #" />
+      <Controls title="Patient #" anchor="bottom_right"/>
     </ControlsProvider>
   );
 }

@@ -16,6 +16,7 @@ import {
 } from "../../helpers/mutateElectrodes";
 import Button from "react-bootstrap/Button";
 import { Mesh, Color, Material, MeshPhysicalMaterial } from "three";
+import parse from "csv-parse/lib/sync";
 
 import { Info } from "react-bootstrap-icons";
 
@@ -90,6 +91,8 @@ export default function CortstimHeader() {
     return encodeURIComponent(csvStr);
   }
 
+  const sendNewDataToDatabase = async () => {};
+
   const fetchDataFromDB = async () => {
     let req = await fetch(`/api/data/cortstim/${activeSubject}`);
     let res = await req.json();
@@ -102,6 +105,7 @@ export default function CortstimHeader() {
     linkElement.setAttribute("download", `cortstim_${activeSubject}.csv`);
     linkElement.click();
   };
+
   const grabDataFromDB = async () => {
     let req = await fetch(`/api/data/cortstim/${activeSubject}`);
     let res = await req.json();
@@ -113,9 +117,9 @@ export default function CortstimHeader() {
       console.log(data);
       return (
         <Modal
-        centered
-        size="xl"
-        // style={{marginLeft: "0px", marginRight: "0px"}}
+          centered
+          size="xl"
+          // style={{marginLeft: "0px", marginRight: "0px"}}
           // dialogClassName="modal-100w"
           show={showReport}
           onHide={handleCloseReport}
@@ -164,6 +168,22 @@ export default function CortstimHeader() {
     }
   };
 
+  const handleUpload = (file) => {
+    let reader = new FileReader();
+
+    reader.readAsText(file);
+
+    reader.onload = function () {
+      //@ts-ignore
+      let data = parse(reader.result, { delimiter: ",", columns: true, from_line: 2  }).map((element) => element);
+      console.log(data)
+    };
+
+    reader.onerror = function () {
+      console.log(reader.error);
+    };
+  };
+
   return (
     <>
       <Navbar
@@ -180,10 +200,11 @@ export default function CortstimHeader() {
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
-          <NavDropdown title={activeElec1} id="elecSelection1">
+          <NavDropdown title={activeElec1} id="elecSelection1" key={"elec1Nav"}>
             {electrodeNames ? (
               electrodeNames.map((name) => (
                 <NavDropdown.Item
+                  key={`${name}_1_item`}
                   onClick={() => {
                     if (brainType == "2D") {
                       highlight2DElectrodes(name, "red", 3);
@@ -206,10 +227,11 @@ export default function CortstimHeader() {
               <></>
             )}
           </NavDropdown>
-          <NavDropdown title={activeElec2} id="elecSelection2">
+          <NavDropdown title={activeElec2} id="elecSelection2" key={"elec2Nav"}>
             {electrodeNames ? (
               electrodeNames.map((name) => (
                 <NavDropdown.Item
+                  key={`${name}_2_item`}
                   onClick={() => {
                     if (brainType == "2D") {
                       highlight2DElectrodes(name, "red", 3);
@@ -312,6 +334,27 @@ export default function CortstimHeader() {
           >
             View Report
           </Button>
+          <Form>
+            <Form.File>
+              <Form.File.Label>Upload ESM Report</Form.File.Label>
+              <Form.File.Input
+                onChange={(e) => handleUpload(e.target.files[0])}
+              ></Form.File.Input>
+            </Form.File>
+          </Form>
+
+          {/* 
+          <Button
+            onClick={async () => {
+              await new Promise((resolve) => setTimeout(resolve, 500));
+
+              // let data = await grabDataFromDB();
+              // setDbData(data);
+              // setShowReport(true);
+            }}
+          >
+            Upload Report
+          </Button> */}
 
           <Info
             color="royalblue"

@@ -33,6 +33,7 @@ export default function Cortstim() {
     cortstimNotes,
     setCortstimNotes,
     threeDElectrodes,
+    threeDScene
   } = useContext(Context);
   const [typeOfTask, setTypeOfTask] = useState("Task description");
   const [typeOfStim, setTypeOfStim] = useState("Task or no task");
@@ -90,7 +91,12 @@ export default function Cortstim() {
       const { electrodes, color } = record;
       let elec1 = electrodes.split("_")[0];
       let elec2 = electrodes.split("_")[1];
-      createLine(elec1, elec2, color);
+      if (brainType == "2D") {
+        createLine(elec1, elec2, color);
+      }
+      if (brainType == "3D") {
+        create3DLine(elec1, elec2, color);
+      }
     });
   };
 
@@ -99,13 +105,64 @@ export default function Cortstim() {
   let day = date.getDate();
   let year = date.getFullYear();
 
+  useEffect(() => {
+    if (threeDElectrodes) {
+      fetchDataFromDB();
+    }
+  }, [threeDElectrodes]);
+
+  const create3DLine = (elec1,elec2,color) => {
+    if (threeDElectrodes) {
+      let lineGroup = new Group();
+      threeDElectrodes.updateMatrixWorld();
+
+      lineGroup.name = "cortstimLine";
+      let stimElec1 = threeDElectrodes.getObjectByName(elec1);
+      let stimElec2 = threeDElectrodes.getObjectByName(elec2);
+      var vector1 = new Vector3();
+      var vector2 = new Vector3();
+      let lineGeom = new LineGeometry();
+      threeDElectrodes.parent.updateMatrixWorld();
+      let elec1Pos = vector1.setFromMatrixPosition(stimElec1.matrixWorld);
+      let elec2Pos = vector2.setFromMatrixPosition(stimElec2.matrixWorld);
+      lineGeom.setPositions([
+        elec1Pos.x,
+        elec1Pos.y,
+        elec1Pos.z,
+        elec2Pos.x,
+        elec2Pos.y,
+        elec2Pos.z,
+      ]);
+      let material = new LineMaterial({
+        //@ts-ignore
+        color: color,
+        linewidth: 0.01,
+      });
+
+      let line = new Line2(lineGeom, material);
+      line.computeLineDistances();
+      line.scale.set(1, 1, 1);
+      lineGroup.add(line);
+      threeDElectrodes.parent.add(lineGroup);
+    }
+  };
+  
+  useEffect(()=>{
+    (async () => {
+      fetchDataFromDB();
+
+    })()
+  },[brainType])
+
+
+
   return (
     <>
       <Container
         fluid
         style={{ display: "table", height: "100%", overflow: "auto" }}
       >
-        <Row>
+        <Row style={{ height: "100%" }}>
           <Col sm>
             <Row>
               <Col>
@@ -117,7 +174,10 @@ export default function Cortstim() {
                   <Dropdown.Menu>
                     {["Task", "No task"].map((entry) => {
                       return (
-                        <Dropdown.Item onClick={() => setTypeOfStim(entry)}>
+                        <Dropdown.Item
+                          key={`${entry}_item`}
+                          onClick={() => setTypeOfStim(entry)}
+                        >
                           {entry}
                         </Dropdown.Item>
                       );
@@ -136,6 +196,7 @@ export default function Cortstim() {
                       {tasks.map((entry) => {
                         return (
                           <Dropdown.Item
+                            key={`${entry}_item`}
                             onClick={() => {
                               setTypeOfTask(entry);
                               //@ts-ignore
@@ -164,79 +225,45 @@ export default function Cortstim() {
                   <Dropdown.Menu>
                     {results.map((entry, i) => {
                       return (
-                        <>
-                          <InputGroup
-                            className="textCenter"
-                            onClick={() => {
-                              setColor(taskColors[i]);
-                              setTypeOfEffect(entry);
-                              if (brainType == "2D") {
-                                createLine(
-                                  activeElec1,
-                                  activeElec2,
-                                  taskColors[i]
-                                );
-                              }
-                              if (brainType == "3D") {
-                                let lineGroup = new Group();
-                                threeDElectrodes.updateMatrixWorld();
+                        <InputGroup
+                          key={`${entry}_inputgroup`}
+                          className="textCenter"
+                          onClick={() => {
+                            setColor(taskColors[i]);
+                            setTypeOfEffect(entry);
+                            if (brainType == "2D") {
+                              createLine(
+                                activeElec1,
+                                activeElec2,
+                                taskColors[i]
+                              );
+                            }
+                            if (brainType == "3D") {
+                              create3DLine(
+                                activeElec1,
+                                activeElec2,
+                                taskColors[i]
 
-                                lineGroup.name = "cortstimLine";
-                                let stimElec1 = threeDElectrodes.getObjectByName(
-                                  activeElec1
-                                );
-                                let stimElec2 = threeDElectrodes.getObjectByName(
-                                  activeElec2
-                                );
-                                var vector1 = new Vector3();
-                                var vector2 = new Vector3();
-                                let lineGeom = new LineGeometry();
-                                let elec1Pos = vector1.setFromMatrixPosition(
-                                  stimElec1.matrixWorld
-                                );
-                                let elec2Pos = vector2.setFromMatrixPosition(
-                                  stimElec2.matrixWorld
-                                );
-                                lineGeom.setPositions([
-                                  elec1Pos.x,
-                                  elec1Pos.y,
-                                  elec1Pos.z,
-                                  elec2Pos.x,
-                                  elec2Pos.y,
-                                  elec2Pos.z,
-                                ]);
-                                let material = new LineMaterial({
-                                  //@ts-ignore
-                                  color: taskColors[i],
-                                  linewidth: 0.01,
-                                });
-
-                                let line = new Line2(lineGeom, material);
-                                line.computeLineDistances();
-                                line.scale.set(1, 1, 1);
-                                lineGroup.add(line);
-                                console.log(line)
-                                threeDElectrodes.add(lineGroup);
-                              }
+                              );
+                            }
+                          }}
+                        >
+                          <InputGroup.Prepend
+                            style={{
+                              margin: "0px",
                             }}
                           >
-                            <InputGroup.Prepend
+                            <InputGroup.Text
                               style={{
-                                margin: "0px",
+                                width: "50px",
+                                backgroundColor: taskColors[i],
                               }}
                             >
-                              <InputGroup.Text
-                                style={{
-                                  width: "50px",
-                                  backgroundColor: taskColors[i],
-                                }}
-                              >
-                                {" "}
-                              </InputGroup.Text>
-                            </InputGroup.Prepend>
-                            {entry}
-                          </InputGroup>
-                        </>
+                              {" "}
+                            </InputGroup.Text>
+                          </InputGroup.Prepend>
+                          {entry}
+                        </InputGroup>
                       );
                     })}
                   </Dropdown.Menu>

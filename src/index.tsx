@@ -56,6 +56,8 @@ ReactDOM.render(
         </Route>
 
         <Route exact path="/cortstim">
+        <Header></Header>
+
           <CortstimHeader></CortstimHeader>
           <Cortstim></Cortstim>
         </Route>
