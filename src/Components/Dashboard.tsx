@@ -31,6 +31,8 @@ export default function Dashboard() {
         let _hgRecords = await fetch(`/api/records/HG/${activeSubject}`);
         let _epRecords = await fetch(`/api/records/EP/${activeSubject}`);
         let _ccsrRecords = await fetch(`/api/records/CCSR/${activeSubject}`);
+        let _eaRecord = await fetch(`/api/data/epilepsy/${activeSubject}`)
+        let eaRecords = await _eaRecord.json();
 
         let hgRecords, epRecords, ccsrRecords;
         if (_hgRecords.status == 200) {
@@ -49,7 +51,7 @@ export default function Dashboard() {
         } else {
           ccsrRecords = [];
         }
-        setRecords({ hg: hgRecords, ep: epRecords, ccsr: ccsrRecords });
+        setRecords({ hg: hgRecords, ep: epRecords, ccsr: ccsrRecords, ea: eaRecords });
       }
     })();
   }, [activeSubject]);
@@ -154,6 +156,26 @@ export default function Dashboard() {
                       >
                         View Data
                       </Button>
+                    </Card.Body>
+                  </Card>
+                </Tab>
+                <Tab eventKey="ea" title="Epileptic Areas" key={"ea_tab"}>
+                  <Card className="text-center">
+                    <Card.Body>
+                      <Card.Title>Epileptic Areas</Card.Title>
+                      <Card.Text>Displays interesting Electrodes</Card.Text>
+                            <Button
+                              // key={`${ea}_button`}
+                              onClick={() => {
+                                // console.log()
+                                setActiveRecord(records["ea"]);
+                                history.push("/ea");
+                              }}
+                              size="sm"
+                            >
+                              {'ea'}
+                            </Button>
+                      {/* </ButtonGroup> */}
                     </Card.Body>
                   </Card>
                 </Tab>

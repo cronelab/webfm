@@ -11,9 +11,10 @@ import { Container, Row, Col } from "react-bootstrap";
 import DataHeader from "../Headers/DataHeader";
 import { interpolateRdBu } from "d3-scale-chromatic";
 import { selectAll, select, mouse } from "d3-selection";
-import { scaleLinear } from "d3-scale";
-import {Mesh,Color} from 'three'
-import {dotColorScale} from '../BrainContainers/helpers'
+import { range, ticks } from "d3-array";
+import { Mesh, Color } from "three";
+import { dotColorScale } from "../../helpers/mutateElectrodes";
+// import Colorbar from './Submodules/Colorbar'
 export default function FunctionalMapping() {
   const {
     activeSubject,
@@ -22,7 +23,7 @@ export default function FunctionalMapping() {
     rasterSize,
     rasterGain,
     twoDReconstructionCircles,
-    threeDElectrodes
+    threeDElectrodes,
   } = useContext(Context);
   const [displayData, setDisplayData] = useState([]);
   const [isMounted, setIsMounted] = useState(false);
@@ -84,19 +85,20 @@ export default function FunctionalMapping() {
     ],
   ];
 
-
   useEffect(() => {
     (async () => {
       let _dataset = new fmdata();
       // let record = await pullRecordHG(activeSubject, activeRecord);
 
-      const recReq = await fetch(`/api/data/HG/${activeSubject}/${activeRecord}`);
+      const recReq = await fetch(
+        `/api/data/HG/${activeSubject}/${activeRecord}`
+      );
 
       let record = await recReq.json();
       await _dataset.get(record);
       setDisplayData(_dataset.displayData);
       //@ts-ignore
-      setDataset(_dataset)
+      setDataset(_dataset);
       setIsMounted(true);
     })();
   }, []);
@@ -104,6 +106,18 @@ export default function FunctionalMapping() {
   useEffect(() => {
     let chartContainer = document.getElementById("fm");
     if (isMounted) {
+      let dataMax = Object.values(displayData).map((x, i) => {
+        if (
+          !Object.keys(displayData)[i].startsWith("ainp") &&
+          !Object.keys(displayData)[i].startsWith("DC")
+        ) {
+          return Math.max(...x);
+        } else {
+          return 0;
+        }
+      });
+      let dataMin = Object.values(displayData).map((x) => Math.min(...x));
+
       d3.selectAll(".horizon")
         .data(Object.values(displayData))
         .each(
@@ -114,7 +128,7 @@ export default function FunctionalMapping() {
               chartContainer.offsetWidth /
                 displayData[Object.keys(displayData)[0]].length
             )
-            // .colors(colors[rasterGain])
+          // .colors(colors[rasterGain])
         )
         .select(".title")
         .text((d, i) => Object.keys(displayData)[i])
@@ -122,6 +136,51 @@ export default function FunctionalMapping() {
 
       setHeight(chartContainer.offsetHeight);
       setWidth(chartContainer.offsetWidth);
+
+      let data = ticks(
+        Math.min(...dataMin),
+        Math.max(...dataMax),
+        chartContainer.offsetHeight/5
+      ).reverse();
+      console.log(chartContainer.offsetHeight)
+        console.log(data)
+      //@ts-ignore
+      let svg = select("#colorbarDiv")
+        .append("svg")
+        .attr("width", 60)
+        .attr("height", chartContainer.offsetHeight);
+
+      let colorRows = svg
+        .selectAll(".firstrow")
+        .data(data)
+        .enter()
+        .append("rect")
+        .attr("height", 5)
+        .attr("width", 30)
+        .attr("y", (d, i) => i*5)
+        .attr("x", 0)
+        .attr("fill", (d) => dotColorScale(d));
+
+      let group = colorRows._groups[0];
+      console.log(group)
+      if(group.length > 0){
+        svg
+        .append("text")
+        .attr("font-family", "FontAwesome")
+        .attr("font-size", 15)
+        .attr("y", 10)
+        .attr("x", 30)
+        .text(group[0].__data__.toString());
+
+      svg
+        .append("text")
+        .attr("font-family", "FontAwesome")
+        .attr("font-size", 15)
+        .attr("y", chartContainer.offsetHeight - 10)
+        .attr("x", 30)
+        .text(group[group["length"] - 1].__data__.toString());
+      }
+
     }
   }, [isMounted]);
 
@@ -140,7 +199,7 @@ export default function FunctionalMapping() {
               chartContainer.offsetWidth /
                 displayData[Object.keys(displayData)[0]].length
             )
-            // .colors(colors[rasterGain])
+          // .colors(colors[rasterGain])
         )
         .select(".title")
         .text((d, i) => Object.keys(displayData)[i])
@@ -203,7 +262,7 @@ export default function FunctionalMapping() {
     let vals = {};
     Object.keys(displayData).forEach((x, i) => {
       let elec = document.getElementById(`${x}_circle`);
-      if (elec && brainType=="2D") {
+      if (elec && brainType == "2D") {
         if (displayData[x][zedIndex] != 0) {
           vals[x] = displayData[x][zedIndex];
           elec.setAttribute("fill", dotColorScale(displayData[x][zedIndex]));
@@ -215,33 +274,30 @@ export default function FunctionalMapping() {
           elec.setAttribute("fill", "white");
           elec.setAttribute("r", "2.5");
         }
-      }
-      else if(brainType=="3D"){
+      } else if (brainType == "3D") {
         if (displayData[x][zedIndex] != 0) {
-          threeDElectrodes.traverse(child => {
-            if(child instanceof Mesh){
-              if(child.name == x){
-                console.log(child.name)
-                let scaleVal = Math.abs(displayData[x][zedIndex] * 2.5) +1;
-                child.scale.set(scaleVal,scaleVal,scaleVal)
+          threeDElectrodes.traverse((child) => {
+            if (child instanceof Mesh) {
+              if (child.name == x) {
+                console.log(child.name);
+                let scaleVal = Math.abs(displayData[x][zedIndex] * 2.5) + 1;
+                child.scale.set(scaleVal, scaleVal, scaleVal);
                 // child.material.color.r = dotColorScale(displayData[x][zedIndex]).r
                 // let color = dotColorScale(displayData[x][zedIndex]).split("(");
-                child.material.color =new Color(dotColorScale(displayData[x][zedIndex]*4))
+                child.material.color = new Color(
+                  dotColorScale(displayData[x][zedIndex] * 4)
+                );
               }
             }
-
-          })
-          
-        }
-        else{
-          threeDElectrodes.traverse(child => {
-            if(child instanceof Mesh){
-              if(child.name == x){
-                child.scale.set(1,1,1)
+          });
+        } else {
+          threeDElectrodes.traverse((child) => {
+            if (child instanceof Mesh) {
+              if (child.name == x) {
+                child.scale.set(1, 1, 1);
               }
             }
-
-          })
+          });
         }
       }
     });
@@ -278,6 +334,10 @@ export default function FunctionalMapping() {
                 })}
             </div>
           </Col>
+          <Col md={1}>
+          <div id="colorbarDiv"></div>
+          </Col>
+
           <Col>
             {brainType == "2D" ? <Brain_2D></Brain_2D> : <Model></Model>}
           </Col>

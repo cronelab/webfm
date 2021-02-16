@@ -10,11 +10,15 @@ import { extent } from "d3-array";
 import { line } from "d3-shape";
 import {
   highlightBipolarElectrodes,
+  highlightElectrodes,
   createLine,
-} from "../Cortstim/ElectrodeAttributes";
+  create3DLine,
+} from "../../helpers/mutateElectrodes";
+
+import { interpolateYlOrRd } from "d3-scale-chromatic";
 
 export default function EvokedPotentials() {
-  const { brainType, activeRecord, activeSubject } = useContext(Context);
+  const { brainType, activeRecord, activeSubject,threeDElectrodes } = useContext(Context);
   const [height, setHeight] = useState(0);
   const [width, setWidth] = useState(0);
   const [timeWindow, setTimeWindow] = useState({
@@ -26,6 +30,7 @@ export default function EvokedPotentials() {
     elec2: "",
   });
   const [data, setData] = useState();
+  const sleep = (m) => new Promise((r) => setTimeout(r, m));
 
   useEffect(() => {
     (async () => {
@@ -45,28 +50,30 @@ export default function EvokedPotentials() {
   }, []);
 
   useEffect(() => {
-    let stimElec1 = document.getElementById(
-      `${stimulatingElectrodes.elec1}_circle`
-    );
-    let stimElec2 = document.getElementById(
-      `${stimulatingElectrodes.elec2}_circle`
-    );
-    if (stimElec1) {
-      let xPos1 = parseFloat(stimElec1.getAttribute("cx"));
-      let xPos2 = parseFloat(stimElec2.getAttribute("cx"));
-      let yPos1 = parseFloat(stimElec1.getAttribute("cy"));
-      let yPos2 = parseFloat(stimElec2.getAttribute("cy"));
-      let xPos = (xPos1 + xPos2) / 2;
-      let yPos = (yPos1 + yPos2) / 2;
-      stimElec1.setAttribute("fill", "red");
-      stimElec1.setAttribute("cx", xPos.toString());
-      stimElec1.setAttribute("cy", yPos.toString());
-      stimElec1.setAttribute("r", "5");
+    if (brainType == "2D") {
+      let stimElec1 = document.getElementById(
+        `${stimulatingElectrodes.elec1}_circle`
+      );
+      let stimElec2 = document.getElementById(
+        `${stimulatingElectrodes.elec2}_circle`
+      );
+      if (stimElec1) {
+        let xPos1 = parseFloat(stimElec1.getAttribute("cx"));
+        let xPos2 = parseFloat(stimElec2.getAttribute("cx"));
+        let yPos1 = parseFloat(stimElec1.getAttribute("cy"));
+        let yPos2 = parseFloat(stimElec2.getAttribute("cy"));
+        let xPos = (xPos1 + xPos2) / 2;
+        let yPos = (yPos1 + yPos2) / 2;
+        stimElec1.setAttribute("fill", "red");
+        stimElec1.setAttribute("cx", xPos.toString());
+        stimElec1.setAttribute("cy", yPos.toString());
+        stimElec1.setAttribute("r", "5");
+      }
+    } else if (brainType == "3D") {
     }
   }, [stimulatingElectrodes.elec1]);
 
   useEffect(() => {
-    const sleep = (m) => new Promise((r) => setTimeout(r, m));
 
     if (data != undefined) {
       (async () => {
@@ -77,16 +84,9 @@ export default function EvokedPotentials() {
           //@ts-ignore
           .domain([0, data[Object.keys(data)[0]].times.length])
           .range([0, chartContainer.offsetWidth]);
+        await sleep(1000);
 
         Object.keys(data).map((electrode) => {
-          highlightBipolarElectrodes(electrode, "green", 5);
-          console.log(`${activeRecord.split("_")[0]}`);
-          createLine(
-            `${activeRecord.split("_")[0]}`,
-            electrode,
-            "blue",
-            "brainContainer2D"
-          );
           let y = scaleLinear()
             //@ts-ignore
             .domain(extent(data[electrode].times))
@@ -95,9 +95,9 @@ export default function EvokedPotentials() {
           // Sets stimulation onset marker
           select(`#${electrode}_container`)
             .append("line")
-            .attr("x1", x(500))
+            .attr("x1", x(timeWindow.end + timeWindow.start))
             .attr("y1", 0)
-            .attr("x2", x(500))
+            .attr("x2", x(timeWindow.end + timeWindow.start))
             .attr("y2", 40)
             .attr("stroke", "red")
             .attr("stroke-width", "1");
@@ -115,6 +115,42 @@ export default function EvokedPotentials() {
       })();
     }
   }, [data]);
+
+  useEffect(() => {
+    if (data != undefined) {
+      (async () => {
+        //@ts-ignore
+        let maxZscoreArr = Object.values(data).map((x) => x.zscores[1]);
+        let maxZscore = Math.max(...maxZscoreArr);
+        await sleep(1000);
+
+        if (brainType == "2D") {
+          Object.keys(data).map((electrode) => {
+            highlightElectrodes(electrode, "green", 5);
+            // highlightBipolarElectrodes(electrode, "green", 5);
+            createLine(
+              `${activeRecord.split("_")[0]}`,
+              electrode,
+              //@ts-ignore
+              interpolateYlOrRd(data[electrode].zscores[1] / maxZscore),
+              "brainContainer2D"
+            );
+          });
+        } else if (brainType == "3D" && threeDElectrodes) {
+          Object.keys(data).map((electrode) => {
+            create3DLine(
+              `${activeRecord.split("_")[0]}`,
+              electrode,
+              //@ts-ignore
+              interpolateYlOrRd(data[electrode].zscores[1] / maxZscore),
+              threeDElectrodes
+            );
+          });
+        }
+      })();
+    }
+  },[data]);
+
   const containerRef = useRef();
   return (
     <Container fluid>
@@ -177,6 +213,7 @@ export default function EvokedPotentials() {
               })}
           </div>
         </Col>
+        <div id="colorbarDiv"></div>
         <Col>{brainType == "2D" ? <Brain_2D></Brain_2D> : <Model></Model>}</Col>
       </Row>
     </Container>

@@ -160,6 +160,7 @@ const pullRecordHG = async (subject, recordName) => {
 const pullRecordEP = async (subject, recordName, type) => {
   const recReq = await fetch(`/api/data/${type}/${subject}/${recordName}`);
   const data = await recReq.json();
+  console.log(data)
   return data
 }
 

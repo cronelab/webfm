@@ -22,7 +22,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(upload.any());
 
-const PORT = process.env.PORT || 8091;
+const PORT = process.env.PORT || 8090;
 
 let newConfig = merge(config, {
   plugins: [
@@ -41,3 +41,11 @@ app.get("*", (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`Serving on port ${PORT}`));
+
+// docker run --rm -it  -p 8090:8090/tcp thebrainchain/webfm:dev
+
+// aws ecr create-repository --repository-name webfm --region region
+
+// aws ecr get-login-password --region us-east-2 | docker login --username chris --password-stdin 200034152832.dkr.ecr.us-east-2.amazonaws.com
+
+ 

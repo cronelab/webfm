@@ -39,7 +39,7 @@ const infoRoutes = (express) => {
           });
         }
         else {
-          res.sendFile(`nullrecon.jpg`, {
+          res.sendFile(`nullrecon.png`, {
             root: `${dataDir}/`,
           });
         }
