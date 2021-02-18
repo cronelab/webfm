@@ -56,6 +56,7 @@ export default function Brain_2D() {
       setTwoDReconstructionCircles(circles);
     }
   }, [img]);
+	const sleep = m => new Promise(r => setTimeout(r, m));
 
   useEffect(() => {
     (async () => {
@@ -65,6 +66,7 @@ export default function Brain_2D() {
         let anatomy = await fetchAnatomicalLocations(activeSubject);
         if (anatomy != null) setAnatomicalLocations(anatomy);
         setGeometry(geometry);
+        await sleep(1000)
         setImg(brainImage);
       }
     })();

@@ -14,6 +14,7 @@ import Cortstim from "./Components/Modules/Cortstim";
 import HeatMap from "./Components/Modules/HeatMap";
 import ClinicalAnnotation from "./Components/Modules/ClinicalAnnotation";
 import CCSR from './Components/Modules/CCSR'
+import EpilepticAreas from './Components/Modules/EpilepticAreas'
 ReactDOM.render(
   <MyProvider>
     <Router>
@@ -48,6 +49,10 @@ ReactDOM.render(
         <Route exact path="/ep">
           <Header></Header>
           <EvokedPotentials></EvokedPotentials>
+        </Route>
+        <Route exact path="/ea">
+          <Header></Header>
+          <EpilepticAreas></EpilepticAreas>
         </Route>
 
         <Route exact path="/ccsr">

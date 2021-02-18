@@ -7,7 +7,7 @@ export default function Welcome(){
     const history = useHistory();
     return(
         <div onClick={() => history.push('/dashboard')}>
-            <h1 style={{textAlign:"center"}}>Welcome to WeBrain</h1>
+            <h1 style={{textAlign:"center"}}>Welcome to WEBrain</h1>
             <Image fluid src={BrainGif} ></Image>
         </div>
     )

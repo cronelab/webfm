@@ -11,12 +11,8 @@ import Brain_2D from "../BrainContainers/Brain_2D";
 import { Model } from "../BrainContainers/Brain_3D";
 import InputGroup from "react-bootstrap/InputGroup";
 import { SensoryHomunculus, MotorHomunculus } from "./Submodules/Homunculus";
-import { clearElectrodes, createLine } from "../../helpers/mutateElectrodes";
+import { clearElectrodes, createLine, create3DLine } from "../../helpers/mutateElectrodes";
 
-import { Group, Vector3, SphereGeometry, Color } from "three";
-import { LineGeometry } from "../../../node_modules/three/examples/jsm/lines/LineGeometry.js";
-import { LineMaterial } from "../../../node_modules/three/examples/jsm/lines/LineMaterial";
-import { Line2 } from "../../../node_modules/three/examples/jsm/lines/Line2";
 
 export default function Cortstim() {
   const {
@@ -74,28 +70,32 @@ export default function Cortstim() {
   ];
 
   useEffect(() => window.scrollTo(0, 0), []);
+	const sleep = m => new Promise(r => setTimeout(r, m));
 
-  useEffect(() => {
-    (async () => {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      fetchDataFromDB();
-    })();
-  }, []);
+  // useEffect(() => {
+  //   (async () => {
+  //     await new Promise((resolve) => setTimeout(resolve, 500));
+  //     console.log('test')
+  //     fetchDataFromDB();
+  //   })();
+  // }, []);
 
   const fetchDataFromDB = async () => {
     let req = await fetch(`/api/data/cortstim/${activeSubject}`);
     let res = await req.json();
     //@ts-ignore
     let results = res.results;
+    await sleep(1000)
+
     results.forEach((record) => {
       const { electrodes, color } = record;
       let elec1 = electrodes.split("_")[0];
       let elec2 = electrodes.split("_")[1];
       if (brainType == "2D") {
-        createLine(elec1, elec2, color);
+        createLine(elec1, elec2, color,"brainContainer2D");
       }
-      if (brainType == "3D") {
-        create3DLine(elec1, elec2, color);
+      if (brainType == "3D" && threeDElectrodes) {
+        create3DLine(elec1, elec2, color, threeDElectrodes);
       }
     });
   };
@@ -108,49 +108,15 @@ export default function Cortstim() {
   useEffect(() => {
     if (threeDElectrodes) {
       fetchDataFromDB();
+
     }
   }, [threeDElectrodes]);
 
-  const create3DLine = (elec1,elec2,color) => {
-    if (threeDElectrodes) {
-      let lineGroup = new Group();
-      threeDElectrodes.updateMatrixWorld();
-
-      lineGroup.name = "cortstimLine";
-      let stimElec1 = threeDElectrodes.getObjectByName(elec1);
-      let stimElec2 = threeDElectrodes.getObjectByName(elec2);
-      var vector1 = new Vector3();
-      var vector2 = new Vector3();
-      let lineGeom = new LineGeometry();
-      threeDElectrodes.parent.updateMatrixWorld();
-      let elec1Pos = vector1.setFromMatrixPosition(stimElec1.matrixWorld);
-      let elec2Pos = vector2.setFromMatrixPosition(stimElec2.matrixWorld);
-      lineGeom.setPositions([
-        elec1Pos.x,
-        elec1Pos.y,
-        elec1Pos.z,
-        elec2Pos.x,
-        elec2Pos.y,
-        elec2Pos.z,
-      ]);
-      let material = new LineMaterial({
-        //@ts-ignore
-        color: color,
-        linewidth: 0.01,
-      });
-
-      let line = new Line2(lineGeom, material);
-      line.computeLineDistances();
-      line.scale.set(1, 1, 1);
-      lineGroup.add(line);
-      threeDElectrodes.parent.add(lineGroup);
-    }
-  };
   
   useEffect(()=>{
     (async () => {
+      await new Promise((resolve) => setTimeout(resolve, 500));
       fetchDataFromDB();
-
     })()
   },[brainType])
 
@@ -235,15 +201,17 @@ export default function Cortstim() {
                               createLine(
                                 activeElec1,
                                 activeElec2,
-                                taskColors[i]
+                                taskColors[i],
+                                "brainContainer2D"
                               );
                             }
-                            if (brainType == "3D") {
+                            if (brainType == "3D" && threeDElectrodes) {
+
                               create3DLine(
                                 activeElec1,
                                 activeElec2,
-                                taskColors[i]
-
+                                taskColors[i],
+                                threeDElectrodes
                               );
                             }
                           }}
@@ -345,6 +313,7 @@ export default function Cortstim() {
                           setTypeOfEffect("Effect");
                           setHomunculusSelection();
                           fetchDataFromDB();
+                          console.log('a')
                           setCortstimNotes("Type in some notes");
                           setLeftOrRight(undefined);
                         })
@@ -378,6 +347,8 @@ export default function Cortstim() {
                           setTypeOfEffect("Effect");
                           setHomunculusSelection();
                           fetchDataFromDB();
+                          console.log('b')
+
                           setCortstimNotes("Type in some notes");
                           setLeftOrRight(undefined);
                         })
@@ -405,6 +376,8 @@ export default function Cortstim() {
                     setTypeOfEffect("Effect");
                     setHomunculusSelection();
                     fetchDataFromDB();
+                    console.log('c')
+
                     setCortstimNotes("Type in some notes");
                     setLeftOrRight(undefined);
                   }}

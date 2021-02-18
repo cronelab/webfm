@@ -6,14 +6,14 @@ import React, {
   Suspense,
   useEffect,
 } from "react";
-import { OrthographicCamera, OrbitControls } from "drei";
+import { OrthographicCamera, OrbitControls } from "@react-three/drei";
 
 import { Context } from "../../Context";
-
+import {fetchAnatomicalLocations} from "../../helpers/pullAnatomicalData"
 import { useLoader, Canvas, useFrame } from "react-three-fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { Mesh, Color } from "three";
-import { ControlsProvider, Controls, useControl } from "react-three-gui";
+import { withControls , Controls, useControl } from "react-three-gui";
 
 function Brain_3D(props) {
   let first = true;
@@ -39,17 +39,22 @@ function Brain_3D(props) {
   );
 
   const [labels, setLabels] = useState([]);
-  fetch(`/api/anatomy/${props.activeSubject}`)
-    .then((response) => response.json())
-    .then((text) => {
-      let data = text.map(element => {
-        return {
-          name: element[0],
-          location: element[4]
-        }
-      })
-      setLabels(data)
-    });
+  useEffect(() => {
+    (async() => {
+      let anatomy = await fetchAnatomicalLocations(props.activeSubject);
+      if (anatomy != null) {
+          let data = anatomy.map((element) => {
+            return {
+              name: element[0],
+              location: element[4],
+            };
+          });
+          setLabels(data)          
+      }
+    })()
+  },[])
+
+
 
   const { Electrodes } = electrodes.nodes;
   props.setThreeDElectrodes(Electrodes);
@@ -277,7 +282,7 @@ export function Model(props) {
   const { activeSubject, setThreeDElectrodes } = useContext(Context);
 
   return (
-    <ControlsProvider>
+    <withControls >
       <Canvas
         style={{ backgroundColor: "black" }}
         color={"black"}
@@ -295,7 +300,7 @@ export function Model(props) {
           ></Brain_3D>
         </Suspense>
       </Canvas>
-      <Controls title="Patient #" anchor="bottom_right"/>
-    </ControlsProvider>
+      <Controls title="Patient #" anchor="bottom_right" />
+    </withControls >
   );
 }

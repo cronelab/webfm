@@ -22,16 +22,16 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(upload.any());
 
-const PORT = process.env.PORT || 8091;
+const PORT = process.env.PORT || 8090;
 
-let newConfig = merge(config, {
-  plugins: [
-    new webpack.optimize.OccurrenceOrderPlugin(true),
-    new webpack.HotModuleReplacementPlugin(),
-  ],
-});
+// let newConfig = merge(config, {
+//   plugins: [
+//     // new webpack.optimize.OccurrenceOrderPlugin(true),
+//     new webpack.HotModuleReplacementPlugin(),
+//   ],
+// });
 
-const compiler = webpack(newConfig);
+const compiler = webpack(config);
 app.use(webpackDevMiddleware(compiler));
 app.use("/", routes(express));
 app.use("/", infoRoutes(express));
@@ -41,3 +41,4 @@ app.get("*", (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`Serving on port ${PORT}`));
+ 
