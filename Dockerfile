@@ -1,7 +1,9 @@
-FROM node:14.4
+FROM node:latest
 
 WORKDIR /webfm
 COPY ./package*.json ./
 RUN npm ci
-EXPOSE 8564 8564
+EXPOSE 8090
 ENV NODE_ENV "production"
+RUN npm run build
+# CMD [ "npm", "run", "start" ]

@@ -31,14 +31,17 @@ const PORT = process.env.PORT || 8090;
 //   ],
 // });
 
-const compiler = webpack(config);
-app.use(webpackDevMiddleware(compiler));
+// const compiler = webpack(config);
+// app.use(webpackDevMiddleware(compiler));
 app.use("/", routes(express));
 app.use("/", infoRoutes(express));
 app.use("/", dataRoutes(express));
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "dist", "index.html"));
-});
+// app.get("*", (req, res) => {
+//   res.sendFile(path.join(__dirname, "dist", "index.html"));
+// });
+
+app.use(express.static(path.join(__dirname, 'dist')));
+
 
 app.listen(PORT, () => console.log(`Serving on port ${PORT}`));
  

@@ -3,7 +3,8 @@ import fs from "fs";
 import parse from "csv-parse/lib/sync.js";
 
 let __dirname = path.resolve(path.dirname(""));
-let dataDir = process.env.dataDir || "../../data/";
+let dataDir = process.env.dataDir || "/webfm/data/";
+console.log(dataDir)
 
 const infoRoutes = (express) => {
   const router = express.Router();
@@ -32,6 +33,7 @@ const infoRoutes = (express) => {
   router.get("/api/brain/2D/:subject", (req, res) => {
     let subject = req.params.subject;
     fs.readdir(dataDir, (err, subjects) => {
+      if (subjects != undefined) {
       if (subjects.indexOf(subject) > -1) {
         if (fs.existsSync(`${dataDir}/${subject}/info/reconstruction.jpg`)) {
           res.sendFile(`reconstruction.jpg`, {
@@ -46,6 +48,7 @@ const infoRoutes = (express) => {
       } else {
         res.status(204).end();
       }
+    }
     });
   });
 

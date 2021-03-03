@@ -1,12 +1,11 @@
 import path from "path";
 import HtmlWebpackPlugin from "html-webpack-plugin";
-import CleanWebpackPlugin from "clean-webpack-plugin";
-
-import TerserPlugin from "terser-webpack-plugin";
-
+import { CleanWebpackPlugin } from "clean-webpack-plugin";
 import WriteFilePlugin from "write-file-webpack-plugin";
 let __dirname = path.resolve(path.dirname(""));
+// import TerserPlugin from "terser-webpack-plugin";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
+// import NodePolyfillPlugin from 'node-polyfill-webpack-plugin';
 const devMode = process.env.NODE_ENV !== "production";
 
 const module = {
@@ -15,18 +14,17 @@ const module = {
   entry: {
     main: "./src/index.tsx",
   },
-
-  node: {
-    fs: "empty",
-  },
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".jsx"],
+    fallback: {
+      fs: false,
+    },
   },
   module: {
     rules: [
       {
         test: /\.(png|jpe?g|gif|fbx|glb|gltf|nii|mgz)$/i,
-        loader: "file-loader",
+        type: "asset/resource",
       },
       {
         test: /\.worker\.ts$/,
@@ -44,20 +42,20 @@ const module = {
       {
         test: /\.js|jsx$/,
         exclude: /node_modules/,
-        loader: "babel-loader",
-        options: {
-          presets: ["@babel/preset-env", "@babel/preset-react"],
-          plugins: [
-            "@babel/plugin-syntax-dynamic-import",
-            "@babel/plugin-transform-modules-commonjs",
-            "@babel/plugin-transform-runtime",
-            "@babel/plugin-proposal-class-properties",
-            "@babel/plugin-proposal-export-default-from",
-          ],
-          cacheDirectory: true,
+        use: {
+          loader: "babel-loader",
+          options: {
+            presets: ["@babel/preset-env", "@babel/preset-react"],
+            plugins: [
+              "@babel/plugin-syntax-dynamic-import",
+              "@babel/plugin-transform-modules-commonjs",
+              "@babel/plugin-transform-runtime",
+              "@babel/plugin-proposal-class-properties",
+              "@babel/plugin-proposal-export-default-from",
+            ],
+          },
         },
       },
-
       {
         test: /\.(sa|sc|c)ss$/,
         use: [
@@ -81,12 +79,13 @@ const module = {
       },
     ],
   },
-  optimization: {
-    minimizer: [new TerserPlugin({})],
-  },
+  // optimization: {
+  //   minimizer: [new TerserPlugin({})],
+  // },
 
   plugins: [
-    new CleanWebpackPlugin.CleanWebpackPlugin(),
+    // new NodePolyfillPlugin(),
+    new CleanWebpackPlugin(),
     new WriteFilePlugin(),
     new MiniCssExtractPlugin({
       filename: "[name].css",
@@ -95,13 +94,13 @@ const module = {
     new HtmlWebpackPlugin({
       template: "./src/index.html",
       filename: "index.html",
-      hash: true,
+      fullhash: true,
       chunks: ["main"],
     }),
   ],
   output: {
+    filename: "[name].bundle.js",
     path: path.resolve(__dirname, "dist"),
-    filename: "[name].[hash].js",
     globalObject: `typeof self !== 'undefined' ? self : this`,
     publicPath: "/",
   },

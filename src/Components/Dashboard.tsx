@@ -31,10 +31,9 @@ export default function Dashboard() {
         let _hgRecords = await fetch(`/api/records/HG/${activeSubject}`);
         let _epRecords = await fetch(`/api/records/EP/${activeSubject}`);
         let _ccsrRecords = await fetch(`/api/records/CCSR/${activeSubject}`);
-        let _eaRecord = await fetch(`/api/data/epilepsy/${activeSubject}`)
-        let eaRecords = await _eaRecord.json();
+        let _eaRecords = await fetch(`/api/data/epilepsy/${activeSubject}`)
 
-        let hgRecords, epRecords, ccsrRecords;
+        let hgRecords, epRecords, ccsrRecords,eaRecords;
         if (_hgRecords.status == 200) {
           hgRecords = await _hgRecords.json();
         } else {
@@ -50,6 +49,11 @@ export default function Dashboard() {
           ccsrRecords = await _ccsrRecords.json();
         } else {
           ccsrRecords = [];
+        }
+        if (_eaRecords.status == 200) {
+          eaRecords = await _eaRecords.json();
+        } else {
+          eaRecords = [];
         }
         setRecords({ hg: hgRecords, ep: epRecords, ccsr: ccsrRecords, ea: eaRecords });
       }

@@ -1,5 +1,5 @@
 import fs from "fs";
-let dataDir = process.env.dataDir || "../data/";
+let dataDir = process.env.dataDir || "/webfm/data/";
 
 const dataRoutes = (express) => {
   const router = express.Router();
@@ -214,6 +214,8 @@ const dataRoutes = (express) => {
         `${dataDir}/${patientID}/data/Epilepsy/test.json`
       );
       res.send(JSON.parse(fileData))
+    }else {
+      res.status(204).end();
     }
   })
 

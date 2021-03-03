@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
-import { dotColorScale } from "../../helpers/mutateElectrodes";
-import { Mesh, Color,MeshPhysicalMaterial } from "three";
+// import { dotColorScale } from "../../helpers/mutateElectrodes";
+import { Mesh, Color } from "three";
 
 import { Model } from "../BrainContainers/Brain_3D";
 import { Context } from "../../Context";

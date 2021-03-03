@@ -16,7 +16,7 @@ import {
 } from "../../helpers/mutateElectrodes";
 import Button from "react-bootstrap/Button";
 import { Mesh, Color, Material, MeshPhysicalMaterial } from "three";
-import parse from "csv-parse/lib/sync";
+// import parse from "csv-parse/lib/sync";
 
 import { Info } from "react-bootstrap-icons";
 
@@ -175,7 +175,7 @@ export default function CortstimHeader() {
 
     reader.onload = function () {
       //@ts-ignore
-      let data = parse(reader.result, { delimiter: ",", columns: true, from_line: 2  }).map((element) => element);
+      // let data = parse(reader.result, { delimiter: ",", columns: true, from_line: 2  }).map((element) => element);
       console.log(data)
     };
 

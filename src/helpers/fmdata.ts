@@ -106,7 +106,7 @@ class fmdata {
   }
 
   public ingest(trialData: any) {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       var dataset = this;
 
       Object.keys(this._channelStats).forEach((ch) =>
@@ -187,7 +187,7 @@ class fmdata {
     var dataset = this;
     dataset._clean = true;
     let { values, stats, trials } = data.contents;
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       if (values === undefined && stats === undefined && trials === undefined) {
         reject("Loaded dataset lacks content.");
         return;
