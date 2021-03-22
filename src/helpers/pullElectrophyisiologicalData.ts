@@ -110,7 +110,7 @@ const pullRecordHG = async (subject, recordName) => {
   let tValues = times.map((x, i) => num[i] / den[i]);
 
   let pVals = {
-    values:[],
+    values: [],
     indices: []
   }
   tValues.forEach((tval, i) => {
@@ -119,7 +119,7 @@ const pullRecordHG = async (subject, recordName) => {
   });
   // pVal.sort((a,b) => a-b)
   let sortResult = pVals.values.sort(function (a, b) {
-    if(a.value - b.value){
+    if (a.value - b.value) {
       return a
     }
     return b;

@@ -1,56 +1,59 @@
 import {
-  NavItem,
-  Modal,
-  Row,
-  Col,
-  Table,
-  OverlayTrigger,
-  Tab,
-  FormGroup,
-  Form,
-  Nav,
-  Popover,
-  Tooltip
-} from "react-bootstrap";
-import React, { useState } from "react";
+    NavItem,
+    Modal,
+    Row,
+    Col,
+    Table,
+    OverlayTrigger,
+    Tab,
+    FormGroup,
+    Form,
+    Nav,
+    Popover,
+    Tooltip,
+} from 'react-bootstrap'
+import React, { useState } from 'react'
 
-const MapModals = props => {
-  const [clicked, click] = useState(props.clicked);
+const MapModals = (props) => {
+    const [clicked, click] = useState(props.clicked)
 
-  const popover = (
-    <Popover id="modal-popover" title="popover">
-      very popover. such engagement
-    </Popover>
-  );
-  const tooltip = <Tooltip id="modal-tooltip">wow.</Tooltip>;
+    const popover = (
+        <Popover id="modal-popover" title="popover">
+            very popover. such engagement
+        </Popover>
+    )
+    const tooltip = <Tooltip id="modal-tooltip">wow.</Tooltip>
 
-  const _handleClick = () => {
-    console.log(tooltip);
-    console.log(clicked);
-    click(false);
-  };
-  return (
-    <div>
-      {/* <Button onClick={console.log(this.state.clicked)}>d</Button> */}
+    const _handleClick = () => {
+        console.log(tooltip)
+        console.log(clicked)
+        click(false)
+    }
+    return (
+        <div>
+            {/* <Button onClick={console.log(this.state.clicked)}>d</Button> */}
 
-      <Modal
-        show={clicked}
-        onHide={_handleClick.bind(this)}
-        id="fm-options-modal"
-        // tabindex="-1"
-        role="dialog"
-        aria-labelledby="fmOptionsModal"
-      >
-        <Modal.Header closeButton>
-          <Modal.Title id="fmOptionsModal">
-            Options, Tools, &amp; Goodies
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Tab.Container id="left-tabs-example" defaultActiveKey="first">
-            <Row className="clearfix">
-              <Col sm={3}>
-                {/* <Nav bsStyle="pills" stacked className="fm-options-tab-list">
+            <Modal
+                show={clicked}
+                onHide={_handleClick.bind(this)}
+                id="fm-options-modal"
+                // tabindex="-1"
+                role="dialog"
+                aria-labelledby="fmOptionsModal"
+            >
+                <Modal.Header closeButton>
+                    <Modal.Title id="fmOptionsModal">
+                        Options, Tools, &amp; Goodies
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Tab.Container
+                        id="left-tabs-example"
+                        defaultActiveKey="first"
+                    >
+                        <Row className="clearfix">
+                            <Col sm={3}>
+                                {/* <Nav bsStyle="pills" stacked className="fm-options-tab-list">
                   <NavItem href="#fm-options-content-options" eventKey="first">
                     <Glyphicon glyph="wrench" style={{ color: "#000" }}>
                       &emsp;Options
@@ -87,10 +90,10 @@ const MapModals = props => {
                     </Glyphicon>
                   </NavItem>
                 </Nav> */}
-              </Col>
-              <Col sm={9}>
-                <Tab.Content>
-                  {/* <Tab.Pane eventKey="first" id="fm-options-content-options">
+                            </Col>
+                            <Col sm={9}>
+                                <Tab.Content>
+                                    {/* <Tab.Pane eventKey="first" id="fm-options-content-options">
                     <h3 style={{ "marginTop": "6px" }}>Timing</h3>
                     <p>
                       Set the windows used for clipping data relative to events,
@@ -492,8 +495,8 @@ const MapModals = props => {
                     </Table>
 
                     {/* </div> */}
-                  {/* </Tab.Pane> */}
-                  {/* <Tab.Pane eventKey="three" id="fm-options-content-scope">
+                                    {/* </Tab.Pane> */}
+                                    {/* <Tab.Pane eventKey="three" id="fm-options-content-scope">
                     <h3 style={{ "margin-top": "6px" }}>Scope</h3>
 
                     <p>
@@ -635,13 +638,13 @@ const MapModals = props => {
                       </ul>
                     </p>
                   </Tab.Pane>*/}
-                </Tab.Content>
-              </Col>
-            </Row>
-          </Tab.Container>
-        </Modal.Body>
-      </Modal>
-    </div>
-  );
-};
-export default MapModals;
+                                </Tab.Content>
+                            </Col>
+                        </Row>
+                    </Tab.Container>
+                </Modal.Body>
+            </Modal>
+        </div>
+    )
+}
+export default MapModals

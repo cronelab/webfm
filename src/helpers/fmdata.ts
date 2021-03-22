@@ -307,7 +307,7 @@ class fmdata {
     for (var i = 0; i < nTimes; i++) {
       newTimes.push(
         timeWindow.start +
-          (i / (nTimes - 1)) * (timeWindow.end - timeWindow.start)
+        (i / (nTimes - 1)) * (timeWindow.end - timeWindow.start)
       );
     }
     this.contents.times = newTimes;
@@ -376,12 +376,12 @@ class Gaussian {
     this.mean = mu;
     this.variance = s2;
     this.count = n;
-    
+
     this._m2 =
       this.count > 1 && this.variance !== undefined
         ? this.variance * (this.count - 1)
         : undefined;
-        
+
   }
 
   ingest(datum: any) {
@@ -485,22 +485,22 @@ class ChannelStat {
       t *
       Math.exp(
         -z * z -
-          1.26551223 +
+        1.26551223 +
+        t *
+        (1.00002368 +
           t *
-            (1.00002368 +
+          (0.37409196 +
+            t *
+            (0.09678418 +
               t *
-                (0.37409196 +
+              (-0.18628806 +
+                t *
+                (0.27886807 +
                   t *
-                    (0.09678418 +
-                      t *
-                        (-0.18628806 +
-                          t *
-                            (0.27886807 +
-                              t *
-                                (-1.13520398 +
-                                  t *
-                                    (1.48851587 +
-                                      t * (-0.82215223 + t * 0.17087277))))))))
+                  (-1.13520398 +
+                    t *
+                    (1.48851587 +
+                      t * (-0.82215223 + t * 0.17087277))))))))
       );
     return x >= 0 ? r : 2 - r;
   }
@@ -559,7 +559,7 @@ class ChannelStat {
       // Don't include value's variance if it is singular
       let den = Math.sqrt(
         stat.baseline.variance / stat.baseline.count +
-          (v.variance === undefined ? 0.0 : v.variance / v.count)
+        (v.variance === undefined ? 0.0 : v.variance / v.count)
       );
 
       return num / den;

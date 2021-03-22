@@ -6,7 +6,7 @@ import { LineGeometry } from "../../node_modules/three/examples/jsm/lines/LineGe
 import { LineMaterial } from "../../node_modules/three/examples/jsm/lines/LineMaterial";
 import { Line2 } from "../../node_modules/three/examples/jsm/lines/Line2";
 import { Group, Vector3, SphereGeometry, Color } from "three";
-import {scaleLinear} from 'd3-scale'
+import { scaleLinear } from 'd3-scale'
 
 const highlight2DElectrodes = (electrode, color, size?) => {
   let circle = document.getElementById(`${electrode}_circle`);
@@ -138,8 +138,8 @@ const createShape = (electrode1, electrode2) => {
     .y((d) => d.y);
   //   .interpolate("linear-closed"),
   let rad = function (deg) {
-      return (deg * Math.PI) / 180;
-    },
+    return (deg * Math.PI) / 180;
+  },
     cos = function (deg) {
       return Math.cos(rad(deg));
     },
@@ -223,7 +223,7 @@ const create3DLine = (elec1, elec2, color, threeDElectrodes) => {
   lineGroup.add(line);
   threeDElectrodes.parent.add(lineGroup);
 };
-  let dotColorScale = scaleLinear()
+let dotColorScale = scaleLinear()
   //@ts-ignore
   .domain([-9, -5, -2, -0.01, 0.0, 0.01, 2, 5, 9])
   //@ts-ignore

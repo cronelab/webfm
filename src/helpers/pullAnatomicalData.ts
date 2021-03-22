@@ -41,7 +41,7 @@ const fetchAnnotations = async (subject) => {
 
 const fetchAnatomicalLocations = async (subject) => {
   let response = await fetch(`/api/anatomy/${subject}`);
-  let _response =null;
+  let _response = null;
   if (response.status != 204) {
     _response = await response.json();
   }
