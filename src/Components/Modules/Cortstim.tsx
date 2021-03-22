@@ -36,7 +36,7 @@ export default function Cortstim() {
     } = useContext(Context)
     const [typeOfTask, setTypeOfTask] = useState('Task description')
     const [typeOfStim, setTypeOfStim] = useState('Task or no task')
-    const [leftOrRight, setLeftOrRight] = useState()
+    const [leftOrRight, setLeftOrRight] = useState('')
     const [color, setColor] = useState('')
     const [typeOfEffect, setTypeOfEffect] = useState('Effect')
     const [tasks, setTasks] = useState([

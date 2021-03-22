@@ -34,7 +34,7 @@ export default function EvokedPotentials() {
         elec1: '',
         elec2: '',
     })
-    const [data, setData] = useState()
+    const [data, setData] = useState([])
     const sleep = (m) => new Promise((r) => setTimeout(r, m))
 
     useEffect(() => {

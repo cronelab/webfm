@@ -1,5 +1,5 @@
-data/PY20N012
-data/Frontiersin_YW_Patient_2
+data/
+!data/Frontiers*
 node_modules/
 dist/
 migration/

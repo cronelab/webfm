@@ -10,21 +10,6 @@ services:
         environment:
             - dataDir=/webfm/data
             - PORT=8564
-        volumes:
-            - /mnt/user/Data/Projects/Work/webfm:/webfm
-            # - ./data:/webfm/data
-            # - ./src:/webfm/src
-            # - ./docs:/webfm/docs
-            # - ./server:/webfm/server
+        # volumes:
+        #     - /mnt/user/Data/Projects/Work/webfm:/webfm
         tty: true
-
-    # vizualizer:
-    #   image: neuroseek/recon_visualizer
-    #   ports:
-    #     - "80:80"
-    #   environment:
-    #     - SUBJECTS_DIR=/data/Frontiersin-YW-Patient-5/info
-    #     - SUBJECT=Frontiersin-YW-Patient-5
-    #     - PORT=80
-    #   volumes:
-    #     - ./data:/data

@@ -161,12 +161,12 @@ export function HeatMap() {
                                     key={`${name}_text`}
                                     style={{ font: '8px' }}
                                     //@ts-ignore
-                                    y={
-                                        (i *
-                                            document.getElementById('mapHolder')
-                                                .height.baseVal.value) /
-                                        Object.keys(data).length
-                                    }
+                                    // y={
+                                    //     (i *
+                                    //         document.getElementById('mapHolder')
+                                    //             .height.baseVal.value) /
+                                    //     Object.keys(data).length
+                                    // }
                                 >
                                     {name}
                                 </text>
