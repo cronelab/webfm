@@ -1,18 +1,30 @@
 version: "3"
 services:
   webfm:
-    container_name: web_fm
+    # container_name: web_fm
     build:
       context: .
       dockerfile: ./Dockerfile
     ports:
-      - "8090:8090"
+      - "8564:8564"
     environment: 
     - dataDir=/webfm/data
-    - PORT=8090
+    - PORT=8564
     volumes:
-      - ./data:/webfm/data
-      - ./src:/webfm/src
-      - ./docs:/webfm/docs
-      - ./server:/webfm/server
+      - /mnt/user/Data/Projects/Work/webfm:/webfm
+      # - ./data:/webfm/data
+      # - ./src:/webfm/src
+      # - ./docs:/webfm/docs
+      # - ./server:/webfm/server
     tty: true
+
+  # vizualizer:
+  #   image: neuroseek/recon_visualizer
+  #   ports:
+  #     - "80:80"
+  #   environment: 
+  #     - SUBJECTS_DIR=/data/Frontiersin-YW-Patient-5/info
+  #     - SUBJECT=Frontiersin-YW-Patient-5
+  #     - PORT=80
+  #   volumes:
+  #     - ./data:/data

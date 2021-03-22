@@ -14,6 +14,7 @@ import { useLoader, Canvas, useFrame } from "react-three-fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { Mesh, Color } from "three";
 import { withControls , Controls, useControl } from "react-three-gui";
+import { Canvas } from "react-three-fiber";
 
 function Brain_3D(props) {
   let first = true;
@@ -280,10 +281,11 @@ function Brain_3D(props) {
 
 export function Model(props) {
   const { activeSubject, setThreeDElectrodes } = useContext(Context);
+  const YourCanvas = withControls(Canvas);
 
   return (
-    <withControls >
-      <Canvas
+    <Controls.Provider>
+      <YourCanvas
         style={{ backgroundColor: "black" }}
         color={"black"}
         colorManagement
@@ -299,8 +301,8 @@ export function Model(props) {
             position={[0, 0, 0]}
           ></Brain_3D>
         </Suspense>
-      </Canvas>
+      </YourCanvas>
       <Controls title="Patient #" anchor="bottom_right" />
-    </withControls >
+      </Controls.Provider>
   );
 }
