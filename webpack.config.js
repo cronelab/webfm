@@ -1,6 +1,6 @@
 import path from "path";
 import HtmlWebpackPlugin from "html-webpack-plugin";
-import { CleanWebpackPlugin } from "clean-webpack-plugin";
+import CleanWebpackPlugin from "clean-webpack-plugin";
 import WriteFilePlugin from "write-file-webpack-plugin";
 let __dirname = path.resolve(path.dirname(""));
 // import TerserPlugin from "terser-webpack-plugin";
@@ -85,7 +85,7 @@ const module = {
 
   plugins: [
     // new NodePolyfillPlugin(),
-    new CleanWebpackPlugin(),
+    new CleanWebpackPlugin.CleanWebpackPlugin(),
     new WriteFilePlugin(),
     new MiniCssExtractPlugin({
       filename: "[name].css",

@@ -78,9 +78,6 @@
     "three": "^0.126.1",
     "transform": "^1.1.2",
     "ts-loader": "^8.0.17",
-    "typescript": "^4.2.2",
-    "webpack": "^5.24.2",
-    "webpack-cli": "^4.5.0",
     "webpack-dev-middleware": "^4.1.0",
     "webpack-merge": "^5.7.3",
     "write-file-webpack-plugin": "^4.5.1"
@@ -97,6 +94,11 @@
     "eslint-plugin-prettier": "^3.3.1",
     "eslint-plugin-react": "^7.22.0",
     "eslint-plugin-react-hooks": "^4.2.0",
-    "prettier": "^2.2.1"
+    "prettier": "^2.2.1",
+    "style-loader": "^2.0.0",
+    "typedoc": "^0.20.33",
+    "typescript": "^4.2.3",
+    "webpack": "^5.27.2",
+    "webpack-cli": "^4.5.0"
   }
 }
