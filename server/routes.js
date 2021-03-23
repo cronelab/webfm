@@ -27,10 +27,10 @@ const routes = (express) => {
     "/docs_server",
     express.static(path.join(__dirname, "/docs", "/build"))
   );
-  // router.use(
-  //   "/docs_src",
-  //   express.static(path.join(__dirname, "/docs", "/srcdoc"))
-  // );
+  router.use(
+    "/docs",
+    express.static(path.join(__dirname, "/docs", "/build"))
+  );
 
   router.use("/api-docs", swaggerUi.serve);
   router.get("/api-docs", swaggerUi.setup(swaggerDocument));

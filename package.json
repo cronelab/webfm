@@ -7,7 +7,6 @@
     "start": "node --experimental-json-modules server/server.js",
     "dev": "nodemon --experimental-json-modules server/server.js",
     "docs:json": "typedoc --json docs/srcdoc.json --mode modules",
-    "docs:server": "rm -r docs/build && sphinx-build -b html docs/source docs/build",
     "build": "webpack --config webpack.config.js"
   },
   "nodemonConfig": {
