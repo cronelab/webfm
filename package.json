@@ -75,7 +75,7 @@
     "sass-loader": "^11.0.1",
     "stream": "0.0.2",
     "swagger-ui-express": "^4.1.6",
-    "three": "^0.126.1",
+    "three": "^0.137.0",
     "transform": "^1.1.2",
     "ts-loader": "^8.0.17",
     "webpack-dev-middleware": "^4.1.0",
