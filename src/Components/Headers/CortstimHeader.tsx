@@ -232,9 +232,10 @@ export default function CortstimHeader() {
                                         }
                                         if (brainType == '3D') {
                                             //@ts-ignore
-                                            let child = threeDElectrodes.getObjectByName(
-                                                name
-                                            )
+                                            let child =
+                                                threeDElectrodes.getObjectByName(
+                                                    name
+                                                )
                                             let newMat = child.material.clone()
                                             newMat.color = new Color('red')
                                             child.material = newMat
@@ -268,9 +269,10 @@ export default function CortstimHeader() {
                                             )
                                         }
                                         if (brainType == '3D') {
-                                            let child = threeDElectrodes.getObjectByName(
-                                                name
-                                            )
+                                            let child =
+                                                threeDElectrodes.getObjectByName(
+                                                    name
+                                                )
                                             let newMat = child.material.clone()
                                             newMat.color = new Color('red')
                                             child.material = newMat

@@ -15,9 +15,8 @@ export const MyProvider = (props: any) => {
 
     const [rasterSize, setRasterSize] = useState(1)
     const [rasterGain, setRasterGain] = useState(3)
-    const [twoDReconstructionCircles, setTwoDReconstructionCircles] = useState(
-        null
-    )
+    const [twoDReconstructionCircles, setTwoDReconstructionCircles] =
+        useState(null)
     const [threeDScene, setThreeDScene] = useState()
     const [homunculusSelection, setHomunculusSelection] = useState()
     const [threeDElectrodes, setThreeDElectrodes] = useState()

@@ -10,9 +10,8 @@ import { selectAll, select, mouse } from 'd3-selection'
 import * as horizon from 'd3-horizon-chart'
 
 export default function CCSR() {
-    const { brainType, activeRecord, activeSubject, rasterSize } = useContext(
-        Context
-    )
+    const { brainType, activeRecord, activeSubject, rasterSize } =
+        useContext(Context)
     const [height, setHeight] = useState(0)
     const [width, setWidth] = useState(0)
 

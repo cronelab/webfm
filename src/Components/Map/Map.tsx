@@ -20,9 +20,8 @@ import { extent } from 'd3-array'
 import * as horizon from 'd3-horizon-chart'
 
 export const Map = () => {
-    const { subject, setNewSubject, setNewRecord, bci, setBCI } = useContext(
-        Context
-    )
+    const { subject, setNewSubject, setNewRecord, bci, setBCI } =
+        useContext(Context)
     const [clicked, click] = useState(false)
 
     let bciSourceConnection = new BCI2K.bciData()

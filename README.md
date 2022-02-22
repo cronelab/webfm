@@ -128,8 +128,8 @@ Example:
 
 ```json
 {
-  "brainImage": "./PYXXNXXX-Brain.png",
-  "sensorGeometry": "./PYXXNXXX-Sensors.csv"
+    "brainImage": "./PYXXNXXX-Brain.png",
+    "sensorGeometry": "./PYXXNXXX-Sensors.csv"
 }
 ```
 
@@ -183,8 +183,8 @@ Example:
 
 ```json
 {
-  "task": "PictureNaming",
-  "stimulusType": "animals"
+    "task": "PictureNaming",
+    "stimulusType": "animals"
 }
 ```
 
@@ -209,8 +209,8 @@ Example:
 
 ```json
 {
-  "start": -0.8,
-  "end": -0.2
+    "start": -0.8,
+    "end": -0.2
 }
 ```
 
@@ -326,7 +326,7 @@ Example:
 
 ```json
 {
-  "stimulusCode": 0
+    "stimulusCode": 0
 }
 ```
 

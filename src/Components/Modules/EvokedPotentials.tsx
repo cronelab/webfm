@@ -18,12 +18,8 @@ import {
 import { interpolateYlOrRd } from 'd3-scale-chromatic'
 
 export default function EvokedPotentials() {
-    const {
-        brainType,
-        activeRecord,
-        activeSubject,
-        threeDElectrodes,
-    } = useContext(Context)
+    const { brainType, activeRecord, activeSubject, threeDElectrodes } =
+        useContext(Context)
     const [height, setHeight] = useState(0)
     const [width, setWidth] = useState(0)
     const [timeWindow, setTimeWindow] = useState({

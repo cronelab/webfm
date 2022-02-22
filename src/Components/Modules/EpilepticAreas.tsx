@@ -10,12 +10,8 @@ import Table from 'react-bootstrap/Table'
 import Col from 'react-bootstrap/Col'
 import ListGroup from 'react-bootstrap/ListGroup'
 export default function EpilepticAreas() {
-    const {
-        brainType,
-        activeRecord,
-        setActiveRecord,
-        threeDElectrodes,
-    } = useContext(Context)
+    const { brainType, activeRecord, setActiveRecord, threeDElectrodes } =
+        useContext(Context)
     const [labels, setLabels] = useState({})
     useEffect(() => {
         // setLabels()

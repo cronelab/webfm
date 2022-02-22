@@ -44,16 +44,18 @@ export default function EP_Matrices() {
                                                     let res = await fetch(
                                                         `/api/data/PY20N012/ccepPics/matrix/${type}`
                                                     )
-                                                    let matrIm = await res.arrayBuffer()
+                                                    let matrIm =
+                                                        await res.arrayBuffer()
                                                     let binary = ''
                                                     let bytes = [].slice.call(
                                                         new Uint8Array(matrIm)
                                                     )
                                                     bytes.forEach(
                                                         (b: any) =>
-                                                            (binary += String.fromCharCode(
-                                                                b
-                                                            ))
+                                                            (binary +=
+                                                                String.fromCharCode(
+                                                                    b
+                                                                ))
                                                     )
                                                     setImage(binary)
                                                 }}
