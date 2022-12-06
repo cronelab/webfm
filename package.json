@@ -54,7 +54,7 @@
     "d3-selection": "^2.0.0",
     "d3-shape": "^2.0.0",
     "d3fc": "^15.1.2",
-    "express": "^4.17.1",
+    "express": "^4.18.2",
     "file-loader": "^6.2.0",
     "gaussian": "^1.2.0",
     "html-webpack-plugin": "^5.2.0",
