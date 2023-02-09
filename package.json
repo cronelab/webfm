@@ -2,22 +2,24 @@
   "name": "webfm",
   "version": "1.0.0",
   "description": "A web-based functional mapping utility.",
-  "main": "webfm.js",
+  "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Max Collard <collard@jhu.edu>",
   "license": "SEE LICENSE IN LICENSE.md",
   "dependencies": {
-    "async": "^2.1.4",
-    "asyncjs": "0.0.10",
-    "body-parser": "^1.15.2",
-    "ejs": "^2.5.1",
-    "express": "^4.14.0",
-    "formidable": "^1.0.17",
+    "async": "^2.6.1",
+    "body-parser": "^1.18.3",
+    "cryptiles": "^4.1.2",
+    "express": "^4.16.3",
+    "formidable": "^1.2.1",
+    "http": "0.0.0",
+    "https": "^1.0.0",
     "jsonfile": "^2.4.0",
-    "node-base64-image": "^1.0.3",
+    "node-base64-image": "^1.0.5",
     "optimist": "^0.6.1",
-    "promise-polyfill": "^6.0.2"
+    "promise-polyfill": "^6.0.2",
+    "python-shell": "^0.5.0"
   }
 }

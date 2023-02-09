@@ -1,0 +1,393 @@
+
+<div id="fm-options-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="fmOptionsModal">
+  <div id="fm-options-modal-dialog" class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="fmOptionsModal">Options, Tools, &amp; Goodies</h4>
+      </div>
+
+      <div class="modal-body">
+
+        <div class="row">
+
+          <div class="col-sm-3">
+
+            <div class="fm-options-tab-list list-group">
+              <a href="#fm-options-content-options" class="list-group-item active">
+                <span class="glyphicon glyphicon-wrench"></span>&emsp;Options
+              </a>
+              <a href="#fm-options-content-montage" class="list-group-item">
+                <span class="glyphicon glyphicon-list"></span>&emsp;Montage
+              </a>
+              <a href="#fm-options-content-scope" class="list-group-item">
+                <span class="glyphicon glyphicon-eye-open"></span>&emsp;Scope
+              </a>
+              <a href="#fm-options-content-save" class="list-group-item">
+                <span class="glyphicon glyphicon-cloud-upload"></span>&emsp;Save
+              </a>
+              <a class="list-group-item disabled">
+                <span class="glyphicon glyphicon-console"></span>&emsp;Dev
+              </a>
+              <a href="#fm-options-content-about" class="list-group-item">
+                <span class="glyphicon glyphicon-sunglasses"></span>&emsp;About
+              </a>
+            </div>
+
+          </div>
+
+          <div class="col-sm-9">
+
+            <div class="tab-content">
+
+              <div id="fm-options-content-options" role="tabpanel" class="tab-pane active">
+
+                <h3 style="margin-top: 6px;">Timing</h3>
+                <p>
+                  Set the windows used for clipping data relative to events, as well as for computing baseline feature distributions.
+                </p>
+
+                <!--
+                <p class="text-warning">
+                  Changing these options in the middle of a session <strong>resets all computed features.</strong>
+                </p>
+                -->
+
+                <h4>Stimulus</h4>
+
+                <form class="form-horizontal">
+                  <div class="form-group">
+                    <label class="col-md-3 col-sm-4 control-label">Trial window</label>
+                    <label for="fm-option-stim-trial-start" class="col-md-1 col-sm-1 control-label">Start</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-stim-trial-start" placeholder="-1.0">
+                    </div>
+                    <label for="fm-option-stim-trial-end" class="col-md-1 col-sm-1 control-label">End</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-stim-trial-end" placeholder="3.0">
+                    </div>
+                  </div>
+                </form>
+
+                <form class="form-horizontal">
+                  <div class="form-group">
+                    <label class="col-md-3 col-sm-4 control-label">Baseline</label>
+                    <label for="fm-option-stim-baseline-start" class="col-md-1 col-sm-1 control-label">Start</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-stim-baseline-start" placeholder="-1.0">
+                    </div>
+                    <label for="fm-option-stim-baseline-end" class="col-md-1 col-sm-1 control-label">End</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-stim-baseline-end" placeholder="-0.2">
+                    </div>
+                  </div>
+                </form>
+
+                <h4>Response</h4>
+
+                <form class="form-horizontal">
+                  <div class="form-group">
+                    <label class="col-md-3 col-sm-4 control-label">Trial window</label>
+                    <label for="fm-option-resp-trial-start" class="col-md-1 col-sm-1 control-label">Start</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-resp-trial-start" placeholder="-1.0">
+                    </div>
+                    <label for="fm-option-resp-trial-end" class="col-md-1 col-sm-1 control-label">End</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-resp-trial-end" placeholder="3.0">
+                    </div>
+                  </div>
+                </form>
+
+                <form class="form-horizontal">
+                  <div class="form-group">
+                    <label class="col-md-3 col-sm-4 control-label">Baseline</label>
+                    <label for="fm-option-resp-baseline-start" class="col-md-1 col-sm-1 control-label">Start</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-resp-baseline-start" placeholder="-1.0">
+                    </div>
+                    <label for="fm-option-resp-baseline-end" class="col-md-1 col-sm-1 control-label">End</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-resp-baseline-end" placeholder="-0.2">
+                    </div>
+                  </div>
+                </form>
+
+                <hr />
+
+                <h3>Event Triggers</h3>
+                <p>
+                  Set options relating to how events are triggered from the received data. When using precision timing, you can use the <strong><span class="glyphicon glyphicon-eye-open"></span> Scope</strong> tool to identify reasonable threshold values.
+                </p>
+
+                <p>
+                  For state timing, an on value of "<strong>x</strong>" indicates triggering on any nonzero state value.
+                </p>
+
+                <h4>Stimulus</h4>
+
+                <form class="form-horizontal">
+                  <div class="form-group">
+                    <div class="radio col-md-3 col-sm-4">
+                      <label>
+                        <input type="radio" name="fm-option-stim-timing" id="fm-option-stim-timing-state" value="state">
+                        State timing
+                      </label>
+                    </div>
+                    <div class="col-md-3 col-sm-7">
+                      <input type="text" class="form-control" id="fm-option-stim-state" placeholder="State">
+                    </div>
+                    <label for="fm-option-stim-state-off" class="col-md-1 col-sm-4 visible-sm visible-xs control-label text-center"></label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-stim-state-off" placeholder="Off">
+                    </div>
+                    <label for="fm-option-stim-state-on" class="col-md-1 col-sm-1 hidden-xs control-label text-center">&xrarr;</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-stim-state-on" placeholder="On">
+                    </div>
+                  </div>
+                </form>
+
+                <form class="form-horizontal">
+                  <div class="form-group">
+                    <div class="radio col-md-3 col-sm-4">
+                      <label>
+                        <input type="radio" name="fm-option-stim-timing" id="fm-option-stim-timing-signal" value="signal">
+                        Signal timing
+                      </label>
+                    </div>
+                    <div class="col-md-3 col-sm-7">
+                      <input type="text" class="form-control" id="fm-option-stim-channel" placeholder="Channel">
+                    </div>
+                    <label for="fm-option-stim-off" class="col-md-1 col-sm-4 visible-sm visible-xs control-label text-center"></label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-stim-off" placeholder="Off">
+                    </div>
+                    <label for="fm-option-stim-on" class="col-md-1 col-sm-1 hidden-xs control-label text-center">&xrarr;</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-stim-on" placeholder="On">
+                    </div>
+                  </div>
+                </form>
+
+                <h4>Response</h4>
+
+                <form class="form-horizontal">
+                  <div class="form-group">
+                    <div class="radio col-md-3 col-sm-4">
+                      <label>
+                        <input type="radio" name="fm-option-resp-timing" id="fm-option-resp-timing-standard" value="standard" checked>
+                        Standard timing
+                      </label>
+                    </div>
+                    <div class="col-md-3 col-sm-7">
+                      <input type="text" class="form-control" id="fm-option-resp-state" placeholder="State">
+                    </div>
+                    <label for="fm-option-resp-state-off" class="col-md-1 col-sm-4 visible-sm visible-xs control-label text-center"></label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-resp-state-off" placeholder="Off">
+                    </div>
+                    <label for="fm-option-resp-state-on" class="col-md-1 col-sm-1 hidden-xs control-label text-center">&xrarr;</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-resp-state-on" placeholder="On">
+                    </div>
+                  </div>
+                </form>
+
+                <form class="form-horizontal">
+                  <div class="form-group">
+                    <div class="radio col-md-3 col-sm-4">
+                      <label>
+                        <input type="radio" name="fm-option-resp-timing" id="fm-option-resp-timing-precision" value="precision">
+                        Precision timing
+                      </label>
+                    </div>
+                    <div class="col-md-3 col-sm-7">
+                      <input type="text" class="form-control" id="fm-option-resp-channel" placeholder="Channel">
+                    </div>
+                    <label for="fm-option-resp-off" class="col-md-1 col-sm-4 visible-sm visible-xs control-label text-center"></label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-resp-off" placeholder="Off">
+                    </div>
+                    <label for="fm-option-resp-on" class="col-md-1 col-sm-1 hidden-xs control-label text-center">&xrarr;</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-resp-on" placeholder="On">
+                    </div>
+                  </div>
+                </form>
+
+                <hr />
+
+                <h3>Cookies</h3>
+                <p>
+                  <strong>WebFM</strong> uses cookies to store commonly set
+                  settings locally, so that you don't need to re-enter them
+                  every time you reload the page. If you'd like to clear these
+                  out and get a fresh start, hit the button below.
+                </p>
+                <p>
+                  <span class="text-warning">Doing this will <strong>restart WebFM.</strong></span>
+                </p>
+
+                <form class="form-horizontal">
+                  <div class="form-group">
+                    <label for="fm-option-nuke-cookies" class="col-md-3 col-sm-4 control-label">
+                      Nuke cookies
+                    </label>
+                    <div class="col-md-9 col-sm-8">
+                      <button type="submit" class="btn btn-warning" id="fm-option-nuke-cookies"><span class="glyphicon glyphicon-fire"></span>&emsp;OBLITERATE</button>
+                    </div>
+                  </div>
+                </form>
+
+              </div> <!-- tabpanel (options) -->
+
+              <div id="fm-options-content-montage" role="tabpanel" class="tab-pane">
+
+                <h3 style="margin-top: 6px;">Montage</h3>
+                <p>
+                  <strong>Click</strong> electrodes in the list to exclude or
+                  un-exclude them from the displayed channel raster.
+                </p>
+
+                <table class="table table-hover table-condensed fm-montage-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Excluded</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <th scope="row">LTG01</th>
+                      <td>No</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+              </div> <!-- tabpanel (montage) -->
+
+              <div id="fm-options-content-scope" role="tabpanel" class="tab-pane">
+
+                <h3 style="margin-top: 6px;">Scope</h3>
+
+                <p>
+                  Enter a <strong>Channel</strong> name to begin scoping live data. By default,
+                  the scale will automatically adjust to match the incoming
+                  signal; alternatively, you can fix the scale by entering
+                  a <strong>Min</strong> or <strong>Max</strong> value.
+                </p>
+
+                <form class="form-horizontal">
+                  <div class="form-group">
+                    <label for="fm-option-scope-channel" class="col-md-2 col-sm-3 control-label">Channel</label>
+                    <div class="col-md-3 col-sm-7">
+                      <input type="text" class="form-control" id="fm-option-scope-channel" placeholder="ainp1">
+                    </div>
+                    <label for="fm-option-scope-min" class="col-md-1 col-sm-3 control-label">Min</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-scope-min" placeholder="-100">
+                    </div>
+                    <label for="fm-option-scope-max" class="col-md-1 col-sm-1 control-label">Max</label>
+                    <div class="col-md-2 col-sm-3">
+                      <input type="text" class="form-control" id="fm-option-scope-max" placeholder="100">
+                    </div>
+                  </div>
+                </form>
+
+                <div id="fm-scope"></div>
+
+              </div> <!-- tabpanel (scope) -->
+
+              <div id="fm-options-content-save" role="tabpanel" class="tab-pane">
+
+                <h3 style="margin-top: 6px;">Save</h3>
+
+                <div class="row">
+
+                  <div class="col-md-6">
+
+                    <p>
+                      <strong>Enter</strong> a name below to save your map to the
+                      WebFM cloud.
+                    </p>
+
+                    <!-- TODO Janky AF -->
+                    <form class="form-inline">
+                      <input type="text" class="form-control" id="fm-option-save-name" value="[Task]">
+                      <button type="button" class="btn btn-default fm-save-cloud"><span class="glyphicon glyphicon-cloud-upload"></span> Save</button>
+                    </form>
+
+                  </div>
+
+                  <div class="col-md-6">
+
+                    <table class="table table-hover table-condensed">
+                      <thead>
+                        <tr>
+                          <th>Saved records for <span class="fm-subject-name">[subject]</span></th>
+                        </tr>
+                      </thead>
+                      <tbody id="fm-cloud-records-table">
+                      </tbody>
+                    </table>
+
+                  </div>
+
+                </div>
+
+              </div> <!-- tabpanel (montage) -->
+
+              <div id="fm-options-content-about" role="tabpanel" class="tab-pane">
+
+                <h1>WebFM <small>v1.0-alpha</small></h1>
+
+                <p>
+                  Online functional mapping&mdash;online.
+                </p>
+
+                <p>
+                  Fork me on <a href="http://github.com/cronelab/webfm">GitHub</a>.
+                </p>
+
+                <h4 style="margin-top:30px;">Written by</h4>
+
+                <p>
+                  <dl class="dl-horizontal">
+                    <dt>Max Collard</dt>
+                    <dd>Web frontend, Map, Server, bci2k.js</dd>
+                    <dt>Griffin Milsap</dt>
+                    <dd>BCI2000Web, bci2k.js</dd>
+                  </dl>
+                </p>
+
+                <h4>Powered by</h4>
+
+                <p>
+                  <ul class="list-inline">
+                    <li><a href="https://github.com/griffinmilsap/bci2k.js">bci2k.js</a></li>
+                    <li>Bootstrap</li>
+                    <li>node.js</li>
+                    <li>d3</li>
+                    <li>d3-horizon-chart</li>
+                  </ul>
+                </p>
+
+              </div> <!-- tabpanel (about) -->
+
+            </div> <!-- tab-content -->
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Done</button>
+      </div>
+
+    </div>
+  </div>
+</div>

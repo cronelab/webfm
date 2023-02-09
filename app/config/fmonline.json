@@ -3,5 +3,7 @@
     "sourceAddress"         : "127.0.0.1",
 
     "checkRunningInterval"  : 1000,
-    "checkStateInterval"    : 1000
+    "checkStateInterval"    : 1000,
+    "checkRunningIntervalReconnect"  : 1000
+
 }

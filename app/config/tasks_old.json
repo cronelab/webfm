@@ -1,0 +1,274 @@
+{
+    "CCEPS_LIPF1_LIPF2_4mA":{
+        "trialWindow" : {
+            "start" : -0.5,
+            "end"   : 0.5
+        },
+        "baselineWindow" : {
+            "start" : -0.5,
+            "end"   : -0.2
+        }
+    },
+    "default" : {
+        "trialWindow" : {
+            "start" : -1.0,
+            "end"   : 3.0
+        },
+        "baselineWindow" : {
+            "start" : -1.0,
+            "end"   : -0.2
+        }
+    },
+    "GO*" : {
+        "trialWindow" : {
+            "start" : -0.5,
+            "end"   : 2.0
+        },
+        "baselineWindow" : {
+            "start" : -0.6,
+            "end"   : -0.2
+        }
+    },
+
+    "PictureNaming" : {
+        "trialWindow" : {
+            "start" : -1.0,
+            "end"   : 3.0
+        },
+        "baselineWindow" : {
+            "start" : -1.0,
+            "end"   : -0.2
+        }
+    },
+
+    "SoundNaming" : {
+        "trialWindow" : {
+            "start" : -1.0,
+            "end"   : 3.0
+        },
+        "baselineWindow" : {
+            "start" : -1.0,
+            "end"   : -0.2
+        }
+    },
+
+    "BrandtNaming" : {
+        "trialWindow" : {
+            "start" : -1.0,
+            "end"   : 3.0
+        },
+        "baselineWindow" : {
+            "start" : -1.0,
+            "end"   : -0.2
+        }
+    },
+
+    "WordReading" : {
+        "trialWindow" : {
+            "start" : -1.0,
+            "end"   : 2.5
+        },
+        "baselineWindow" : {
+            "start" : -1.0,
+            "end"   : -0.2
+        }
+    },
+
+    "WordRepetition" : {
+        "trialWindow" : {
+            "start" : -1.0,
+            "end"   : 2.5
+        },
+        "baselineWindow" : {
+            "start" : -1.0,
+            "end"   : -0.2
+        }
+    },
+
+    "AuditoryNaming" : {
+        "trialWindow" : {
+            "start" : -1.0,
+            "end"   : 4.0
+        },
+        "baselineWindow" : {
+            "start" : -1.0,
+            "end"   : -0.2
+        }
+    },
+
+    "AuditoryNamingSpanish" : {
+        "trialWindow" : {
+            "start" : -1.0,
+            "end"   : 4.0
+        },
+        "baselineWindow" : {
+            "start" : -1.0,
+            "end"   : -0.2
+        }
+    },
+
+    "AuditoryWordRepetition" : {
+        "trialWindow" : {
+            "start" : -1.0,
+            "end"   : 2.5
+        },
+        "baselineWindow" : {
+            "start" : -1.0,
+            "end" : -0.2
+        }
+    },
+
+    "SyllableRepetition" : {
+        "trialWindow" : {
+            "start" : -1.0,
+            "end"   : 2.5
+        },
+        "baselineWindow" : {
+            "start" : -1.0,
+            "end"   : -0.2
+        }
+    },
+
+    "SyllableReading" : {
+        "trialWindow" : {
+            "start" : -1.0,
+            "end"   : 2.5
+        },
+        "baselineWindow" : {
+            "start" : -1.0,
+            "end"   : -0.2
+        }
+    },
+
+    "CCEPS*" : {
+        "trialWindow" : {
+            "start" : -1.0,
+            "end"   : 2.5
+        },
+        "baselineWindow" : {
+            "start" : -1.0,
+            "end"   : 0.0
+        }
+    },
+    "COMMENT" : {
+        "trialWindow" : {
+            "start" : -0.6,
+            "end"   : 1.2
+        },
+        "baselineWindow" : {
+            "start" : -0.6,
+            "end"   : -0.2
+        }
+    },
+
+    "PassiveStim*" : {
+        "trialWindow" : {
+            "start" : -0.6,
+            "end"   : 1.5
+        },
+        "baselineWindow" : {
+            "start" : -0.6,
+            "end"   : -0.2
+        }
+    },
+
+    "PassiveFingerVibration" : {
+        "trialWindow" : {
+            "start" : -0.6,
+            "end"   : 1.5
+        },
+        "baselineWindow" : {
+            "start" : -0.6,
+            "end"   : -0.2
+        }
+    },
+
+    "AutoStim*" : {
+        "trialWindow" : {
+            "start" : -1.8,
+            "end"   : 1.8
+        },
+        "baselineWindow" : {
+            "start" : -1.8,
+            "end"   : -1.0
+        }
+    },
+
+    "AutoTone" : {
+        "trialWindow" : {
+            "start" : -1.0,
+            "end"   : 2.2
+        },
+        "baselineWindow" : {
+            "start" : -1.0,
+            "end"   : -0.2
+        }
+    },
+
+    "SyllableStrings*" : {
+        "trialWindow" : {
+            "start" : -1.0,
+            "end"   : 4.5
+        },
+        "baselineWindow" : {
+            "start" : -1.0,
+            "end"   : -0.2
+        }
+    },
+
+    "UTHouston_Jabberwocky*" : {
+        "trialWindow" : {
+            "start" : -1.0,
+            "end"   : 6.0
+        },
+        "baselineWindow" : {
+            "start" : -1.0,
+            "end"   : -0.2
+        }
+    },
+
+    "OLDSentenceCompletion*" : {
+        "trialWindow" : {
+            "start" : -1.0,
+            "end"   : 6.5
+        },
+        "baselineWindow" : {
+            "start" : -1.0,
+            "end"   : -0.2
+        }
+    },
+
+    "SentenceCompletion*" : {
+        "trialWindow" : {
+            "start" : -4.0,
+            "end"   : 1.0
+        },
+        "baselineWindow" : {
+            "start" : 0.0,
+            "end"   : 1.0
+        }
+    },
+
+    "GoalsTask*" : {
+        "trialWindow" : {
+            "start" : -1.0,
+            "end" : 5.0
+        },
+        "baselineWindow" : {
+            "start" : -1.0,
+            "end" : -0.2
+        }
+    },
+
+    "Match3": {
+        "trialWindow": {
+            "start": -3.5,
+            "end": 1.0
+        },
+        "baselineWindow": {
+            "start": -3.5,
+            "end": -2.9
+        }
+    }
+
+}
