@@ -49,8 +49,8 @@ function zeroArray( n ) {
 
 // MAIN CLASS
 
-fmonline.OnlineDataSource = function() {
-
+fmonline.OnlineDataSource = function() { 
+    
     // For nested functions
     var manager = this;
 
@@ -68,7 +68,7 @@ fmonline.OnlineDataSource = function() {
     this.onSystemStateChange    = function( newState ) {};
 
     // Connection for interfacing with the BCI2K system
-    this._bciConnection = new bci2k.Connection();
+    this._bciConnection = new bci2k.Connection(); 
 
     // Cached to prevent excess execute calls when true
     this._bciRunning = false;
@@ -94,7 +94,7 @@ fmonline.OnlineDataSource = function() {
     };
 
     this.config = {};
-
+    
 };
 
 fmonline.OnlineDataSource.prototype = {
@@ -107,7 +107,8 @@ fmonline.OnlineDataSource.prototype = {
 
         if ( address === undefined ) {
             address = this.config.sourceAddress;
-}
+        }
+
         if ( this.config.debug ) {
             console.log( 'Connecting to: ' + address );
         }
@@ -125,7 +126,7 @@ fmonline.OnlineDataSource.prototype = {
 
     // TODO moved JSON loading to app logic, not submodules
     // loadConfig: function( configURI ) {
-
+        
     //     var manager = this;     // Cache this for nested functions
 
     //     // Wrap $.getJSON in a standard Promise
@@ -143,7 +144,7 @@ fmonline.OnlineDataSource.prototype = {
     // },
 
     _bciDidConnect: function( event ) {
-
+        
         // Capture this for inline functions
         var manager = this;
 
@@ -169,60 +170,60 @@ fmonline.OnlineDataSource.prototype = {
 
     },
 
-    ensureRunning: function ensureRunning() {
+    ensureRunning: function() {
 
         // Capture this for inline functions
         var manager = this;
-
+        
         // Returns a promise that resolves if/when BCI2K is running
-        return new Promise(function (resolve, reject) {
-
-            if (manager._bciRunning) {
+        return new Promise( function( resolve, reject ) {
+            
+            if ( manager._bciRunning ) {
                 // We know we're running, so we can resolve without pinging BCI2K
-                resolve(true);
+                resolve( true );
                 return;
             }
 
-            var checkRunning = function checkRunning() {
-              var executed = false;
+            var checkRunning = function() {
 
-                if (!manager._bciConnection.connected()) {
+                if ( ! manager._bciConnection.connected() ) {
                     // Can't check system state if not connected
-                    if (manager.config.debug) {
-                        console.log('Could not check whether BCI2K is running: Not connected to BCI2K.');
+                    if ( manager.config.debug ) {
+                        console.log( 'Could not check whether BCI2K is running: Not connected to BCI2K.' );
                     }
                     // Try again later
-                    setTimeout(checkRunning, manager.config.checkRunningInterval);
+                    setTimeout( checkRunning, manager.config.checkRunningInterval );
                     return;
                 }
 
-                if (manager.config.debug) {
-                    console.log('Executing System State query ...');
+                if ( manager.config.debug ) {
+                    console.log( 'Executing System State query ...' );
                 }
 
-                manager._bciConnection.execute('Get System State', function (result) {
-                    if (manager.config.debug) {
-                        console.log('System state: ' + result.output);
+                manager._bciConnection.execute( 'Get System State', function( result ) {
+
+                    if ( manager.config.debug ) {
+                        console.log( 'System state: ' + result.output );
                     }
 
-                    if (result.output.search('Running') >= 0) {
-
+                    if ( result.output.search( 'Running' ) >= 0 ) {
                         // System state includes 'Running', so we're now good to go
                         // Cache this fact to speed subsequent calls
-                        resolve(true);
-                        //return;
-                    } else if (result.output.search('Resting') >= 0 && executed == false) {
-                        executed = true;
-                        manager._connectToData();
+                        manager._bciRunning = true;
+                        resolve( true );
+                        return;
                     }
 
                     // Not running; try again later
-                    setTimeout(checkRunning, manager.config.checkRunningInterval);
-                });
+                    setTimeout( checkRunning, manager.config.checkRunningInterval );
+
+                } );
+
             };
 
-            setTimeout(checkRunning, manager.config.checkRunningInterval);
-        });
+            setTimeout( checkRunning, manager.config.checkRunningInterval );
+
+        } );
     },
 
     getParameter: function( parameter ) {
@@ -312,6 +313,7 @@ fmonline.DataFormatter = function() {
     this._postTrialBlocks       = null;     // TODO Refactor
 
     this.canProcess             = false;
+    this.normalize              = false;
 
     this.sourceChannels         = null;
     this.sourceProperties       = null;
@@ -323,6 +325,8 @@ fmonline.DataFormatter = function() {
     this.featureProperties      = null;
     this.featureBuffer          = null;
     this.featureBlockNumber     = 0;
+    this._featureMean           = null;
+    this._featureM2             = null;
 
     this.previousState          = null;
     this.stateBlockNumber       = 0;
@@ -447,7 +451,7 @@ fmonline.DataFormatter.prototype = {
         this._sourceConnection.onSignalProperties = function( properties ) {
             formatter.sourceProperties      = properties;
             formatter.sourceChannels        = properties.channels;
-
+            
             if ( ! formatter._stateTiming ) {
 
                 // Check if timing channel is in the montage
@@ -523,7 +527,7 @@ fmonline.DataFormatter.prototype = {
     },
 
     _setupBuffers: function() {
-
+        
         // Determine number of blocks in the buffer
         // TODO Assumes elementunit in seconds
         var blockLengthSeconds      = this.sourceProperties.numelements * this.sourceProperties.elementunit.gain;
@@ -535,6 +539,10 @@ fmonline.DataFormatter.prototype = {
             arr.push( zeroArray( windowLengthBlocks ) );
             return arr;
         }, [] );
+
+        // Initialize running stats
+        this._featureMean = zeroArray( this.featureChannels.length )
+        this._featureM2 = zeroArray( this.featureChannels.length ) 
 
         var trialLengthSeconds  = this.trialWindow.end - this.trialWindow.start;
         this._trialBlocks       = Math.ceil( trialLengthSeconds / blockLengthSeconds );
@@ -549,7 +557,7 @@ fmonline.DataFormatter.prototype = {
     },
 
     _kernelForFrequencies: function( fv ) {
-
+        
         // TODO Replace with more nuanced window
 
         var formatter = this;
@@ -609,12 +617,24 @@ fmonline.DataFormatter.prototype = {
         var formatter = this;   // Capture this
 
         // Map computation over channels
-        return data.map( function( dv ) {
+        var feats = data.map( function( dv ) {
             // Window the feature elements
             return dv.reduce( function( acc, el, iel ) {
                 return acc + el * formatter._featureKernel[iel];
-            }, 0.0 );
+            }, 0.0 );      
         } );
+
+        // Accumulate Mean and M2 -- Griff
+        // Welford Algorithm - Running Stats
+        feats.forEach( function( v, i ) {
+            var delta = v - formatter._featureMean[i];
+            formatter._featureMean[i] += delta / formatter.featureBlockNumber;
+            var delta2 = v - formatter._featureMean[i];
+            formatter._featureM2[i] += delta * delta2;
+        } );
+
+		
+        return feats;
 
     },
 
@@ -781,7 +801,7 @@ fmonline.DataFormatter.prototype = {
         var deltaBlocks = this.featureBlockNumber - this.trialEndBlockNumber;
 
         // Map across channels ...
-        var trialData = this.featureBuffer.map( function( dv ) {
+        var trialData = this.featureBuffer.map( function( dv ) { 
             return dv.slice( dv.length - deltaBlocks - formatter._trialBlocks, dv.length - deltaBlocks );
         } );
 
@@ -793,8 +813,12 @@ fmonline.DataFormatter.prototype = {
 
     _formatFeatureData: function( trialData ) {
         // Convert a channel by time array to an object
+        var formatter = this; 
         return this.featureChannels.reduce( function( obj, ch, i ) {
             obj[ch] = trialData[i];
+            if( formatter.normalize && formatter.featureBlockNumber >= 2 )
+                obj[ch] = ( trialData[i] - formatter._featureMean[i] ) / 
+                          ( formatter._featureM2[i] / ( formatter.featureBlockNumber - 1 ) );
             return obj;
         }, {} );
     },

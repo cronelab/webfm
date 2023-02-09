@@ -109,6 +109,10 @@ if ( onlineMode ) {     // Using BCI2000Web over the net
     dataSource.onRawSignal = function( rawSignal ) {
         ingestSignal( rawSignal );
     };
+    dataSource.onFeatureSignal = function( featureSignal ) {
+        ingestFeatureSignal( featureSignal );
+    };
+    dataSource.normalize = true;
 
     cronelib.promiseJSON( path.join( configPath, 'online' ) )
             .then( function( onlineConfig ) {
@@ -483,7 +487,6 @@ if ( loadMode ) {       // Using data loaded from the hive
         } )
         .then( function() {
             prepareFromDataset();
-            updateDataDisplay();
         } );
 
 }
@@ -520,6 +523,11 @@ var ingestSignal = function( signal ) {
     uiManager.scope.update( signal );
 };
 
+var ingestFeatureSignal = function( featureSignal ) {
+    // Update scope view
+    uiManager.brain.update( featureSignal );
+};
+
 var startTrial = function() {
     // We're starting to transfer a trial, so engage the transfer icon
     uiManager.showIcon( 'transfer' );
@@ -543,8 +551,6 @@ var ingestTrial = function( trialData ) {
     dataset.ingest( trialData )
         .then( function() {
 
-            updateDataDisplay();
-
             uiManager.hideIcon( 'working' );
 
             uiManager.updateTrialCount( dataset.getTrialCount() );
@@ -564,114 +570,6 @@ var ingestTrial = function( trialData ) {
     //                 .catch( function( reason ) {
     //                     console.log( 'Error computing features on remote: ' + reason );
     //                 } );
-
-};
-
-var updateDataDisplay = function() {
-
-    uiManager.raster.update( dataset.displayData );
-
-    uiManager.brain.update( dataset.dataForTime( uiManager.raster.getCursorTime() ) );
-
-    // KLUDGE
-    // TODO Can't think of a good way to deal with combined async of
-    // loading UI config and setting up data source
-    // TODO Need to make compatible with dataset
-    //var trialWindow = dataSource.getTrialWindow();
-
-    var timeBounds = dataset.getTimeBounds();
-
-    uiManager.raster.updateTimeRange( [timeBounds.start, timeBounds.end] );
-    // END KLUDGE
-
-}
-
-/*
-var updateStatistics = function( trialData ) {
-
-    
-    cronelib.forEachAsync( Object.keys( channelStats ), function( ch ) {
-        channelStats[ch].ingest( trialData[ch] );
-        meanData[ch] = channelStats[ch].fdrCorrectedValues( 0.05 );
-    }, {
-        batchSize: 5
-    } ).then( function() {
-
-        // TODO
-        var trialCount = 0;
-        Object.keys( channelStats ).every( function( ch ) {
-            trialCount = channelStats[ch].valueTrials.length;
-            return false;
-        } );
-
-        updatePlotsPostData();
-
-        // GUI stuff
-        uiManager.hideIcon( 'working' );
-        uiManager.updateTrialCount( trialCount );
-        uiManager.deactivateTrialCount();
-
-    } );
-
-};
-*/
-
-// EVENT HOOKS
-
-// TODO Super kludgey to put here, but need data
-
-/*
-var dataForTime = function( time ) {
-
-    // TODO Kludge; cache this, since it doesn't change
-    var dataSamples = 0;
-    Object.keys( meanData ).every( function( ch ) {
-        dataSamples = meanData[ch].length;
-        return false;
-    } );
-
-    var trialWindow = dataSource.getTrialWindow();
-    var totalTime = trialWindow.end - trialWindow.start;
-
-    var timeIndexFloat = ((time - trialWindow.start) / totalTime) * dataSamples;
-    var timeIndex = Math.floor( timeIndexFloat );
-    var timeFrac = timeIndexFloat - timeIndex;
-
-    return Object.keys( meanData ).reduce( function( obj, ch ) {
-        obj[ch] = (1.0 - timeFrac) * meanData[ch][timeIndex] + (timeFrac) * meanData[ch][timeIndex + 1];
-        return obj
-    }, {} );
-
-};
-*/
-
-// TODO AAAAAAH I'M AN IDIOT
-/*
-var updatePlotsPostData = function() {
-
-    uiManager.raster.update( meanData );
-
-    // TODO Kludge: dataForTime is the only thing keeping routine in main
-    var meanDataSlice = dataForTime( uiManager.raster.getCursorTime() );
-    uiManager.brain.update( meanDataSlice );
-
-    // TODO Super kludge; should only need to update once ever ...
-    var trialWindow = dataSource.getTrialWindow();
-    uiManager.raster.updateTimeRange( [trialWindow.start, trialWindow.end] );
-
-};
-*/
-
-uiManager.raster.oncursormove = function( newTime ) {
-
-    uiManager.updateSelectedTime( newTime );
-
-    /*
-    var meanDataSlice = dataForTime( newTime );
-    uiManager.brain.update( meanDataSlice );
-    */
-
-    uiManager.brain.update( dataset.dataForTime( newTime ) );
 
 };
 
@@ -755,8 +653,6 @@ var updateBaselineWindow = function( newWindow ) {
 
     dataset.updateBaselineWindow( newWindow )
         .then( function() {
-
-            updateDataDisplay();
 
             uiManager.hideIcon( 'working' );
 
