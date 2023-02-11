@@ -135,19 +135,19 @@ app.use("/", express.static(rootDir));
 var serveConfig = function(configName) {
   return function(req, res) {
     // TODO Front-end config shouldn't be served from app source dir
-    res.sendFile(path.join(appDir, "config", configName));
+    res.sendFile(`config/${configName}`, { root: __dirname });
   };
 };
 
 // Index routes
-var serveIndex = function(req, res) {
-  res.sendFile(path.join(rootDir, "index.html"));
-};
+// var serveIndex = function(req, res) {
+//   res.sendFile(path.join(rootDir, "index.html"));
+// };
 
 app.get("/index/config/online", serveConfig("fmonline.json"));
 
-app.get("/", serveIndex);
-app.get("/index", serveIndex);
+// app.get("/", serveIndex);
+// app.get("/index", serveIndex);
 
 // Functional map routes
 var serveMap = function(req, res) {
@@ -318,161 +318,8 @@ app.get("/api/info/:subject/:record", function(req, res) {
   });
 });
 
-// Get list of subjects
-app.get("/api/list", function(req, res) {
-  var errOut = function(code, msg) {
-    console.log(msg);
-    res.status(code).send(msg);
-  };
 
-  // Get all members of the data directory
-  fs.readdir(dataDir, function(err, entries) {
-    if (err) {
-      errOut(
-        500,
-        "Could not read data directory contents: " + JSON.stringify(err)
-      );
-      return;
-    }
 
-    // Oh my god I'm currying.
-    var checkerForEntry = function(entry) {
-      return function(cb) {
-        checkSubject(entry, cb);
-      };
-    };
-
-    async.parallel(entries.map(checkerForEntry), function(err, results) {
-      if (err) {
-        // TODO This does die if an error is thrown, but checkSubject
-        // doesn't so we cool. Probably.
-        errOut(500, "Unable to obtain subject list: " + JSON.stringify(err));
-        return;
-      }
-
-      // Pull out only the entries that passed checkSubject
-      var goodEntries = entries.filter(function(e, ie) {
-        return results[ie];
-      });
-
-      // It's away!
-      res.status(200).json(goodEntries);
-    });
-  });
-});
-
-// Get list of records for subject
-app.get("/api/list/:subject", function(req, res) {
-  var errOut = function(code, msg) {
-    console.log(msg);
-    res.status(code).send(msg);
-  };
-
-  var subject = req.params.subject;
-  var subjectDir = path.join(dataDir, subject);
-
-  // Get all members of the subject's directory
-  fs.readdir(subjectDir, function(err, entries) {
-    if (err) {
-      errOut(
-        500,
-        "Could not read data directory for subject " +
-          subject +
-          ": " +
-          JSON.stringify(err)
-      );
-      return;
-    }
-
-    // Curry +
-    var checkerForEntry = function(entry) {
-      // Record name should be before the '.'
-      var record = entry.split(".")[0];
-      return function(cb) {
-        checkRecord(subject, record, cb);
-      };
-    };
-
-    async.parallel(entries.map(checkerForEntry), function(err, results) {
-      if (err) {
-        // TODO This does die if an error is thrown, but checkSubject
-        // doesn't so we cool. Probably.
-        errOut(500, "Unable to obtain record list: " + JSON.stringify(err));
-        return;
-      }
-
-      // Pull out only the entries that passed checkSubject
-      var goodEntries = entries.filter(function(e, ie) {
-        return !(results[ie] == "none");
-      });
-
-      // Entries are filenames, so find out just their record names
-      var goodRecords = goodEntries.map(function(e) {
-        return e.split(".")[0];
-      });
-
-      // It's away!
-      res.status(200).json(goodRecords);
-    });
-  });
-});
-
-// Get subject brain image data from .metadata
-app.get("/api/brain/:subject", function(req, res) {
-  var errOut = function(code, msg) {
-    // TODO Special case cause 418s are huge; must fix
-    if (code == 418) {
-      console.log("I'm a teapot.");
-    } else {
-      console.log(msg);
-    }
-    res.status(code).send(msg);
-  };
-
-  var subject = req.params.subject;
-
-  // First check if subject exists
-  checkSubject(subject, function(err, isSubject) {
-    if (err) {
-      // Based on how checkSubject is defined, this shouldn't happen
-      errOut(
-        500,
-        "Error determining if " +
-          subject +
-          " is a subject: " +
-          JSON.stringify(err)
-      );
-      return;
-    }
-
-    if (!isSubject) {
-      // Not a subject
-      errOut(404, "Subject " + subject + " not found.");
-      return;
-    }
-
-    // We know it's a valid subject, so check if we've got metadata
-    getSubjectMetadata(subject, function(err, metadata) {
-      if (err) {
-        // TODO Be more granular with error codes based on err
-        errOut(
-          500,
-          "Error loading metadata for " + subject + ": " + JSON.stringify(err)
-        );
-        return;
-      }
-
-      // We've got metadata, so check that we've got a brain image
-      if (metadata.brainImage === undefined) {
-        // TODO Better error code for this?
-        errOut(418, assets.noBrainImage);
-        return;
-      }
-
-      res.status(200).send(metadata.brainImage);
-    });
-  });
-});
 
 // Put new brain image data into .metadata
 app.put("/api/brain/:subject", function(req, res) {
