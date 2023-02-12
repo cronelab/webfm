@@ -2,7 +2,7 @@
 import React from 'react'
 import { Button, Container, Navbar } from 'react-bootstrap'
 
-import styles from '../styles/Header.module.scss'
+import styles from './Header.module.scss'
 
 export const Header = () => {
   return (

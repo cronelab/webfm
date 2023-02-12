@@ -1,6 +1,4 @@
-import Header from '../components/Header'
-import Footer from '../components/Footer'
-import IndexContainer from '../components/IndexContainer'
+import IndexContainer from '../components/Index/IndexContainer'
 import fs from 'fs';
 
 export const metadata = {

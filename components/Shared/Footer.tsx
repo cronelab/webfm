@@ -1,6 +1,6 @@
 "use client"
 import React from 'react'
-import styles from '../styles/Footer.module.scss'
+import styles from './Footer.module.scss'
 import { Navbar, Container } from 'react-bootstrap'
 
 export const Footer = () => {
