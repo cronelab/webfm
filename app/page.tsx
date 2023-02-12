@@ -1,6 +1,5 @@
 import Header from '../components/Header'
 import Footer from '../components/Footer'
-import Inputs from '../components/Inputs'
 import IndexContainer from '../components/IndexContainer'
 import fs from 'fs';
 
@@ -14,7 +13,6 @@ export default function Page() {
   return (
     <>
       <IndexContainer subjects={subjects} />
-      <Inputs />
     </>
   )
 }

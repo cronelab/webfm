@@ -7,7 +7,15 @@
 
 // MODULE OBJECT
 
-let cronelib = {}
+let cronelib = {
+  promiseJSON: null,
+  forEachAsync: null,
+  reduceAsync: null,
+  mapAsync: null,
+  parseQuery: null,
+  debounce_old: null,
+  debounce: null,
+}
 
 // METHODS
 
@@ -49,7 +57,7 @@ cronelib.forEachAsync = function (arr, f, config) {
         for (var i = start; i < nextStart; i++) {
           if (i >= arr.length) {
             // We're done!
-            resolve()
+            resolve(0)
             return
           }
           // We're not done, so do something
@@ -179,6 +187,6 @@ cronelib.debounce = function (func, wait, immediate) {
 
 // EXPORT MODULE
 
-module.exports = cronelib
-
+// module.exports = cronelib
+export default cronelib;
 //

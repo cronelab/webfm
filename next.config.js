@@ -4,7 +4,9 @@
 const nextConfig = {
   experimental: {
     appDir: true,
+
   },
+  reactStrictMode: false,
 
   async rewrites() {
     return {

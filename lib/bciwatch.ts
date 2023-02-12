@@ -13,25 +13,13 @@ export default class BCI2KWatcher {
     this.config = {}
   }
 
-  connect(address) {
-    // For nested functions
+  async connect(address) {
     var watcher = this
 
-    if (address === undefined) {
-      address = this.config.sourceAddress
-    }
-
-    return this._bciConnection.connect(address).then(event => {
-      this._bciConnection.stateListen()
-      watcher._bciDidConnect(event)
-      return event
-    })
-
-    // return this._bciConnection.connect(address)
-    //     .then(function (event) {
-    //         watcher._bciDidConnect(event);
-    //         return event;
-    //     });
+    let event = await this._bciConnection.connect(address)
+    this._bciConnection.stateListen()
+    watcher._bciDidConnect(event)
+    return event
   }
   async loadConfig(configURI) {
     var watcher = this // Cache this for nested functions

@@ -1,10 +1,15 @@
 import React from 'react'
-import { Card, ListGroup, ListGroupItem, Form } from 'react-bootstrap'
+import {
+  Card,
+  ListGroup,
+  ListGroupItem,
+  Form,
+  InputGroup,
+} from 'react-bootstrap'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCloudArrowUp, faPencil } from '@fortawesome/free-solid-svg-icons'
 
-
-
+import './fileUpload.scss'
 // $('#new-subject-ok').on('click', function () {
 //     var newSubjectId = $('#new-subject-id').val();
 //     addSubject(newSubjectId);
@@ -13,7 +18,6 @@ import { faCloudArrowUp, faPencil } from '@fortawesome/free-solid-svg-icons'
 // $('.toggle-new-subject').on('click', function () {
 //     toggleNewSubject();
 // });
-
 
 // $('#upload-sensor-geometry-input').on('change', function () {
 
@@ -106,7 +110,6 @@ import { faCloudArrowUp, faPencil } from '@fortawesome/free-solid-svg-icons'
 //     }
 // });
 
-
 export const Metadata = ({}) => {
   return (
     <Card>
@@ -115,48 +118,25 @@ export const Metadata = ({}) => {
       </Card.Header>
 
       <ListGroup>
-        <ListGroupItem>
-          Brain image
-          <Form.Control type="file" />
-
-          <FontAwesomeIcon icon={faCloudArrowUp} />
-          {/* 
-          <span className="pull-right">
-            <a className="upload-brain-image toggle-online-options">
-              <span className="glyphicon glyphicon-cloud-upload"></span>
-            </a>
-          </span> */}
+      <ListGroupItem>
+        Sensor Geometry
+          <span className="btn-file">
+            <FontAwesomeIcon icon={faCloudArrowUp} />
+            <input type="file" />
+          </span>
+          <span className="btn-file">
+            <FontAwesomeIcon icon={faPencil} />
+            <input type="file" />
+          </span>
         </ListGroupItem>
-
         <ListGroupItem>
-          Sensor geometry
-          <FontAwesomeIcon
-            icon={faPencil}
-            className="edit-sensor-geometry"
-          />
-
-          <Form.Control type="file" />
-          <FontAwesomeIcon
-            icon={faCloudArrowUp}
-            className="upload-sensor-geometry"
-            onClick={() => {
-
-            }}
-          />
+          Brain Image
+          <span className="btn-file">
+            <FontAwesomeIcon icon={faCloudArrowUp} />
+            <input type="file" />
+          </span>
         </ListGroupItem>
       </ListGroup>
-      <input
-        id="upload-brain-image-input"
-        className="upload-input"
-        type="file"
-        name="brainImage"
-      />
-      <input
-        id="upload-sensor-geometry-input"
-        className="upload-input"
-        type="file"
-        name="sensorGeometry"
-      />
     </Card>
   )
 }

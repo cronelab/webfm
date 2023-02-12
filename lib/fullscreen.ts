@@ -8,15 +8,26 @@
 
 // REQUIRES
 
-require( 'setimmediate' );                          // Needed to fix promise
+// require( 'setimmediate' );                          // Needed to fix promise
                                                     // polyfill on non-IE
-var Promise = require( 'promise-polyfill' );        // Needed for IE Promise
+// var Promise = require( 'promise-polyfill' );        // Needed for IE Promise
                                                     // support
 
 
 // MODULE OBJECT
 
-var fullscreen = {};
+const fullscreen = {
+    changeEvents: null,
+    errorEvents: null,
+    requestFunctions: null,
+    exitFunctions: null,
+    isProperties: null,
+    is: null,
+    _changePromise: null,
+    request: null,
+    exit: null,
+    toggle: null,
+};
 
 
 // Platform-dependent nomenclature
@@ -162,8 +173,8 @@ fullscreen.toggle = function( element ) {
 
 
 // EXPORT MODULE
-
-module.exports = fullscreen;
+export default fullscreen;
+// module.exports = fullscreen;
 
 
 //

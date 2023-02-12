@@ -1,5 +1,5 @@
-var d3 = require( 'd3' );
-
+// var d3 = require( 'd3' );
+import { d3 } from 'd3';
 // Shit from core that I need.
 
 // Copies a variable number of methods from source to target.
@@ -196,4 +196,5 @@ function d3_horizonTransform(bands, h, mode) {
 }
 
 
-module.exports = d3_horizon;
+// module.exports = d3_horizon;
+export default d3_horizon;

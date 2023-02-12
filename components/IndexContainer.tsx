@@ -1,5 +1,5 @@
 "use client"
-import React from 'react'
+import React, { useEffect } from 'react'
 import {
   Container,
   Row,
@@ -33,13 +33,15 @@ export const IndexContainer = ({ subjects }) => {
   return (
     <Container>
       <Row>
-        <Col md={3} sm={6}>
+        <Col md={3} sm={6} style={{display: 'flex', justifyContent: 'space-between', flexDirection: 'column'}}>
           <Online />
           <Subjects subjects={subjects} setSubjectRecords={setSubjectRecords} setBrainImage={setBrainImage} setSubject={setSubject}/>
         </Col>
 
         <Col md={5} sm={6}>
+          {brainImage == '' ? <></> : 
           <Image id="main-brain" src={brainImage} className="img-thumbnail" alt='brainImage' />
+          }
         </Col>
 
         <Col md={4} sm={6}>
