@@ -8,84 +8,98 @@
 
 // REQUIRES
 
-var $ = require('jquery');
-var d3 = require('d3');
+import * as d3 from 'd3';
+import * as $ from 'jquery';
 
 
 // MODULE OBJECT
 
-var fmbrain = {};
+export class BrainVisualizer{
+  baseNodeId: string;
+  config: string;
+  imageData: string;
+  sensorGeometry: any;
+  selectedChannel: string;
+  data: any;
+  dotRadiusScale: any;
+  dotColorScale: any;
+  dotXScale: any;
+  dotYScale: any;
 
+  brainSvg: any;
+  aspect: any;
+  size: any;
+  margin: any;
+  dotMaxRadius: number;
+  dotColors: string[];
+  dotMinRadius: number;
+  extent: number;
+  dotColorsDomain: number[];
+  extentBuffer: number;
+  extentBufferInfinity: number;
+  dotColorsDomainBuffer: number[];
+  dotColorsDomainBufferInfinity: number[];
+  dotPowerThresholdBuffer: number[];
+  dotPowerThresholdBufferInfinity: number[];
+  doDotPowerThreshold: boolean;
+  dotPowerThreshold: number[];
 
-// MAIN CLASS
+  constructor(baseNodeId, config) {
+    this.baseNodeId = baseNodeId;
+    this.config = config;
+    this.imageData = null;
+    this.sensorGeometry = null;
+    this.selectedChannel = null;
+    this.data = null;
+  
+    this.dotRadiusScale = null;
+    this.dotColorScale = null;
+    this.dotXScale = null;
+    this.dotYScale = null;
+  
+    this.brainSvg = null;
+  
+    this.aspect = null;
+    this.size = {
+      width: 0,
+      height: 0
+    };
+  
+    // TODO Put these in a config-file
+    this.margin = {
+      top: 10,
+      right: 10,
+      bottom: 10,
+      left: 10
+    };
+  
+    this.dotMaxRadius = 0.040;
+    this.dotColors = ["#313695", "#4575b4", "#74add1", "#abd9e9", "#000000", "#fee090", "#fdae61", "#f46d43", "#d73027"];
+      this.dotMinRadius = 0.003;        // u (horizontal) units
+      this.extent = 10.0;         // TODO Expose
+      this.dotColorsDomain = [-9, -5, -2, -0.01, 0.0, 0.01, 2, 5, 9];
 
-fmbrain.BrainVisualizer = function (baseNodeId, config) {
-
-  this.baseNodeId = baseNodeId;
-  this.config = config;
-  this.imageData = null;
-  this.sensorGeometry = null;
-  this.selectedChannel = null;
-  this.data = null;
-
-  this.dotRadiusScale = null;
-  this.dotColorScale = null;
-  this.dotXScale = null;
-  this.dotYScale = null;
-
-  this.brainSvg = null;
-
-  this.aspect = null;
-  this.size = {
-    width: 0,
-    height: 0
-  };
-
-  // TODO Put these in a config-file
-  this.margin = {
-    top: 10,
-    right: 10,
-    bottom: 10,
-    left: 10
-  };
-
-  this.dotMaxRadius = 0.040;
-  this.dotColors = ["#313695", "#4575b4", "#74add1", "#abd9e9", "#000000", "#fee090", "#fdae61", "#f46d43", "#d73027"];
-
-  if (document.title.indexOf("WebFM: Map") >= 0) {
-    this.dotMinRadius = 0.003;        // u (horizontal) units
-    this.extent = 10.0;         // TODO Expose
-    this.dotColorsDomain = [-9, -5, -2, -0.01, 0.0, 0.01, 2, 5, 9];
+  
+    this.extentBuffer = 10.0;         // TODO Expose                                                                                             LIVE
+    this.extentBufferInfinity = 180.0;        // TODO Expose                                                                                                LIVE
+    this.dotColorsDomainBuffer = [-5, -3.5, -2, -1, 0.0, 1, 2, 3.5, 5];
+    this.dotColorsDomainBufferInfinity = [-120, -80, -50, -20, 0.0, 20, 50, 80, 120];
+    this.dotPowerThresholdBuffer = [this.dotColorsDomainBuffer[3], this.dotColorsDomainBuffer[5]];
+    this.dotPowerThresholdBufferInfinity = [this.dotColorsDomainBufferInfinity[3], this.dotColorsDomainBufferInfinity[5]];
+    this.doDotPowerThreshold = true;
   }
-  else {
-    this.dotMinRadius = 0.006;        // u (horizontal) units
-    this.extent = 100.0;         // TODO Expose
-    this.dotColorsDomain = [-450, -350, -100, -30, 0.0, 30, 100, 350, 450];
-    this.dotPowerThreshold = [this.dotColorsDomain[3], this.dotColorsDomain[5]];
-  }
 
-  this.extentBuffer = 10.0;         // TODO Expose                                                                                             LIVE
-  this.extentBufferInfinity = 180.0;        // TODO Expose                                                                                                LIVE
-  this.dotColorsDomainBuffer = [-5, -3.5, -2, -1, 0.0, 1, 2, 3.5, 5];
-  this.dotColorsDomainBufferInfinity = [-120, -80, -50, -20, 0.0, 20, 50, 80, 120];
-  this.dotPowerThresholdBuffer = [this.dotColorsDomainBuffer[3], this.dotColorsDomainBuffer[5]];
-  this.dotPowerThresholdBufferInfinity = [this.dotColorsDomainBufferInfinity[3], this.dotColorsDomainBufferInfinity[5]];
-  this.doDotPowerThreshold = true;
-};
 
-fmbrain.BrainVisualizer.prototype = {
 
-  constructor: fmbrain.BrainVisualizer,
-
-  _defaultData: function (channels) {
+  _defaultData (channels) {
     // Return a data map giving zeros for each channel
     return channels.reduce((obj, ch) => {
       obj[ch] = 0.0;
       return obj;
     }, {});
-  },
+  };
 
-  _reformatForDisplay: function (data) {
+  _reformatForDisplay (data) {
 
     var brain = this;
 
@@ -108,14 +122,14 @@ fmbrain.BrainVisualizer.prototype = {
       };
     });
 
-  },
+  };
 
-  setupFromDataset: function (dataset) {
+  setupFromDataset (dataset) {
     // TODO Error handling
     this.setup(dataset.metadata.brainImage, dataset.metadata.sensorGeometry);
-  },
+  };
 
-  _getDimensionsForData: function (data) {
+  _getDimensionsForData (data) {
 
     return new Promise((resolve, reject) => {
 
@@ -136,15 +150,16 @@ fmbrain.BrainVisualizer.prototype = {
 
     });
 
-  },
+  };
 
-  setup: function (imageData, sensorGeometry) {
-
+  setup (imageData, sensorGeometry) {
     var brain = this;
 
     // TODO Format checking
-    this.imageData = imageData;
-    this.sensorGeometry = sensorGeometry;
+    // this.imageData = imageData;
+    // this.sensorGeometry = sensorGeometry;
+    console.log(imageData);
+    console.log(sensorGeometry);
 
     this.data = this._defaultData(Object.keys(this.sensorGeometry));
 
@@ -168,7 +183,7 @@ fmbrain.BrainVisualizer.prototype = {
     else {
       if (this.doDotPowerThreshold) {
         this.dotRadiusScale = d3.scaleSqrt()
-          .domain([this.dotPowerThreshold[1], this.extent])
+          // .domain([this.dotPowerThreshold[1], this.extent])
           .range([this.dotMinRadius, this.dotMaxRadius])
           .clamp(true);
       } else {
@@ -188,11 +203,12 @@ fmbrain.BrainVisualizer.prototype = {
     this._getDimensionsForData(this.imageData)
       .then(function (dimensions) {
         // Determine proper aspect ratio from loaded image
+        //@ts-ignore
         brain.aspect = dimensions.width / dimensions.height;
         // Use new aspect to get size
         brain.autoResize();
         // Call update to get dots
-        brain.update();
+        brain.update(null);
       });
 
     // Base SVG fills entire baseNode when possible.
@@ -215,18 +231,18 @@ fmbrain.BrainVisualizer.prototype = {
     g.append('g')
       .attr('class', 'fm-brain-dots');
 
-  },
+  };
 
-  _dotFilter: function (d) {
+  _dotFilter (d) {
     // TODO Not a super effective filter ...
     this._dotX(d) === undefined ? false : true;
-  },
+  };
 
-  _dotFill: function (d) {
+  _dotFill (d) {
     return this.dotColorScale(d.value);
-  },
+  };
 
-  _dotVisibility: function (d) {
+  _dotVisibility (d) {
     d.channel == this.selectedChannel ? 'visible' : '';
 
     if (this.config == 'map') {
@@ -238,7 +254,7 @@ fmbrain.BrainVisualizer.prototype = {
     }
     else {
       if (this.doDotPowerThreshold) {
-        if (d.value > this.dotPowerThreshold[0] & d.value < this.dotPowerThreshold[1]) {
+        if (d.value > this.dotPowerThreshold[0] && d.value < this.dotPowerThreshold[1]) {
           return 'hidden';
         }
       } else {
@@ -248,54 +264,54 @@ fmbrain.BrainVisualizer.prototype = {
       }
       return 'visible';
     }
-  },
+  };
 
-  _dotX: function (d) {
+  _dotX (d) {
     var pos = this.sensorGeometry[d.channel];
     // TODO Bad way to handle errors
     if (isNaN(pos.u)) {
       return -this.dotXScale(this.dotMaxRadius);
     }
     return this.dotXScale(pos.u);
-  },
+  };
 
-  _dotY: function (d) {
+  _dotY (d) {
     var pos = this.sensorGeometry[d.channel];
     // TODO Bad way to handle errors
     if (isNaN(pos.u)) {
       return -this.dotXScale(this.dotMaxRadius);
     }
     return this.dotYScale(pos.v);
-  },
+  };
 
-  _dotRadius: function (d) {
+  _dotRadius (d) {
     // TODO Bad way to handle errors
     if (isNaN(d.value)) {
       return this.dotXScale(this.dotRadiusScale(Math.abs(0.0)));
     }
     return this.dotXScale(this.dotRadiusScale(Math.abs(d.value)));
-  },
+  };
 
-  _dotPosition: function (dot) {
+  _dotPosition (dot) {
     dot.attr('visibility', this._dotVisibility.bind(this))
       .attr('cx', this._dotX.bind(this))
       .attr('cy', this._dotY.bind(this))
       .attr('r', this._dotRadius.bind(this));
-  },
+  };
 
-  _dotOrder: function (a, b) {
+  _dotOrder (a, b) {
     // Selected channel is always on top
     if (a.channel == this.selectedChannel) {
       return +1;
     }
-    if (b.channel == this.SelectedChannel) {
+    if (b.channel == this.selectedChannel) {
       return -1;
     }
     // Smaller dots are on top
     return this._dotRadius(b) - this._dotRadius(a);
-  },
+  };
 
-  resize: function (width, height) {
+  resize (width, height) {
     if (!this.brainSvg) {
       // TODO Error?
       return;
@@ -316,9 +332,9 @@ fmbrain.BrainVisualizer.prototype = {
     baseSelection.selectAll('.fm-brain-dot')
       .call(this._dotPosition.bind(this))
       .sort(this._dotOrder.bind(this));
-  },
+  };
 
-  autoResize: function () {
+  autoResize () {
     if (!this.aspect) {
       // Can't determine proper size without aspect ratio
       return;
@@ -334,9 +350,9 @@ fmbrain.BrainVisualizer.prototype = {
       return;
     }
     this.resize(width, height);
-  },
+  };
 
-  update: function (newData) {
+  update (newData) {
     if (newData !== undefined) {
       this.data = newData;
     }
@@ -361,9 +377,9 @@ fmbrain.BrainVisualizer.prototype = {
       .call(this._dotPosition.bind(this))
       .sort(this._dotOrder.bind(this));
 
-  },
+  };
 
-  setSelectedChannel: function (newChannel) {
+  setSelectedChannel (newChannel) {
     if (newChannel == this.selectedChannel) {
       // No update needed
       return;
@@ -371,8 +387,8 @@ fmbrain.BrainVisualizer.prototype = {
     // Update internal state
     this.selectedChannel = newChannel;
     // Call graphical update
-    this.update();
-  }
+    this.update(null);
+  };
 };
-// EXPORT MODULE
-module.exports = fmbrain;
+
+export default BrainVisualizer;

@@ -1,7 +1,14 @@
-export const Brain = () => {
+import Image from 'next/image'
+export const Brain = ({ image }) => {
   return (
     <>
-      <div id="fm-brain"></div>
+      <Image
+        id="main-brain"
+        src={image}
+        alt="main-brain"
+        fill
+        // style={{ objectFit: 'contain' }}
+      />
     </>
   )
 }

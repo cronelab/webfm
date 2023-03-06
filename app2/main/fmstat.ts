@@ -1,34 +1,19 @@
-// ======================================================================== //
-//
-// fmstat
-// Statistical computations for WebFM.
-//
-// ======================================================================== //
+class Gaussian{
+    mean: number;
+    variance: number;
+    count: number;
+    _m2: number;
+    constructor(mu?, s2?, n?){
+        this.mean       = mu;
+        this.variance   = s2;
+        this.count      = n;
+    
+        // TODO Unit tests
+        this._m2        = ( this.count > 1 && this.variance !== undefined ) ? this.variance * ( this.count - 1 ) : undefined;
 
+    }
 
-// MODULE OBJECT
-
-var fmstat = {};
-
-
-// CLASSES
-
-fmstat.Gaussian = function( mu, s2, n ) {
-
-    this.mean       = mu;
-    this.variance   = s2;
-    this.count      = n;
-
-    // TODO Unit tests
-    this._m2        = ( this.count > 1 && this.variance !== undefined ) ? this.variance * ( this.count - 1 ) : undefined;
-
-};
-
-fmstat.Gaussian.prototype = {
-
-    constructor: fmstat.Gaussian,
-
-    ingest: function( datum ) {
+    ingest( datum ) {
 
         var delta       = ( this.mean === undefined ) ? datum : datum - this.mean;
 
@@ -47,25 +32,26 @@ fmstat.Gaussian.prototype = {
 };
 
 
-fmstat.ChannelStat = function( options ) {
+export class ChannelStat{
+    baseline: Gaussian;
+    values: Gaussian[];
+    baselineWindow: { start: number; end: number; };
+    valueTrials: any[];
+    constructor(options){
+        if ( !options ) {   // To streamline later code
+            options = {};
+        }
+    
+        this.baseline       = options.baseline          || new Gaussian();
+        this.values         = options.values            || null;
+    
+        this.baselineWindow = options.baselineWindow    || { start: 0, end: 10 };
+        this.valueTrials    = [];
 
-    if ( !options ) {   // To streamline later code
-        options = {};
     }
 
-    this.baseline       = options.baseline          || new fmstat.Gaussian();
-    this.values         = options.values            || null;
 
-    this.baselineWindow = options.baselineWindow    || { start: 0, end: 10 };
-    this.valueTrials    = [];
-
-};
-
-fmstat.ChannelStat.prototype = {
-
-    constructor: fmstat.ChannelStat,
-
-    recompute: function( baselineWindow ) {
+    recompute( baselineWindow ) {
 
         var stat = this;
 
@@ -89,9 +75,9 @@ fmstat.ChannelStat.prototype = {
             stat.ingest( trialData );
         } );
 
-    },
+    }
 
-    ingest: function( data ) {
+    ingest( data ) {
 
         var baselineData = data.slice( this.baselineWindow.start, this.baselineWindow.end + 1 );
 
@@ -101,9 +87,9 @@ fmstat.ChannelStat.prototype = {
 
         // Aggregate new trial data
         this.valueTrials.push( data );
-    },
+    }
 
-    ingestBaseline: function( data ) {
+    ingestBaseline( data ) {
 
         var stat = this;
 
@@ -112,9 +98,9 @@ fmstat.ChannelStat.prototype = {
             stat.baseline.ingest( d );
         } );
 
-    },
+    }
 
-    ingestValues: function( data ) {
+    ingestValues( data ) {
 
         var stat = this;
 
@@ -130,15 +116,15 @@ fmstat.ChannelStat.prototype = {
             stat.values[i].ingest( d );
         } );
 
-    },
+    }
 
-    meanValues: function() {
+    meanValues() {
         return this.values.map( function( v ) {
             return v.mean;
         } );
-    },
+    }
 
-    baselineNormalizedValues: function() {
+    baselineNormalizedValues() {
 
         // TODO Wrong form of baseline normalization; should use SEM units?
         // TODO Check limit description in maxcog demo notebook.
@@ -152,15 +138,15 @@ fmstat.ChannelStat.prototype = {
             return ( v.mean - stat.baseline.mean ) / Math.sqrt( stat.baseline.variance );
         } );
 
-    },
+    }
 
-    _thresholdedValues: function( threshold ) {
+    _thresholdedValues( threshold ) {
         return this.baselineNormalizedValues().map( function( v ) {
             return ( Math.abs( v ) > threshold ) ? v : 0.0;
         } );
-    },
+    }
 
-    pointwiseCorrectedValues: function( alpha, bothWays ) {
+    pointwiseCorrectedValues( alpha, bothWays ) {
         var twoTailed = true;
         if ( bothWays !== undefined ) {
             twoTailed = bothWays;
@@ -168,9 +154,9 @@ fmstat.ChannelStat.prototype = {
         var threshold = fmstat.ppfn( 1 - ( alpha / ( twoTailed ? 2 : 1 ) ), 0.0, 1.0 );
 
         return this._thresholdedValues( threshold );
-    },
+    }
 
-    bonferroniCorrectedValues: function( alpha, bothWays ) {
+    bonferroniCorrectedValues( alpha, bothWays ) {
         var twoTailed = true;
         if ( bothWays !== undefined ) {
             twoTailed = bothWays;
@@ -178,9 +164,9 @@ fmstat.ChannelStat.prototype = {
         var threshold = fmstat.ppfn( 1 - ( alpha / ( ( twoTailed ? 2 : 1 ) * this.values.length ) ), 0.0, 1.0 );
 
         return this._thresholdedValues( threshold );
-    },
+    }
 
-    baselineComparisonPValues: function() {
+    baselineComparisonPValues() {
 
         var stat = this;
 
@@ -206,9 +192,9 @@ fmstat.ChannelStat.prototype = {
              return 2.0 * ( 1.0 - fmstat.cdfn( Math.abs( t ), 0.0, 1.0 ) );
         } );
 
-    },
+    }
 
-    fdrCorrectedValues: function( fdr ) {
+    fdrCorrectedValues( fdr ) {
 
         // Compute p-values
         var pValues = this.baselineComparisonPValues();
@@ -244,11 +230,7 @@ fmstat.ChannelStat.prototype = {
 
     }
 
-};
-
-// METHODS
-
-fmstat.argsort = function( arr ) {
+    argsort( arr ) {
 
     var zipped = arr.map( function( d, i ) {
         return [d, i];
@@ -275,15 +257,15 @@ fmstat.argsort = function( arr ) {
 // fmstat.cdfn & fmstat.erf courtesy of
 // https://github.com/errcw/gaussian
 
-fmstat.ppfn = function( x, mean, variance ) {
-    return mean - Math.sqrt( 2 * variance ) * fmstat.ierfc(2 * x);
+ppfn( x, mean, variance ) {
+    return mean - Math.sqrt( 2 * variance ) * this.ierfc(2 * x);
 }
 
-fmstat.cdfn = function( x, mean, variance ) {
-    return 0.5 * fmstat.erfc(-(x - mean) / (Math.sqrt( 2 * variance )));
+cdfn( x, mean, variance ) {
+    return 0.5 * this.erfc(-(x - mean) / (Math.sqrt( 2 * variance )));
 }
 
-fmstat.erfc = function(x) {
+erfc(x) {
     var z = Math.abs(x);
     var t = 1 / (1 + z / 2);
     var r = t * Math.exp(-z * z - 1.26551223 + t * (1.00002368 +
@@ -293,7 +275,7 @@ fmstat.erfc = function(x) {
     return x >= 0 ? r : 2 - r;
 };
 
-fmstat.ierfc = function( x ) {
+ierfc = ( x ) {
     if (x >= 2) { return -100; }
     if (x <= 0) { return 100; }
 
@@ -303,65 +285,49 @@ fmstat.ierfc = function( x ) {
     var r = -0.70711 * ((2.30753 + t * 0.27061) / (1 + t * (0.99229 + t * 0.04481)) - t);
 
     for (var j = 0; j < 2; j++) {
-        var err = fmstat.erfc(r) - xx;
+        var err = this.erfc(r) - xx;
         r += err / (1.12837916709551257 * Math.exp(-(r * r)) - r * err);
     }
 
     return (x < 1) ? r : -r;
 };
 
-
-// fmstat.randn
-// Box-Muller standard normal samples
-
-fmstat.randn = function() {
+randn() {
     var u = 1 - Math.random();
     var v = 1 - Math.random();
 
     return Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
 }
 
-// fmstat.randn_v
-// ^ But as a vector
-
-fmstat.randn_v = function( n ) {
+randn_v( n ) {
     var ret = [];
-    for ( i = 0; i < n; i++ ) {
-        ret[i] = fmstat.randn();
+    for ( let i = 0; i < n; i++ ) {
+        ret[i] = this.fmstat.randn();
     }
     return ret;
 }
 
-// fmstat.cumsum
-// It has a funny name
-
-fmstat.cumsum = function( arr ) {
+cumsum( arr ) {
     var ret = [];
     var cur = 0.0;
-    for ( i = 0; i < arr.length; i++ ) {
+    for ( let i = 0; i < arr.length; i++ ) {
         cur += arr[i];
         ret[i] = cur;
     }
     return ret;
 }
 
-// fmstat.add_v
-// Vector addition
-
-fmstat.add_v = function( v1, v2 ) {
+add_v( v1, v2 ) {
     var ret = [];
-    for ( i = 0; i < Math.min( v1.length, v2.length ); i++ ) {
+    for ( let i = 0; i < Math.min( v1.length, v2.length ); i++ ) {
         ret[i] = v1[i] + v2[i];
     }
     return ret;
 }
 
-// fmstat.smul_v
-// Vector scalar multiplication
-
-fmstat.smul_v = function( k, v ) {
+smul_v( k, v ) {
     var ret = [];
-    for ( i = 0; i < v.length; i++ ) {
+    for ( let i = 0; i < v.length; i++ ) {
         ret[i] = k * v[i];
     }
     return ret;
@@ -370,9 +336,9 @@ fmstat.smul_v = function( k, v ) {
 // fmstat.add_m
 // Matrix addition
 
-fmstat.add_m = function( m1, m2 ) {
+add_m( m1, m2 ) {
     var ret = [];
-    for ( i = 0; i < m1.length; i++ ) {
+    for ( let i = 0; i < m1.length; i++ ) {
         ret[i] = [];
         for ( j = 0; j < m1[i].length; j++ ) {
             ret[i][j] = m1[i][j] + m2[i][j];
@@ -384,9 +350,9 @@ fmstat.add_m = function( m1, m2 ) {
 // fmstat.smul_m
 // Matrix scalar multiplication
 
-fmstat.smul_m = function( k, m ) {
+smul_m( k, m ) {
     var ret = [];
-    for ( i = 0; i < m.length; i++ ) {
+    for (let  i = 0; i < m.length; i++ ) {
         ret[i] = [];
         for ( j = 0; j < m[i].length; j++ ) {
             ret[i][j] = k * m[i][j];
@@ -398,7 +364,7 @@ fmstat.smul_m = function( k, m ) {
 // fmstat.pmul_m
 // Matrix entrywise multiplication
 
-fmstat.pmul_m = function( m1, m2 ) {
+pmul_m( m1, m2 ) {
     var ret = [];
     for ( i = 0; i < m1.length; i++ ) {
         ret[i] = [];
@@ -412,7 +378,7 @@ fmstat.pmul_m = function( m1, m2 ) {
 // fmstat.linspace
 // Linearly interpolated vector
 
-fmstat.linspace = function( a, b, n ) {
+linspace( a, b, n ) {
     var ret = [];
     var step = (b - a) / (n - 1);
     for ( i = 0; i < n; i ++ ) {
@@ -424,11 +390,11 @@ fmstat.linspace = function( a, b, n ) {
 // fmstat.zeros
 // Zeros
 
-fmstat.zeros = function( r, c ) {
+zeros( r, c ) {
     var ret = [];
-    for ( i = 0; i < r; i++ ) {
+    for (let  i = 0; i < r; i++ ) {
         ret[i] = [];
-        for ( j = 0; j < c; j++ ) {
+        for (let j = 0; j < c; j++ ) {
             ret[i][j] = 0.0;
         }
     }
@@ -438,16 +404,12 @@ fmstat.zeros = function( r, c ) {
 // fmstat.sin_f
 // Returns a sine function at a given spatial frequency
 
-fmstat.sin_f = function( f ) {
+sin_f( f ) {
     return function( t ) {
         return Math.sin( 2 * Math.PI * f * t );
     };
 }
 
+}
 
-// EXPORT MODULE
-
-module.exports = fmstat;
-
-
-//
+export default ChannelStat;

@@ -53,220 +53,217 @@ var dataset = new fmdata.Dataset();
 // UI
 var uiManager = new fmui.InterfaceManager();
 
-// TODO Handle rejection
-uiManager.loadConfig(path.join(configPath, 'ui'))
-  .then(function () {
-    // TODO NOT NEEDED
-    // TODO Not this way ...
-    // if ( subjectName && recordName ) {
-    //     uiManager.updateRecordDetails( subjectName, recordName );
-    // }
-  })
-  .catch(function (reason) {    // TODO Respond intelligently.
-    console.log(reason);
-  });
 
-if (document.title == "WebFM: Live") {
+// if (document.title == "WebFM: Live") {
 
-  // Feature signal buffer setup
-  var featureSignalBufferManager = {};
-  featureSignalBufferManager.featureSignalBuffer = null;
-  featureSignalBufferManager.runningAverage = null;
-  featureSignalBufferManager.runningStandardDeviation = null;
-  featureSignalBufferManager.useFeatureSignalBuffer = true;
-  featureSignalBufferManager.featureSignalBufferTime = Infinity; // In seconds
-  if (featureSignalBufferManager.useFeatureSignalBuffer) {
-    if (featureSignalBufferManager.featureSignalBufferTime === Infinity) {
-      uiManager.brain.dotColorsDomain = uiManager.brain.dotColorsDomainBufferInfinity;
-      uiManager.brain.dotPowerThreshold = uiManager.brain.dotPowerThresholdBufferInfinity;
-      uiManager.brain.extent = uiManager.brain.extentBufferInfinity;
-    } else {
-      uiManager.brain.dotColorsDomain = uiManager.brain.dotColorsDomainBuffer;
-      uiManager.brain.dotPowerThreshold = uiManager.brain.dotPowerThresholdBuffer;
-      uiManager.brain.extent = uiManager.brain.extentBuffer;
-    }
-  }
-  // Buffer length with be obtained from "onSourceProperties" and intended buffer time
+//   // Feature signal buffer setup
+//   var featureSignalBufferManager = {
+//     featureSignalBuffer: null,
+//     featureSignalBufferLength: 0,
+//     runningAverage: null,
+//     runningStandardDeviation: null,
+//     useFeatureSignalBuffer: true,
+//     featureSignalBufferTime: Infinity, // In seconds
+//     numBufferPoints: null
+    
+//   };
+//   featureSignalBufferManager.featureSignalBuffer = null;
+//   featureSignalBufferManager.runningAverage = null;
+//   featureSignalBufferManager.runningStandardDeviation = null;
+//   featureSignalBufferManager.useFeatureSignalBuffer = true;
+//   featureSignalBufferManager.featureSignalBufferTime = Infinity; // In seconds
+//   if (featureSignalBufferManager.useFeatureSignalBuffer) {
+//     if (featureSignalBufferManager.featureSignalBufferTime === Infinity) {
+//       uiManager.brain.dotColorsDomain = uiManager.brain.dotColorsDomainBufferInfinity;
+//       uiManager.brain.dotPowerThreshold = uiManager.brain.dotPowerThresholdBufferInfinity;
+//       uiManager.brain.extent = uiManager.brain.extentBufferInfinity;
+//     } else {
+//       uiManager.brain.dotColorsDomain = uiManager.brain.dotColorsDomainBuffer;
+//       uiManager.brain.dotPowerThreshold = uiManager.brain.dotPowerThresholdBuffer;
+//       uiManager.brain.extent = uiManager.brain.extentBuffer;
+//     }
+//   }
+//   // Buffer length with be obtained from "onSourceProperties" and intended buffer time
 
-}
+// }
 
 // DATA SOURCE SET-UP
 
 var dataSource = null;
 
-if (onlineMode) {     // Using BCI2000Web over the net
-  dataSource = new fmonline.OnlineDataSource();
+// if (onlineMode) {     // Using BCI2000Web over the net
+//   dataSource = new fmonline.OnlineDataSource();
 
-  // Wire to common routines
-  dataSource.onFeatureProperties = function (properties) {
+//   // Wire to common routines
+//   dataSource.onFeatureProperties = function (properties) {
 
-    // TODO More elegant placement?
-    dataset.setupChannels(properties.channels);
+//     // TODO More elegant placement?
+//     dataset.setupChannels(properties.channels);
 
-    updateProperties(properties);
-    // if (document.title.indexOf("WebFM: Map") >= 0) {
-    //   //This is really not good, and probably won't work in all cases.
-    //   dataSource._bciConnection.execute('List Parameter Sequence', function (result) {
-    //     //var sequenceList = []
-    //     var sequenceList = result.output.substring(result.output.indexOf("=") + 2, result.output.indexOf(" // Sequence in which stimuli")).split(" ");
-    //     for (var i = 0; i < sequenceList.length; i++) {
-    //       sequenceList[i] = parseInt(sequenceList[i]);
-    //     }
-    //     var max = Math.max.apply(null, sequenceList)
-    //     sequenceList.splice(sequenceList.indexOf(max), 1);
-    //     var max = Math.max.apply(null, sequenceList)
-    //     for (let i = 0; i <= max; i++) {
-    //       var item = document.createElement('li');
-    //       var item2 = document.createElement('a')
-    //       item.appendChild(item2)
-    //       item2.setAttribute('href', '#')
-    //       item2.appendChild(document.createTextNode(i))
-    //       item2.setAttribute('id', i)
-    //       item2.classList.add("stimulusSelector");
-    //       document.getElementById('stimSel').appendChild(item);
+//     updateProperties(properties);
+//     // if (document.title.indexOf("WebFM: Map") >= 0) {
+//     //   //This is really not good, and probably won't work in all cases.
+//     //   dataSource._bciConnection.execute('List Parameter Sequence', function (result) {
+//     //     //var sequenceList = []
+//     //     var sequenceList = result.output.substring(result.output.indexOf("=") + 2, result.output.indexOf(" // Sequence in which stimuli")).split(" ");
+//     //     for (var i = 0; i < sequenceList.length; i++) {
+//     //       sequenceList[i] = parseInt(sequenceList[i]);
+//     //     }
+//     //     var max = Math.max.apply(null, sequenceList)
+//     //     sequenceList.splice(sequenceList.indexOf(max), 1);
+//     //     var max = Math.max.apply(null, sequenceList)
+//     //     for (let i = 0; i <= max; i++) {
+//     //       var item = document.createElement('li');
+//     //       var item2 = document.createElement('a')
+//     //       item.appendChild(item2)
+//     //       item2.setAttribute('href', '#')
+//     //       item2.appendChild(document.createTextNode(i))
+//     //       item2.setAttribute('id', i)
+//     //       item2.classList.add("stimulusSelector");
+//     //       document.getElementById('stimSel').appendChild(item);
 
-    //     }
-
-
-
-    //     // sequenceList.shift();
-    //   });
-    // }
-  };
+//     //     }
 
 
-  if (document.title == "WebFM: Live") {
-    dataSource.onSourceProperties = function (properties) {
 
-      featureSignalBufferManager.featureSignalBufferLength = featureSignalBufferManager.featureSignalBufferTime
-        / (properties.elementunit.gain * properties.numelements);
-    };
-    dataSource.onFeatureSignal = function (featureSignal) {
-      ingestFeatureSignal(featureSignal);
-    };
-    dataSource.normalize = true;
-
-  }
-
-  dataSource.onBufferCreated = function () {
-    // TODO HELLA DUMB TO DO THIS WAY
-    dataset.updateTimesFromWindow(dataSource.getTrialWindow(), dataSource.getTrialLength());
-  };
-  dataSource.onStartTrial = function () {
-    console.log("StartTrial")
-    startTrial();
-  };
-  dataSource.ontrial = function (trialData) {
-    console.log(trialData)
-    ingestTrial(trialData);
-    // uiManager.scope.update( dataSource.dataFormatter.sourceBuffer[0] );
-
-  };
-
-  dataSource.onRawSignal = function (rawSignal) {
-    // console.log(rawSignal)
-    ingestSignal(rawSignal);
-
-    // uiManager.scope.update( rawSignal );
-  };
+//     //     // sequenceList.shift();
+//     //   });
+//     // }
+//   };
 
 
-  cronelib.promiseJSON(path.join(configPath, 'online'))
-    .then(function (onlineConfig) {
-      dataSource.setConfig(onlineConfig);
-      prepareOnlineDataSource();
-    })
-    .catch(function (reason) {    // TODO Respond intelligently
-      console.log(reason);
-    })
+//   if (document.title == "WebFM: Live") {
+//     dataSource.onSourceProperties = function (properties) {
 
-  // dataSource.loadConfig( onlineConfig, taskConfig )
-  //             .then( function() {
-  //                 prepareOnlineDataSource();
-  //             } )
-  //             .catch( function( reason ) {    // TODO Respond intelligently
-  //                 console.log( reason );
-  //             } );
+//       featureSignalBufferManager.featureSignalBufferLength = featureSignalBufferManager.featureSignalBufferTime
+//         / (properties.elementunit.gain * properties.numelements);
+//     };
+//     dataSource.onFeatureSignal = function (featureSignal) {
+//       ingestFeatureSignal(featureSignal);
+//     };
+//     dataSource.normalize = true;
 
-}
+//   }
 
-var getSourceAddress = function () {
+//   dataSource.onBufferCreated = function () {
+//     // TODO HELLA DUMB TO DO THIS WAY
+//     dataset.updateTimesFromWindow(dataSource.getTrialWindow(), dataSource.getTrialLength());
+//   };
+//   dataSource.onStartTrial = function () {
+//     console.log("StartTrial")
+//     startTrial();
+//   };
+//   dataSource.ontrial = function (trialData) {
+//     console.log(trialData)
+//     ingestTrial(trialData);
+//     // uiManager.scope.update( dataSource.dataFormatter.sourceBuffer[0] );
 
-  return new Promise(function (resolve, reject) {
+//   };
 
-    var sourceAddress = Cookies.get('sourceAddress');
+//   dataSource.onRawSignal = function (rawSignal) {
+//     // console.log(rawSignal)
+//     ingestSignal(rawSignal);
 
-    if (sourceAddress === undefined) {
+//     // uiManager.scope.update( rawSignal );
+//   };
 
-      var configURI = path.join(configPath, 'online');
 
-      $.getJSON(configURI)
-        .done(function (data) {
-          // Set the cookie for the future, so we can get it directly
-          Cookies.set('sourceAddress', data.sourceAddress);
-          // Resolve to the value
-          resolve(data.sourceAddress);
-        })
-        .fail(function (req, reason, err) {
-          // TODO Get error message from jquery object
-          reject('Could not load watcher config from ' + configURI + ' : ' + reason);
-        });
+//   cronelib.promiseJSON(path.join(configPath, 'online'))
+//     .then(function (onlineConfig) {
+//       dataSource.setConfig(onlineConfig);
+//       prepareOnlineDataSource();
+//     })
+//     .catch(function (reason) {    // TODO Respond intelligently
+//       console.log(reason);
+//     })
 
-    }
+//   // dataSource.loadConfig( onlineConfig, taskConfig )
+//   //             .then( function() {
+//   //                 prepareOnlineDataSource();
+//   //             } )
+//   //             .catch( function( reason ) {    // TODO Respond intelligently
+//   //                 console.log( reason );
+//   //             } );
 
-    resolve(sourceAddress);
+// }
 
-  });
+// var getSourceAddress = function () {
 
-};
+//   return new Promise(function (resolve, reject) {
 
-var prepareOnlineDataSource = function () {
+//     var sourceAddress = Cookies.get('sourceAddress');
 
-  getSourceAddress()
-    .then(function (sourceAddress) {
+//     if (sourceAddress === undefined) {
 
-      dataSource.connect(sourceAddress)
-        .then(function () {
+//       var configURI = path.join(configPath, 'online');
 
-          // Set some base metadata
-          // TODO Hard-coded for now
-          dataset.updateMetadata({
-            kind: 'high gamma power',
-            labels: ['timeseries']
-          });
-          console.log(dataset)
-          // Get subject name
-          dataSource.getParameter('SubjectName')
-            .then(function (result) {
-              // Postprocess result
-              subjectName = result.trim();
-              // Do everything that needs subjectName
-              prepareSubjectDependencies(subjectName);
-            })
-            .catch(function (reason) {
-              console.log('Could not obtain SubjectName: ' + reason);
-            });
+//       $.getJSON(configURI)
+//         .done(function (data) {
+//           // Set the cookie for the future, so we can get it directly
+//           Cookies.set('sourceAddress', data.sourceAddress);
+//           // Resolve to the value
+//           resolve(data.sourceAddress);
+//         })
+//         .fail(function (req, reason, err) {
+//           // TODO Get error message from jquery object
+//           reject('Could not load watcher config from ' + configURI + ' : ' + reason);
+//         });
 
-          // Get task name
-          dataSource.getParameter('DataFile')
-            .then(function (result) {
-              // TODO Error checking
-              var taskName = result.trim().split('/')[1];
-              // Do everything that needs taskName
-              prepareTaskDependencies(taskName);
-            })
-            .catch(function (reason) {
-              console.log('Could not obtain DataFile: ' + reason);
-            });
+//     }
 
-        })
-        .catch(function (reason) {    // TODO Something intelligent
-          console.log(reason);
-        });
+//     resolve(sourceAddress);
 
-    });
+//   });
 
-};
+// };
+
+// var prepareOnlineDataSource = function () {
+
+//   getSourceAddress()
+//     .then(function (sourceAddress) {
+
+//       dataSource.connect(sourceAddress)
+//         .then(function () {
+
+//           // Set some base metadata
+//           // TODO Hard-coded for now
+//           dataset.updateMetadata({
+//             kind: 'high gamma power',
+//             labels: ['timeseries']
+//           });
+//           console.log(dataset)
+//           // Get subject name
+//           dataSource.getParameter('SubjectName')
+//             .then(function (result) {
+//               // Postprocess result
+//               subjectName = result.trim();
+//               // Do everything that needs subjectName
+//               prepareSubjectDependencies(subjectName);
+//             })
+//             .catch(function (reason) {
+//               console.log('Could not obtain SubjectName: ' + reason);
+//             });
+
+//           // Get task name
+//           dataSource.getParameter('DataFile')
+//             .then(function (result) {
+//               // TODO Error checking
+//               var taskName = result.trim().split('/')[1];
+//               // Do everything that needs taskName
+//               prepareTaskDependencies(taskName);
+//             })
+//             .catch(function (reason) {
+//               console.log('Could not obtain DataFile: ' + reason);
+//             });
+
+//         })
+//         .catch(function (reason) {    // TODO Something intelligent
+//           console.log(reason);
+//         });
+
+//     });
+
+// };
 
 var updateRecordListForSubject = function (theSubject) {
 
@@ -277,7 +274,7 @@ var updateRecordListForSubject = function (theSubject) {
       // Update the save page with the records
       uiManager.updateSubjectRecords(records);
     })
-    .catch(function (reason) {
+    .catch(function (err) {
       // TODO Handle errors
       console.log(err);
     });
@@ -454,25 +451,11 @@ var prepareTaskDependencies = function (taskName) {
 };
 
 
-// Load mode helpers
-
-var getRecordInfo = function (subject, record) {
-  // Wrap $.getJSON in a standard promise
-  return new Promise(function (resolve, reject) {
-    var infoPath = path.join(apiPath, 'info', subject, record);
-    $.getJSON(infoPath)
-      .done(resolve)
-      .fail(function () {
-        // TODO Get error infor from jquery object
-        reject('Error loading JSON from: ' + infoPath);
-      });
-  });
-};
 
 var unpackBundle = function (info) {
   if (info.isBundle) {
     // Need to load bundle to identify first dataset
-    bundle = new fmdata.DataBundle();
+    let bundle = new fmdata.DataBundle();
     return bundle.get(info.uri)
       .then(function () {
         // TODO Update UI with bundle displayGroup
@@ -491,28 +474,7 @@ var unpackBundle = function (info) {
 // TODO Naming semantics imply it takes dataset as argument (better design anyway)
 var prepareFromDataset = function () {
 
-  // Update subject name
-  uiManager.updateSubjectName(dataset.metadata.subject);
-  // Update brain image & sensor geometry
-  var brainImage = dataset.metadata.brainImage;
-  var sensorGeometry = dataset.metadata.sensorGeometry;
-
-  if (brainImage === undefined) {
-    console.log('No brain image in specified dataset.');
-    // TODO Should have a neutral default image to use; perhaps all white.
-
-    if (sensorGeometry === undefined) {
-      // TODO If neither are provided, should create a "standardized" layout
-    }
-  } else {
-    if (sensorGeometry === undefined) {
-      console.log('No sensor geometry in specified dataset.');
-      // TODO What can I do??
-    } else {
-      // Everything good!
       uiManager.brain.setup(brainImage, sensorGeometry);
-    }
-  }
 
   // Update task name
   // TODO Improve logic
@@ -592,6 +554,7 @@ if (document.title == "WebFM: Live") {
       var sliderVal = document.getElementsByClassName("slider")[0];
 
       Object.keys(_buffered).forEach((key) => {
+        //@ts-ignore
         _buffered[key] = _buffered[key] / (_buffered[maxVal] + (sliderVal.value * .01));
       });
       uiManager.brain.update(_buffered);
@@ -896,11 +859,4 @@ uiManager.hideIcon( 'working' );
 */
 
 };
-
-$(window).on('resize', function () { uiManager.didResize() });
-
-$(window).on('beforeunload', function () {
-  if (!dataset.isClean()) {
-    return "There are unsaved changes to your map. Are you sure you want to leave?";
-  }
-});
+export {}

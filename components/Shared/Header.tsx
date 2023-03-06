@@ -1,4 +1,5 @@
 "use client"
+import Link from 'next/link'
 import React from 'react'
 import { Button, Container, Navbar } from 'react-bootstrap'
 
@@ -8,7 +9,10 @@ export const Header = () => {
   return (
     <Navbar fixed="top" className={styles["navbar-inverse"]}>
       <Container>
-          <Navbar.Brand className={styles["navbar-brand"]} href="#">WebFM</Navbar.Brand>
+        <Link href="/">
+          <Navbar.Brand className={styles["navbar-brand"]}>WebFM</Navbar.Brand>
+        </Link>
+        <div className='fm-subject-name' />
       </Container>
     </Navbar>
   )
