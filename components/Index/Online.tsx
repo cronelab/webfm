@@ -1,20 +1,16 @@
 import React, { useState, useEffect } from 'react'
-import {
-  Card,
-  Button,
-  Form,
-} from 'react-bootstrap'
+import { Card, Button, Form } from 'react-bootstrap'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faGear,
   faCheck,
   faLocationDot,
 } from '@fortawesome/free-solid-svg-icons'
-import Cookies from 'js-cookie'
 import { BCI2K_OperatorConnection } from 'bci2k'
 import Link from 'next/link'
 
-const EditArea = props => {
+const EditArea = ({ sourceAddress, setSourceAddress }) => {
+  const [localAddress, setLocalAddress] = useState(sourceAddress)
   return (
     <Card.Title
       className="h6"
@@ -23,24 +19,21 @@ const EditArea = props => {
     >
       <Card.Text>Source</Card.Text>
       <Form.Control
-        value={props.sourceAddress}
-        onChange={e => props.setSourceAddress(e.target.value)}
+        value={localAddress}
+        onChange={e => setLocalAddress(e.target.value)}
+        onBlur={e => setSourceAddress(e.target.value)}
       ></Form.Control>
-      <FontAwesomeIcon
-        className="icon-exclamation-sign"
-        icon={faCheck}
-        // onClick={() => setSourceAddress()}
-      />
+      <FontAwesomeIcon icon={faCheck} />
     </Card.Title>
   )
 }
 
-// var bciWatcher = new BCI2KWatcher()
-const bciOperatorConn = new BCI2K_OperatorConnection()
-
 export const Online = () => {
+  const [bciOperatorConn, setBCIOperatorConn] = useState(
+    new BCI2K_OperatorConnection()
+  )
   const [showEditArea, setShowEditArea] = useState(false)
-  const [sourceAddress, setSourceAddress] = useState('ws://localhost')
+  const [sourceAddress, setSourceAddress] = useState('')
   const [live, setLive] = useState(false)
   const [bciConnectedState, setBCIConnectedState] = useState('Not connected')
   const [subjectName, setSubjectName] = useState('')
@@ -49,32 +42,42 @@ export const Online = () => {
 
   useEffect(() => {
     ;(async () => {
-      let defaultSourceAddress = Cookies.get('sourceAddress')
-      if (defaultSourceAddress === undefined) {
+      let defaultSourceAddress = localStorage.getItem('sourceAddress')
+      setSourceAddress(defaultSourceAddress)
+      if (defaultSourceAddress === null) {
         try {
           let config = await fetch(`/api/config/online`)
           let data = await config.json()
-          console.log(data)
-          Cookies.set('sourceAddress', data.sourceAddress)
+          localStorage.setItem('sourceAddress', data.sourceAddress)
           defaultSourceAddress = data.sourceAddress
+          setSourceAddress(defaultSourceAddress)
         } catch (err) {
           console.log(err)
         }
       }
+    })()
+  }, [])
+
+  useEffect(() => {
+    if (sourceAddress === '' || sourceAddress === null) return
+    localStorage.setItem('sourceAddress', sourceAddress)
+    let newBCI = new BCI2K_OperatorConnection()
+    setBCIOperatorConn(newBCI)
+    ;(async () => {
       try {
-        await bciOperatorConn.connect(defaultSourceAddress)
-        bciOperatorConn.stateListen()
-        bciOperatorConn.ondisconnect = () => {
-          setLive(false);
+        await newBCI.connect(sourceAddress)
+        newBCI.stateListen()
+        newBCI.ondisconnect = () => {
+          setLive(false)
         }
-        bciOperatorConn.onStateChange = e => {
+        newBCI.onStateChange = e => {
           setBCIConnectedState(e)
         }
       } catch (err) {
         console.log(err)
       }
     })()
-  }, [])
+  }, [sourceAddress])
 
   useEffect(() => {
     ;(async () => {
@@ -138,24 +141,30 @@ export const Online = () => {
   return (
     <>
       <Card>
-        <Card.Header>
-          <Card.Title
-            style={{ display: 'flex', justifyContent: 'space-between' }}
-          >
+        <Card.Header
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <Card.Title>
             <Card.Text>Online</Card.Text>
-            <FontAwesomeIcon
-              className="icon-exclamation-sign"
-              icon={faGear}
-              onClick={() => setShowEditArea(!showEditArea)}
-            />
           </Card.Title>
-          {showEditArea ? (
+          <FontAwesomeIcon
+            icon={faGear}
+            onClick={() => setShowEditArea(!showEditArea)}
+          />
+        </Card.Header>
+
+        {showEditArea ? (
+          <Card.Header>
             <EditArea
               sourceAddress={sourceAddress}
               setSourceAddress={setSourceAddress}
             />
-          ) : null}
-        </Card.Header>
+          </Card.Header>
+        ) : null}
       </Card>
       {live ? <ToggleLiveMode /> : <></>}
     </>
