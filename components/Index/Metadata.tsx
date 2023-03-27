@@ -1,117 +1,35 @@
 import React from 'react'
-import {
-  Card,
-  ListGroup,
-  ListGroupItem,
-  Form,
-  InputGroup,
-} from 'react-bootstrap'
+import { Card, ListGroup, ListGroupItem } from 'react-bootstrap'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCloudArrowUp, faPencil } from '@fortawesome/free-solid-svg-icons'
 import { useAppDispatch, useAppSelector } from '../../app/redux/hooks'
 
 import './fileUpload.scss'
-// $('#new-subject-ok').on('click', function () {
-//     var newSubjectId = $('#new-subject-id').val();
-//     addSubject(newSubjectId);
-// });
-
-// $('.toggle-new-subject').on('click', function () {
-//     toggleNewSubject();
-// });
-
-// $('#upload-sensor-geometry-input').on('change', function () {
-
-//     console.log('PUTTING GEOMETRY');
-
-//     var files = $(this).get(0).files;
-
-//     // TODO This will fail in certain obvious cases; should be caching a
-//     // current subject state variable
-//     var subject = window.location.hash.slice(1);
-
-//     if (files.length > 0) {
-
-//         var file = files[0];
-
-//         // FormData carries the payload for our PUT request
-//         var formData = new FormData();
-
-//         // We only care about the first file
-//         // TODO Get name from jquery element somehow?
-//         formData.append('sensorGeometry', file, file.name);
-
-//         // Make an AJAX request
-
-//         $.ajax({
-//             url: path.join(apiPath, 'geometry', subject),
-//             method: 'PUT',
-//             data: formData,
-//             processData: false,
-//             contentType: false
-//         }).done(function (data, status, xhr) {
-
-//             // Reload the newly uploaded brain
-//             selectSubject(subject);
-
-//         }).fail(function (xhr, status, err) {
-
-//             // TODO GUI for error
-//             console.log('Upload failed :( ' + JSON.stringify(err));
-//         });
-//     }
-// });
-
-// $('.upload-brain-image').on('click', function () {
-
-//     // Trigger the file uploader element
-//     $('#upload-brain-image-input').click();
-
-//     // TODO GUI Changes
-
-// });
-
-// $('#upload-brain-image-input').on('change', function () {
-
-//     var files = $(this).get(0).files;
-
-//     // TODO This will fail in certain obvious cases; should be caching a
-//     // current subject state variable
-//     var subject = window.location.hash.slice(1);
-
-//     if (files.length > 0) {
-
-//         var file = files[0];
-
-//         // FormData carries the payload for our PUT request
-//         var formData = new FormData();
-
-//         // We only care about the first file
-//         // TODO Get name from jquery element somehow?
-//         formData.append('brainImage', file, file.name);
-
-//         // Make an AJAX request
-
-//         $.ajax({
-//             url: path.join(apiPath, 'brain', subject),
-//             method: 'PUT',
-//             data: formData,
-//             processData: false,
-//             contentType: false
-//         }).done(function (data, status, xhr) {
-
-//             // Reload the newly uploaded brain
-//             selectSubject(subject);
-
-//         }).fail(function (xhr, status, err) {
-
-//             // TODO GUI for error
-//             console.log('Upload failed :( ' + JSON.stringify(err));
-//         });
-//     }
-// });
 
 export const Metadata = ({}) => {
+  const currentSubject = useAppSelector(state => state.subjects.currentSubject)
+
+  const uploadMetadata = async (e, type) => {
+    const file = e.target.files[0]
+    const formData = new FormData()
+    if (type === 'brain') {
+      formData.append('brainImage', file, file.name)
+      let req = await fetch(`/api/brains/${currentSubject}`, {
+        method: 'PUT',
+        body: formData,
+      })
+      let res = await req.json()
+      console.log(res);
+    }
+    if (type === 'geometry') {
+      formData.append('sensorGeometry', file, file.name)
+      let req = await fetch(`/api/geometry/${currentSubject}`, {
+        method: 'PUT',
+        body: formData,
+      })
+    }
+  }
+
   return (
     <Card>
       <Card.Header>
@@ -119,22 +37,19 @@ export const Metadata = ({}) => {
       </Card.Header>
 
       <ListGroup>
-      <ListGroupItem>
-        Sensor Geometry
-          <span className="btn-file">
+        <ListGroupItem style={{ display: 'flex' }}>
+          <p>Sensor Geometry</p>
+          <span className="btn-file" style={{ margin: '0px 10px 0px 10px' }}>
             <FontAwesomeIcon icon={faCloudArrowUp} />
-            <input type="file" />
+            <input type="file" onChange={e => uploadMetadata(e, 'geometry')} />
           </span>
-          <span className="btn-file">
-            <FontAwesomeIcon icon={faPencil} />
-            <input type="file" />
-          </span>
+          <FontAwesomeIcon icon={faPencil} />
         </ListGroupItem>
         <ListGroupItem>
           Brain Image
-          <span className="btn-file">
+          <span className="btn-file" style={{ margin: '0px 10px 0px 10px' }}>
             <FontAwesomeIcon icon={faCloudArrowUp} />
-            <input type="file" />
+            <input type="file" onChange={e => uploadMetadata(e, 'brain')} />
           </span>
         </ListGroupItem>
       </ListGroup>
@@ -142,6 +57,3 @@ export const Metadata = ({}) => {
   )
 }
 export default Metadata
-// $('.upload-sensor-geometry').on('click', function () {
-//     $('#upload-sensor-geometry-input').click();
-// });

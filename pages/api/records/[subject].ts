@@ -1,6 +1,11 @@
-import fs from 'fs'
+import { readdirSync } from 'fs'
 export default function handler(req, res) {
-  var { subject } = req.query
-  const records = fs.readdirSync(`${process.env.DATA_DIR}/${subject}`).filter(file => file !== '.metadata').sort();
-  res.status(200).json(records);
+  const { subject } = req.query
+  const records = readdirSync(`${process.env.DATA_DIR}/${subject}`).filter(
+    file => {
+      const ext = file.split('.').pop()
+      return ext === 'fm' || ext === 'json'
+    }
+  )
+  res.status(200).json(records)
 }

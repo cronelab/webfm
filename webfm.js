@@ -13,51 +13,9 @@ var assets = require("./assets");
 var fs = require("fs");
 var path = require("path");
 
-var spawn = require("child_process").spawn;
-
-var optimist = require("optimist")
-  .usage("Web-based functional map server.\nUsage: $0")
-  .options("p", {
-    alias: "port",
-    describe: "TCP port to host server on",
-    default: 8080
-  })
-  .options("r", {
-    alias: "root",
-    describe: "Directory to use as web root",
-    default: "./public"
-  })
-  .options("d", {
-    alias: "data",
-    describe: "Directory for data hive",
-    default: "./data"
-  })
-  .options("u", {
-    alias: "uploads",
-    describe: "Directory for storing file uploads",
-    default: "./uploads"
-  })
-  .options("a", {
-    alias: "app",
-    describe: "Directory for application scripts",
-    default: "./app"
-  })
-  .options("h", {
-    alias: "help",
-    describe: "Show this help message",
-    boolean: true,
-    default: false
-  });
-var argv = optimist.argv;
-
-if (argv.help) {
-  optimist.showHelp();
-  process.exit(0);
-}
-
 var express = require("express");
 var bodyParser = require("body-parser");
-var formidable = require("formidable");
+// var formidable = require("formidable");
 
 var async = require("async");
 
@@ -97,23 +55,14 @@ if (typeof Object.assign != "function") {
 }
 
 // Process argv
-var port = argv.port;
-var rootDir = path.resolve(argv.root);
-var dataDir = path.resolve(argv.data);
-console.log(dataDir)
-var uploadsDir = path.resolve(argv.uploads);
-var appDir = path.resolve(argv.app);
+var port = 8080;
+var rootDir = path.resolve('./public');
+var dataDir = path.resolve('./data');
+var uploadsDir = path.resolve('./uploads');
+var appDir = path.resolve('./app');
 
 // Set up server
 var app = express();
-
-var key = fs.readFileSync("certs/private.key");
-var cert = fs.readFileSync("certs/server.crt");
-var options = {
-  key: key,
-  cert: cert
-};
-var https = require("https");
 
 // App globals
 function rawBody(req, res, next) {
@@ -281,161 +230,7 @@ var checkRecord = function(subject, record, cb) {
   });
 };
 
-// Get info on particular record.
-app.get("/api/info/:subject/:record", function(req, res) {
-  var errOut = function(code, msg) {
-    console.log(msg);
-    res.status(code).send(msg);
-  };
 
-  var subject = req.params.subject;
-  var record = req.params.record;
-
-  // Check and see what kind of thing we are
-  checkRecord(subject, record, function(err, recordType) {
-    if (err) {
-      // Couldn't determine for some reason
-      errOut(500, "Couldn't determine record type: /" + subject + "/" + record);
-      return;
-    }
-
-    if (recordType == "none") {
-      // Not found
-      errOut(404, "Record not found: /" + subject + "/" + record);
-      return;
-    }
-
-    var recordInfo = {
-      subject: subject,
-      record: record,
-      isBundle: recordType == "bundle",
-      uri: path.join("/", "api", "data", subject, record)
-    };
-
-    res.json(recordInfo);
-
-    // TODO This should be exhaustive ... Right?
-  });
-});
-
-
-
-
-// Put new brain image data into .metadata
-app.put("/api/brain/:subject", function(req, res) {
-  var errOut = function(code, msg) {
-    console.log(msg);
-    res.status(code).send(msg);
-  };
-
-  var subject = req.params.subject;
-
-  // First check if subject exists
-  checkSubject(subject, function(err, isSubject) {
-    if (err) {
-      // Based on how checkSubject is defined, this shouldn't happen
-      errOut(
-        500,
-        'Error determining if "' +
-          subject +
-          '" is a subject: ' +
-          JSON.stringify(err)
-      );
-      return;
-    }
-
-    if (!isSubject) {
-      // Not a subject
-      errOut(404, 'Subject "' + subject + '" not found.');
-      return;
-    }
-
-    // Next get the existing metadata
-    getSubjectMetadata(subject, function(err, metadata) {
-      var oldMetadata = metadata;
-
-      if (err) {
-        // TODO Check err details to determine if we failed because
-        // file doesn't exist or for some other reason; other reasons
-        // should probably return errors
-        oldMetadata = {};
-      }
-
-      var newMetadata = Object.assign({}, oldMetadata);
-
-      // Prepare form parser to update the metadata
-
-      var form = formidable.IncomingForm();
-      form.uploadDir = uploadsDir;
-
-      form.on("file", function(field, file) {
-        console.log(
-          'Received file "' +
-            file.name +
-            '" for field "' +
-            field +
-            '" at path: ' +
-            file.path
-        );
-
-        // Process the file
-        base64.encode(
-          file.path,
-          {
-            string: true,
-            local: true
-          },
-          function(err, imageData) {
-            if (err) {
-              // Could not be serialized
-              errOut(500, "Could not serialize uploaded image.");
-              return;
-            }
-
-            // Generate the new metadata entry
-            var imageExtension = path.extname(file.name);
-            newMetadata.brainImage =
-              "data:image/" + imageExtension + ";base64," + imageData;
-
-            // Save the new metadata
-            var metadataPath = path.join(dataDir, subject, metadataFilename);
-            jsonfile.writeFile(metadataPath, newMetadata, function(err) {
-              if (err) {
-                // Could not create record file
-                errOut(
-                  500,
-                  'Could not update metadata for "' +
-                    subject +
-                    '": ' +
-                    JSON.stringify(err)
-                );
-                return;
-              }
-
-              // We're going to delay sending success until the
-              // form parser triggers an 'end' event.
-
-              // TODO Good idea?
-            });
-          }
-        );
-      });
-
-      form.on("error", function(err) {
-        console.log(
-          "Error uploading brain image files: " + JSON.stringify(err)
-        );
-      });
-
-      form.on("end", function() {
-        // TODO Check if end only gets called when successful
-        res.sendStatus(201);
-      });
-
-      form.parse(req);
-    });
-  });
-});
 
 // Get subject sensor geometry data from .metadata
 // TODO Having to call both this and the above seems like a lot of extra
@@ -1126,32 +921,5 @@ app.put("/api/data/:subject/:record", rawBody, function(req, res) {
 //   pyProcess.stdin.end();
 //
 // } );
-
-//CCEP stuff
-var options = {
-  args: [
-    "PY18N002",
-    "E:/Projects/Hopkins/GIT/webfm/webfm_dev/utils/python/CCEPS_analysis/Subjects/"
-  ]
-};
-
-//Serve the stuff
-//https.createServer(options,app).listen(54321);
 var http = require("http");
 http.createServer(app).listen(8080);
-
-//Not working with current self-signed cert. This is fine.
-
-// app.use(function(req, res, next) {
-//     if (req.secure) {
-//         next();
-//     } else {
-//         res.redirect('https://' + req.headers.host + req.url);
-//     }
-// });
-
-// app.listen( argv.port, function() {
-//   console.log( "Serving " + rootDir + " on " + argv.port + ":tcp" );
-// } );
-
-//

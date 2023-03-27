@@ -1,28 +1,31 @@
 import React from 'react'
 import { Card, ListGroup, ListGroupItem } from 'react-bootstrap'
+import Link from 'next/link'
 import { useAppSelector } from '../../app/redux/hooks'
 
 export const Records = ({ records, subject }) => {
+  const currentSubject = useAppSelector((state) => state.subjects.currentSubject)
   return (
     <Card>
       <Card.Header>
         <Card.Title>Records</Card.Title>
       </Card.Header>
 
-      <ListGroup id="record-list">
+      <ListGroup>
         {records.map((record, idx) => {
-          let route = decodeURIComponent(`?view=WebFM: Map/${subject}/${record.split('.fm')[0]}`)
+          let ext = record.split('.').pop()
+          let cleanRecord = record.split(`.${ext}`)[0]
+          console.log(currentSubject)
+          let route = decodeURIComponent(
+            `?view=WebFM: Map/${currentSubject}/${cleanRecord}`
+          )
 
           return (
-          <ListGroupItem
-            key={idx}
-            >
-              <Link
-                href={`/map/${route}`}>{record}</Link>
-            {/* href="/map/?view=WebFM: %20Map/CC01/2022_09_01_Gestures_block1" */}
-            {/* {record} */}
-          </ListGroupItem>
-        )})}
+            <ListGroupItem key={idx}>
+              <Link href={`/map/${route}`} style={{textDecoration: 'none', color: 'black'}}>{cleanRecord}</Link>
+            </ListGroupItem>
+          )
+        })}
       </ListGroup>
     </Card>
   )
