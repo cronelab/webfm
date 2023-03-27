@@ -4,7 +4,9 @@
   "description": "A web-based functional mapping utility.",
   "main": "main.js",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3001",
+    "webfm": "node webfm",
+    "both": "concurrently \"npm run dev\" \"npm run webfm\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -51,6 +53,7 @@
     "@typescript-eslint/eslint-plugin": "^5.51.0",
     "@typescript-eslint/parser": "^5.51.0",
     "bootstrap": "^5.2.3",
+    "concurrently": "^7.6.0",
     "eslint": "^8.33.0",
     "eslint-config-next": "^13.1.6",
     "eslint-plugin-react": "^7.32.2",
