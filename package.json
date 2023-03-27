@@ -12,6 +12,7 @@
   "author": "Max Collard <collard@jhu.edu>",
   "license": "SEE LICENSE IN LICENSE.md",
   "dependencies": {
+    "@reduxjs/toolkit": "^1.9.3",
     "async": "^2.6.1",
     "bci2k": "^3.0.3",
     "body-parser": "^1.18.3",
@@ -34,7 +35,8 @@
     "promise-polyfill": "^6.0.2",
     "python-shell": "^0.5.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-redux": "^8.0.5"
   },
   "devDependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.3.0",

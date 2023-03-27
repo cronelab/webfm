@@ -1,16 +1,12 @@
-"use client"
-import React, { useEffect } from 'react'
-import {
-  Container,
-  Row,
-  Col,
-  Image,
-} from 'react-bootstrap'
+'use client'
+import React, { useState } from 'react'
+import { Container, Row, Col, Image } from 'react-bootstrap'
 import Metadata from './Metadata'
 import Online from './Online'
 import Records from './Records'
 import Subjects from './Subjects'
-
+import { store } from '../../app/redux/store'
+import { Provider } from 'react-redux'
 
 import Cookies from 'js-cookie'
 
@@ -25,32 +21,49 @@ var stateClasses = {
   Running: 'text-success',
 }
 
-
 export const IndexContainer = ({ subjects }) => {
-  const [subjectRecords, setSubjectRecords] = React.useState([])
-  const [subject, setSubject] = React.useState('')
-  const [brainImage, setBrainImage] = React.useState('');
+  const [subjectRecords, setSubjectRecords] = useState([])
+  const [subject, setSubject] = useState('')
+  const [brainImage, setBrainImage] = useState('')
   return (
-    <Container>
-      <Row>
-        <Col md={3} sm={6} style={{display: 'flex', justifyContent: 'space-between', flexDirection: 'column'}}>
-          <Online />
-          <Subjects subjects={subjects} setSubjectRecords={setSubjectRecords} setBrainImage={setBrainImage} setSubject={setSubject}/>
-        </Col>
+    <Provider store={store}>
+      <Container>
+        <Row>
+          <Col
+            md={3}
+            sm={6}
+            style={{ display: 'flex', flexDirection: 'column' }}
+          >
+            <Online />
+            <Subjects
+              subjects={subjects}
+              setSubjectRecords={setSubjectRecords}
+              setBrainImage={setBrainImage}
+              setSubject={setSubject}
+            />
+          </Col>
 
-        <Col md={5} sm={6}>
-          {brainImage == '' ? <></> : 
-          <Image id="main-brain" src={brainImage} className="img-thumbnail" alt='brainImage' />
-          }
-        </Col>
+          <Col md={5} sm={6}>
+            {brainImage == '' ? (
+              <></>
+            ) : (
+              <Image
+                id="main-brain"
+                src={brainImage}
+                className="img-thumbnail"
+                alt="brainImage"
+              />
+            )}
+          </Col>
 
-        <Col md={4} sm={6}>
-          <Metadata />
-          <Records records={subjectRecords} subject={subject}/>
-        </Col>
-      </Row>
-    </Container>
+          <Col md={4} sm={6}>
+            <Metadata />
+            <Records records={subjectRecords} subject={subject} />
+          </Col>
+        </Row>
+      </Container>
+    </Provider>
   )
 }
 
-export default IndexContainer;
+export default IndexContainer

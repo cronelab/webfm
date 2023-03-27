@@ -1,6 +1,6 @@
 import React from 'react'
 import { Card, ListGroup, ListGroupItem } from 'react-bootstrap'
-import Link from 'next/link';
+import { useAppSelector } from '../../app/redux/hooks'
 
 export const Records = ({ records, subject }) => {
   return (
