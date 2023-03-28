@@ -8,12 +8,12 @@ import { useAppSelector } from '../../app/redux/hooks'
 import * as d3 from 'd3'
 export const BrainContainer = () => {
   const subject = useAppSelector(state => state.subjects.currentSubject)
-  const { data } = useGetSubjectBrainQuery(subject)
+  const { data: brainImage } = useGetSubjectBrainQuery(subject)
   const { data: geometry } = useGetSubjectGeometryQuery(subject)
   const svgRef = useRef<SVGSVGElement>(null)
 
   useEffect(() => {
-    if (geometry === undefined || data === undefined) return
+    if (geometry === undefined || brainImage === undefined) return
     Object.values(geometry).forEach(value => {
       const svg = d3.select(svgRef.current)
       svg
@@ -23,13 +23,17 @@ export const BrainContainer = () => {
         .attr('r', 3)
         .attr('fill', 'white')
     })
-  }, [geometry, data])
+  }, [geometry, brainImage])
 
   return (
     <>
-      {data && (
+      {brainImage && (
         <>
-          <Image src={data} fill alt="brainImage" />
+          <Image
+            src={brainImage}
+            style={{objectFit: "contain"}}
+            fill
+            alt="brainImage" />
           <svg
             ref={svgRef}
             style={{
