@@ -7,7 +7,7 @@ import styles from './Header.module.scss'
 
 export const Header = () => {
   return (
-    <Navbar fixed="top" className={styles["navbar-inverse"]}>
+    <Navbar fixed="top" className={styles.header}>
       <Container>
         <Link href="/">
           <Navbar.Brand className={styles["navbar-brand"]}>WebFM</Navbar.Brand>
@@ -18,4 +18,11 @@ export const Header = () => {
   )
 }
 
-export default Header;
+export const Footer = () => {
+  return (
+    <Navbar fixed="bottom" className={styles.header}>
+      <Container>
+      </Container>
+    </Navbar>
+  )
+}

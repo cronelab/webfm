@@ -1,7 +1,7 @@
 import React from 'react'
 import Head from 'next/head'
 
-function HomePage({ subjects }) {
+function HomePage() {
   return (
     <div>
       <Head>

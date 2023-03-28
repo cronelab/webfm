@@ -2,7 +2,7 @@ import React from 'react'
 import { Card, ListGroup, ListGroupItem } from 'react-bootstrap'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCloudArrowUp, faPencil } from '@fortawesome/free-solid-svg-icons'
-import { useAppDispatch, useAppSelector } from '../../app/redux/hooks'
+import { useAppSelector } from '../../app/redux/hooks'
 
 import './fileUpload.scss'
 

@@ -2,27 +2,19 @@ import React, { useState } from 'react'
 import { Card, ListGroup, Form } from 'react-bootstrap'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheck, faMinus, faPlus } from '@fortawesome/free-solid-svg-icons'
-  import { useAppDispatch, useAppSelector } from '../../app/redux/hooks';
-  import { setCurrentSubject } from '../../app/redux/subjects';
+import { useAppDispatch, useAppSelector } from '../../app/redux/hooks'
+import { setCurrentSubject } from '../../app/redux/subjects'
+import { useGetAllSubjectsQuery } from '../../app/redux/api'
 
-const loadRecords = async subject => {
-  let req = await fetch(`/api/records/${subject}`)
-  let records = await req.json()
-  return records
-}
 
-export const Subject = ({
-  subjects,
-  setSubjectRecords,
-  setBrainImage,
-}) => {
+export const Subject = () => {
   const [addSubject, setAddSubject] = useState(false)
   const [newSubjectName, setNewSubjectName] = useState('')
 
-    const dispatch = useAppDispatch();
+  const dispatch = useAppDispatch()
 
-  const subject = useAppSelector(state => state.subjects.currentSubject);
-
+  const subject = useAppSelector(state => state.subjects.currentSubject)
+  const { data: subjects, error, isLoading } = useGetAllSubjectsQuery()
 
   return (
     <Card>
@@ -66,22 +58,24 @@ export const Subject = ({
       )}
 
       <ListGroup>
-        {subjects.map((subject, idx) => (
+        {subjects && subjects.map((subject, idx) => (
           <ListGroup.Item
             onClick={async () => {
-              try{
-                let req = await fetch(`/api/brains/${subject}`)
+              try {
+                // eslint-disable-next-line react-hooks/rules-of-hooks
+                // useGetSubjectBrainQuery(subject)
+                // let req = await fetch(`/api/brains/${subject}`)
                 // setSubject(subject)
                 dispatch(setCurrentSubject(subject))
-                if(req.status === 200){
-                  setBrainImage(await req.json())
-                  setSubjectRecords(await loadRecords(subject))
-                } else {
-                  alert('No brain image available for this subject.')
-                  setBrainImage('')
-                  setSubjectRecords([])
-                }
-              } catch(err){
+                // if (req.status === 200) {
+                //   setBrainImage(await req.json())
+                //   setSubjectRecords(await loadRecords(subject))
+                // } else {
+                //   alert('No brain image available for this subject.')
+                //   setBrainImage('')
+                //   setSubjectRecords([])
+                // }
+              } catch (err) {
                 console.log(err)
               }
             }}
