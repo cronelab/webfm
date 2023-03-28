@@ -1,12 +1,14 @@
 import { configureStore } from '@reduxjs/toolkit'
-import subjectsReducer from './subjects'
 import { setupListeners } from '@reduxjs/toolkit/query'
+import subjectsReducer from './subjects'
+import onlineReducer from './online'
 import { subjectsApi } from './api'
 
 export const store = configureStore({
   reducer: {
     [subjectsApi.reducerPath]: subjectsApi.reducer,
-    subjects: subjectsReducer
+    subjects: subjectsReducer,
+    online: onlineReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(subjectsApi.middleware),
