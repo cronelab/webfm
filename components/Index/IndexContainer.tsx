@@ -13,7 +13,7 @@ import { BrainContainer } from '../Shared/BrainContainer'
 export const IndexContainer = () => {
   return (
     <Provider store={store}>
-      <Container>
+      <Container fluid>
         <Row>
           <Col md={3} sm={6} className={styles.column1}>
             <Online />

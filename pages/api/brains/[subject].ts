@@ -22,14 +22,15 @@ export default async function handler(req, res) {
           const brain = await readFile(
             `${process.env.DATA_DIR}/${subject}/${subject}.png`
           )
-          brainImage = `data:img/png;base64,${Buffer.from(brain).toString('base64')}`
+          brainImage = `data:img/png;base64,${Buffer.from(brain).toString(
+            'base64'
+          )}`
           res.status(200).json(brainImage)
         } catch (e) {
           console.log(e)
           res.status(418).json({ error: 'No brain image found' })
         }
-      }
-      else {
+      } else {
         res.status(200).json(brainImage)
       }
     } catch (e) {
@@ -44,11 +45,6 @@ export default async function handler(req, res) {
         return part.originalFilename // Will be joined with options.uploadDir.
       },
     })
-
-    // form.on('fileBegin', (name, file) => {
-    //   //rename the incoming file to the file's name
-    //   file.path = form.uploadDir + '/' + file.name
-    // })
 
     form.parse(req, (err, fields, files) => {
       if (err) {

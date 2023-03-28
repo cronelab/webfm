@@ -19,7 +19,6 @@ export const Metadata = ({}) => {
         body: formData,
       })
       let res = await req.json()
-      console.log(res);
     }
     if (type === 'geometry') {
       formData.append('sensorGeometry', file, file.name)

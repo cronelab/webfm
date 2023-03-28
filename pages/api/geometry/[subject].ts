@@ -1,68 +1,57 @@
-import { readFile } from 'fs/promises'
+import { readFile, writeFile } from 'fs/promises'
+import formidable, { errors as formidableErrors, File } from 'formidable'
+import { parse } from 'csv-parse/sync'
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+}
 export default async function handler(req, res) {
   var { subject } = req.query
-  if (req.method === 'PUT') {
+  const metadata = await readFile(
+    `${process.env.DATA_DIR}/${subject}/.metadata`,
+    'utf8'
+  )
 
+  if (req.method === 'PUT') {
+    const form = formidable({
+      uploadDir: `${process.env.DATA_DIR}/${subject}`,
+      keepExtensions: true,
+      filename: (name, ext, part, form) => {
+        return part.originalFilename // Will be joined with options.uploadDir.
+      },
+    })
+
+    form.parse(req, async (err, fields, files) => {
+      if (err) {
+        // example to check for a very specific error
+        res.writeHead(err.httpCode || 400, { 'Content-Type': 'text/plain' })
+        res.end(String(err))
+        return
+      }
+    })
+    const newGeometry = {}
+    form.on('file', async (formname, file: File) => {
+      let sensorGeometry = await readFile(file.filepath, 'utf8')
+      const records = parse(sensorGeometry)
+      records.forEach(channel => {
+        newGeometry[channel[0]] = {
+          u: parseFloat(channel[1]),
+          v: parseFloat(channel[2]),
+        }
+      })
+      let newMetadata = JSON.parse(metadata)
+      newMetadata.sensorGeometry = newGeometry
+      await writeFile(
+        `${process.env.DATA_DIR}/${subject}/.metadata`,
+        JSON.stringify(newMetadata)
+      )
+      res.status(200).json(newMetadata.sensorGeometry)
+    })
   }
   if (req.method === 'GET') {
-
+    let sensorGeometry = JSON.parse(metadata.toString()).sensorGeometry
+    res.status(200).send(sensorGeometry)
   }
-  // try{
-  //   const metadata = await readFile(`${process.env.DATA_DIR}/${subject}/.metadata`, 'utf8')
-  //   let brainImage = JSON.parse(metadata.toString()).brainImage;
-  //   if(brainImage === undefined) res.status(418).json({error: 'No brain image found'})
-  //   else res.status(200).json(brainImage);
-  // } catch(e) {
-  //   res.status(500).json({error: e})
-  // }
-
 }
-
-
-
-// // Get subject brain image data from .metadata
-// app.get("/api/brain/:subject", function(req, res) {
-//     var subject = req.params.subject;
-//     // First check if subject exists
-//     checkSubject(subject, function(err, isSubject) {
-//       if (err) {
-//         // Based on how checkSubject is defined, this shouldn't happen
-//         errOut(
-//           500,
-//           "Error determining if " +
-//             subject +
-//             " is a subject: " +
-//             JSON.stringify(err)
-//         );
-//         return;
-//       }
-  
-//       if (!isSubject) {
-//         // Not a subject
-//         errOut(404, "Subject " + subject + " not found.");
-//         return;
-//       }
-  
-//       // We know it's a valid subject, so check if we've got metadata
-//       getSubjectMetadata(subject, function(err, metadata) {
-//         if (err) {
-//           // TODO Be more granular with error codes based on err
-//           errOut(
-//             500,
-//             "Error loading metadata for " + subject + ": " + JSON.stringify(err)
-//           );
-//           return;
-//         }
-  
-//         // We've got metadata, so check that we've got a brain image
-//         if (metadata.brainImage === undefined) {
-//           // TODO Better error code for this?
-//           errOut(418, assets.noBrainImage);
-//           return;
-//         }
-  
-//         res.status(200).send(metadata.brainImage);
-//       });
-//     });
-//   });
-  
