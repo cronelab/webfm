@@ -6,7 +6,6 @@ import { useAppDispatch, useAppSelector } from '../../app/redux/hooks'
 import { setCurrentSubject } from '../../app/redux/subjects'
 import { useGetAllSubjectsQuery } from '../../app/redux/api'
 
-
 export const Subject = () => {
   const [addSubject, setAddSubject] = useState(false)
   const [newSubjectName, setNewSubjectName] = useState('')
@@ -58,32 +57,33 @@ export const Subject = () => {
       )}
 
       <ListGroup>
-        {subjects && subjects.map((subject, idx) => (
-          <ListGroup.Item
-            onClick={async () => {
-              try {
-                // eslint-disable-next-line react-hooks/rules-of-hooks
-                // useGetSubjectBrainQuery(subject)
-                // let req = await fetch(`/api/brains/${subject}`)
-                // setSubject(subject)
-                dispatch(setCurrentSubject(subject))
-                // if (req.status === 200) {
-                //   setBrainImage(await req.json())
-                //   setSubjectRecords(await loadRecords(subject))
-                // } else {
-                //   alert('No brain image available for this subject.')
-                //   setBrainImage('')
-                //   setSubjectRecords([])
-                // }
-              } catch (err) {
-                console.log(err)
-              }
-            }}
-            key={idx}
-          >
-            {subject}
-          </ListGroup.Item>
-        ))}
+        {subjects &&
+          subjects.map((subject, idx) => (
+            <ListGroup.Item
+              onClick={async () => {
+                try {
+                  // eslint-disable-next-line react-hooks/rules-of-hooks
+                  // useGetSubjectBrainQuery(subject)
+                  // let req = await fetch(`/api/brains/${subject}`)
+                  // setSubject(subject)
+                  dispatch(setCurrentSubject(subject))
+                  // if (req.status === 200) {
+                  //   setBrainImage(await req.json())
+                  //   setSubjectRecords(await loadRecords(subject))
+                  // } else {
+                  //   alert('No brain image available for this subject.')
+                  //   setBrainImage('')
+                  //   setSubjectRecords([])
+                  // }
+                } catch (err) {
+                  console.log(err)
+                }
+              }}
+              key={idx}
+            >
+              {subject}
+            </ListGroup.Item>
+          ))}
       </ListGroup>
     </Card>
   )

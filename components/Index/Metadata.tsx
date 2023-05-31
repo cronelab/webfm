@@ -31,38 +31,32 @@ export const Metadata = ({}) => {
 
   return (
     <>
-        <Card>
-          <Card.Header>
-            <Card.Title>Metadata</Card.Title>
-          </Card.Header>
+      <Card>
+        <Card.Header>
+          <Card.Title>Metadata</Card.Title>
+        </Card.Header>
 
-          <ListGroup>
-            <ListGroupItem style={{ display: 'flex' }}>
-              <p>Sensor Geometry</p>
-              <span
-                className="btn-file"
-                style={{ margin: '0px 10px 0px 10px' }}
-              >
-                <FontAwesomeIcon icon={faCloudArrowUp} />
-                <input
-                  type="file"
-                  onChange={e => uploadMetadata(e, 'geometry')}
-                />
-              </span>
-              <FontAwesomeIcon icon={faPencil} />
-            </ListGroupItem>
-            <ListGroupItem>
-              Brain Image
-              <span
-                className="btn-file"
-                style={{ margin: '0px 10px 0px 10px' }}
-              >
-                <FontAwesomeIcon icon={faCloudArrowUp} />
-                <input type="file" onChange={e => uploadMetadata(e, 'brain')} />
-              </span>
-            </ListGroupItem>
-          </ListGroup>
-        </Card>
+        <ListGroup>
+          <ListGroupItem style={{ display: 'flex' }}>
+            <p>Sensor Geometry</p>
+            <span className="btn-file" style={{ margin: '0px 10px 0px 10px' }}>
+              <FontAwesomeIcon icon={faCloudArrowUp} />
+              <input
+                type="file"
+                onChange={e => uploadMetadata(e, 'geometry')}
+              />
+            </span>
+            <FontAwesomeIcon icon={faPencil} />
+          </ListGroupItem>
+          <ListGroupItem>
+            Brain Image
+            <span className="btn-file" style={{ margin: '0px 10px 0px 10px' }}>
+              <FontAwesomeIcon icon={faCloudArrowUp} />
+              <input type="file" onChange={e => uploadMetadata(e, 'brain')} />
+            </span>
+          </ListGroupItem>
+        </ListGroup>
+      </Card>
     </>
   )
 }

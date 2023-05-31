@@ -1,10 +1,10 @@
-import { useEffect } from "react"
-import ChannelRaster from "../../app2/main/fmraster"
+import { useEffect } from 'react'
+import ChannelRaster from '../../app2/main/fmraster'
 const raster = new ChannelRaster('#fm')
 
 export const Raster = () => {
   useEffect(() => {
-    raster.setup();
+    raster.setup()
   }, [])
   return (
     <>

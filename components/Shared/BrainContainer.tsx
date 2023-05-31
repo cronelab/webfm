@@ -31,9 +31,10 @@ export const BrainContainer = () => {
         <>
           <Image
             src={brainImage}
-            style={{objectFit: "contain"}}
+            style={{ objectFit: 'contain' }}
             fill
-            alt="brainImage" />
+            alt="brainImage"
+          />
           <svg
             ref={svgRef}
             style={{

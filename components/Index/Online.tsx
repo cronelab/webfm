@@ -24,15 +24,15 @@ export const Online = () => {
     ;(async () => {
       // dispatch(setSourceAddress(defaultSourceAddress))
       // if (defaultSourceAddress === null) {
-        try {
-          let config = await fetch(`/api/config/online`)
-          let data = await config.json()
-          localStorage.setItem('sourceAddress', data.sourceAddress)
-          // defaultSourceAddress = data.sourceAddress
-          dispatch(setSourceAddress(data.sourceAddress))
-        } catch (err) {
-          console.log(err)
-        }
+      try {
+        let config = await fetch(`/api/config/online`)
+        let data = await config.json()
+        localStorage.setItem('sourceAddress', data.sourceAddress)
+        // defaultSourceAddress = data.sourceAddress
+        dispatch(setSourceAddress(data.sourceAddress))
+      } catch (err) {
+        console.log(err)
+      }
       // }
     })()
   }, [])
@@ -47,7 +47,7 @@ export const Online = () => {
         await newBCI.connect(sourceAddress)
         newBCI.stateListen()
         newBCI.ondisconnect = () => {
-          toggleOnline(false);
+          toggleOnline(false)
           // setLive(false)
         }
         newBCI.onStateChange = e => {
@@ -63,7 +63,7 @@ export const Online = () => {
     ;(async () => {
       if (bciConnectedState !== 'Not connected') {
         // setLive(true)
-        toggleOnline(true);
+        toggleOnline(true)
       }
       if (
         bciConnectedState === 'Resting' ||
