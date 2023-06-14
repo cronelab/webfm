@@ -38,18 +38,20 @@ export const Metadata = ({}) => {
         <ListGroup style={{ display: 'flex' }}>
           <ListGroupItem className={styles.fileButton}>
             Sensor
-            <Form.Label htmlFor="geoInput">
-              <FontAwesomeIcon icon={faCloudArrowUp} />
-            </Form.Label>
-            <Form.Control
-              id="geoInput"
-              type="file"
-              style={{ display: 'none' }}
-              required
-              name="file"
-              onChange={e => uploadMetadata(e, 'geometry')}
-            />
-            <FontAwesomeIcon icon={faPencil} />
+            <div className={styles.geoIcons}>
+              <Form.Label htmlFor="geoInput">
+                <FontAwesomeIcon icon={faCloudArrowUp} />
+              </Form.Label>
+              <Form.Control
+                id="geoInput"
+                type="file"
+                style={{ display: 'none' }}
+                required
+                name="file"
+                onChange={e => uploadMetadata(e, 'geometry')}
+              />
+              <FontAwesomeIcon icon={faPencil} />
+            </div>
           </ListGroupItem>
           <ListGroupItem className={styles.fileButton}>
             Brain Image

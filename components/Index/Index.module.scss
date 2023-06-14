@@ -14,4 +14,9 @@
   display: flex;
   overflow: hidden;
   text-overflow: ellipsis;
+  justify-content: space-between;
+}
+
+.geoIcons {
+  margin-left: 5px;
 }
