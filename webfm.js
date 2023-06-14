@@ -14,7 +14,6 @@ var async = require("async");
 
 var jsonfile = require("jsonfile");
 // Promise compatibility
-var Promise = require("promise-polyfill");
 
 // Object.assign polyfill
 if (typeof Object.assign != "function") {
@@ -46,7 +45,6 @@ if (typeof Object.assign != "function") {
 }
 
 // Process argv
-var rootDir = path.resolve('./public');
 var dataDir = path.resolve('./data');
 
 // Set up server
@@ -67,7 +65,7 @@ function rawBody(req, res, next) {
 
 // Base static routes
 // TODO Iffy re. html pages?
-app.use("/", express.static(rootDir));
+app.use("/", express.static(path.resolve('./public')));
 
 var serveConfig = function(configName) {
   return function(req, res) {
@@ -87,9 +85,7 @@ app.get("/index/config/online", serveConfig("fmonline.json"));
 // app.get("/index", serveIndex);
 
 // Functional map routes
-var serveMap = function(req, res) {
-  res.sendFile(path.join(rootDir, "map.html"));
-};
+var serveMap = (req, res) => res.sendFile('./public/map.html', { root: __dirname });
 
 // TODO Bad practice to have map.html just figure it out from path
 // Should use template engine. This is janky af.
@@ -399,10 +395,6 @@ app.get("/api/data/:subject/:record", function(req, res) {
   });
 });
 
-// Get entire dataset, if record is a bundle
-app.get("/api/data/:subject/:record/:dataset", function(req, res) {
-  // TODO ...
-});
 
 // Save a single-dataset record
 // TODO or bundle

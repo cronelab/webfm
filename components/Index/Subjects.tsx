@@ -62,7 +62,6 @@ export const Subject = () => {
             <ListGroup.Item
               onClick={async () => {
                 try {
-                  // eslint-disable-next-line react-hooks/rules-of-hooks
                   // useGetSubjectBrainQuery(subject)
                   // let req = await fetch(`/api/brains/${subject}`)
                   // setSubject(subject)

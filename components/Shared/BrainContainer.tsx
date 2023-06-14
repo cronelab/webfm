@@ -1,52 +1,65 @@
 import Image from 'next/image'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   useGetSubjectBrainQuery,
   useGetSubjectGeometryQuery,
 } from '../../app/redux/api'
 import { useAppSelector } from '../../app/redux/hooks'
-import * as d3 from 'd3'
 export const BrainContainer = () => {
   const subject = useAppSelector(state => state.subjects.currentSubject)
-  const { data: brainImage } = useGetSubjectBrainQuery(subject)
-  const { data: geometry } = useGetSubjectGeometryQuery(subject)
+
   const svgRef = useRef<SVGSVGElement>(null)
+  const brainRef = useRef<HTMLImageElement>(null)
+  const [brainHeight, setBrainHeight] = useState(0)
+  const [brainWidth, setBrainWidth] = useState(0)
+
+  const { data: image } = useGetSubjectBrainQuery(subject)
+  const { data: geo } = useGetSubjectGeometryQuery(subject)
 
   useEffect(() => {
-    if (geometry === undefined || brainImage === undefined) return
-    Object.values(geometry).forEach(value => {
-      const svg = d3.select(svgRef.current)
-      svg
-        .append('circle')
-        .attr('cx', value.u * svgRef.current.clientWidth)
-        .attr('cy', (1 - value.v) * svgRef.current.clientHeight)
-        .attr('r', 3)
-        .attr('fill', 'white')
-    })
-  }, [geometry, brainImage])
+    setBrainHeight(brainRef.current?.clientHeight || 0)
+    setBrainWidth(brainRef.current?.clientWidth || 0)
+  }, [geo, image])
 
   return (
     <>
-      {brainImage && (
-        <>
-          <Image
-            src={brainImage}
-            style={{ objectFit: 'contain' }}
-            fill
-            alt="brainImage"
-          />
+      <div style={{ objectFit: 'contain' }}>
+        {geo && (
           <svg
             ref={svgRef}
             style={{
-              display: 'block',
-              height: '100%',
-              width: '100%',
-              zIndex: 2,
+              height: brainHeight,
+              width: brainWidth,
               position: 'absolute',
+              zIndex: 10,
             }}
-          ></svg>{' '}
-        </>
-      )}
+          >
+            {brainRef.current &&
+              Object.keys(geo).map((channel, index) => {
+                return (
+                  <circle
+                    key={channel}
+                    id={channel}
+                    cx={geo[channel].u * brainWidth}
+                    cy={(1 - geo[channel].v) * brainHeight}
+                    r="3"
+                    fill="red"
+                  />
+                )
+              })}
+          </svg>
+        )}
+        {image && (
+          <Image
+            ref={brainRef}
+            id="main-brain"
+            // @ts-ignore
+            src={image}
+            alt="brainImage"
+            fill
+          />
+        )}
+      </div>
     </>
   )
 }

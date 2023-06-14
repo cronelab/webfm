@@ -2,8 +2,8 @@ import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 
 export interface SubjectsState {
-  subjects: string[],
-  currentSubject: string,
+  subjects: string[]
+  currentSubject: string
 }
 
 const initialState: SubjectsState = {
@@ -20,10 +20,10 @@ export const subjectsSlice = createSlice({
     },
     setCurrentSubject: (state, action: PayloadAction<string>) => {
       state.currentSubject = action.payload
-    }
+    },
   },
 })
 
-export const { addSubjects,setCurrentSubject } = subjectsSlice.actions
+export const { addSubjects, setCurrentSubject } = subjectsSlice.actions
 
 export default subjectsSlice.reducer

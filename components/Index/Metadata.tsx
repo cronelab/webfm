@@ -1,10 +1,10 @@
 import React from 'react'
-import { Card, ListGroup, ListGroupItem } from 'react-bootstrap'
+import { Card, Form, ListGroup, ListGroupItem } from 'react-bootstrap'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCloudArrowUp, faPencil } from '@fortawesome/free-solid-svg-icons'
 import { useAppSelector } from '../../app/redux/hooks'
 
-import './fileUpload.scss'
+import styles from './Index.module.scss'
 
 export const Metadata = ({}) => {
   const currentSubject = useAppSelector(state => state.subjects.currentSubject)
@@ -35,25 +35,35 @@ export const Metadata = ({}) => {
         <Card.Header>
           <Card.Title>Metadata</Card.Title>
         </Card.Header>
-
-        <ListGroup>
-          <ListGroupItem style={{ display: 'flex' }}>
-            <p>Sensor Geometry</p>
-            <span className="btn-file" style={{ margin: '0px 10px 0px 10px' }}>
+        <ListGroup style={{ display: 'flex' }}>
+          <ListGroupItem className={styles.fileButton}>
+            Sensor
+            <Form.Label htmlFor="geoInput">
               <FontAwesomeIcon icon={faCloudArrowUp} />
-              <input
-                type="file"
-                onChange={e => uploadMetadata(e, 'geometry')}
-              />
-            </span>
+            </Form.Label>
+            <Form.Control
+              id="geoInput"
+              type="file"
+              style={{ display: 'none' }}
+              required
+              name="file"
+              onChange={e => uploadMetadata(e, 'geometry')}
+            />
             <FontAwesomeIcon icon={faPencil} />
           </ListGroupItem>
-          <ListGroupItem>
+          <ListGroupItem className={styles.fileButton}>
             Brain Image
-            <span className="btn-file" style={{ margin: '0px 10px 0px 10px' }}>
+            <Form.Label htmlFor="brainInput">
               <FontAwesomeIcon icon={faCloudArrowUp} />
-              <input type="file" onChange={e => uploadMetadata(e, 'brain')} />
-            </span>
+            </Form.Label>
+            <Form.Control
+              id="brainInput"
+              type="file"
+              style={{ display: 'none' }}
+              required
+              name="file"
+              onChange={e => uploadMetadata(e, 'brain')}
+            />
           </ListGroupItem>
         </ListGroup>
       </Card>

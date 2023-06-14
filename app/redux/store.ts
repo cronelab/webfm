@@ -10,7 +10,7 @@ export const store = configureStore({
     subjects: subjectsReducer,
     online: onlineReducer,
   },
-  middleware: (getDefaultMiddleware) =>
+  middleware: getDefaultMiddleware =>
     getDefaultMiddleware().concat(subjectsApi.middleware),
 })
 // optional, but required for refetchOnFocus/refetchOnReconnect behaviors

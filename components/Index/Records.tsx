@@ -24,14 +24,24 @@ export const Records = () => {
                 `?view=WebFM: Map/${currentSubject}/${cleanRecord}`
               )
               return (
-                <ListGroupItem key={idx}>
-                  <Link
-                    href={`/map/${route}`}
-                    style={{ textDecoration: 'none', color: 'black' }}
-                  >
-                    {cleanRecord}
-                  </Link>
-                </ListGroupItem>
+                <>
+                  <ListGroupItem key={`${idx}_old`}>
+                    <Link
+                      href={`/map/${route}`}
+                      style={{ textDecoration: 'none', color: 'black' }}
+                    >
+                      {cleanRecord} Old
+                    </Link>
+                  </ListGroupItem>
+                  <ListGroupItem key={`${idx}_old`}>
+                    <Link
+                      href={`/recorded`}
+                      style={{ textDecoration: 'none', color: 'black' }}
+                    >
+                      {cleanRecord} New
+                    </Link>
+                  </ListGroupItem>
+                </>
               )
             })}
         </ListGroup>

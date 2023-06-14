@@ -1,13 +1,13 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 export interface OnlineState {
-  onlineState: boolean,
-  sourceAddress: string,
+  onlineState: boolean
+  sourceAddress: string
 }
 
 const initialState: OnlineState = {
-    onlineState: false,
-    sourceAddress: 'ws://localhost',
+  onlineState: false,
+  sourceAddress: 'ws://localhost',
 }
 
 export const onlineSlice = createSlice({
@@ -19,10 +19,10 @@ export const onlineSlice = createSlice({
     },
     setSourceAddress: (state, action: PayloadAction<string>) => {
       state.sourceAddress = action.payload
-    }
+    },
   },
 })
 
-export const { toggleOnline,setSourceAddress } = onlineSlice.actions
+export const { toggleOnline, setSourceAddress } = onlineSlice.actions
 
 export default onlineSlice.reducer

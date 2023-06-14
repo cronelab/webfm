@@ -1,6 +1,5 @@
 'use client'
 import React from 'react'
-import { Container, Row, Col } from 'react-bootstrap'
 import Metadata from './Metadata'
 import Online from './Online'
 import Records from './Records'
@@ -16,22 +15,26 @@ const MenuColumn = () => {
   const { currentSubject } = useAppSelector(state => state.subjects)
   const { onlineState } = useAppSelector(state => state.online)
   return (
-    <Container fluid>
-      <Row>
-        <Col md={4} className={styles.column1}>
-          {onlineState ? <Online /> : <Subjects />}
-          {currentSubject && (
-            <>
-              <Metadata />
-              <Records />
-            </>
-          )}
-        </Col>
-        <Col md={8} className={styles.imageContainer}>
-          <BrainContainer />
-        </Col>
-      </Row>
-    </Container>
+    <div
+      style={{
+        display: 'flex',
+        height: '84vh',
+        justifyContent: 'space-between',
+      }}
+    >
+      <div className={styles.column1}>
+        {onlineState ? <Online /> : <Subjects />}
+        {currentSubject && (
+          <>
+            <Metadata />
+            <Records />
+          </>
+        )}
+      </div>
+      <div className={styles.imageContainer}>
+        <BrainContainer />
+      </div>
+    </div>
   )
 }
 

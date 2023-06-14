@@ -1,4 +1,4 @@
-import '../styles/index.scss'
+import './index.scss'
 import { Header, Footer } from '../components/Shared/Header'
 
 export default function RootLayout({
