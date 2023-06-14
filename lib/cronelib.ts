@@ -7,21 +7,7 @@
 
 // MODULE OBJECT
 
-let cronelib = {
-  promiseJSON: null,
-  forEachAsync: null,
-  reduceAsync: null,
-  mapAsync: null,
-  parseQuery: null,
-  debounce_old: null,
-  debounce: null,
-}
-
-// METHODS
-
-// cronelib.promiseJSON
-
-cronelib.promiseJSON = function (url) {
+export const promiseJSON = function (url) {
   return new Promise(async function (resolve, reject) {
     try {
       let req = await fetch(url)
@@ -36,7 +22,7 @@ cronelib.promiseJSON = function (url) {
 // cronelib.forEachAsync
 // Allows breaks in the computation to do other stuff
 
-cronelib.forEachAsync = function (arr, f, config) {
+export const forEachAsync = function (arr, f, config) {
   // TODO Find a better pattern
   var batchSize = 100
   var onbatch = function (i, n) {}
@@ -74,7 +60,7 @@ cronelib.forEachAsync = function (arr, f, config) {
   })
 }
 
-cronelib.reduceAsync = function (arr, f, a0, config) {
+export const reduceAsync = function (arr, f, a0, config) {
   var initialValue = arr[0]
   var initialIndex = 1
 
@@ -120,9 +106,9 @@ cronelib.reduceAsync = function (arr, f, a0, config) {
   })
 }
 
-cronelib.mapAsync = function (arr, f, config) {
+export const mapAsync = function (arr, f, config) {
   // TODO Inefficient?
-  return cronelib.reduceAsync(
+  return reduceAsync(
     arr,
     function (acc, x, i, xs) {
       acc.push(f(x, i, xs))
@@ -136,7 +122,7 @@ cronelib.mapAsync = function (arr, f, config) {
 // cronelib.parseQuery
 // Parses URL queries to objects
 
-cronelib.parseQuery = function (qstr) {
+export const parseQuery = function (qstr) {
   var query = {}
   var a = qstr.substr(1).split('&')
   for (var i = 0; i < a.length; i++) {
@@ -149,7 +135,7 @@ cronelib.parseQuery = function (qstr) {
 // cronelib.debounce_old
 // For, e.g., preventing excessive resize() calls
 
-cronelib.debounce_old = function (func, timeout) {
+export const debounce_old = function (func, timeout) {
   var timeoutID,
     timeout = timeout || 200
   return function () {
@@ -169,7 +155,7 @@ cronelib.debounce_old = function (func, timeout) {
 // N milliseconds. If `immediate` is passed, trigger the function on the
 // leading edge, instead of the trailing.
 
-cronelib.debounce = function (func, wait, immediate) {
+export const debounce = function (func, wait, immediate) {
   var timeout
   return function () {
     var context = this,
@@ -184,9 +170,3 @@ cronelib.debounce = function (func, wait, immediate) {
     if (callNow) func.apply(context, args)
   }
 }
-
-// EXPORT MODULE
-
-// module.exports = cronelib
-export default cronelib;
-//
