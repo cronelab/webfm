@@ -5,7 +5,6 @@ function HomePage() {
   return (
     <div>
       <Head>
-        <title>WebFM</title>
         <meta charSet="utf-8" />
       </Head>
     </div>

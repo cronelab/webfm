@@ -9,7 +9,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        {/* <Header /> */}
         {children}
         <Footer />
       </body>
@@ -18,6 +17,5 @@ export default function RootLayout({
 }
 
 export const metadata = {
-  title: 'Home',
-  description: 'Welcome to Next.js',
+  title: 'WebFM',
 }
