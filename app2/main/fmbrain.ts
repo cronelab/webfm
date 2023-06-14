@@ -5,219 +5,240 @@
 //
 // ======================================================================== //
 
-
 // REQUIRES
 
-import * as d3 from 'd3';
-import * as $ from 'jquery';
-
+import * as d3 from 'd3'
+import * as $ from 'jquery'
 
 // MODULE OBJECT
 
-export class BrainVisualizer{
-  baseNodeId: string;
-  config: string;
-  imageData: string;
-  sensorGeometry: any;
-  selectedChannel: string;
-  data: any;
-  dotRadiusScale: any;
-  dotColorScale: any;
-  dotXScale: any;
-  dotYScale: any;
+export class BrainVisualizer {
+  baseNodeId: string
+  config: string
+  imageData: string
+  sensorGeometry: any
+  selectedChannel: string
+  data: any
+  dotRadiusScale: any
+  dotColorScale: any
+  dotXScale: any
+  dotYScale: any
 
-  brainSvg: any;
-  aspect: any;
-  size: any;
-  margin: any;
-  dotMaxRadius: number;
-  dotColors: string[];
-  dotMinRadius: number;
-  extent: number;
-  dotColorsDomain: number[];
-  extentBuffer: number;
-  extentBufferInfinity: number;
-  dotColorsDomainBuffer: number[];
-  dotColorsDomainBufferInfinity: number[];
-  dotPowerThresholdBuffer: number[];
-  dotPowerThresholdBufferInfinity: number[];
-  doDotPowerThreshold: boolean;
-  dotPowerThreshold: number[];
+  brainSvg: any
+  aspect: any
+  size: any
+  margin: any
+  dotMaxRadius: number
+  dotColors: string[]
+  dotMinRadius: number
+  extent: number
+  dotColorsDomain: number[]
+  extentBuffer: number
+  extentBufferInfinity: number
+  dotColorsDomainBuffer: number[]
+  dotColorsDomainBufferInfinity: number[]
+  dotPowerThresholdBuffer: number[]
+  dotPowerThresholdBufferInfinity: number[]
+  doDotPowerThreshold: boolean
+  dotPowerThreshold: number[]
 
   constructor(baseNodeId, config) {
-    this.baseNodeId = baseNodeId;
-    this.config = config;
-    this.imageData = null;
-    this.sensorGeometry = null;
-    this.selectedChannel = null;
-    this.data = null;
-  
-    this.dotRadiusScale = null;
-    this.dotColorScale = null;
-    this.dotXScale = null;
-    this.dotYScale = null;
-  
-    this.brainSvg = null;
-  
-    this.aspect = null;
+    this.baseNodeId = baseNodeId
+    this.config = config
+    this.imageData = null
+    this.sensorGeometry = null
+    this.selectedChannel = null
+    this.data = null
+
+    this.dotRadiusScale = null
+    this.dotColorScale = null
+    this.dotXScale = null
+    this.dotYScale = null
+
+    this.brainSvg = null
+
+    this.aspect = null
     this.size = {
       width: 0,
-      height: 0
-    };
-  
+      height: 0,
+    }
+
     // TODO Put these in a config-file
     this.margin = {
       top: 10,
       right: 10,
       bottom: 10,
-      left: 10
-    };
-  
-    this.dotMaxRadius = 0.040;
-    this.dotColors = ["#313695", "#4575b4", "#74add1", "#abd9e9", "#000000", "#fee090", "#fdae61", "#f46d43", "#d73027"];
-      this.dotMinRadius = 0.003;        // u (horizontal) units
-      this.extent = 10.0;         // TODO Expose
-      this.dotColorsDomain = [-9, -5, -2, -0.01, 0.0, 0.01, 2, 5, 9];
+      left: 10,
+    }
 
-  
-    this.extentBuffer = 10.0;         // TODO Expose                                                                                             LIVE
-    this.extentBufferInfinity = 180.0;        // TODO Expose                                                                                                LIVE
-    this.dotColorsDomainBuffer = [-5, -3.5, -2, -1, 0.0, 1, 2, 3.5, 5];
-    this.dotColorsDomainBufferInfinity = [-120, -80, -50, -20, 0.0, 20, 50, 80, 120];
-    this.dotPowerThresholdBuffer = [this.dotColorsDomainBuffer[3], this.dotColorsDomainBuffer[5]];
-    this.dotPowerThresholdBufferInfinity = [this.dotColorsDomainBufferInfinity[3], this.dotColorsDomainBufferInfinity[5]];
-    this.doDotPowerThreshold = true;
+    this.dotMaxRadius = 0.04
+    this.dotColors = [
+      '#313695',
+      '#4575b4',
+      '#74add1',
+      '#abd9e9',
+      '#000000',
+      '#fee090',
+      '#fdae61',
+      '#f46d43',
+      '#d73027',
+    ]
+    this.dotMinRadius = 0.003 // u (horizontal) units
+    this.extent = 10.0 // TODO Expose
+    this.dotColorsDomain = [-9, -5, -2, -0.01, 0.0, 0.01, 2, 5, 9]
+
+    this.extentBuffer = 10.0 // TODO Expose                                                                                             LIVE
+    this.extentBufferInfinity = 180.0 // TODO Expose                                                                                                LIVE
+    this.dotColorsDomainBuffer = [-5, -3.5, -2, -1, 0.0, 1, 2, 3.5, 5]
+    this.dotColorsDomainBufferInfinity = [
+      -120, -80, -50, -20, 0.0, 20, 50, 80, 120,
+    ]
+    this.dotPowerThresholdBuffer = [
+      this.dotColorsDomainBuffer[3],
+      this.dotColorsDomainBuffer[5],
+    ]
+    this.dotPowerThresholdBufferInfinity = [
+      this.dotColorsDomainBufferInfinity[3],
+      this.dotColorsDomainBufferInfinity[5],
+    ]
+    this.doDotPowerThreshold = true
   }
 
-
-
-  _defaultData (channels) {
+  _defaultData(channels) {
     // Return a data map giving zeros for each channel
     return channels.reduce((obj, ch) => {
-      obj[ch] = 0.0;
-      return obj;
-    }, {});
-  };
+      obj[ch] = 0.0
+      return obj
+    }, {})
+  }
 
-  _reformatForDisplay (data) {
-
-    var brain = this;
+  _reformatForDisplay(data) {
+    var brain = this
 
     // Takes a channel -> value map and turns it into an array of objects
-    return Object.keys(data).filter(function (ch) {
-      if (Object.keys(brain.sensorGeometry).indexOf(ch) < 0) {
-        // Ignore if the channel isn't in our geometry
-        return false;
-      }
-      if (brain.sensorGeometry[ch].u === undefined || brain.sensorGeometry[ch].v === undefined) {
-        // Ignore if the provided geometry is unhelpful
-        return false;
-      }
-      // Don't ignore
-      return true;
-    }).map(ch => {
-      return {
-        channel: ch,
-        value: data[ch]
-      };
-    });
+    return Object.keys(data)
+      .filter(function (ch) {
+        if (Object.keys(brain.sensorGeometry).indexOf(ch) < 0) {
+          // Ignore if the channel isn't in our geometry
+          return false
+        }
+        if (
+          brain.sensorGeometry[ch].u === undefined ||
+          brain.sensorGeometry[ch].v === undefined
+        ) {
+          // Ignore if the provided geometry is unhelpful
+          return false
+        }
+        // Don't ignore
+        return true
+      })
+      .map(ch => {
+        return {
+          channel: ch,
+          value: data[ch],
+        }
+      })
+  }
 
-  };
-
-  setupFromDataset (dataset) {
+  setupFromDataset(dataset) {
     // TODO Error handling
-    this.setup(dataset.metadata.brainImage, dataset.metadata.sensorGeometry);
-  };
+    this.setup(dataset.metadata.brainImage, dataset.metadata.sensorGeometry)
+  }
 
-  _getDimensionsForData (data) {
-
+  _getDimensionsForData(data) {
     return new Promise((resolve, reject) => {
-
-      var image = document.createElement('img');
+      var image = document.createElement('img')
 
       image.addEventListener('load', function () {
         // Proceed to resolution with new dimensions
         resolve({
           width: image.width,
-          height: image.height
-        });
+          height: image.height,
+        })
         // Remove itself so we don't need to deal with it
-        this.remove();
-      });
+        this.remove()
+      })
 
       // This will trigger the load
-      image.src = data;
+      image.src = data
+    })
+  }
 
-    });
-
-  };
-
-  setup (imageData, sensorGeometry) {
-    var brain = this;
+  setup(imageData, sensorGeometry) {
+    var brain = this
 
     // TODO Format checking
     // this.imageData = imageData;
     // this.sensorGeometry = sensorGeometry;
-    console.log(imageData);
-    console.log(sensorGeometry);
 
-    this.data = this._defaultData(Object.keys(this.sensorGeometry));
+    this.data = this._defaultData(Object.keys(this.sensorGeometry))
 
     // Width of *brain* from DOM
-    this.size.width = $(this.baseNodeId).width() - (this.margin.left + this.margin.right);
+    this.size.width =
+      $(this.baseNodeId).width() - (this.margin.left + this.margin.right)
 
     // Setup default scale functions
-    this.dotXScale = d3.scaleLinear()       // u -> x
+    this.dotXScale = d3
+      .scaleLinear() // u -> x
       .domain([0, 1])
-      .range([0, this.size.width]);
-    this.dotYScale = d3.scaleLinear()       // v -> y
+      .range([0, this.size.width])
+    this.dotYScale = d3
+      .scaleLinear() // v -> y
       .domain([0, 1])
-      .range([1, 0]);   // Placeholder until logic
+      .range([1, 0]) // Placeholder until logic
     // below comes back with a value
     if (this.config == 'map') {
-      this.dotRadiusScale = d3.scaleSqrt()    // data -> u
+      this.dotRadiusScale = d3
+        .scaleSqrt() // data -> u
         .domain([0, this.extent])
         .range([this.dotMinRadius, this.dotMaxRadius])
-        .clamp(true);
-    }
-    else {
+        .clamp(true)
+    } else {
       if (this.doDotPowerThreshold) {
-        this.dotRadiusScale = d3.scaleSqrt()
+        this.dotRadiusScale = d3
+          .scaleSqrt()
           // .domain([this.dotPowerThreshold[1], this.extent])
           .range([this.dotMinRadius, this.dotMaxRadius])
-          .clamp(true);
+          .clamp(true)
       } else {
-        this.dotRadiusScale = d3.scaleSqrt()    // data -> u
+        this.dotRadiusScale = d3
+          .scaleSqrt() // data -> u
           .domain([0, this.extent])
           .range([this.dotMinRadius, this.dotMaxRadius])
-          .clamp(true);
+          .clamp(true)
       }
     }
 
-    this.dotColorScale = d3.scaleLinear()
+    this.dotColorScale = d3
+      .scaleLinear()
       .domain(this.dotColorsDomain)
       .range(this.dotColors)
-      .clamp(true);
+      .clamp(true)
 
     // To get height to work, we're going to need to do some magic.
-    this._getDimensionsForData(this.imageData)
-      .then(function (dimensions) {
-        // Determine proper aspect ratio from loaded image
-        //@ts-ignore
-        brain.aspect = dimensions.width / dimensions.height;
-        // Use new aspect to get size
-        brain.autoResize();
-        // Call update to get dots
-        brain.update(null);
-      });
+    this._getDimensionsForData(this.imageData).then(function (dimensions) {
+      // Determine proper aspect ratio from loaded image
+      //@ts-ignore
+      brain.aspect = dimensions.width / dimensions.height
+      // Use new aspect to get size
+      brain.autoResize()
+      // Call update to get dots
+      brain.update(null)
+    })
 
     // Base SVG fills entire baseNode when possible.
-    this.brainSvg = d3.select(this.baseNodeId).append('svg')
-      .attr('class', 'fm-brain-svg');
+    this.brainSvg = d3
+      .select(this.baseNodeId)
+      .append('svg')
+      .attr('class', 'fm-brain-svg')
 
     // Group that holds everything
-    var g = this.brainSvg.append('g')
-      .attr('transform', 'translate(' + this.margin.left + ',' + this.margin.top + ')');
+    var g = this.brainSvg
+      .append('g')
+      .attr(
+        'transform',
+        'translate(' + this.margin.left + ',' + this.margin.top + ')'
+      )
 
     // Image element for brain
     // TODO Need to set width / height based on imageData?
@@ -225,170 +246,178 @@ export class BrainVisualizer{
       .attr('class', 'fm-brain-image')
       .attr('xlink:href', this.imageData)
       .attr('x', '0')
-      .attr('y', '0');
+      .attr('y', '0')
 
     // Group that holds dots
-    g.append('g')
-      .attr('class', 'fm-brain-dots');
+    g.append('g').attr('class', 'fm-brain-dots')
+  }
 
-  };
-
-  _dotFilter (d) {
+  _dotFilter(d) {
     // TODO Not a super effective filter ...
-    this._dotX(d) === undefined ? false : true;
-  };
+    this._dotX(d) === undefined ? false : true
+  }
 
-  _dotFill (d) {
-    return this.dotColorScale(d.value);
-  };
+  _dotFill(d) {
+    return this.dotColorScale(d.value)
+  }
 
-  _dotVisibility (d) {
-    d.channel == this.selectedChannel ? 'visible' : '';
+  _dotVisibility(d) {
+    d.channel == this.selectedChannel ? 'visible' : ''
 
     if (this.config == 'map') {
       if (d.value == 0) {
-        return 'hidden';
+        return 'hidden'
       }
-      return 'visible';
-
-    }
-    else {
+      return 'visible'
+    } else {
       if (this.doDotPowerThreshold) {
-        if (d.value > this.dotPowerThreshold[0] && d.value < this.dotPowerThreshold[1]) {
-          return 'hidden';
+        if (
+          d.value > this.dotPowerThreshold[0] &&
+          d.value < this.dotPowerThreshold[1]
+        ) {
+          return 'hidden'
         }
       } else {
         if (d.value == 0) {
-          return 'hidden';
+          return 'hidden'
         }
       }
-      return 'visible';
+      return 'visible'
     }
-  };
+  }
 
-  _dotX (d) {
-    var pos = this.sensorGeometry[d.channel];
+  _dotX(d) {
+    var pos = this.sensorGeometry[d.channel]
     // TODO Bad way to handle errors
     if (isNaN(pos.u)) {
-      return -this.dotXScale(this.dotMaxRadius);
+      return -this.dotXScale(this.dotMaxRadius)
     }
-    return this.dotXScale(pos.u);
-  };
+    return this.dotXScale(pos.u)
+  }
 
-  _dotY (d) {
-    var pos = this.sensorGeometry[d.channel];
+  _dotY(d) {
+    var pos = this.sensorGeometry[d.channel]
     // TODO Bad way to handle errors
     if (isNaN(pos.u)) {
-      return -this.dotXScale(this.dotMaxRadius);
+      return -this.dotXScale(this.dotMaxRadius)
     }
-    return this.dotYScale(pos.v);
-  };
+    return this.dotYScale(pos.v)
+  }
 
-  _dotRadius (d) {
+  _dotRadius(d) {
     // TODO Bad way to handle errors
     if (isNaN(d.value)) {
-      return this.dotXScale(this.dotRadiusScale(Math.abs(0.0)));
+      return this.dotXScale(this.dotRadiusScale(Math.abs(0.0)))
     }
-    return this.dotXScale(this.dotRadiusScale(Math.abs(d.value)));
-  };
+    return this.dotXScale(this.dotRadiusScale(Math.abs(d.value)))
+  }
 
-  _dotPosition (dot) {
-    dot.attr('visibility', this._dotVisibility.bind(this))
+  _dotPosition(dot) {
+    dot
+      .attr('visibility', this._dotVisibility.bind(this))
       .attr('cx', this._dotX.bind(this))
       .attr('cy', this._dotY.bind(this))
-      .attr('r', this._dotRadius.bind(this));
-  };
+      .attr('r', this._dotRadius.bind(this))
+  }
 
-  _dotOrder (a, b) {
+  _dotOrder(a, b) {
     // Selected channel is always on top
     if (a.channel == this.selectedChannel) {
-      return +1;
+      return +1
     }
     if (b.channel == this.selectedChannel) {
-      return -1;
+      return -1
     }
     // Smaller dots are on top
-    return this._dotRadius(b) - this._dotRadius(a);
-  };
+    return this._dotRadius(b) - this._dotRadius(a)
+  }
 
-  resize (width, height) {
+  resize(width, height) {
     if (!this.brainSvg) {
       // TODO Error?
-      return;
+      return
     }
-    this.size.width = width;
-    this.size.height = height;
+    this.size.width = width
+    this.size.height = height
     // Update scales
-    this.dotXScale.range([0, this.size.width]);
-    this.dotYScale.range([this.size.height, 0]);
+    this.dotXScale.range([0, this.size.width])
+    this.dotYScale.range([this.size.height, 0])
     // Update display
-    var baseSelection = d3.select(this.baseNodeId);
-    baseSelection.select('.fm-brain-svg')
+    var baseSelection = d3.select(this.baseNodeId)
+    baseSelection
+      .select('.fm-brain-svg')
       .attr('width', this.size.width + this.margin.left + this.margin.right)
-      .attr('height', this.size.height + this.margin.top + this.margin.bottom);
-    baseSelection.select('.fm-brain-image')
+      .attr('height', this.size.height + this.margin.top + this.margin.bottom)
+    baseSelection
+      .select('.fm-brain-image')
       .attr('width', this.size.width)
-      .attr('height', this.size.height);
-    baseSelection.selectAll('.fm-brain-dot')
+      .attr('height', this.size.height)
+    baseSelection
+      .selectAll('.fm-brain-dot')
       .call(this._dotPosition.bind(this))
-      .sort(this._dotOrder.bind(this));
-  };
+      .sort(this._dotOrder.bind(this))
+  }
 
-  autoResize () {
+  autoResize() {
     if (!this.aspect) {
       // Can't determine proper size without aspect ratio
-      return;
+      return
     }
 
     // TODO This requires the base node to  be visible because of how
     // jQuery works; so, setup must occur when plot is visible!
-    var width = $(this.baseNodeId).width() - (this.margin.left + this.margin.right);
-    var height = width / this.aspect;
+    var width =
+      $(this.baseNodeId).width() - (this.margin.left + this.margin.right)
+    var height = width / this.aspect
 
     if (width <= 0 || height <= 0) {
       // We're not visible so stfu and go away
-      return;
+      return
     }
-    this.resize(width, height);
-  };
+    this.resize(width, height)
+  }
 
-  update (newData) {
+  update(newData) {
     if (newData !== undefined) {
-      this.data = newData;
+      this.data = newData
     }
     if (!this.brainSvg) {
       // TODO Error?
-      return;
+      return
     }
-    var brain = this;
+    var brain = this
 
-    var brainDots = d3.select(this.baseNodeId).select('.fm-brain-dots').selectAll('.fm-brain-dot')
+    var brainDots = d3
+      .select(this.baseNodeId)
+      .select('.fm-brain-dots')
+      .selectAll('.fm-brain-dot')
       .data(this._reformatForDisplay(this.data), function (d) {
-        return d.channel;
-      });
+        return d.channel
+      })
 
-    brainDots.enter().append('circle')
+    brainDots
+      .enter()
+      .append('circle')
       .attr('class', 'fm-brain-dot')
       .merge(brainDots)
       .classed('fm-brain-dot-selected', function (d) {
-        return d.channel == brain.selectedChannel;
+        return d.channel == brain.selectedChannel
       })
       .style('fill', this._dotFill.bind(this))
       .call(this._dotPosition.bind(this))
-      .sort(this._dotOrder.bind(this));
+      .sort(this._dotOrder.bind(this))
+  }
 
-  };
-
-  setSelectedChannel (newChannel) {
+  setSelectedChannel(newChannel) {
     if (newChannel == this.selectedChannel) {
       // No update needed
-      return;
+      return
     }
     // Update internal state
-    this.selectedChannel = newChannel;
+    this.selectedChannel = newChannel
     // Call graphical update
-    this.update(null);
-  };
-};
+    this.update(null)
+  }
+}
 
-export default BrainVisualizer;
+export default BrainVisualizer

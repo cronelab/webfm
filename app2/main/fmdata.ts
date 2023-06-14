@@ -13,10 +13,10 @@
 //                                                 // polyfill on non-IE
 // const Promise = require( 'promise-polyfill' );    // Needed for IE Promise
 //                                                 // support
-import cronelib from "../../lib/cronelib"
+import {forEachAsync} from '../../lib/cronelib'
 // const cronelib = require( '../lib/cronelib' );
 // const fmstat = require( './fmstat' );
-
+import { Gaussian, ChannelStat } from './fmstat'
 // MODULE OBJECT
 
 export class Dataset {
@@ -26,10 +26,11 @@ export class Dataset {
   lineDisplayData: any
   _channelStats: any
   _clean: boolean
+  Gaussian: Gaussian
 
-  constructor() {
-    this.metadata = {}
-    this.contents = {}
+  constructor(metadata, contents) {
+    this.metadata = metadata
+    this.contents = contents
 
     this.displayData = {}
     this.lineDisplayData = {}
@@ -42,7 +43,7 @@ export class Dataset {
   _initialize(data) {
     var dataset = this
 
-    return this._validate(data)
+    return this._validate()
       .then(function (validatedData) {
         //@ts-ignore
         dataset.metadata = validatedData.metadata
@@ -57,11 +58,11 @@ export class Dataset {
       })
   }
 
-  _validate(data) {
+  _validate() {
+    var metadata = this.metadata
+    var contents = this.contents
     return new Promise(function (resolve, reject) {
       // Convenience
-      var metadata = data.metadata
-      var contents = data.contents
 
       // Make new copies for returning
       // TODO These aren't deep copies; should they be?
@@ -118,13 +119,14 @@ export class Dataset {
                 // Use the first estimator we find, since all
                 // should have the same data arrangement
                 // TODO Check for case when estimators is empty
-        //@ts-ignore
+                //@ts-ignore
 
                 var estimatorKeys = Object.keys(content.stats.estimators)
                 var firstEstimatorKeys = Object.keys(
-        //@ts-ignore
-        content.stats.estimators[estimatorKeys[0]]
+                  //@ts-ignore
+                  content.stats.estimators[estimatorKeys[0]]
                 )
+                console.log(firstEstimatorKeys)
                 newMetadata.montage = montageFromKeys(firstEstimatorKeys)
               } else {
                 // Absolutely no way to reconstruct a montage
@@ -195,7 +197,7 @@ export class Dataset {
       if (stats.distribution.toLowerCase() == 'gaussian') {
         var channels = Object.keys(stats.estimators.mean)
 
-        channels.forEach(function (ch) {
+        channels.forEach( (ch) => {
           // Convenience
           var mean = stats.estimators.mean[ch]
           var variance = stats.estimators.variance[ch]
@@ -208,13 +210,13 @@ export class Dataset {
             var baselineMean = stats.baseline.mean[ch]
             var baselineVariance = stats.baseline.variance[ch]
             var baselineCount = stats.baseline.count[ch]
-
-            var statValues = mean.map(function (d, i) {
-              return new this.Gaussian(mean[i], variance[i], count[i])
+            console.log(dataset);
+            var statValues = mean.map((d, i) => {
+              return new Gaussian(mean[i], variance[i], count[i])
             })
 
-            dataset._channelStats[ch] = new this.ChannelStat({
-              baseline: new this.Gaussian(
+            dataset._channelStats[ch] = new ChannelStat({
+              baseline: new Gaussian(
                 baselineMean,
                 baselineVariance,
                 baselineCount
@@ -223,8 +225,8 @@ export class Dataset {
             })
           } else {
             // TODO ChannelStat overkill for single datum?
-            dataset._channelStats[ch] = new this.ChannelStat({
-              values: [new this.Gaussian(mean, variance, count)],
+            dataset._channelStats[ch] = new ChannelStat({
+              values: [new Gaussian(mean, variance, count)],
             })
           }
         })
@@ -321,7 +323,7 @@ export class Dataset {
       // this.lineDisplayData = this.contents.trials[this.contents.trials.length-1]
       // return Promise.resolve();
 
-      return cronelib.forEachAsync(
+      return forEachAsync(
         Object.keys(this._channelStats),
         function (ch) {
           dataset.displayData[ch] =
@@ -334,136 +336,136 @@ export class Dataset {
     }
   }
 
-  _updateContentsStats() {
-    var dataset = this
+  // _updateContentsStats() {
+  //   var dataset = this
 
-    // TODO This notation may not be strict enough ...
-    this.contents.stats = this.contents.stats || {}
-    // TODO ... may require this
-    // if ( this.contents.stats === undefined ) {
-    //     this.contents.stats = {};
-    // }
+  //   // TODO This notation may not be strict enough ...
+  //   this.contents.stats = this.contents.stats || {}
+  //   // TODO ... may require this
+  //   // if ( this.contents.stats === undefined ) {
+  //   //     this.contents.stats = {};
+  //   // }
 
-    // TODO Hard-coded to be Gaussian at present
-    this.contents.stats.distribution = 'gaussian'
+  //   // TODO Hard-coded to be Gaussian at present
+  //   this.contents.stats.distribution = 'gaussian'
 
-    this.contents.stats.baseline = this.contents.stats.baseline || {}
-    this.contents.stats.baseline.mean = this.contents.stats.baseline.mean || {}
-    this.contents.stats.baseline.variance =
-      this.contents.stats.baseline.variance || {}
-    this.contents.stats.baseline.count =
-      this.contents.stats.baseline.count || {}
+  //   this.contents.stats.baseline = this.contents.stats.baseline || {}
+  //   this.contents.stats.baseline.mean = this.contents.stats.baseline.mean || {}
+  //   this.contents.stats.baseline.variance =
+  //     this.contents.stats.baseline.variance || {}
+  //   this.contents.stats.baseline.count =
+  //     this.contents.stats.baseline.count || {}
 
-    this.contents.stats.estimators = this.contents.stats.estimators || {}
-    this.contents.stats.estimators.mean =
-      this.contents.stats.estimators.mean || {}
-    this.contents.stats.estimators.variance =
-      this.contents.stats.estimators.variance || {}
-    this.contents.stats.estimators.count =
-      this.contents.stats.estimators.count || {}
+  //   this.contents.stats.estimators = this.contents.stats.estimators || {}
+  //   this.contents.stats.estimators.mean =
+  //     this.contents.stats.estimators.mean || {}
+  //   this.contents.stats.estimators.variance =
+  //     this.contents.stats.estimators.variance || {}
+  //   this.contents.stats.estimators.count =
+  //     this.contents.stats.estimators.count || {}
 
-    Object.keys(this._channelStats).forEach(function (ch) {
-      dataset.contents.stats.baseline.mean[ch] =
-        dataset._channelStats[ch].baseline.mean
-      dataset.contents.stats.baseline.variance[ch] =
-        dataset._channelStats[ch].baseline.variance
-      dataset.contents.stats.baseline.count[ch] =
-        dataset._channelStats[ch].baseline.count
+  //   Object.keys(this._channelStats).forEach(function (ch) {
+  //     dataset.contents.stats.baseline.mean[ch] =
+  //       dataset._channelStats[ch].baseline.mean
+  //     dataset.contents.stats.baseline.variance[ch] =
+  //       dataset._channelStats[ch].baseline.variance
+  //     dataset.contents.stats.baseline.count[ch] =
+  //       dataset._channelStats[ch].baseline.count
 
-      var values = dataset._channelStats[ch].values
+  //     var values = dataset._channelStats[ch].values
 
-      if (!values) {
-        dataset.contents.stats.estimators.mean[ch] = undefined
-        dataset.contents.stats.estimators.variance[ch] = undefined
-        dataset.contents.stats.estimators.count[ch] = undefined
+  //     if (!values) {
+  //       dataset.contents.stats.estimators.mean[ch] = undefined
+  //       dataset.contents.stats.estimators.variance[ch] = undefined
+  //       dataset.contents.stats.estimators.count[ch] = undefined
 
-        return
-      }
+  //       return
+  //     }
 
-      var extractor = function (estimator) {
-        return function (v) {
-          return v[estimator]
-        }
-      }
+  //     var extractor = function (estimator) {
+  //       return function (v) {
+  //         return v[estimator]
+  //       }
+  //     }
 
-      if (!Array.isArray(values)) {
-        dataset.contents.stats.estimators.mean[ch] = extractor('mean')(values)
-        dataset.contents.stats.estimators.variance[ch] =
-          extractor('variance')(values)
-        dataset.contents.stats.estimators.count[ch] = extractor('count')(values)
+  //     if (!Array.isArray(values)) {
+  //       dataset.contents.stats.estimators.mean[ch] = extractor('mean')(values)
+  //       dataset.contents.stats.estimators.variance[ch] =
+  //         extractor('variance')(values)
+  //       dataset.contents.stats.estimators.count[ch] = extractor('count')(values)
 
-        return
-      }
+  //       return
+  //     }
 
-      dataset.contents.stats.estimators.mean[ch] = values.map(extractor('mean'))
-      dataset.contents.stats.estimators.variance[ch] = values.map(
-        extractor('variance')
-      )
-      dataset.contents.stats.estimators.count[ch] = values.map(
-        extractor('count')
-      )
-    })
-  }
+  //     dataset.contents.stats.estimators.mean[ch] = values.map(extractor('mean'))
+  //     dataset.contents.stats.estimators.variance[ch] = values.map(
+  //       extractor('variance')
+  //     )
+  //     dataset.contents.stats.estimators.count[ch] = values.map(
+  //       extractor('count')
+  //     )
+  //   })
+  // }
 
-  get(uri) {
-    var dataset = this
+  // get(uri) {
+  //   var dataset = this
 
-    // Wrap $.getJSOn in a standardized Promise
-    return new Promise(function (resolve, reject) {
-      $.getJSON(uri)
-        .done(resolve)
-        .fail(function () {
-          // TODO Get error message from jQuery promise
-          reject('Error requesting WebFM file: ' + uri)
-        })
-    }).then(function (data) {
-      // Once we've got the data, initialize
-      dataset._clean = true // We've just loaded, so we're clean
-      return dataset._initialize(data)
-    })
-  }
+  //   // Wrap $.getJSOn in a standardized Promise
+  //   return new Promise(function (resolve, reject) {
+  //     $.getJSON(uri)
+  //       .done(resolve)
+  //       .fail(function () {
+  //         // TODO Get error message from jQuery promise
+  //         reject('Error requesting WebFM file: ' + uri)
+  //       })
+  //   }).then(function (data) {
+  //     // Once we've got the data, initialize
+  //     dataset._clean = true // We've just loaded, so we're clean
+  //     return dataset._initialize(data)
+  //   })
+  // }
 
-  put(url, opts) {
-    // Merge defaults
-    var options = {
-      import: false,
-    }
-    if (opts) {
-      Object.assign(options, opts)
-    }
+  // put(url, opts) {
+  //   // Merge defaults
+  //   var options = {
+  //     import: false,
+  //   }
+  //   if (opts) {
+  //     Object.assign(options, opts)
+  //   }
 
-    var dataset = this
+  //   var dataset = this
 
-    return new Promise(function (resolve, reject) {
-      // Deep copy
-      var dataToSend = JSON.parse(
-        JSON.stringify({
-          metadata: dataset.metadata,
-          contents: dataset.contents,
-        })
-      )
+  //   return new Promise(function (resolve, reject) {
+  //     // Deep copy
+  //     var dataToSend = JSON.parse(
+  //       JSON.stringify({
+  //         metadata: dataset.metadata,
+  //         contents: dataset.contents,
+  //       })
+  //     )
 
-      if (options.import) {
-        dataToSend.metadata['_import'] = options.import
-      }
+  //     if (options.import) {
+  //       dataToSend.metadata['_import'] = options.import
+  //     }
 
-      // TODO Doing two stringifys to support re-writing of _import
-      // Better way?
+  //     // TODO Doing two stringifys to support re-writing of _import
+  //     // Better way?
 
-      $.ajax({
-        url: url,
-        method: 'PUT',
-        data: JSON.stringify(dataToSend),
-      })
-        .done(function (data) {
-          dataset._clean = true // We just put, so everything is clean
-          resolve(data)
-        })
-        .fail(function (req, reason, err) {
-          reject('Error putting WebFM file to ' + url + ': ' + reason)
-        })
-    })
-  }
+  //     $.ajax({
+  //       url: url,
+  //       method: 'PUT',
+  //       data: JSON.stringify(dataToSend),
+  //     })
+  //       .done(function (data) {
+  //         dataset._clean = true // We just put, so everything is clean
+  //         resolve(data)
+  //       })
+  //       .fail(function (req, reason, err) {
+  //         reject('Error putting WebFM file to ' + url + ': ' + reason)
+  //       })
+  //   })
+  // }
 
   setupChannels(channels) {
     var dataset = this
@@ -692,7 +694,7 @@ export class Dataset {
 }
 
 // DATABUNDLE CLASS
-export default Dataset;
+export default Dataset
 // fmdata.DataBundle = function () {
 //   // TODO ...
 // }

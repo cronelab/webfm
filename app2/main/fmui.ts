@@ -8,7 +8,7 @@
 // REQUIRES
 import * as $ from 'jquery'
 import Cookies from 'js-cookie'
-import cronelib from '../../lib/cronelib'
+import * as cronelib from '../../lib/cronelib'
 import fullscreen from '../../lib/fullscreen'
 import BrainVisualizer from './fmbrain'
 import fmbrain3 from './fmbrain3'
@@ -22,16 +22,16 @@ var ENTER_KEY = 13 // TODO Should probably go in config
 // MODULE OBJECT
 export class InterfaceManager {
   config: any
-    manager: any
-    icons: any
-    allChannels: any
-    // raster: any
-    // brain: any
-    // brain3: any
-    scope: any
-    lines: any
-    onoptionchange: any
-    onsave: any
+  manager: any
+  icons: any
+  allChannels: any
+  // raster: any
+  // brain: any
+  // brain3: any
+  scope: any
+  lines: any
+  onoptionchange: any
+  onsave: any
   constructor() {
     this.config = {}
     this.manager = this
@@ -49,7 +49,7 @@ export class InterfaceManager {
     this.onsave = function (saveName) {}
   }
 
-  loadConfig (configURI) {
+  loadConfig(configURI) {
     var manager = this // Cache this for nested functions
 
     // Wrap $.getJSON in a standard Promise
@@ -64,14 +64,14 @@ export class InterfaceManager {
       manager.config = data
       manager.setup()
     })
-  };
+  }
 
-//   _syncRasterConfig() {
-//     this.raster.setRowHeight(this.getRowHeight())
-//     this.raster.setExtent(this.getRasterExtent())
-//   };
+  //   _syncRasterConfig() {
+  //     this.raster.setRowHeight(this.getRowHeight())
+  //     this.raster.setExtent(this.getRasterExtent())
+  //   };
 
-  _mergeDefaultConfig (config) {
+  _mergeDefaultConfig(config) {
     // Copy over any extras that might not be merged here
     var mergedConfig = config
 
@@ -98,9 +98,9 @@ export class InterfaceManager {
     mergedConfig.chartDebounceDelay = config.chartDebounceDelay || 100
 
     return mergedConfig
-  };
+  }
 
-  setup () {
+  setup() {
     var manager = this // Capture this
 
     // Incorporate the defaults with whatever we've loaded
@@ -116,13 +116,13 @@ export class InterfaceManager {
     // Populate options with the current cookie-set values
     this._populateOptions(this.getOptions())
     if (document.title.indexOf('WebFM: Map') >= 0) {
-    //   this.raster.setup() // TODO Always will fail for charts until
+      //   this.raster.setup() // TODO Always will fail for charts until
       // this.lines.setup();
-    //   this._syncRasterConfig()
+      //   this._syncRasterConfig()
     }
-  };
+  }
 
-  rewireButtons () {
+  rewireButtons() {
     var manager = this
 
     $('.fm-zoom-in').on('click', function (event) {
@@ -186,9 +186,9 @@ export class InterfaceManager {
           $(this).removeClass('active')
         }
       })
-  };
+  }
 
-  rewireForms () {
+  rewireForms() {
     var manager = this // Capture this
 
     // TODO Use classes rather than ids?
@@ -289,16 +289,16 @@ export class InterfaceManager {
     $('#fm-option-scope-max').on('change', function (event) {
       manager.updateScopeMax(this.value == '' ? null : +this.value)
     })
-  };
+  }
 
-  showIcon (iconName) {
+  showIcon(iconName) {
     // If properties aren't set, use 0
     // TODO Necessary? We guarantee merged defaults when loading ...
     var showDuration = this.config.iconShowDuration || 0
     $('.fm-' + iconName + '-icon').show(showDuration)
-  };
+  }
 
-  hideIcon (iconName) {
+  hideIcon(iconName) {
     // If properties aren't set, use 0
     // TODO As above.
     var hideDelay = this.config.iconHideDelay || 0
@@ -307,13 +307,13 @@ export class InterfaceManager {
     setTimeout(function () {
       $('.fm-' + iconName + '-icon').hide(hideDuration)
     }, hideDelay)
-  };
+  }
 
-  updateRaster (guarantee) {
+  updateRaster(guarantee) {
     var manager = this
 
     var updater = function () {
-    //   manager.raster.update()
+      //   manager.raster.update()
     }
 
     if (guarantee) {
@@ -323,9 +323,9 @@ export class InterfaceManager {
       // Debounce the update calls to prevent overload
       cronelib.debounce(updater, this.config.rasterDebounceDelay, true)()
     }
-  };
+  }
 
-  updateScope (guarantee) {
+  updateScope(guarantee) {
     var manager = this
 
     var updater = function () {
@@ -340,21 +340,21 @@ export class InterfaceManager {
       // Debounce the update calls to prevent overload
       cronelib.debounce(updater, this.config.scopeDebounceDelay, true)()
     }
-  };
+  }
 
-  updateBrain () {
+  updateBrain() {
     var manager = this
 
     cronelib.debounce(function () {
-    //   manager.brain.autoResize()
-    //   manager.brain.update()
-    //   manager.brain3.update()
+      //   manager.brain.autoResize()
+      //   manager.brain.update()
+      //   manager.brain3.update()
     }, this.config.brainDebounceDelay)()
-  };
+  }
 
   /* Button handlers */
 
-  _updateZoomClasses () {
+  _updateZoomClasses() {
     if (this.config.rowHeight >= this.config.maxRowHeight) {
       $('.fm-zoom-in').addClass('disabled')
     } else {
@@ -365,9 +365,9 @@ export class InterfaceManager {
     } else {
       $('.fm-zoom-out').removeClass('disabled')
     }
-  };
+  }
 
-  _updateGainClasses () {
+  _updateGainClasses() {
     if (this.config.rasterExtent >= this.config.maxRasterExtent) {
       $('.fm-gain-down').addClass('disabled')
     } else {
@@ -378,9 +378,9 @@ export class InterfaceManager {
     } else {
       $('.fm-gain-up').removeClass('disabled')
     }
-  };
+  }
 
-  zoomIn (event) {
+  zoomIn(event) {
     // Update UI-internal gain measure
     this.config.rowHeight = this.config.rowHeight + 1
     if (this.config.rowHeight > this.config.maxRowHeight) {
@@ -400,9 +400,9 @@ export class InterfaceManager {
     this.updateRaster(true)
     //Restore the scroll state
     $(document).scrollTop(this._topForScrollFraction(prevScrollFraction))
-  };
+  }
 
-  zoomOut (event) {
+  zoomOut(event) {
     // Update UI-internal gain measure
     this.config.rowHeight = this.config.rowHeight - 1
     if (this.config.rowHeight < 1) {
@@ -421,9 +421,9 @@ export class InterfaceManager {
     this.updateRaster(true)
     // Restore the scroll state
     $(document).scrollTop(this._topForScrollFraction(prevScrollFraction))
-  };
+  }
 
-  gainDown (event) {
+  gainDown(event) {
     // Update UI-internal gain measure
     this.config.rasterExtent = this.config.rasterExtent + 1
     if (this.config.rasterExtent > this.config.maxPlotExtent) {
@@ -439,9 +439,9 @@ export class InterfaceManager {
 
     // Redraw the raster with a guarantee
     this.updateRaster(true)
-  };
+  }
 
-  gainUp (event) {
+  gainUp(event) {
     // Update UI-internal gain measure
     this.config.rasterExtent = this.config.rasterExtent - 1
     if (this.config.rasterExtent < 1) {
@@ -456,17 +456,17 @@ export class InterfaceManager {
 
     // Redraw the raster with a guarantee
     this.updateRaster(true)
-  };
+  }
 
-  _getScrollFraction () {
+  _getScrollFraction() {
     return $(window).scrollTop() / ($(document).height() - $(window).height())
-  };
+  }
 
-  _topForScrollFraction (frac) {
+  _topForScrollFraction(frac) {
     return frac * ($(document).height() - $(window).height())
-  };
+  }
 
-  toggleFullscreen (event) {
+  toggleFullscreen(event) {
     fullscreen
       .toggle()
       .then(function (result) {
@@ -479,17 +479,17 @@ export class InterfaceManager {
       .catch(function (reason) {
         console.log('Could not toggle fullscreen: ' + reason)
       })
-  };
+  }
 
-  showOptions (event) {
+  showOptions(event) {
     $('#fm-options-modal').modal('show')
-  };
+  }
 
-  optionsHidden (event) {
+  optionsHidden(event) {
     this.scope.stop()
-  };
+  }
 
-  showOptionsTab (caller, event) {
+  showOptionsTab(caller, event) {
     // Show the caller's tab
     $(caller).tab('show')
 
@@ -512,9 +512,9 @@ export class InterfaceManager {
     // TODO Deactivation is with class behavior, but this is specific instance
     // Could cause de-synch behavior if multiple instances of class
     $(caller).addClass('active')
-  };
+  }
 
-  setModalSize (size, event) {
+  setModalSize(size, event) {
     console.log('Changing size to ' + size)
 
     if (size == 'lg') {
@@ -529,33 +529,32 @@ export class InterfaceManager {
 
     $('#fm-options-modal-dialog').removeClass('modal-lg modal-sm')
     return
-  };
+  }
 
-  updateScopeMin (newMin) {
+  updateScopeMin(newMin) {
     if (isNaN(newMin)) {
       return
     }
     this.scope.setMinTarget(newMin)
-  };
+  }
 
-  updateScopeMax (newMax) {
+  updateScopeMax(newMax) {
     if (isNaN(newMax)) {
       return
     }
     this.scope.setMaxTarget(newMax)
-  };
+  }
 
-  updateScopeChannel (newChannel) {
+  updateScopeChannel(newChannel) {
     this.scope.start(newChannel)
-  };
+  }
 
-
-  updateTaskName (newTaskName) {
+  updateTaskName(newTaskName) {
     $('.fm-task-name').text(newTaskName)
     $('#fm-option-save-name').val(newTaskName)
-  };
+  }
 
-  updateSubjectRecords (newRecords) {
+  updateSubjectRecords(newRecords) {
     // Clear list before populating it
     $('#fm-cloud-records-table').empty()
 
@@ -574,16 +573,16 @@ export class InterfaceManager {
     }
 
     newRecords.forEach(addRecordCell)
-  };
+  }
 
   // TODO nomenclature
-  updateSelectedTime (newTime) {
+  updateSelectedTime(newTime) {
     $('.fm-time-selected').text(
       (newTime > 0 ? '+' : '') + newTime.toFixed(3) + ' s'
     )
-  };
+  }
 
-  _populateOptions (options) {
+  _populateOptions(options) {
     // TODO We respond to option changes here; best time? Smarter way?
 
     // Stimulus windows
@@ -636,9 +635,9 @@ export class InterfaceManager {
     $('#fm-option-resp-state').val(options.response.state.name)
     $('#fm-option-resp-state-off').val(options.response.state.offValue)
     $('#fm-option-resp-state-on').val(options.response.state.onValue)
-  };
+  }
 
-  _populateMontageList (newChannelNames) {
+  _populateMontageList(newChannelNames) {
     var manager = this
 
     var exclusion = this.getExclusion()
@@ -683,17 +682,17 @@ export class InterfaceManager {
 
       montageBody.append(curRow)
     })
-  };
+  }
 
-  getRasterExtent () {
+  getRasterExtent() {
     return this.config.rasterExtent * this.config.unitsPerRasterExtent
-  };
+  }
 
-  getRowHeight () {
+  getRowHeight() {
     return this.config.rowHeight * this.config.pxPerRowHeight
-  };
+  }
 
-  getOptions () {
+  getOptions() {
     // Get the set options
     var options = Cookies.getJSON('options')
 
@@ -761,20 +760,20 @@ export class InterfaceManager {
     }
 
     return options
-  };
+  }
 
-  setOptions (options) {
+  setOptions(options) {
     Cookies.set('options', options, {
       expires: this.config.cookieExpirationDays,
     })
-  };
+  }
 
-  clearOptions () {
+  clearOptions() {
     Cookies.remove('options')
     this.getOptions()
-  };
+  }
 
-  getExclusion () {
+  getExclusion() {
     // Get the excluded channels
     var exclusion = Cookies.getJSON('exclusion')
 
@@ -788,38 +787,38 @@ export class InterfaceManager {
     }
 
     return exclusion
-  };
+  }
 
-  setExclusion (exclusion) {
+  setExclusion(exclusion) {
     Cookies.set('exclusion', exclusion, {
       expires: this.config.cookieExpirationDays,
     })
-  };
+  }
 
-  clearExclusion () {
+  clearExclusion() {
     Cookies.remove('exclusion')
     this.getExclusion()
-  };
+  }
 
-  exclude (channel) {
+  exclude(channel) {
     // TODO Check if channel is in allChannels?
     var exclusion = this.getExclusion()
     exclusion[channel] = true
     this.setExclusion(exclusion)
     // this.raster.setDisplayOrder(this.allChannels.filter(this.channelFilter()))
     this.lines.setDisplayOrder(this.allChannels.filter(this.channelFilter()))
-  };
+  }
 
-  unexclude (channel) {
+  unexclude(channel) {
     // TODO Better behavior: Check if channel is in exclusion, then delete
     var exclusion = this.getExclusion()
     exclusion[channel] = false
     this.setExclusion(exclusion)
     // this.raster.setDisplayOrder(this.allChannels.filter(this.channelFilter()))
     this.lines.setDisplayOrder(this.allChannels.filter(this.channelFilter()))
-  };
+  }
 
-  channelFilter () {
+  channelFilter() {
     var exclusion = this.getExclusion()
     return function (ch) {
       if (exclusion[ch] === undefined) {
@@ -827,12 +826,12 @@ export class InterfaceManager {
       }
       return !exclusion[ch]
     }
-  };
-  updateStimulusCode (stuff) {
+  }
+  updateStimulusCode(stuff) {
     this.lines.setTrialNumber(stuff)
-  };
+  }
 
-  updateChannelNames (newChannelNames) {
+  updateChannelNames(newChannelNames) {
     // Update our state
     this.allChannels = newChannelNames
 
@@ -842,7 +841,7 @@ export class InterfaceManager {
     // Update the raster with the filtered channel list
     // TODO Support different ordering, or just exclusion?
     if (document.title.indexOf('WebFM: Map') >= 0) {
-    //   this.raster.setDisplayOrder(this.allChannels.filter(this.channelFilter()))
+      //   this.raster.setDisplayOrder(this.allChannels.filter(this.channelFilter()))
       this.lines.setDisplayOrder(this.allChannels.filter(this.channelFilter()))
 
       var chNames = this.allChannels.filter(this.channelFilter())
@@ -858,21 +857,21 @@ export class InterfaceManager {
         document.getElementById('chanSel').appendChild(item)
       })
     }
-  };
+  }
 
-  activateTrialCount () {
+  activateTrialCount() {
     $('.fm-trial-label').addClass('fm-trial-label-active')
-  };
+  }
 
-  deactivateTrialCount () {
+  deactivateTrialCount() {
     $('.fm-trial-label').removeClass('fm-trial-label-active')
-  };
+  }
 
-  updateTrialCount (newCount) {
+  updateTrialCount(newCount) {
     $('.fm-trial-label').text('n = ' + newCount)
-  };
+  }
 
-  didResize () {
+  didResize() {
     if (document.title.indexOf('WebFM: Map') >= 0) {
       this.updateRaster(false)
     }
@@ -880,7 +879,7 @@ export class InterfaceManager {
 
     //this.updateBrain();
     // this.brain.autoResize()
-  };
+  }
 }
 
-export default InterfaceManager;
+export default InterfaceManager

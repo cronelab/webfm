@@ -9,37 +9,37 @@
 import * as d3 from 'd3'
 import * as $ from 'jquery'
 import horizonChart from '../../lib/horizon-chart-custom'
-d3.horizonChart = horizonChart()
-console.log(d3);
+// d3.horizonChart = horizonChart()
+// console.log(d3);
 // Add horizonChart to d3
 
 export class ChannelRaster {
-    baseNodeId: string
-    displayOrder: string[]
-    data: any
-    timeScale: any
-    oncursormove: (newTime: number) => void
-    onselectchannel: (newChannel: string) => void
-    selectedChannel: string
-    cursorSvg: any
-    cursorTime: number
-    cursorLocked: boolean
-    timeRange: number[]
-    cursorSize: {
-        width: number
-        height: number
-    }
-    chartMin: number
-    chartMax: number
-    channelHeight: number
-    channelHeightCutoff: number
-    chartMargin: {
-        top: number
-        right: number
-        bottom: number
-        left: number
-    }
-    rangeColors: string[]
+  baseNodeId: string
+  displayOrder: null
+  data: any
+  timeScale: any
+  oncursormove: (newTime: number) => void
+  onselectchannel: (newChannel: string) => void
+  selectedChannel: null
+  cursorSvg: any
+  cursorTime: number
+  cursorLocked: boolean
+  timeRange: null
+  cursorSize: {
+    width: number
+    height: number
+  }
+  chartMin: number
+  chartMax: number
+  channelHeight: number
+  channelHeightCutoff: number
+  chartMargin: {
+    top: number
+    right: number
+    bottom: number
+    left: number
+  }
+  rangeColors: string[]
 
   constructor(baseNodeId) {
     this.baseNodeId = baseNodeId // e.g., '#fm'
@@ -56,7 +56,7 @@ export class ChannelRaster {
     // Cursor
     this.selectedChannel = null
     this.cursorSvg = null
-    this.cursorTime = null
+    this.cursorTime = 0.0
     this.cursorLocked = false
     this.timeRange = null
     // TODO Config
@@ -212,7 +212,7 @@ export class ChannelRaster {
 
   setupCharts() {
     var dataHolder = []
-
+    console.log(this)
     if (!this.displayOrder) {
       // Can't.
       return
@@ -244,7 +244,7 @@ export class ChannelRaster {
     }
 
     // Set up horizon chart maker
-    var horizonChart = d3.horizonChart()
+    var horizonChart = horizonChart()
     console.log(horizonChart)
     // Join horizons to channels
     var horizons = d3
@@ -377,15 +377,15 @@ export class ChannelRaster {
       .classed('fm-horizon-small', function () {
         return raster.channelHeight <= raster.channelHeightCutoff
       })
-      // .each(function (d, i) {
-      //   // Call Horizon chart rendering
-      //   horizonChart
-      //     .title(d.channel)
-      //     .height(raster.channelHeight)
-      //     .step(step)
-      //     .extent([raster.chartMin, raster.chartMax])
-      //     .call(this, d.values)
-      // })
+    // .each(function (d, i) {
+    //   // Call Horizon chart rendering
+    //   horizonChart
+    //     .title(d.channel)
+    //     .height(raster.channelHeight)
+    //     .step(step)
+    //     .extent([raster.chartMin, raster.chartMax])
+    //     .call(this, d.values)
+    // })
 
     // Add unneeded horizons
     horizons.exit().remove()
@@ -429,6 +429,7 @@ export class ChannelRaster {
   _reformatData(data) {
     // Data passed in is a String -> Array dict.
     // Reformat to array of named pairs in display order.
+    //@ts-ignore
     return this.displayOrder.map(function (ch) {
       // TODO Error checking
       return {
