@@ -11,7 +11,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 export const Header = () => {
   const { sourceAddress, onlineState } = useAppSelector(state => state.online)
-
+  const subject = useAppSelector(state => state.subjects.currentSubject)
   const [localAddress, setLocalAddress] = useState(sourceAddress)
 
   const dispatch = useAppDispatch()
@@ -24,6 +24,7 @@ export const Header = () => {
               WebFM
             </Navbar.Brand>
           </Link>{' '}
+          {subject}
           <Navbar.Toggle aria-controls={`offcanvasNavbar-expand-${false}`} />
           <Navbar.Offcanvas
             id={`offcanvasNavbar-expand-${false}`}

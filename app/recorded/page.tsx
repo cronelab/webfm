@@ -1,53 +1,38 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { Col, Container, Row } from 'react-bootstrap'
-import Brain from '../../components/Recorded/Brain'
-import Raster from '../../components/Recorded/Raster'
+
 import InterfaceManager from '../../app2/main/fmui'
-import Geometry from '../../components/Recorded/Geometry'
-import Dataset from '../../app2/main/fmdata';
-export const metadata = {
-  title: 'Recorded',
-}
+import Dataset from '../../app2/main/fmdata'
+import RecordingHeader from '../../components/Recorded/Navbar'
+import { Header } from '../../components/Shared/Header'
+
+import { store } from '../../app/redux/store'
+import { Provider } from 'react-redux'
+import RecordedContainer from '../../components/Recorded/RecordedContainer'
+
+// export const metadata = {
+//   title: 'Recorded',
+// }
 var uiManager = new InterfaceManager()
-let dataset = new Dataset();
 
 export default function Page() {
-  const [brainImage, setBrainImage] = useState()
-  const [sensorGeometry, setSensorGeometry] = useState(null)
-  useEffect(() => {
-    ;(async () => {
-      try {
-        let subject = 'CC01'
-        let record = '2022_09_01_Gestures_block1'
-        let req = await fetch(`/api/data/${subject}/${record}`)
-        let recordInfo = await req.json()
-        document.getElementsByClassName('fm-subject-name')[0].innerHTML =
-          recordInfo.metadata.subject
-        setBrainImage(recordInfo.metadata.brainImage)
-        setSensorGeometry(recordInfo.metadata.sensorGeometry)
-      } catch (err) {
-        console.log(err)
-      }
-    })()
 
+  useEffect(() => {
     return () => {
       //   if (!dataset.isClean()) {
-      alert(
-        'There are unsaved changes to your map. Are you sure you want to leave?'
-      )
+      // alert(
+      //   'There are unsaved changes to your map. Are you sure you want to leave?'
+      // )
       //   }
     }
   }, [])
 
-  useEffect(() => {
-    if (brainImage && sensorGeometry) {
-    }
-  }, [brainImage, sensorGeometry])
-
   return (
-    <>
-      {/* 
+    <Provider store={store}>
+      <Header />
+      <RecordingHeader />
+      <RecordedContainer />
+      {/*
     function saveValues() {
       let raster = document.getElementById("fm");
       let maxVals = [];
@@ -176,28 +161,6 @@ export default function Page() {
   <div id="modals"></div>
 
   <!-- Main content --> */}
-      <Container fluid style={{ height: '86vh' }}>
-        <Row style={{ height: '86vh' }}>
-          <Col md={5} sm={5}>
-            <Raster />
-            <h1>test</h1>
-          </Col>
-          <Col style={{ position: 'relative', padding: 0 }} md={7} sm={7}>
-            {brainImage ? (
-              <div style={{ objectFit: 'contain' }}>
-                {sensorGeometry ? (
-                  <Geometry geometry={sensorGeometry} />
-                ) : (
-                  <></>
-                )}
-                <Brain image={brainImage} />
-              </div>
-            ) : (
-              <></>
-            )}
-          </Col>
-        </Row>
-      </Container>
 
       {/* <script>
     var twoDBrain = document.getElementById("fm-brain");
@@ -291,6 +254,6 @@ export default function Page() {
     //     });
     // </script>
   </footer> */}
-    </>
+    </Provider>
   )
 }
